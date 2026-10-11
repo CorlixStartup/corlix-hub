@@ -55,6 +55,9 @@ page 19 (
                 t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
             ]
         }
+        headerAndFooter {
+            headerText: Formações de &P19_NM_COLABORADOR.
+        }
         link {
             linkColumn: customTarget
             target: {
@@ -397,6 +400,87 @@ page 19 (
             borderWidth: 0.5
             borderColor: #666666
         }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn BL_ANEXO (
+                sequence: 11
+            )
+
+            displayColumn DS_INSTITUICAO (
+                sequence: 5
+            )
+
+            displayColumn DS_LINK (
+                sequence: 14
+            )
+
+            displayColumn DS_MIME_TYPE (
+                sequence: 12
+            )
+
+            displayColumn DS_NOME_ARQUIVO (
+                sequence: 13
+            )
+
+            displayColumn DS_TITULO (
+                sequence: 6
+            )
+
+            displayColumn DT_ALTERACAO (
+                sequence: 17
+            )
+
+            displayColumn DT_CONCLUSAO (
+                sequence: 8
+            )
+
+            displayColumn DT_CRIACAO (
+                sequence: 15
+            )
+
+            displayColumn DT_INICIO (
+                sequence: 7
+            )
+
+            displayColumn DT_VALIDADE (
+                sequence: 9
+            )
+
+            displayColumn ID_COLABORADOR (
+                sequence: 3
+            )
+
+            displayColumn ID_EMPRESA (
+                sequence: 2
+            )
+
+            displayColumn ID_FORMACAO (
+                sequence: 1
+            )
+
+            displayColumn NR_CARGA_HORARIA (
+                sequence: 10
+            )
+
+            displayColumn TP_FORMACAO (
+                sequence: 4
+            )
+
+            displayColumn USR_ALTERACAO (
+                sequence: 18
+            )
+
+            displayColumn USR_CRIACAO (
+                sequence: 16
+            )
+
+        )
+
     )
 
     pageItem P19_ID_COLABORADOR (
@@ -404,6 +488,24 @@ page 19 (
         layout {
             sequence: 20
             slot: body
+        }
+    )
+
+    pageItem P19_NM_COLABORADOR (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: body
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue:
+                ```sql
+                select nome_completo
+                  from colaborador
+                 where id_colaborador = :P19_ID_COLABORADOR
+                   and id_empresa     = :G_ID_EMPRESA
+                ```
         }
     )
 

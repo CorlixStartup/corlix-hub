@@ -208,14 +208,11 @@ LEFT JOIN "CANAL"    c ON c."ID_EQUIPE" = e."ID_EQUIPE" AND c."STATUS" = TRUE;
        c.data_de_nascimento,
        cg.nome as cargo,
        d.nome  as departamento,
-
-       '#APP_FILES#Fotos Colaboradores/' || c.foto_url as foto_url,
-
+       c.foto_url,
        case
          when c.imagem_perfil is not null then 'S'
          else 'N'
        end as tem_imagem
-
 from colaborador c
 join cargo cg on cg.id_cargo = c.id_cargo
 join departamento d on d.id_departamento = c.id_departamento

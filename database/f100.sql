@@ -37,7 +37,7 @@ prompt APPLICATION 100 - Corlix Hub
 --   Flashback:       0
 --   Export Type:     Application Export
 --     Pages:                     25
---       Items:                   96
+--       Items:                   97
 --       Validations:              6
 --       Processes:               30
 --       Regions:                 59
@@ -116,7 +116,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461323205038
-,p_version_scn=>'47047743663075'
+,p_version_scn=>'47047746219211'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -62804,6 +62804,7 @@ wwv_flow_imp_page.create_page_plug(
 ,p_prn_page_header_alignment=>'CENTER'
 ,p_prn_page_footer_alignment=>'CENTER'
 ,p_prn_border_color=>'#666666'
+,p_plug_header=>unistr('Forma\00E7\00F5es de &P19_NM_COLABORADOR.')
 ,p_ai_enabled=>false
 );
 wwv_flow_imp_page.create_worksheet(
@@ -63042,6 +63043,15 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_use_as_row_header=>'N'
 ,p_available_clientside=>'N'
 );
+wwv_flow_imp_page.create_worksheet_rpt(
+ p_id=>wwv_flow_imp.id(33902284159355560)
+,p_application_user=>'APXWS_DEFAULT'
+,p_report_seq=>10
+,p_report_alias=>'primary'
+,p_status=>'PUBLIC'
+,p_is_default=>'Y'
+,p_report_columns=>'ID_FORMACAO:ID_EMPRESA:ID_COLABORADOR:TP_FORMACAO:DS_INSTITUICAO:DS_TITULO:DT_INICIO:DT_CONCLUSAO:DT_VALIDADE:NR_CARGA_HORARIA:BL_ANEXO:DS_MIME_TYPE:DS_NOME_ARQUIVO:DS_LINK:DT_CRIACAO:USR_CRIACAO:DT_ALTERACAO:USR_ALTERACAO'
+);
 wwv_flow_imp_page.create_page_button(
  p_id=>wwv_flow_imp.id(33894563093136790)
 ,p_button_sequence=>10
@@ -63061,6 +63071,21 @@ wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(33810047732796725)
 ,p_name=>'P19_ID_COLABORADOR'
 ,p_item_sequence=>20
+,p_source_type=>'ALWAYS_NULL'
+,p_display_as=>'NATIVE_HIDDEN'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'value_protected', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(33896940327350901)
+,p_name=>'P19_NM_COLABORADOR'
+,p_item_sequence=>30
+,p_item_default=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'select nome_completo',
+'  from colaborador',
+' where id_colaborador = :P19_ID_COLABORADOR',
+'   and id_empresa     = :G_ID_EMPRESA'))
+,p_item_default_type=>'SQL_QUERY'
 ,p_source_type=>'ALWAYS_NULL'
 ,p_display_as=>'NATIVE_HIDDEN'
 ,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
@@ -64529,4 +64554,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:E9Drf56EDp8MvwJG2iYgHZMJh+r+mJw1epkTmdOtAKk=
+-- Application Checksum SH256:2JA1n6EQNKSiGeT1FPII8ikqN7+1RHEoT73N+n0zmrs=
