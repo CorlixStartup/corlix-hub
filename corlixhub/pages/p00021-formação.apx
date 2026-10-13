@@ -14,6 +14,7 @@ page 21 (
         cursorFocus: doNotFocusCursor
     }
     security {
+        authorizationScheme: @admin-rh
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
@@ -59,11 +60,20 @@ page 21 (
     pageItem P21_BL_ANEXO (
         type: fileUpload
         label {
-            label: Bl Anexo
-            alignment: right
+            label: Anexo (PDF ou imagem)
+            alignment: left
+        }
+        display {
+            downloadLinkText: Baixar anexo
+        }
+        storage {
+            mimeTypeColumn: DS_MIME_TYPE
+            filenameColumn: DS_NOME_ARQUIVO
+            fileTypes: .pdf,image/*
+            maxFileSize: 5120
         }
         layout {
-            sequence: 110
+            sequence: 130
             region: @formação
             slot: regionBody
             alignment: left
@@ -86,11 +96,11 @@ page 21 (
     pageItem P21_DS_INSTITUICAO (
         type: textField
         label {
-            label: Ds Instituicao
-            alignment: right
+            label: Instituição
+            alignment: left
         }
         layout {
-            sequence: 50
+            sequence: 70
             region: @formação
             slot: regionBody
             alignment: left
@@ -112,38 +122,10 @@ page 21 (
     )
 
     pageItem P21_DS_LINK (
-        type: textarea
-        label {
-            label: Ds Link
-            alignment: right
-        }
-        layout {
-            sequence: 140
-            region: @formação
-            slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/optional-floating
-            templateOptions: #DEFAULT#
-            width: 60
-            height: 4
-        }
-        validation {
-            maxLength: 1000
-        }
-        source {
-            formRegion: @formação
-            column: DS_LINK
-            dataType: varchar2
-        }
-    )
-
-    pageItem P21_DS_MIME_TYPE (
         type: textField
         label {
-            label: Ds Mime Type
-            alignment: right
+            label: Link (https://...)
+            alignment: left
         }
         layout {
             sequence: 120
@@ -154,54 +136,23 @@ page 21 (
         appearance {
             template: @/optional-floating
             templateOptions: #DEFAULT#
-            width: 32
-        }
-        validation {
-            maxLength: 255
+            width: 30
         }
         source {
             formRegion: @formação
-            column: DS_MIME_TYPE
-            dataType: varchar2
-        }
-    )
-
-    pageItem P21_DS_NOME_ARQUIVO (
-        type: textarea
-        label {
-            label: Ds Nome Arquivo
-            alignment: right
-        }
-        layout {
-            sequence: 130
-            region: @formação
-            slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/optional-floating
-            templateOptions: #DEFAULT#
-            width: 60
-            height: 4
-        }
-        validation {
-            maxLength: 400
-        }
-        source {
-            formRegion: @formação
-            column: DS_NOME_ARQUIVO
+            column: DS_LINK
             dataType: varchar2
         }
     )
 
     pageItem P21_DS_TITULO (
-        type: textarea
+        type: textField
         label {
-            label: Ds Titulo
-            alignment: right
+            label: Título
+            alignment: left
         }
         layout {
-            sequence: 60
+            sequence: 50
             region: @formação
             slot: regionBody
             alignment: left
@@ -210,7 +161,6 @@ page 21 (
             template: @/required-floating
             templateOptions: #DEFAULT#
             width: 60
-            height: 4
         }
         validation {
             valueRequired: true
@@ -223,41 +173,14 @@ page 21 (
         }
     )
 
-    pageItem P21_DT_ALTERACAO (
-        type: datePicker
-        label {
-            label: Dt Alteracao
-            alignment: right
-        }
-        layout {
-            sequence: 170
-            region: @formação
-            slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/optional-floating
-            templateOptions: #DEFAULT#
-            width: 32
-        }
-        validation {
-            maxLength: 255
-        }
-        source {
-            formRegion: @formação
-            column: DT_ALTERACAO
-            dataType: timestampWithTimeZone
-        }
-    )
-
     pageItem P21_DT_CONCLUSAO (
         type: datePicker
         label {
-            label: Dt Conclusao
-            alignment: right
+            label: Conclusão
+            alignment: left
         }
         layout {
-            sequence: 80
+            sequence: 90
             region: @formação
             slot: regionBody
             alignment: left
@@ -265,6 +188,7 @@ page 21 (
         appearance {
             template: @/optional-floating
             templateOptions: #DEFAULT#
+            formatMask: DD/MM/YYYY
             width: 32
         }
         validation {
@@ -277,42 +201,14 @@ page 21 (
         }
     )
 
-    pageItem P21_DT_CRIACAO (
-        type: datePicker
-        label {
-            label: Dt Criacao
-            alignment: right
-        }
-        layout {
-            sequence: 150
-            region: @formação
-            slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/required-floating
-            templateOptions: #DEFAULT#
-            width: 32
-        }
-        validation {
-            valueRequired: true
-            maxLength: 255
-        }
-        source {
-            formRegion: @formação
-            column: DT_CRIACAO
-            dataType: timestampWithTimeZone
-        }
-    )
-
     pageItem P21_DT_INICIO (
         type: datePicker
         label {
-            label: Dt Inicio
-            alignment: right
+            label: Início
+            alignment: left
         }
         layout {
-            sequence: 70
+            sequence: 80
             region: @formação
             slot: regionBody
             alignment: left
@@ -320,6 +216,7 @@ page 21 (
         appearance {
             template: @/optional-floating
             templateOptions: #DEFAULT#
+            formatMask: DD/MM/YYYY
             width: 32
         }
         validation {
@@ -335,11 +232,11 @@ page 21 (
     pageItem P21_DT_VALIDADE (
         type: datePicker
         label {
-            label: Dt Validade
-            alignment: right
+            label: Validade
+            alignment: left
         }
         layout {
-            sequence: 90
+            sequence: 100
             region: @formação
             slot: regionBody
             alignment: left
@@ -347,6 +244,7 @@ page 21 (
         appearance {
             template: @/optional-floating
             templateOptions: #DEFAULT#
+            formatMask: DD/MM/YYYY
             width: 32
         }
         validation {
@@ -360,57 +258,28 @@ page 21 (
     )
 
     pageItem P21_ID_COLABORADOR (
-        type: selectList
-        label {
-            label: Id Colaborador
-            alignment: right
-        }
-        lov {
-            type: sharedComponent
-            lov: @colaborador-nome-completo
-        }
+        type: hidden
         layout {
             sequence: 30
             region: @formação
             slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/required-floating
-            templateOptions: #DEFAULT#
-        }
-        validation {
-            valueRequired: true
         }
         source {
             formRegion: @formação
             column: ID_COLABORADOR
             dataType: number
         }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
     )
 
     pageItem P21_ID_EMPRESA (
-        type: selectList
-        label {
-            label: Id Empresa
-            alignment: right
-        }
-        lov {
-            type: sharedComponent
-            lov: @empresa-nome
-        }
+        type: hidden
         layout {
             sequence: 20
             region: @formação
             slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/required-floating
-            templateOptions: #DEFAULT#
-        }
-        validation {
-            valueRequired: true
         }
         source {
             formRegion: @formação
@@ -441,11 +310,11 @@ page 21 (
     pageItem P21_NR_CARGA_HORARIA (
         type: numberField
         label {
-            label: Nr Carga Horaria
-            alignment: right
+            label: Carga horária (h)
+            alignment: left
         }
         layout {
-            sequence: 100
+            sequence: 110
             region: @formação
             slot: regionBody
             alignment: left
@@ -466,10 +335,15 @@ page 21 (
     )
 
     pageItem P21_TP_FORMACAO (
-        type: textField
+        type: selectList
         label {
-            label: Tp Formacao
-            alignment: right
+            label: Tipo
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @lov-tipo-formacao
+            nullDisplayValue: - Selecione -
         }
         layout {
             sequence: 40
@@ -480,11 +354,10 @@ page 21 (
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
+            height: 1
         }
         validation {
             valueRequired: true
-            maxLength: 20
         }
         source {
             formRegion: @formação
@@ -493,64 +366,9 @@ page 21 (
         }
     )
 
-    pageItem P21_USR_ALTERACAO (
-        type: textField
-        label {
-            label: Usr Alteracao
-            alignment: right
-        }
-        layout {
-            sequence: 180
-            region: @formação
-            slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/optional-floating
-            templateOptions: #DEFAULT#
-            width: 32
-        }
-        validation {
-            maxLength: 255
-        }
-        source {
-            formRegion: @formação
-            column: USR_ALTERACAO
-            dataType: varchar2
-        }
-    )
-
-    pageItem P21_USR_CRIACAO (
-        type: textField
-        label {
-            label: Usr Criacao
-            alignment: right
-        }
-        layout {
-            sequence: 160
-            region: @formação
-            slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/required-floating
-            templateOptions: #DEFAULT#
-            width: 32
-        }
-        validation {
-            valueRequired: true
-            maxLength: 255
-        }
-        source {
-            formRegion: @formação
-            column: USR_CRIACAO
-            dataType: varchar2
-        }
-    )
-
     button cancel (
         buttonName: CANCEL
-        label: Cancel
+        label: Cancelar
         layout {
             sequence: 10
             region: @buttons
@@ -562,6 +380,9 @@ page 21 (
         }
         behavior {
             action: triggerAction
+        }
+        security {
+            authorizationScheme: @admin-rh
         }
 
         triggerAction native-dialog-cancel (
@@ -575,7 +396,7 @@ page 21 (
 
     button create (
         buttonName: CREATE
-        label: Create
+        label: Criar
         layout {
             sequence: 40
             region: @buttons
@@ -594,11 +415,14 @@ page 21 (
             type: itemIsNull
             item: P21_ID_FORMACAO
         }
+        security {
+            authorizationScheme: @admin-rh
+        }
     )
 
     button delete (
         buttonName: DELETE
-        label: Delete
+        label: Excluir
         layout {
             sequence: 20
             region: @buttons
@@ -622,11 +446,14 @@ page 21 (
             type: itemIsNotNull
             item: P21_ID_FORMACAO
         }
+        security {
+            authorizationScheme: @admin-rh
+        }
     )
 
     button save (
         buttonName: SAVE
-        label: Apply Changes
+        label: Salvar
         layout {
             sequence: 30
             region: @buttons
@@ -645,35 +472,111 @@ page 21 (
             type: itemIsNotNull
             item: P21_ID_FORMACAO
         }
-    )
-
-    validation p21-dt-alteracao-must-be-timestamp (
-        name: P21_DT_ALTERACAO must be timestamp
-        execution {
-            sequence: 160
-        }
-        validation {
-            type: itemIsAValidTimestamp
-            item: P21_DT_ALTERACAO
-        }
-        error {
-            errorMessage: #LABEL# must be a valid timestamp.
-            associatedItem: @P21_DT_ALTERACAO
+        security {
+            authorizationScheme: @admin-rh
         }
     )
 
-    validation p21-dt-criacao-must-be-timestamp (
-        name: P21_DT_CRIACAO must be timestamp
+    validation carga-horária (
+        name: Carga horária
         execution {
-            sequence: 140
+            sequence: 50
         }
         validation {
-            type: itemIsAValidTimestamp
-            item: P21_DT_CRIACAO
+            plsqlExpression: :P21_NR_CARGA_HORARIA is null or to_number(:P21_NR_CARGA_HORARIA) > 0
         }
         error {
-            errorMessage: #LABEL# must be a valid timestamp.
-            associatedItem: @P21_DT_CRIACAO
+            errorMessage: A carga horária deve ser maior que zero.
+            associatedItem: @P21_NR_CARGA_HORARIA
+        }
+    )
+
+    validation conclusão-depois-do-início (
+        name: Conclusão depois do início
+        execution {
+            sequence: 30
+        }
+        validation {
+            plsqlExpression: :P21_DT_CONCLUSAO is null or :P21_DT_INICIO is null or to_date(:P21_DT_CONCLUSAO, 'DD/MM/YYYY') >= to_date(:P21_DT_INICIO, 'DD/MM/YYYY')
+        }
+        error {
+            errorMessage: A conclusão não pode ser antes do início.
+            associatedItem: @P21_DT_CONCLUSAO
+        }
+    )
+
+    validation data-obrigatória (
+        name: Data obrigatória
+        execution {
+            sequence: 20
+        }
+        validation {
+            plsqlExpression: :P21_DT_INICIO is not null or :P21_DT_CONCLUSAO is not null
+        }
+        error {
+            errorMessage: Informe a data de início ou de conclusão.
+            associatedItem: @P21_DT_INICIO
+        }
+    )
+
+    validation formação-da-empresa (
+        name: Formação da empresa
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: functionBodyReturningBoolean
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                  l_qt pls_integer;
+                begin
+                  if :P21_ID_FORMACAO is not null then
+                    select count(*) into l_qt
+                      from formacao_colaborador
+                     where id_formacao = :P21_ID_FORMACAO
+                       and id_empresa  = :G_ID_EMPRESA;
+                  else
+                    select count(*) into l_qt
+                      from colaborador
+                     where id_colaborador = :P21_ID_COLABORADOR
+                       and id_empresa     = :G_ID_EMPRESA;
+                  end if;
+                  return l_qt = 1;
+                end;
+                ```
+            alwaysExecute: true
+        }
+        error {
+            errorMessage: Formação não encontrada.
+        }
+    )
+
+    validation link (
+        name: Link
+        execution {
+            sequence: 60
+        }
+        validation {
+            plsqlExpression: :P21_DS_LINK is null or regexp_like(:P21_DS_LINK, '^https?://', 'i')
+        }
+        error {
+            errorMessage: O link deve começar com http:// ou https://.
+            associatedItem: @P21_DS_LINK
+        }
+    )
+
+    validation validade (
+        name: Validade
+        execution {
+            sequence: 40
+        }
+        validation {
+            plsqlExpression: :P21_DT_VALIDADE is null or to_date(:P21_DT_VALIDADE, 'DD/MM/YYYY') >= to_date(coalesce(:P21_DT_CONCLUSAO, :P21_DT_INICIO), 'DD/MM/YYYY')
+        }
+        error {
+            errorMessage: A validade não pode ser antes da conclusão.
+            associatedItem: @P21_DT_VALIDADE
         }
     )
 
@@ -681,7 +584,7 @@ page 21 (
         name: Close Dialog
         type: closeDialog
         execution {
-            sequence: 50
+            sequence: 30
         }
         advanced {
             executionMappingIdentifier: 33885343087136618
@@ -689,6 +592,24 @@ page 21 (
         serverSideCondition {
             type: requestIsContainedInValue
             value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process empresa-da-sessão (
+        name: Empresa da sessão
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                :P21_ID_EMPRESA := :G_ID_EMPRESA;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 33898273578350914
         }
     )
 
@@ -710,7 +631,7 @@ page 21 (
         type: formAutoRowProcessing
         formRegion: @formação
         execution {
-            sequence: 10
+            sequence: 20
         }
         advanced {
             executionMappingIdentifier: 33884964000136617

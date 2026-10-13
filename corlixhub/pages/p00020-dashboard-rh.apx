@@ -3,38 +3,253 @@ page 20 (
     alias: DASHBOARD-RH
     title: Dashboard RH
     appearance {
-        pageTemplate: @corlix-standard-page
+        pageTemplate: @/standard
         templateOptions: #DEFAULT#
     }
     navigation {
         cursorFocus: doNotFocusCursor
     }
+    css {
+        fileUrls: #APP_FILES#historico-carreira#MIN#.css
+    }
     security {
+        authorizationScheme: @admin-rh
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
 
-    region breadcrumb (
-        name: Breadcrumb
-        type: breadcrumb
+    region cabeçalho (
+        name: Cabeçalho
+        type: staticContent
         source {
-            breadcrumb: @breadcrumb
+            htmlCode:
+                ```html
+                <div class="hc" data-hc>
+                  <header class="hc-titulo">
+                    <div>
+                      <h1>Dashboard RH</h1>
+                      <p>Promoções, turnover, tempo no cargo e formações a vencer no período escolhido.</p>
+                    </div>
+                  </header>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region grafico_promocoes (
+        name: Promoções por departamento
+        type: chart
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        chartAppearance {
+            orientation: horizontal
+        }
+        chartLayout {
+            height: 360
+        }
+        animation {
+            onDisplay: none
+        }
+        tooltip {
+            showSeriesName: false
+        }
+        legend {
+            show: false
+        }
+        messages {
+            whenNoDataFound: Nenhuma promoção no período.
+        }
+
+        series promoções (
+            name: Promoções
+            execution {
+                sequence: 10
+            }
+            source {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select coalesce(d.nome, '(sem departamento)') as departamento,
+                           count(*)                               as promocoes
+                      from vw_movimentacao_valida v
+                      left join departamento d
+                             on d.id_departamento = v.id_departamento_novo
+                     where v.id_empresa = :G_ID_EMPRESA
+                       and v.cd_tipo    = 'PROMOCAO'
+                       and v.dt_efetiva between to_date(:P20_DT_INICIO, 'DD/MM/YYYY')
+                                            and to_date(:P20_DT_FIM,    'DD/MM/YYYY')
+                     group by d.id_departamento, d.nome
+                     order by promocoes desc, departamento
+                    
+                    ```
+                pageItemsToSubmit: [
+                    P20_DT_INICIO
+                    P20_DT_FIM
+                ]
+            }
+            columnMapping {
+                label: DEPARTAMENTO
+                value: PROMOCOES
+            }
+            appearance {
+                color: #00688c
+            }
+            label {
+                show: true
+                position: outsideBarEdge
+            }
+        )
+
+        axis x (
+            name: x
+        )
+
+        axis y (
+            name: y
+            title: Promoções
+            value {
+                min: 0
+                format: decimal
+                decimalPlaces: 0
+                formatScaling: none
+            }
+            majorTicks {
+                minStep: 1
+            }
+            minorTicks {
+                show: false
+            }
+        )
+
+    )
+
+    region período (
+        name: Período
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--hideHeader js-addHiddenHeadingRoleDesc
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    pageItem P20_DT_FIM (
+        type: datePicker
+        label {
+            label: Até
+            alignment: left
+        }
+        settings {
+            minDate: item
+            minItem: P20_DT_INICIO
+        }
+        layout {
+            sequence: 20
+            region: @período
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            formatMask: DD/MM/YYYY
+            width: 30
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: expression
+            plsqlExpression: to_char(pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA), 'DD/MM/YYYY')
+        }
+    )
+
+    pageItem P20_DT_INICIO (
+        type: datePicker
+        label {
+            label: De
+            alignment: left
         }
         layout {
             sequence: 10
-            slot: breadcrumbBar
+            region: @período
+            slot: regionBody
+            alignment: left
         }
         appearance {
-            template: @/title-bar
-            templateOptions: [
-                #DEFAULT#
-                t-BreadcrumbRegion--useBreadcrumbTitle
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            formatMask: DD/MM/YYYY
+            width: 30
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                to_char(add_months(trunc(pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA), 'mm'), -11), 'DD/MM/YYYY')
+                
+                ```
+        }
+    )
+
+    dynamicAction período-mudou (
+        name: Período mudou
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: [
+                P20_DT_INICIO
+                P20_DT_FIM
             ]
         }
-        componentAppearance {
-            breadcrumbTemplate: @/breadcrumb
-            templateOptions: #DEFAULT#
+        clientSideCondition {
+            type: jsExpression
+            javaScriptExpression: $v('P20_DT_INICIO') && $v('P20_DT_FIM')
         }
+
+        action período-mudou-verdadeiro (
+            name: Período mudou - Verdadeiro
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @grafico_promocoes
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
     )
 
 )

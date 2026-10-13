@@ -136,16 +136,17 @@ page 13 (
         formAutoComplete: false
     }
 
-    region buttons-container (
-        name: Buttons Container
+    region hc_barra_rh (
+        name: Barra do RH
         type: staticContent
         layout {
             sequence: 10
             slot: body
         }
         appearance {
-            template: @/buttons-container
+            template: @/blank-with-attributes-no-grid
             templateOptions: #DEFAULT#
+            cssClasses: hc-barra-rh
         }
         security {
             authorizationScheme: @admin-rh
@@ -580,8 +581,8 @@ page 13 (
             displayNullValue: false
         }
         layout {
-            sequence: 30
-            region: @buttons-container
+            sequence: 10
+            region: @hc_barra_rh
             slot: regionBody
             alignment: left
         }
@@ -615,7 +616,7 @@ page 13 (
         label: Formações
         layout {
             sequence: 20
-            region: @buttons-container
+            region: @hc_barra_rh
             slot: regionBody
         }
         appearance {
@@ -637,8 +638,8 @@ page 13 (
         buttonName: NOVA_MOVIMENTACAO
         label: Nova movimentação
         layout {
-            sequence: 10
-            region: @buttons-container
+            sequence: 30
+            region: @hc_barra_rh
             slot: regionBody
         }
         appearance {
