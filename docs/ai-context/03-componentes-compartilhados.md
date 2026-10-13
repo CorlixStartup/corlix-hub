@@ -257,7 +257,7 @@ Paginação dos dois: padrão UT (`#PAGINATION_NEXT#` etc.).
 
 | Arquivo | Uso |
 |---|---|
-| `corlix-tema.css` / `corlix-tema.min.css` | Camada de tema (design system do Figma "Redwood Light (CorlixHub)"). Só redefine variáveis do UT (`--ut-*`, `--a-*`) e define tokens **`--cx-*`** (fonte da verdade: `--cx-primaria` = sky-120 `#00688C`, `--cx-primaria-hover`, `--cx-fundo`, `--cx-superficie`, `--cx-borda`, `--cx-texto`, `--cx-raio`, `--cx-raio-card`, `--cx-sucesso`, `--cx-alerta` ...). CSS de módulos (organograma, histórico-carreira) consomem esses tokens. **Novo, não commitado.** |
+| `corlix-tema.css` / `corlix-tema.min.css` | Camada de tema (design system do pen.dev "Redwood Light (CorlixHub)"). Só redefine variáveis do UT (`--ut-*`, `--a-*`) e define tokens **`--cx-*`** (fonte da verdade: `--cx-primaria` = sky-120 `#00688C`, `--cx-primaria-hover`, `--cx-fundo`, `--cx-superficie`, `--cx-borda`, `--cx-texto`, `--cx-raio`, `--cx-raio-card`, `--cx-sucesso`, `--cx-alerta` ...). CSS de módulos (organograma, histórico-carreira) consomem esses tokens. **Novo, não commitado.** |
 | `custom.css` / `custom.min.css` | Ajustes por página: overrides globais do UT, menu lateral (último item vai ao rodapé), header (`.corlix-header__search*`, `__actions`, `__icon-btn`, `__user*`, `__avatar`), card padrão (`.card-default`), Home (`.card-boas-vindas`, `.card-comunicados-oficiais`, `.card-meu-gestor`, `.links-rapidos-card`, `.card-aniversariantes`, `.popup-todos-aniversariantes`, `.figma-row`, `.cx-pessoa`), logs (`.log-descricao`, `.log-detalhe`). Modificado, não commitado. |
 | `default-user.jpeg` | Avatar padrão (fallback em `onerror` e em `APP_USER_FOTO`). |
 | `icons/app-icon-32.png`, `-144-rounded`, `-192`, `-256-rounded`, `-512` | Ícones do app/PWA; login (p9999) usa `#APP_FILES#icons/app-icon-512.png`. |
@@ -313,4 +313,4 @@ Fonte em `database/corlix-hub.sql` (spec + body). `gravar` usa `pragma autonomou
 - `corlixhub/shared-components/static-files.apx`: registrados `corlix-tema.css` e `corlix-tema.min.css` (arquivos novos, untracked, em `static-files/`).
 - `static-files/custom.css` e `custom.min.css` modificados (~350 linhas; refatoração para usar tokens `--cx-*`).
 - `database/f100.sql` modificado (+814/−510), incluindo `create_app_static_file` dos `corlix-tema*` e `p_css_file_urls` com os dois arquivos (ordem invertida, ver §12.1).
-- Também untracked: `modulos/tema/` (README/Etapas do tema, que documentam a ordem `corlix-tema` → `custom`), `modulos/historico-carreira/`, `figma/`, `scripts/apex-limpar-sql-scripts.sql` (remove SQL Scripts do workspace via `apex_application_files`, `c_dry_run` = true por padrão).
+- Também untracked: `modulos/tema/` (README/Etapas do tema, que documentam a ordem `corlix-tema` → `custom`), `modulos/historico-carreira/`, `pen_dev/`, `scripts/apex-limpar-sql-scripts.sql` (remove SQL Scripts do workspace via `apex_application_files`, `c_dry_run` = true por padrão).

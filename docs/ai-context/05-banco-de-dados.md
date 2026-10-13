@@ -234,7 +234,7 @@ Atenção: `07_testes.sql` insere em `EMPRESA` só `nome, nome_fantasia, cnpj, s
 
   - Os IDs foram atribuídos manualmente de 10 em 10 (a identity aceita valor explícito).
   - O nome do id 20 é um cargo ("Diretor… (CHRO)"). `modulos/perfis-acesso/02_seed_departamentos_cargos.sql` renomeia para "Diretoria de Recursos Humanos" e acerta as identities de `DEPARTAMENTO`, `CARGO` e `COLABORADOR` (`start with limit value`). Sem isso, inserir pela P14 dá `ORA-00001` na PK, porque os dados foram carregados com IDs manuais.
-  - Os nomes do Figma ("Operações", "Vendas", "Diretoria") e os do `07_testes.sql` são exemplos e não batem com estes.
+  - Os nomes do pen.dev ("Operações", "Vendas", "Diretoria") e os do `07_testes.sql` são exemplos e não batem com estes.
   - Para atualizar a lista: `select id_departamento, id_empresa, nome from departamento order by 1;` no banco.
 
 ### 3.3 `CARGO`

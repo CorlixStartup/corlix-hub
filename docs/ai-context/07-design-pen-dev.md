@@ -1,6 +1,6 @@
-# 07 · Design (Figma) — telas-alvo do redesign CorlixHub
+# 07 · Design (pen.dev) — telas-alvo do redesign CorlixHub
 
-> Fonte: PNGs em `figma/` (28 arquivos, 27 telas distintas) e `modulos/organograma/` (2 PNGs de redesign).
+> Fonte: PNGs em `pen_dev/` (28 arquivos, 27 telas distintas) e `modulos/organograma/` (2 PNGs de redesign).
 > Objetivo deste documento: permitir que uma IA implemente cada tela no Oracle APEX 26.1 (Universal Theme, estilo Redwood Light) **sem ver a imagem**.
 > Os dados exibidos nas telas (Sarah Silva, Rafael Nunes, Ana Beatriz Souza, Fernanda Lima etc.) são dados de exemplo/mock.
 > O CSS/tokens são detalhados em outro documento; aqui há só um resumo do Design System.
@@ -9,7 +9,7 @@
 
 ## 1. Tabela-resumo
 
-| # | Arquivo (figma/) | Tela | Página APEX correspondente | Prioridade aparente |
+| # | Arquivo (pen_dev/) | Tela | Página APEX correspondente | Prioridade aparente |
 |---|---|---|---|---|
 | 1 | `Design System · Redwood Light (CorlixHub).png` | Componentes, estados e estrutura da aplicação | Global (p00000 + tema / `corlix-tema.css`) | **Alta** (base de tudo) |
 | 2 | `Início.png` | Início (home) | p00001-home | **Alta** |
@@ -42,7 +42,7 @@
 | 29 | `Feedbacks · aba Enviados.png` | Feedbacks · aba Enviados | não implementada | Baixa |
 | 30 | `Feedbacks · dar feedback (Drawer).png` | Drawer "Dar feedback" | não implementada | Baixa |
 
-Páginas APEX existentes **sem tela no Figma**: p00004-chat, p00005/p00008-notificações, p00026-central-de-equipes, p00027-nova-equipe, p09999-login. Devem apenas herdar o tema/estrutura do Design System.
+Páginas APEX existentes **sem tela no pen.dev**: p00004-chat, p00005/p00008-notificações, p00026-central-de-equipes, p00027-nova-equipe, p09999-login. Devem apenas herdar o tema/estrutura do Design System.
 
 Prioridade: "Alta" = página já existe e o redesign é visual/estrutural; "Média" = página nova simples ou admin; "Baixa/Média" = depende de módulo inteiro sem backend (seção 5). Na tela de Configurações os toggles "Plano de desenvolvimento (PDI)", "Feedbacks", "Exportação em PDF", "Notificações" e "Links rápidos" aparecem **Inativos** e "Busca na intranet" e "Avaliações 360" **Ativos** — isso sugere a ordem pretendida de entrega.
 
@@ -181,7 +181,7 @@ As duas imagens são praticamente iguais; difere apenas o texto de ajuda inferio
 - **Breadcrumb de níveis** com ícone de hierarquia: "**Corlix** › Fernanda Lima" (níveis anteriores são links para voltar).
 - **Card da pessoa focada** (centralizado, borda azul petróleo 2px): avatar "FL", nome "Fernanda Lima", "CEO · Diretoria", etiqueta "Topo da hierarquia" à direita; linha "2 subordinados diretos · 5 pessoas na estrutura"; botões secundários lado a lado "👤 **Ver perfil**" e "💬 **Conversar**".
 - Conector em árvore (linha vertical + horizontal) até a fileira de **cards dos subordinados diretos** (2 lado a lado): parte superior avatar + nome em link azul + "Cargo · Departamento" (ex.: Ana Beatriz Souza — Gerente de operações · Operações; Camila Rocha — Gerente comercial · Vendas); rodapé do card separado por linha: mini-avatares sobrepostos (BC RN), "**Equipe · 2 pessoas**" / "Bruno Carvalho e Rafael Nunes", link "**Ver equipe →**" (desce um nível: a pessoa vira o card focado).
-- Ajuda (centro, cinza): "Clique em um card para ver os detalhes da pessoa ou em "Ver equipe" para descer um nível. Use o caminho acima para voltar. Contas inativas não aparecem." (versão `figma/`: "Selecione "Ver equipe" para descer um nível ou use o caminho acima para voltar. Contas inativas não aparecem.")
+- Ajuda (centro, cinza): "Clique em um card para ver os detalhes da pessoa ou em "Ver equipe" para descer um nível. Use o caminho acima para voltar. Contas inativas não aparecem." (versão `pen_dev/`: "Selecione "Ver equipe" para descer um nível ou use o caminho acima para voltar. Contas inativas não aparecem.")
 - Estados: quem não tem equipe não mostra rodapé "Ver equipe".
 **APEX**: item oculto `P3_FOCO` (id da pessoa); região Static Content/PL/SQL Dynamic Content ou **Cards** (1 para foco, 1 para filhos) com SQL `connect by`; breadcrumb dinâmico gerado por `sys_connect_by_path`; "Ver equipe" = link para a própria página com `P3_FOCO`. Já existe CSS/JS/SQL em `modulos/organograma/` (organograma.css/js/sql) e passo a passo em `Etapas-organograma.md`.
 

@@ -4,7 +4,7 @@
 > `corlixhub/shared-components/static-files/{corlix-tema,custom}.css` (+ `.min.css`),
 > `corlixhub/shared-components/themes/universal-theme/theme.apx`,
 > `.../page-templates/corlix-standard-page.apx`, `corlixhub/application.apx`,
-> `figma/Design System · Redwood Light (CorlixHub).png` e o grep das páginas `corlixhub/pages/*.apx`.
+> `pen_dev/Design System · Redwood Light (CorlixHub).png` e o grep das páginas `corlixhub/pages/*.apx`.
 > Estado descrito: working tree do branch `DEV` em 2026-10-06 (com mudanças **não commitadas**: ver §11).
 
 ---
@@ -15,9 +15,9 @@
   (`theme.apx` → `currentThemeStyle: @/redwood-light`). Não existe tema próprio nem estilo de Theme Roller salvo.
 - O "Tema Corlix" é **só uma camada CSS** por cima do Redwood Light: redefine variáveis do UT
   (`--ut-*`, `--a-*`, `--u-color-*`) a partir de tokens próprios `--cx-*`, mais alguns ajustes de componente.
-  Regra da prancha do Figma: *"use componentes nativos, Template Options e Theme Roller correspondentes;
+  Regra da prancha do pen.dev: *"use componentes nativos, Template Options e Theme Roller correspondentes;
   CSS próprio só onde o nativo não chega"*.
-- Fonte: **Oracle Sans** (a do Redwood, via `--a-base-font-family`). O Figma usa Figtree só como substituta — **não** importe Figtree.
+- Fonte: **Oracle Sans** (a do Redwood, via `--a-base-font-family`). O pen.dev usa Figtree só como substituta — **não** importe Figtree.
 - **Dark mode: não existe.** Nenhum arquivo tem `prefers-color-scheme` nem variante escura; a prancha só tem versão clara (README: "fora do escopo").
 
 ---
@@ -307,7 +307,7 @@ Uso: p1 Home (`cx-badge--info` no mês dos aniversariantes; `cx-etiqueta` no dep
 | Regiões | template **Standard**, título em frase normal ("Meu gestor", não "MEU GESTOR") |
 | Navegação | Navigation Menu nativo; grupo Administração com Authorization Scheme na entrada |
 
-Prancha (Figma) — conteúdo: Botões (Primária, Secundária, Terciária, Somente ícone, Hover, Foco teclado com anel azul, Desabilitado, Carregando "Salvando..."); Campos (Vazio, Preenchido, Foco com borda/label azul, Erro em vermelho com mensagem abaixo, Desabilitado, Switch, Checkbox); Status e etiquetas (Ativa verde, Inativa cinza, Erro vermelho, Aviso laranja, Informação azul; etiquetas Operações/Diretoria/Vendas); Feedback (alertas sucesso verde, aviso bege, erro rosa, info azul, com título + próxima ação e botão fechar); Navegação lateral (Padrão, Hover com fundo cinza, Ativo = fundo + barra azul + negrito, Grupo + subitem); Estados de região; Estrutura da aplicação (header com ☰ CorlixHub, busca "Buscar na intranet...", sino, avatar "SS Sarah Silva ▾"; menu do usuário com Meu perfil / Preferências / Sair; menu: Início, Comunicados, Chat, Pessoas › Colaboradores, Organograma, Minha equipe, Minhas aprovações [contador]; Minha carreira › Meu perfil, Avaliações, Resultados 360, Plano de desenvolvimento, Feedbacks; Administração › Empresas, Central de equipes, Monitor de logs, Configurações).
+Prancha (pen.dev) — conteúdo: Botões (Primária, Secundária, Terciária, Somente ícone, Hover, Foco teclado com anel azul, Desabilitado, Carregando "Salvando..."); Campos (Vazio, Preenchido, Foco com borda/label azul, Erro em vermelho com mensagem abaixo, Desabilitado, Switch, Checkbox); Status e etiquetas (Ativa verde, Inativa cinza, Erro vermelho, Aviso laranja, Informação azul; etiquetas Operações/Diretoria/Vendas); Feedback (alertas sucesso verde, aviso bege, erro rosa, info azul, com título + próxima ação e botão fechar); Navegação lateral (Padrão, Hover com fundo cinza, Ativo = fundo + barra azul + negrito, Grupo + subitem); Estados de região; Estrutura da aplicação (header com ☰ CorlixHub, busca "Buscar na intranet...", sino, avatar "SS Sarah Silva ▾"; menu do usuário com Meu perfil / Preferências / Sair; menu: Início, Comunicados, Chat, Pessoas › Colaboradores, Organograma, Minha equipe, Minhas aprovações [contador]; Minha carreira › Meu perfil, Avaliações, Resultados 360, Plano de desenvolvimento, Feedbacks; Administração › Empresas, Central de equipes, Monitor de logs, Configurações).
 
 Ícones do Navigation Menu propostos: Início `fa-home`, Comunicados `fa-bullhorn`, Chat `fa-comments-o`, Pessoas `fa-users`, Organograma `fa-sitemap`, Minha carreira `fa-briefcase`, Histórico de carreira `fa-history`, Administração `fa-shield`.
 
