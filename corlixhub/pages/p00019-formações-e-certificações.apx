@@ -9,6 +9,9 @@ page 19 (
     navigation {
         cursorFocus: doNotFocusCursor
     }
+    css {
+        fileUrls: #APP_FILES#historico-carreira#MIN#.css
+    }
     security {
         authorizationScheme: @admin-rh
         pageAccessProtection: argumentsMustHaveChecksum
@@ -23,29 +26,30 @@ page 19 (
             type: sqlQuery
             sqlQuery:
                 ```sql
-                select "ID_FORMACAO",
-                       "ID_EMPRESA",
-                       "ID_COLABORADOR",
-                       "TP_FORMACAO",
-                       "DS_INSTITUICAO",
-                       "DS_TITULO",
-                       "DT_INICIO",
-                       "DT_CONCLUSAO",
-                       "DT_VALIDADE",
-                       "NR_CARGA_HORARIA",
-                       sys.dbms_lob.getlength( "BL_ANEXO" ) "BL_ANEXO",
-                       "DS_MIME_TYPE",
-                       "DS_NOME_ARQUIVO",
-                       "DS_LINK",
-                       "DT_CRIACAO",
-                       "USR_CRIACAO",
-                       "DT_ALTERACAO",
-                       "USR_ALTERACAO"
-                  from "FORMACAO_COLABORADOR"
+                select f.id_formacao,
+                       f.tp_formacao,
+                       f.ds_titulo,
+                       f.ds_instituicao,
+                       f.dt_inicio,
+                       f.dt_conclusao,
+                       f.dt_validade,
+                       f.nr_carga_horaria,
+                       f.ds_link,
+                       f.ds_nome_arquivo,
+                       case
+                  when f.dt_validade <  pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA)      then 'VENCIDA'
+                  when f.dt_validade <= pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) + 60 then 'A VENCER'
+                end as ds_alerta_validade
+                  from formacao_colaborador f
+                 where f.id_colaborador = :P19_ID_COLABORADOR
+                   and f.id_empresa     = :G_ID_EMPRESA
+                 order by coalesce(f.dt_conclusao, f.dt_inicio) desc
+                
                 ```
+            pageItemsToSubmit: P19_ID_COLABORADOR
         }
         layout {
-            sequence: 10
+            sequence: 20
             slot: body
         }
         appearance {
@@ -55,9 +59,6 @@ page 19 (
                 t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
             ]
         }
-        headerAndFooter {
-            headerText: Formações de &P19_NM_COLABORADOR.
-        }
         link {
             linkColumn: customTarget
             target: {
@@ -65,6 +66,7 @@ page 19 (
                 items: {
                     P21_ID_FORMACAO: \#ID_FORMACAO#\
                 }
+                clearCache: 21
                 action: resetPagination
             }
             linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
@@ -73,55 +75,36 @@ page 19 (
             type: rowRangesXToY
         }
         messages {
-            whenNoDataFound: No data found.
+            whenNoDataFound: Nenhuma formação cadastrada.
             whenMoreDataFound: The maximum row count for this report is #MAX_ROW_COUNT# rows.  Please apply a filter to reduce the number of records in your query.
         }
         advanced {
             savedReportMappingIdentifier: 33886108875136748
         }
 
-        column BL_ANEXO (
-            type: downloadBlob
+        column DS_ALERTA_VALIDADE (
+            type: plainText
             heading {
-                heading: Bl Anexo
+                heading: Situação
             }
             layout {
-                sequence: 11
-            }
-            blobAttributes {
-                tableName: FORMACAO_COLABORADOR
-                blobColumn: BL_ANEXO
-                primaryKeyColumn1: ID_FORMACAO
+                sequence: 114
             }
             source {
-                dataType: NUMBER
-            }
-            columnFilter {
-                type: none
+                dataType: STRING
             }
             advanced {
-                endUserAlias: K
-            }
-            enableUsersTo {
-                hide: false
-                sort: false
-                filter: false
-                highlight: false
-                controlBreak: false
-                aggregate: false
-                compute: false
-                chart: false
-                groupBy: false
+                endUserAlias: O
             }
         )
 
         column DS_INSTITUICAO (
             type: plainText
             heading {
-                heading: Ds Instituicao
+                heading: Instituição
             }
             layout {
-                sequence: 5
+                sequence: 24
             }
             source {
                 dataType: STRING
@@ -132,12 +115,19 @@ page 19 (
         )
 
         column DS_LINK (
-            type: plainText
+            type: link
             heading {
-                heading: Ds Link
+                heading: Link
             }
             layout {
-                sequence: 14
+                sequence: 84
+            }
+            link {
+                target: {
+                    type: url
+                    url: #DS_LINK#
+                }
+                linkText: Abrir
             }
             source {
                 dataType: STRING
@@ -147,29 +137,13 @@ page 19 (
             }
         )
 
-        column DS_MIME_TYPE (
-            type: plainText
-            heading {
-                heading: Ds Mime Type
-            }
-            layout {
-                sequence: 12
-            }
-            source {
-                dataType: STRING
-            }
-            advanced {
-                endUserAlias: L
-            }
-        )
-
         column DS_NOME_ARQUIVO (
             type: plainText
             heading {
-                heading: Ds Nome Arquivo
+                heading: Anexo
             }
             layout {
-                sequence: 13
+                sequence: 104
             }
             source {
                 dataType: STRING
@@ -182,10 +156,10 @@ page 19 (
         column DS_TITULO (
             type: plainText
             heading {
-                heading: Ds Titulo
+                heading: Título
             }
             layout {
-                sequence: 6
+                sequence: 14
             }
             source {
                 dataType: STRING
@@ -195,29 +169,16 @@ page 19 (
             }
         )
 
-        column DT_ALTERACAO (
-            type: plainText
-            heading {
-                heading: Dt Alteracao
-            }
-            layout {
-                sequence: 17
-            }
-            source {
-                dataType: DATE
-            }
-            advanced {
-                endUserAlias: Q
-            }
-        )
-
         column DT_CONCLUSAO (
             type: plainText
             heading {
-                heading: Dt Conclusao
+                heading: Conclusão
             }
             layout {
-                sequence: 8
+                sequence: 54
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
             }
             source {
                 dataType: DATE
@@ -227,29 +188,16 @@ page 19 (
             }
         )
 
-        column DT_CRIACAO (
-            type: plainText
-            heading {
-                heading: Dt Criacao
-            }
-            layout {
-                sequence: 15
-            }
-            source {
-                dataType: DATE
-            }
-            advanced {
-                endUserAlias: O
-            }
-        )
-
         column DT_INICIO (
             type: plainText
             heading {
-                heading: Dt Inicio
+                heading: Início
             }
             layout {
-                sequence: 7
+                sequence: 44
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
             }
             source {
                 dataType: DATE
@@ -262,54 +210,19 @@ page 19 (
         column DT_VALIDADE (
             type: plainText
             heading {
-                heading: Dt Validade
+                heading: Validade
             }
             layout {
-                sequence: 9
+                sequence: 64
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
             }
             source {
                 dataType: DATE
             }
             advanced {
                 endUserAlias: I
-            }
-        )
-
-        column ID_COLABORADOR (
-            type: plainTextBasedOnLov
-            heading {
-                heading: Id Colaborador
-            }
-            lov {
-                lov: @colaborador-nome-completo
-            }
-            layout {
-                sequence: 3
-            }
-            source {
-                dataType: STRING
-            }
-            advanced {
-                endUserAlias: C
-            }
-        )
-
-        column ID_EMPRESA (
-            type: plainTextBasedOnLov
-            heading {
-                heading: Id Empresa
-            }
-            lov {
-                lov: @empresa-nome
-            }
-            layout {
-                sequence: 2
-            }
-            source {
-                dataType: STRING
-            }
-            advanced {
-                endUserAlias: B
             }
         )
 
@@ -333,11 +246,11 @@ page 19 (
         column NR_CARGA_HORARIA (
             type: plainText
             heading {
-                heading: Nr Carga Horaria
+                heading: Carga horária (h)
                 alignment: end
             }
             layout {
-                sequence: 10
+                sequence: 74
                 columnAlignment: end
             }
             source {
@@ -349,9 +262,12 @@ page 19 (
         )
 
         column TP_FORMACAO (
-            type: plainText
+            type: plainTextBasedOnLov
             heading {
-                heading: Tp Formacao
+                heading: Tipo
+            }
+            lov {
+                lov: @lov-tipo-formacao
             }
             layout {
                 sequence: 4
@@ -361,38 +277,6 @@ page 19 (
             }
             advanced {
                 endUserAlias: D
-            }
-        )
-
-        column USR_ALTERACAO (
-            type: plainText
-            heading {
-                heading: Usr Alteracao
-            }
-            layout {
-                sequence: 18
-            }
-            source {
-                dataType: STRING
-            }
-            advanced {
-                endUserAlias: R
-            }
-        )
-
-        column USR_CRIACAO (
-            type: plainText
-            heading {
-                heading: Usr Criacao
-            }
-            layout {
-                sequence: 16
-            }
-            source {
-                dataType: STRING
-            }
-            advanced {
-                endUserAlias: P
             }
         )
 
@@ -407,111 +291,129 @@ page 19 (
                 rowsPerPage: 50
             }
 
-            displayColumn BL_ANEXO (
-                sequence: 11
-            )
-
-            displayColumn DS_INSTITUICAO (
-                sequence: 5
-            )
-
-            displayColumn DS_LINK (
-                sequence: 14
-            )
-
-            displayColumn DS_MIME_TYPE (
-                sequence: 12
-            )
-
-            displayColumn DS_NOME_ARQUIVO (
-                sequence: 13
-            )
-
-            displayColumn DS_TITULO (
-                sequence: 6
-            )
-
-            displayColumn DT_ALTERACAO (
-                sequence: 17
-            )
-
-            displayColumn DT_CONCLUSAO (
-                sequence: 8
-            )
-
-            displayColumn DT_CRIACAO (
-                sequence: 15
-            )
-
-            displayColumn DT_INICIO (
-                sequence: 7
-            )
-
-            displayColumn DT_VALIDADE (
-                sequence: 9
-            )
-
-            displayColumn ID_COLABORADOR (
-                sequence: 3
-            )
-
-            displayColumn ID_EMPRESA (
-                sequence: 2
-            )
-
-            displayColumn ID_FORMACAO (
-                sequence: 1
-            )
-
-            displayColumn NR_CARGA_HORARIA (
+            displayColumn DS_ALERTA_VALIDADE (
                 sequence: 10
             )
 
-            displayColumn TP_FORMACAO (
+            displayColumn DS_INSTITUICAO (
+                sequence: 2
+            )
+
+            displayColumn DS_LINK (
+                sequence: 9
+            )
+
+            displayColumn DS_NOME_ARQUIVO (
+                sequence: 8
+            )
+
+            displayColumn DS_TITULO (
+                sequence: 3
+            )
+
+            displayColumn DT_CONCLUSAO (
+                sequence: 5
+            )
+
+            displayColumn DT_INICIO (
                 sequence: 4
             )
 
-            displayColumn USR_ALTERACAO (
-                sequence: 18
+            displayColumn DT_VALIDADE (
+                sequence: 6
             )
 
-            displayColumn USR_CRIACAO (
-                sequence: 16
+            displayColumn NR_CARGA_HORARIA (
+                sequence: 7
+            )
+
+            displayColumn TP_FORMACAO (
+                sequence: 1
+            )
+
+            highlight ir-condition (
+                name: A vencer
+                condition {
+                    column: DS_ALERTA_VALIDADE
+                    value: A VENCER
+                }
+                colors {
+                    background: #fff4db
+                    text: #8a5a00
+                }
+                execution {
+                    sequence: 20
+                }
+            )
+
+            highlight ir-condition-2 (
+                name: Vencida
+                condition {
+                    column: DS_ALERTA_VALIDADE
+                    value: VENCIDA
+                }
+                colors {
+                    background: #fcedec
+                    text: #b3261e
+                }
+                execution {
+                    sequence: 10
+                }
             )
 
         )
 
     )
 
+    region header (
+        name: Header
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="hc" data-hc>
+                  <header class="hc-titulo">
+                    <div>
+                      <h1>Formações e certificações</h1>
+                      <p>Cursos, idiomas e certificações de <b>&P19_NM_COLABORADOR!HTML.</b>.
+                         Formações vencidas ou que vencem nos próximos 60 dias aparecem destacadas.</p>
+                    </div>
+                  </header>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
     pageItem P19_ID_COLABORADOR (
         type: hidden
         layout {
-            sequence: 20
+            sequence: 30
             slot: body
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
         }
     )
 
     pageItem P19_NM_COLABORADOR (
         type: hidden
         layout {
-            sequence: 30
+            sequence: 40
             slot: body
-        }
-        default {
-            type: sqlQuerySingleValue
-            sqlQuerySingleValue:
-                ```sql
-                select nome_completo
-                  from colaborador
-                 where id_colaborador = :P19_ID_COLABORADOR
-                   and id_empresa     = :G_ID_EMPRESA
-                ```
         }
     )
 
     button create (
-        buttonName: CREATE
-        label: Create
+        buttonName: NOVA_FORMACAO
+        label: Nova formação
         layout {
             sequence: 10
             region: @formações-e-certificações
@@ -526,9 +428,35 @@ page 19 (
             action: redirectThisApp
             target: {
                 page: 21
+                items: {
+                    P21_ID_COLABORADOR: &P19_ID_COLABORADOR.
+                }
                 clearCache: 21
             }
             warnOnUnsavedChanges: doNotCheck
+        }
+        security {
+            authorizationScheme: @admin-rh
+        }
+    )
+
+    button voltar-ao-historico (
+        buttonName: VOLTAR_AO_HISTORICO
+        label: Voltar ao histórico
+        layout {
+            sequence: 20
+            region: @formações-e-certificações
+            slot: rightOfInteractiveReportSearchBar
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 13
+            }
         }
     )
 
@@ -555,6 +483,33 @@ page 19 (
             }
         )
 
+    )
+
+    process validar-acesso (
+        name: Validar acesso
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                if :P19_ID_COLABORADOR is null
+                   or pkg_historico_carreira.fn_pode_ver_colaborador(:P19_ID_COLABORADOR) = 'N' then
+                  raise_application_error(-20012, 'Você não tem acesso a este colaborador.');
+                end if;
+                
+                select nome_completo
+                  into :P19_NM_COLABORADOR
+                  from colaborador
+                 where id_colaborador = :P19_ID_COLABORADOR
+                   and id_empresa     = :G_ID_EMPRESA;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 33898011691350912
+        }
     )
 
 )
