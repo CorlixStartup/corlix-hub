@@ -81,6 +81,8 @@ begin
 ```
 **Prevenção:** em PL/SQL puro (`if`, atribuições) a função privada funciona normalmente. Dentro de SQL, use variável. Só coloque a função na spec se ela realmente fizer parte da API do package.
 
+**Também acontece em blocos anônimos.** Exemplo: o `09_dados_demo_dashboard.sql` declarava a função local `id_tipo` no `declare` e a chamava dentro do `insert … values`. O erro apontou `line 53, column 25`, e a linha é contada a partir do `declare`, não do início do arquivo. A correção foi a mesma: guardar `id_tipo(p_cd)` numa constante antes do `insert`. Como o bloco não compilou, nada foi gravado, e o script pode ser rodado de novo depois de corrigido.
+
 ---
 
 ## 3. PL/SQL em tempo de execução (compila, mas falha ao rodar)

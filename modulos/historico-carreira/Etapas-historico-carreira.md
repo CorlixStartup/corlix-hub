@@ -192,7 +192,9 @@ Salário nunca aparece nessa região: o valor fica só na lista "Lançamentos (R
 
 1. Suba `historico-carreira.css` em *Shared Components > Static Application Files* e informe `#APP_FILES#historico-carreira#MIN#.css` em *Page > CSS > File URLs*. Também dá para colar o conteúdo em *CSS > Inline*. Se usar `#MIN#`, suba também uma versão minificada, como o app já faz com o `custom.css`.
 2. `historico-carreira-pagina.js` tem dois blocos. Cole o primeiro em *JavaScript > Function and Global Variable Declaration* e o segundo em *Execute when Page Loads*.
-3. Template da página: para a região ocupar a largura toda sobre o fundo `#F1EFED` do protótipo, use o page template **Standard** com a região em *Body*, e a Template Option *Remove Body Padding*, se existir no seu tema.
+3. Largura e altura toda: use o page template **Standard** com as regiões em *Body*, sem nenhum ajuste extra. O próprio `historico-carreira.css` faz o resto: só na página que tem a região do histórico (`body:has([data-hc])`), ele zera o padding de 2rem que o Universal Theme coloca em volta do corpo e pinta o fundo `#F1EFED` até o rodapé. O título fica encostado nas bordas da área de conteúdo, como no protótipo. A região "Lançamentos (RH)" mantém uma margem de 32px.
+   - Se continuar com a moldura branca em volta, o CSS antigo está em cache. Suba o `.css` e o `.min.css` de novo e recarregue com Ctrl+F5.
+   - `:has()` funciona no Chrome, Edge e Safari atuais e no Firefox 121 ou mais novo. Em navegadores antigos, a página só fica com a moldura, sem quebrar.
 
 ### 2.4 Região "Histórico de carreira"
 
@@ -233,14 +235,93 @@ Lista de todos os lançamentos, incluindo rascunhos. É por aqui que o RH edita 
 - Colunas `VL_SALARIO_ANTERIOR` e `VL_SALARIO_NOVO`: Server-side Condition **Authorization Scheme `ADMIN_RH`**. A view já mascara o salário para outros perfis; a condição tira até o cabeçalho da coluna.
 - Coluna `ID_HISTORICO_CARREIRA`: Type Link · Target página 18 · Items `P18_ID_HISTORICO_CARREIRA` = `#ID_HISTORICO_CARREIRA#`, `P18_ID_COLABORADOR` = `&P13_ID_COLABORADOR.` · Clear Cache 18 · Link Text `<span class="fa fa-edit"></span>`
 
-### 2.6 Botões do RH
+### 2.6 Barra do RH (botões e seletor)
 
-Em uma região *Buttons Container* acima da região principal, com Authorization `ADMIN_RH`:
+O protótipo mostra a visão do colaborador e não tem nada do RH. Para não mexer no layout dele, tudo o que é só do RH fica numa **barra fina, numa linha só, logo acima do título**. Ela tem o selo "Visão do RH", o seletor de colaborador à esquerda e os botões à direita. Quem não é `ADMIN_RH` não vê a barra, e a página fica igual ao protótipo.
 
-| Botão | Ação |
-|---|---|
-| `NOVA_MOVIMENTACAO` ("Nova movimentação", Hot) | Redirect página 18 · `P18_ID_COLABORADOR` = `&P13_ID_COLABORADOR.` · Clear Cache 18 |
-| `FORMACOES` ("Formações") | Redirect página 19 · `P19_ID_COLABORADOR` = `&P13_ID_COLABORADOR.` |
+```
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ [Visão do RH]  Ver histórico de [Amanda Nunes ▾]      [Formações] [Nova movimentação] │
+├───────────────────────────────────────────────────────────────────────────────┤
+│ Histórico de carreira                                          [⬇ Exportar PDF] │
+```
+
+> **Por que não colocar os botões ao lado do "Exportar PDF":** o título é gerado pelo package dentro da região "Histórico de carreira", e essa região é recriada a cada refresh (ex.: ao fechar a modal). Botões ou itens movidos para dentro dela sumiriam a cada atualização.
+
+**Antes de começar, confira:**
+
+- [ ] O `historico-carreira.css` atualizado (com o bloco "Barra do RH") foi enviado de novo em *Shared Components › Static Application Files*, junto com o `.min.css`, porque a página usa `#MIN#` (§2.3).
+
+#### Passo 1 · Região
+
+Clique na região que hoje se chama **Buttons Container** (ou crie uma: botão direito em **Body** › Create Region) e preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Barra do RH` |
+| Identification | Type | **Static Content** |
+| Layout | Sequence | 10 (antes de "Histórico de carreira") |
+| Appearance | Template | **Blank with Attributes (No Grid)** |
+| Appearance | CSS Classes | `hc-barra-rh` |
+| Advanced | Static ID | `hc_barra_rh` |
+| Security | Authorization Scheme | **ADMIN_RH** |
+
+O template *Buttons Container* é o que deixa a região com cara de cartão, com sombra, e empilha os botões, porque cada componente ganha uma linha do grid. Com *No Grid*, os componentes ficam lado a lado e o CSS arruma a linha.
+
+#### Passo 2 · Seletor e botões dentro da região
+
+A ordem na tela segue a **Sequence**: o seletor primeiro, depois os botões.
+
+| Componente | Layout › Sequence | Layout › Slot | Appearance |
+|---|---|---|---|
+| `P13_COLABORADOR_SELECIONADO` | 10 | Region Body | Template **Optional - Floating** (já está) · Label `Ver histórico de` |
+| `FORMACOES` ("Formações") | 20 | Region Body | Text · Hot **Off** |
+| `NOVA_MOVIMENTACAO` ("Nova movimentação") | 30 | Region Body | Text · Hot **On** |
+
+Os dois botões:
+
+| Botão | Behavior › Action | Target |
+|---|---|---|
+| `FORMACOES` | Redirect to Page in this Application | Page **19** · Set Items `P19_ID_COLABORADOR` = `&P13_ID_COLABORADOR.` |
+| `NOVA_MOVIMENTACAO` | Redirect to Page in this Application | Page **18** · Set Items `P18_ID_COLABORADOR` = `&P13_ID_COLABORADOR.` · Clear Cache `18` |
+
+Em ambos, **Security › Authorization Scheme:** `ADMIN_RH`.
+
+O botão principal (Hot) fica por último, na ponta direita, como o "Exportar PDF" no título.
+
+#### Passo 3 · Testar
+
+1. Salve e rode a página 13 com um usuário RH. A barra aparece numa linha só, sem sombra, colada no título e com a mesma largura dele.
+2. Diminua a janela até a largura de um celular. O seletor ocupa a linha inteira e os botões descem para a linha de baixo.
+3. Clique em **Exportar PDF**. A barra não aparece na impressão.
+4. Entre com um usuário que não é RH. A barra não aparece, e a página fica igual ao protótipo.
+
+#### Como conferir no export da página 13
+
+```
+region barra-do-rh (
+    name: Barra do RH
+    type: staticContent
+    ...
+    appearance {
+        template: @/blank-with-attributes-no-grid
+        cssClasses: hc-barra-rh
+    }
+    security {
+        authorizationScheme: @admin-rh
+    }
+)
+```
+(Os nomes `blank-with-attributes-no-grid` e `cssClasses` são o formato esperado do export; confirmar no 26.1.5.) Os botões e o item devem ter `region: @barra-do-rh` e as sequências 10, 20 e 30.
+
+#### Se não funcionar
+
+| Sintoma | Causa provável | Correção |
+|---|---|---|
+| Continua com sombra e botões empilhados | Template ainda é *Buttons Container* ou *Blank with Attributes* (com grid) | Passo 1: **Blank with Attributes (No Grid)** |
+| Barra sem fundo, sem o selo "Visão do RH" ou sem a linha embaixo | CSS sem a classe ou arquivo antigo em cache | Confira *CSS Classes* `hc-barra-rh`, suba o `.css` e o `.min.css` de novo e recarregue com Ctrl+F5 |
+| Os botões ficam colados no seletor, à esquerda | O APEX colocou os componentes dentro de outro `div`, e o CSS não alcança | Inspecione (F12) e mande o HTML da região para ajustar o seletor do CSS |
+| Botões na ordem errada | Sequências iguais ou trocadas | Passo 2: 10, 20, 30 |
 
 ### 2.7 Dynamic Action "Atualizar depois da modal"
 
@@ -254,7 +335,7 @@ Esse refresh vale também para a modal "Solicitar correção" (página 22): a co
 Sem parâmetro, a página abre no próprio usuário. Para o RH abrir o histórico de qualquer pessoa sem depender da página 12 (Colaboradores), coloque um seletor no topo, visível só para `ADMIN_RH`.
 
 **Região**
-- Na região *Buttons Container* do §2.6, ou numa região Static Content própria acima de "Histórico de carreira", com Authorization `ADMIN_RH`.
+- Na região **Barra do RH** do §2.6 (Sequence 10, antes dos botões).
 
 **Item `P13_COLABORADOR_SELECIONADO`**
 - Type: **Popup LOV** · Label "Ver histórico de" · Authorization Scheme `ADMIN_RH`
@@ -701,7 +782,7 @@ O RH cadastra as formações de um colaborador numa **lista** (página 19) e edi
 
 | Página | Tipo | O que faz |
 |---|---|---|
-| 19 · Formações e certificações | Normal · Interactive Report | Lista as formações do colaborador, com destaque para certificações vencidas ou a vencer |
+| 19 · Formações e certificações | Normal · Interactive Report | Lista as formações do colaborador, com destaque para formações com validade vencida ou a vencer |
 | 21 · Formação | Modal Dialog · Form | Cria, edita e exclui uma formação, inclusive o anexo (PDF ou imagem) |
 
 Os dados vão direto para a tabela `FORMACAO_COLABORADOR` (DML nativo do APEX). Isso é aceitável aqui porque a regra de imutabilidade vale só para as movimentações. Os triggers preenchem criação/alteração e o log.
@@ -750,29 +831,164 @@ Se o assistente criar entradas no menu mesmo assim, apague-as em **Shared Compon
 
 ### 4.3 Página 19 · atributos e acesso
 
-1. Página 19 › **Security › Authorization Scheme:** `ADMIN_RH`.
-2. Crie o item **`P19_ID_COLABORADOR`** (botão direito em **Body** › Create Page Item, ou na região da lista):
-   - Type: **Hidden** · Value Protected: On
-   - **Security › Session State Protection:** Checksum Required - Session Level
-3. Processo **Validar acesso** · Pre-Rendering › **Before Header** · Type Execute Code:
-   ```sql
-   if :P19_ID_COLABORADOR is null
-      or pkg_historico_carreira.fn_pode_ver_colaborador(:P19_ID_COLABORADOR) = 'N' then
-     raise_application_error(-20012, 'Você não tem acesso a este colaborador.');
-   end if;
-   ```
-4. Opcional, para o título mostrar de quem são as formações: item **`P19_NM_COLABORADOR`** (Hidden) com Source › Type **SQL Query (return single value)**:
-   ```sql
-   select nome_completo
-     from colaborador
-    where id_colaborador = :P19_ID_COLABORADOR
-      and id_empresa     = :G_ID_EMPRESA
-   ```
-   e o título da região da lista: `Formações de &P19_NM_COLABORADOR.`
+A página 19 recebe o colaborador pela URL (`P19_ID_COLABORADOR`, vindo do botão **Formações** da página 13), confere se o usuário pode vê-lo e busca o nome dele para o cabeçalho. Tudo isso acontece **antes** de a página ser montada, num processo Before Header.
+
+**Antes de começar, confira:**
+
+- [ ] As páginas 19 e 21 foram criadas juntas pelo assistente (§4.2).
+- [ ] O package `pkg_historico_carreira` está compilado (tem `fn_pode_ver_colaborador` e `fn_hoje`).
+- [ ] O app item `G_ID_EMPRESA` é preenchido no login (§1.1). Sem ele, o processo do Passo 4 dá `ORA-01403`.
+
+#### Passo 1 · Autorização da página
+
+1. Abra a página 19 no Page Designer e clique no nó da página (o primeiro da árvore **Rendering**).
+2. No painel da direita:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Security | Authorization Scheme | **ADMIN_RH** |
+| Security | Page Access Protection | **Arguments Must Have Checksum** (o assistente já coloca) |
+
+#### Passo 2 · Item `P19_ID_COLABORADOR`
+
+1. Na árvore **Rendering**, clique com o botão direito em **Body** › **Create Page Item**.
+2. Preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `P19_ID_COLABORADOR` |
+| Identification | Type | **Hidden** |
+| Settings | Value Protected | **On** (padrão) |
+| Layout | Sequence | 20 |
+| Source | Type | **Null** (nenhum) |
+| Default | Type | (nenhum) |
+| Security | Session State Protection | **Checksum Required - Session Level** |
+
+Por que a proteção importa: sem ela, quem tem acesso à página pode trocar o número na URL e abrir as formações de outro colaborador. O processo do Passo 4 também barra isso, mas o checksum barra antes, sem nem chegar ao banco.
+
+#### Passo 3 · Item `P19_NM_COLABORADOR`
+
+1. Botão direito em **Body** › **Create Page Item**.
+2. Preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `P19_NM_COLABORADOR` |
+| Identification | Type | **Hidden** |
+| Settings | Value Protected | **On** |
+| Layout | Sequence | 30 |
+| Source | Type | **Null** (nenhum) |
+| Default | Type | **(nenhum)**: apague o SQL se já tiver colocado um |
+
+Quem preenche esse item é o processo do Passo 4.
+
+> **Por que não usar Source/Default:** Source e Default só são calculados quando o item é renderizado. Os itens ficam abaixo da região da lista, então o texto com o nome seria montado antes do valor existir e sairia sem o nome. No Before Header, o valor já está na sessão antes de qualquer região.
+
+#### Passo 4 · Processo "Validar acesso" (Before Header)
+
+1. Na árvore **Rendering**, abra **Pre-Rendering**, clique com o botão direito em **Before Header** › **Create Process**.
+2. Preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Validar acesso` |
+| Identification | Type | **Execute Code** |
+| Source | Location | Local Database |
+| Source | Language | PL/SQL |
+| Source | PL/SQL Code | (código abaixo) |
+| Execution | Sequence | 10 |
+| Execution | Point | **Before Header** |
+| Server-side Condition | Type | (nenhuma: roda sempre) |
+
+```sql
+if :P19_ID_COLABORADOR is null
+   or pkg_historico_carreira.fn_pode_ver_colaborador(:P19_ID_COLABORADOR) = 'N' then
+  raise_application_error(-20012, 'Você não tem acesso a este colaborador.');
+end if;
+
+select nome_completo
+  into :P19_NM_COLABORADOR
+  from colaborador
+ where id_colaborador = :P19_ID_COLABORADOR
+   and id_empresa     = :G_ID_EMPRESA;
+```
+
+O `-20012` aparece como mensagem amigável se o tratamento da §1.3 estiver feito. Sem ele, a mensagem vem com `ORA-20012` na frente, mas o bloqueio funciona igual.
+
+#### Passo 5 · Cabeçalho da página (igual ao da página 13)
+
+A página 19 não está no protótipo. Para parecer parte do mesmo módulo, ela usa o **mesmo cabeçalho da página 13**: uma faixa branca de ponta a ponta, título de 26px em negrito e subtítulo cinza. O `historico-carreira.css` já tem esse estilo (`.hc-titulo`). Basta uma região Static Content com o HTML abaixo.
+
+1. Na árvore **Rendering**, clique com o botão direito em **Body** › **Create Region** e preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Cabeçalho` |
+| Identification | Type | **Static Content** |
+| Source | HTML Code | (HTML abaixo) |
+| Layout | Sequence | **5** (antes do Interactive Report, que é 10) |
+| Appearance | Template | **Blank with Attributes (No Grid)** |
+
+```html
+<div class="hc" data-hc>
+  <header class="hc-titulo">
+    <div>
+      <h1>Formações e certificações</h1>
+      <p>Cursos, idiomas e certificações de &P19_NM_COLABORADOR!HTML.
+         Formações vencidas ou que vencem nos próximos 60 dias aparecem destacadas.</p>
+    </div>
+  </header>
+</div>
+```
+
+2. Clique na página (primeiro nó da árvore) › **CSS › File URLs**: `#APP_FILES#historico-carreira#MIN#.css`, o mesmo arquivo da página 13.
+3. Clique na região **Formações e certificações** (o Interactive Report) e **apague** o *Header and Footer › Header Text*. O nome do colaborador agora fica no subtítulo do cabeçalho.
+4. Salve a página (**Save**, Ctrl+S).
+
+Por que cada parte importa:
+- **`class="hc"`:** é onde ficam as cores (tokens `--hc-*`). Sem esse `div`, o título sai sem fundo e sem cor.
+- **`data-hc`:** liga as regras de "página inteira" do CSS (`body:has([data-hc])`). Elas tiram a moldura de 2rem em volta do conteúdo e pintam o fundo cinza até o rodapé, como na página 13. O Interactive Report ganha margem de 32px nas laterais.
+- **`!HTML`:** escapa o nome do colaborador antes de colocá-lo no HTML. É a forma segura de usar um item dentro de HTML.
+- **Sequence 5:** o processo "Validar acesso" (Before Header) já preencheu `P19_NM_COLABORADOR` antes de qualquer região ser montada, então o nome aparece mesmo com o cabeçalho sendo a primeira região.
+
+A árvore deve ficar assim:
+
+```
+Pre-Rendering
+└── Before Header
+    └── Validar acesso            (Execute Code · seq 10)
+Components
+└── Body
+    ├── Cabeçalho                 (Static Content · seq 5)
+    ├── Formações e certificações (Interactive Report · seq 10)
+    ├── P19_ID_COLABORADOR        (Hidden · seq 20)
+    └── P19_NM_COLABORADOR        (Hidden · seq 30)
+```
+
+#### Como conferir no export da página 19
+
+- `security { authorizationScheme: @admin-rh ... }` no nó da página;
+- `sessionStateProtection: checksumRequiredSessionLevel` em `P19_ID_COLABORADOR`. O export não mostra `valueProtected` quando a opção está On, porque só escreve o valor `false`;
+- um `process validar-acesso` com `point: beforeHeader`;
+- **nenhum** bloco `default` nem `source` em `P19_NM_COLABORADOR`. Se aparecer `default { type: sqlQuerySingleValue ... }`, o Passo 3 não foi feito;
+- uma `region` "Cabeçalho" `staticContent` com sequence 5 e template `@/blank-with-attributes-no-grid`, e **nenhum** `headerText` no Interactive Report;
+- `fileUrls: #APP_FILES#historico-carreira#MIN#.css` no bloco `css` da página.
 
 ### 4.4 Página 19 · região da lista (Interactive Report)
 
-1. Clique na região criada pelo assistente e troque **Source › Type** para **SQL Query**:
+O assistente cria a região com uma query de **todas** as colunas e **sem filtro**: a lista mostra as formações de todos os colaboradores de todas as empresas. Esta etapa troca a query, ajusta as colunas, os botões e o destaque das certificações.
+
+Faça **nesta ordem**: as colunas mudam quando a query muda, então ajustar colunas antes do Passo 1 é trabalho perdido.
+
+**Antes de começar, confira:**
+
+- [ ] A §4.3 está feita: `P19_ID_COLABORADOR` existe e o processo "Validar acesso" preenche `P19_NM_COLABORADOR`.
+- [ ] A LOV `LOV_TIPO_FORMACAO` existe em Shared Components (§1.4).
+
+#### Passo 1 · Trocar a query da região
+
+1. Clique na região **Formações e certificações**.
+2. No painel da direita, em **Source**, o Type já é **SQL Query** (o assistente gera a query a partir da tabela). Apague todo o texto de **SQL Query** e cole:
    ```sql
    select f.id_formacao,
           f.tp_formacao,
@@ -785,55 +1001,267 @@ Se o assistente criar entradas no menu mesmo assim, apague-as em **Shared Compon
           f.ds_link,
           f.ds_nome_arquivo,
           case
-            when f.tp_formacao = 'CERTIFICACAO'
-             and f.dt_validade < pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA)      then 'VENCIDA'
-            when f.tp_formacao = 'CERTIFICACAO'
-             and f.dt_validade <= pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) + 60 then 'A VENCER'
+            when f.dt_validade <  pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA)      then 'VENCIDA'
+            when f.dt_validade <= pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) + 60 then 'A VENCER'
           end as ds_alerta_validade
      from formacao_colaborador f
     where f.id_colaborador = :P19_ID_COLABORADOR
       and f.id_empresa     = :G_ID_EMPRESA
     order by coalesce(f.dt_conclusao, f.dt_inicio) desc
    ```
-   **Page Items to Submit:** `P19_ID_COLABORADOR`.
-2. Colunas (clique em cada uma em *Columns*):
+3. Confira os outros atributos:
 
-| Coluna | Type | Heading | Detalhes |
+| Seção | Atributo | Valor |
+|---|---|---|
+| Source | Location | Local Database |
+| Source | Type | SQL Query |
+| Source | Page Items to Submit | `P19_ID_COLABORADOR` |
+| Messages | When No Data Found | `Nenhuma formação cadastrada.` |
+
+4. Salve (Ctrl+S). Ao salvar, o APEX recria a lista de colunas a partir da query nova: somem `ID_EMPRESA`, `ID_COLABORADOR`, `BL_ANEXO`, `DS_MIME_TYPE`, `DT_CRIACAO`, `USR_CRIACAO`, `DT_ALTERACAO` e `USR_ALTERACAO`, e aparece `DS_ALERTA_VALIDADE`. Se ele pedir confirmação para remover colunas, confirme.
+
+   > **Não apague colunas pela árvore no lugar deste passo.** No Interactive Report as colunas vêm só da query: apagar `ID_EMPRESA` etc. em *Columns* não tira o dado da query nem cria `DS_ALERTA_VALIDADE`, e não existe "Create Column" para criá-la à mão. O único jeito é trocar o texto da query.
+
+Por que cada parte importa:
+- **`where ... id_empresa = :G_ID_EMPRESA`:** é o isolamento entre empresas (regra de ouro 3). Sem ele, o RH de uma empresa vê as formações das outras.
+- **`where ... id_colaborador = :P19_ID_COLABORADOR`:** a página é de um colaborador só.
+- **Page Items to Submit:** o Interactive Report busca as linhas por Ajax quando o usuário pagina, filtra ou ordena. Sem esse item, a busca vai sem o colaborador e a lista volta vazia.
+- **`ds_alerta_validade`:** a coluna existe só para o destaque do Passo 6. Ela usa `fn_hoje`, a data de hoje no fuso da empresa, e marca **qualquer formação com validade** (não só certificações) que já venceu ou vence em até 60 dias. Treinamentos obrigatórios, como NR-10 e NR-35, costumam ser do tipo "Curso" e também vencem. A regra é a mesma da linha do tempo da página 13 (`08_pkg_historico_carreira_ui.sql`), então as duas telas sempre concordam. Sem validade, a coluna fica vazia.
+
+#### Passo 2 · Colunas
+
+Na árvore **Rendering**, abra a região › **Columns** e clique em cada coluna. Preencha:
+
+| Coluna | Type | Heading | Outros atributos |
 |---|---|---|---|
-| `ID_FORMACAO` | Hidden | | |
-| `TP_FORMACAO` | Plain Text (based on List of Values) | Tipo | LOV `LOV_TIPO_FORMACAO`, para mostrar "Certificação" em vez de `CERTIFICACAO` |
+| `ID_FORMACAO` | **Hidden** | (vazio) | Source › Primary Key: On (já vem) |
+| `TP_FORMACAO` | **Plain Text (based on List of Values)** | Tipo | List of Values › **`LOV_TIPO_FORMACAO`** (confirmar no 26.1.5) |
 | `DS_TITULO` | Plain Text | Título | |
 | `DS_INSTITUICAO` | Plain Text | Instituição | |
-| `DT_INICIO`, `DT_CONCLUSAO`, `DT_VALIDADE` | Plain Text | Início, Conclusão, Validade | Appearance › Format Mask `DD/MM/YYYY` |
-| `NR_CARGA_HORARIA` | Plain Text | Carga horária (h) | |
-| `DS_LINK` | Link | Link | Target › Type **URL** › `#DS_LINK#` · Link Text `Abrir` |
-| `DS_NOME_ARQUIVO` | Plain Text | Anexo | O download fica no formulário |
-| `DS_ALERTA_VALIDADE` | Plain Text | Validade | |
+| `DT_INICIO` | Plain Text | Início | Appearance › Format Mask `DD/MM/YYYY` |
+| `DT_CONCLUSAO` | Plain Text | Conclusão | Appearance › Format Mask `DD/MM/YYYY` |
+| `DT_VALIDADE` | Plain Text | Validade | Appearance › Format Mask `DD/MM/YYYY` |
+| `NR_CARGA_HORARIA` | Plain Text | Carga horária (h) | Alinhamento à direita (já vem) |
+| `DS_LINK` | **Link** | Link | Link › Target: Type **URL** · URL `#DS_LINK#` · Link Text `Abrir` |
+| `DS_NOME_ARQUIVO` | Plain Text | Anexo | O download fica no formulário (página 21) |
+| `DS_ALERTA_VALIDADE` | Plain Text | Situação | Mostra "VENCIDA" ou "A VENCER"; vazio nas demais linhas |
 
-3. **Link de edição** (o lápis de cada linha): o assistente já cria, apontando para a 21. Para achar a configuração, selecione a região e use a busca do painel com `Link` (confirmar no 26.1.5). Confira no export da página 19:
+Por que cada um importa:
+- **LOV em `TP_FORMACAO`:** a tabela guarda o código (`CERTIFICACAO`, `POS`…). A LOV mostra o texto ("Certificação", "Pós-graduação").
+- **Heading "Situação" em `DS_ALERTA_VALIDADE`:** "Validade" já é o heading de `DT_VALIDADE`, e dois títulos iguais confundem o RH.
+- **Format Mask:** sem ela, a data sai no formato da sessão, que pode vir em inglês.
+
+#### Passo 3 · Link de edição (lápis de cada linha)
+
+O assistente já cria o link apontando para a 21. Para achar a configuração, selecione a região e digite `Link` na busca do painel (confirmar no 26.1.5).
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Link | Link Column | **Link to Custom Target** |
+| Link | Target | Page **21** · Set Items: `P21_ID_FORMACAO` = `#ID_FORMACAO#` · Clear Cache **`21`** |
+
+Clicar em **Target** abre a janela do link (Link Builder): Type *Page in this application*, Page, a tabela *Set Items* (Name / Value) e Clear Cache (confirmar os nomes no 26.1.5).
+
+Por que o Clear Cache `21`: sem ele, a modal pode abrir com valores de uma formação vista antes (anexo, datas) nos itens que não vêm da tabela.
+
+#### Passo 4 · Botão "Nova formação"
+
+O assistente cria um botão `CREATE` na barra do relatório. Clique nele e ajuste:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Button Name | `NOVA_FORMACAO` (ou mantenha `CREATE`; nenhum processo da 19 depende do nome) |
+| Identification | Label | `Nova formação` |
+| Layout | Slot | Right of Interactive Report Search Bar (já vem) |
+| Appearance | Hot | **On** |
+| Behavior | Action | **Redirect to Page in this Application** |
+| Behavior | Target | Page **21** · Set Items: Name `P21_ID_COLABORADOR`, Value **`&P19_ID_COLABORADOR.`** · Clear Cache **`21`** |
+| Security | Authorization Scheme | `ADMIN_RH` |
+
+**Atenção ao Value do Set Items:** é fácil preencher só o Name e deixar o Value vazio. Escreva `&P19_ID_COLABORADOR.` com o `&` no começo e o ponto no final. Sem o valor, a formação é criada sem colaborador e a validação da 21 responde "Formação não encontrada.".
+
+#### Passo 5 · Botão "Voltar ao histórico"
+
+1. Clique com o botão direito na região **Formações e certificações** › **Create Button**.
+2. Preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Button Name | `VOLTAR_AO_HISTORICO` |
+| Identification | Label | `Voltar ao histórico` |
+| Layout | Slot | Right of Interactive Report Search Bar |
+| Layout | Sequence | 20 (depois de "Nova formação") |
+| Appearance | Hot | Off |
+| Behavior | Action | **Redirect to Page in this Application** |
+| Behavior | Target | Page **13** · **sem** Set Items · **sem** Clear Cache |
+
+Sem itens e sem Clear Cache, a página 13 volta no colaborador que estava aberto, porque `P13_ID_COLABORADOR` continua na sessão.
+
+#### Passo 6 · Dynamic Action "Atualizar depois da modal"
+
+O assistente costuma criar a DA **Edit Report - Dialog Closed**. Confira na árvore em **Dynamic Actions**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| When | Event | **Dialog Closed** |
+| When | Selection Type | Region |
+| When | Region | Formações e certificações |
+| True action | Action | **Refresh** › Region `Formações e certificações` |
+
+Se não existir, crie igual à da página 15. Salve a página (Ctrl+S).
+
+#### Passo 7 · Destaque das certificações e relatório padrão
+
+Esta parte é feita **com a página rodando**, não no Page Designer. O destaque fica gravado no relatório salvo, não nas propriedades da região.
+
+**Dados de teste.** Para ver o destaque funcionando, o colaborador precisa ter formações, e a página 21 (que cadastra) só fica pronta na §4.5. Por isso, insira três linhas de teste direto no banco, em **SQL Workshop › SQL Commands**:
+
+a. Descubra o ID do colaborador que você vai abrir na página 13:
+   ```sql
+   select id_colaborador, nome_completo, id_empresa
+     from colaborador
+    order by nome_completo;
    ```
-   link {
-       linkColumn: customTarget
-       target: {
-           page: 21
-           items: {
-               P21_ID_FORMACAO: \#ID_FORMACAO#\
-           }
-       }
-   }
+b. Troque o `123` pelo ID escolhido e rode o bloco abaixo. Ele cria uma certificação **a vencer** (amarela), uma **vencida** (vermelha) e um curso sem validade (sem destaque):
+   ```sql
+   declare
+     l_id_colaborador number := 123;  -- troque pelo ID do passo a
+     l_id_empresa     number;
+   begin
+     select id_empresa
+       into l_id_empresa
+       from colaborador
+      where id_colaborador = l_id_colaborador;
+
+     insert into formacao_colaborador
+       (id_empresa, id_colaborador, tp_formacao, ds_titulo, ds_instituicao,
+        dt_conclusao, dt_validade, nr_carga_horaria)
+     values
+       (l_id_empresa, l_id_colaborador, 'CERTIFICACAO', '[TESTE] Certificação a vencer', 'Instituição de teste',
+        trunc(sysdate) - 30, trunc(sysdate) + 30, 40);
+
+     insert into formacao_colaborador
+       (id_empresa, id_colaborador, tp_formacao, ds_titulo, ds_instituicao,
+        dt_conclusao, dt_validade, nr_carga_horaria)
+     values
+       (l_id_empresa, l_id_colaborador, 'CERTIFICACAO', '[TESTE] Certificação vencida', 'Instituição de teste',
+        trunc(sysdate) - 400, trunc(sysdate) - 10, 40);
+
+     insert into formacao_colaborador
+       (id_empresa, id_colaborador, tp_formacao, ds_titulo, ds_instituicao,
+        dt_inicio, dt_conclusao, nr_carga_horaria, ds_link)
+     values
+       (l_id_empresa, l_id_colaborador, 'CURSO', '[TESTE] Curso sem validade', 'Instituição de teste',
+        trunc(sysdate) - 240, trunc(sysdate) - 200, 20, 'https://example.com');
+
+     commit;
+   end;
    ```
-   O ideal é ter também Clear Cache `21`.
-4. **Botão "Nova formação"** (o assistente cria um botão `CREATE`; ajuste-o):
-   - Label `Nova formação` · Hot
-   - Behavior › Action: Redirect to Page in this Application › página **21** · Items `P21_ID_COLABORADOR` = `&P19_ID_COLABORADOR.` · Clear Cache `21`
-5. **Botão "Voltar ao histórico"**: Redirect › página **13**, sem itens e **sem** Clear Cache (a 13 continua no colaborador escolhido).
-6. **DA "Atualizar depois da modal"**: o assistente costuma criar (Event **Dialog Closed** na região → **Refresh** da região). Confira se existe; se não, crie igual à da página 15.
+   `ID_FORMACAO`, criação e usuário são preenchidos pela identity e pelo trigger. As datas respeitam as constraints da tabela (validade depois da conclusão, conclusão depois do início).
+c. Depois de salvar o relatório (item 4 abaixo), apague as linhas de teste:
+   ```sql
+   delete from formacao_colaborador
+    where ds_titulo like '[TESTE]%';
+   commit;
+   ```
+   O destaque fica gravado no relatório Primary, não nos dados, então continua valendo sem essas linhas.
 
-**Destaque das certificações:** rode a página com o usuário de RH, abra **Actions › Format › Highlight** e crie:
-- "A vencer": Column `DS_ALERTA_VALIDADE` = `A VENCER` · Background amarelo · Highlight Type: Row
-- "Vencida": Column `DS_ALERTA_VALIDADE` = `VENCIDA` · Background vermelho claro · Row
+1. Entre no Builder com seu usuário de desenvolvedor e rode a página 19 pelo botão **Formações** da página 13, com o colaborador usado nos dados de teste.
+2. Se a coluna **Situação** não aparecer: **Actions › Columns**, mova `Situação` para *Display in Report* › **Apply**.
+3. **Actions › Format › Highlight** e crie as duas regras:
 
-Depois **Actions › Report › Save Report** › *As Default Report Settings* › **Primary** (só aparece para o desenvolvedor logado no Builder).
+| Name | Sequence | Highlight Type | Background Color | Text Color | Column | Operator | Expression |
+|---|---|---|---|---|---|---|---|
+| `Vencida` | 10 | **Row** | `#FCEDEC` | `#B3261E` | `Situação` | `=` | `VENCIDA` |
+| `A vencer` | 20 | **Row** | `#FFF4DB` | `#8A5A00` | `Situação` | `=` | `A VENCER` |
+
+As cores são as mesmas das etiquetas "Vencida" e "Vence em breve" da linha do tempo da página 13 (`--hc-alerta-suave`/`--hc-alerta` e `--hc-atencao-suave`/`--hc-atencao` no `historico-carreira.css`). Assim, o RH vê a mesma cor nas duas telas. O texto escuro sobre o fundo claro tem contraste acima de 4,5:1 (WCAG AA). Digite os códigos no campo de cor do diálogo, porque as cores prontas da paleta do APEX não batem com essas. A regra "Vencida" fica com a sequência menor por ser a mais grave.
+
+4. **Actions › Report › Save Report** › Save: *As Default Report Settings* › Default Report Type: **Primary** › **Apply**. Essa opção só aparece para o desenvolvedor logado no Builder.
+
+Sem o passo 4, o destaque fica só na sua sessão e o RH não vê.
+
+A árvore deve ficar assim:
+
+```
+Components
+└── Body
+    ├── Formações e certificações          (Interactive Report)
+    │   ├── Columns
+    │   │   ├── ID_FORMACAO                (Hidden)
+    │   │   ├── TP_FORMACAO                (Plain Text based on LOV)
+    │   │   ├── DS_TITULO … DS_NOME_ARQUIVO
+    │   │   └── DS_ALERTA_VALIDADE
+    │   ├── NOVA_FORMACAO                  (seq 10 · Hot)
+    │   └── VOLTAR_AO_HISTORICO            (seq 20)
+    ├── P19_ID_COLABORADOR
+    └── P19_NM_COLABORADOR
+Dynamic Actions
+└── Dialog Closed
+    └── Edit Report - Dialog Closed  → Refresh Formações e certificações
+```
+
+#### Como conferir no export da página 19
+
+- A `sqlQuery` da região tem o `where f.id_colaborador = :P19_ID_COLABORADOR and f.id_empresa = :G_ID_EMPRESA`, e não aparece mais `from "FORMACAO_COLABORADOR"` entre aspas;
+- **não existem** as colunas `ID_EMPRESA`, `ID_COLABORADOR`, `BL_ANEXO`, `DS_MIME_TYPE`, `DT_CRIACAO`, `USR_CRIACAO`, `DT_ALTERACAO`, `USR_ALTERACAO`; existe `column DS_ALERTA_VALIDADE`;
+- `column TP_FORMACAO` tem `type: plainTextBasedOnLov` e um bloco `lov { lov: @... }` apontando para a LOV de tipo de formação;
+- nenhum heading em inglês ou com prefixo de coluna (`Dt Inicio`, `Ds Link`, `Nr Carga Horaria`…);
+- o botão "Nova formação" tem o item **com valor**:
+  ```
+  target: {
+      page: 21
+      items: {
+          P21_ID_COLABORADOR: &P19_ID_COLABORADOR.
+      }
+      clearCache: 21
+  }
+  ```
+  Se aparecer `P21_ID_COLABORADOR:` sem nada depois, o Value ficou vazio (Passo 4);
+- `button voltar-ao-historico` com `target: { page: 13 }`;
+- o `link` da região com `page: 21`, `P21_ID_FORMACAO: \#ID_FORMACAO#\` e, de preferência, `clearCache: 21`;
+- `savedReport primary` só com as colunas da query nova (incluindo `displayColumn DS_ALERTA_VALIDADE`) e com as duas regras de destaque. O Highlight Type *Row* e o operador `=` são o padrão, por isso o export não os mostra:
+  ```
+  highlight ir-condition-2 (
+      name: Vencida
+      condition {
+          column: DS_ALERTA_VALIDADE
+          value: VENCIDA
+      }
+      colors {
+          background: #fcedec
+          text: #b3261e
+      }
+      execution {
+          sequence: 10
+      }
+  )
+  ```
+
+#### Testar
+
+1. Na página 13, escolha um colaborador e clique em **Formações**: o subtítulo do cabeçalho mostra "... certificações de *Nome*" e a lista mostra só as formações dele (ou "Nenhuma formação cadastrada.").
+2. Copie a URL, troque o número de `P19_ID_COLABORADOR` e abra: deve dar erro de checksum.
+3. Clique em **Nova formação**: a modal abre. Feche-a e clique em **Voltar ao histórico**: a página 13 volta no mesmo colaborador.
+4. O teste completo, com cadastro, destaque e exclusão, está na §4.6, depois de montar a página 21.
+
+#### Se não funcionar
+
+| Sintoma | Causa provável | Correção |
+|---|---|---|
+| A lista mostra formações de outros colaboradores ou de outras empresas | Query do assistente, sem `where` | Passo 1 |
+| A lista ficou vazia depois de trocar a query (antes mostrava tudo) | A página foi aberta direto pelo **Run** do Page Designer, então `P19_ID_COLABORADOR` está vazio; ou as formações são de outro colaborador ou de outra empresa (`G_ID_EMPRESA`) | Abra a 19 sempre pelo botão **Formações** da 13 (§2.6). Confira os valores em *Session* na barra de desenvolvedor (confirmar no 26.1.5) e compare com `select id_formacao, id_empresa, id_colaborador, ds_titulo from formacao_colaborador` |
+| A lista sempre vazia, mesmo com formações cadastradas | `P19_ID_COLABORADOR` vazio ou fora de *Page Items to Submit* | §4.3 Passo 2 e §4.4 Passo 1 |
+| Subtítulo do cabeçalho sem o nome | Nome no Source/Default de `P19_NM_COLABORADOR`, ou processo Validar acesso faltando | §4.3 Passos 3 e 4 |
+| `ORA-01403: no data found` ao abrir a 19 | `G_ID_EMPRESA` vazio, ou colaborador de outra empresa | Confira o login (§1.1) e o colaborador escolhido na 13 |
+| Coluna Tipo mostra `CERTIFICACAO` em vez de "Certificação" | Coluna sem LOV | Passo 2: Plain Text (based on List of Values) com `LOV_TIPO_FORMACAO` |
+| Colunas que deviam ter sumido ainda aparecem | A query foi editada mas a página não foi salva, ou o export é anterior | Salve (Ctrl+S) e exporte de novo |
+| `DS_ALERTA_VALIDADE` não existe em *Columns* e não há como criá-la | A query da região ainda é a do assistente. No Interactive Report as colunas vêm só da query: não existe "Create Column", e apagar colunas na árvore não muda a query | Passo 1: troque o texto de **Source › SQL Query** e salve. No export, a `sqlQuery` não pode mais ter `from "FORMACAO_COLABORADOR"` |
+| Ao salvar a query nova, erro com `PKG_HISTORICO_CARREIRA` ou `FN_HOJE` (`ORA-00904`, `ORA-06553`, `PLS-00201`) | Package não compilado ou inválido, então o Builder recusa a query e mantém a antiga | Recompile `04_pkg_historico_carreira.pks`/`.pkb` e salve de novo (ver `docs/ai-context/09-erros-e-solucoes.md`) |
+| A coluna Situação não aparece | O relatório salvo é anterior à coluna nova | Passo 7, item 2, e salve o Primary de novo |
+| "Formação não encontrada." ao criar | Set Items do botão sem Value | Passo 4: Value `&P19_ID_COLABORADOR.` |
+| Destaque some ao sair e entrar | Relatório não foi salvo como Primary | Passo 7, item 4, logado no Builder |
+| "Voltar ao histórico" abre a 13 no próprio usuário | Clear Cache `13` no botão | Tire o Clear Cache (Passo 5) |
 
 ### 4.5 Página 21 · formulário da formação (Modal)
 
@@ -848,7 +1276,7 @@ Depois **Actions › Report › Save Report** › *As Default Report Settings* �
 | `P21_TP_FORMACAO` | **Select List** · LOV `LOV_TIPO_FORMACAO` · Display Null Value On (`- Selecione -`) · Value Required On · Label "Tipo" |
 | `P21_DS_TITULO` | Text Field · Value Required On · Label "Título" |
 | `P21_DS_INSTITUICAO` | Text Field · Value Required On · Label "Instituição" |
-| `P21_DT_INICIO`, `P21_DT_CONCLUSAO`, `P21_DT_VALIDADE` | Date Picker · Format Mask `DD/MM/YYYY` · Labels "Início", "Conclusão", "Validade (certificações)" |
+| `P21_DT_INICIO`, `P21_DT_CONCLUSAO`, `P21_DT_VALIDADE` | Date Picker · Format Mask `DD/MM/YYYY` · Labels "Início", "Conclusão", "Validade" (vale para qualquer tipo: certificações, cursos obrigatórios etc.) |
 | `P21_NR_CARGA_HORARIA` | Number Field · Label "Carga horária (h)" |
 | `P21_DS_LINK` | Text Field · Label "Link (https://...)" |
 | `P21_BL_ANEXO` | **File Upload** (ver passo 3) |
@@ -857,9 +1285,11 @@ Depois **Actions › Report › Save Report** › *As Default Report Settings* �
 
 3. **Anexo (`P21_BL_ANEXO`)** (confirmar os nomes no 26.1.5):
    - Type: **File Upload** (não use *Image Upload*: o anexo pode ser PDF)
+   - Label `Anexo (PDF ou imagem)`
    - Storage › Type: **BLOB column specified in Item Source attribute**
    - MIME Type Column `DS_MIME_TYPE` · Filename Column `DS_NOME_ARQUIVO`
    - Download Link Text `Baixar anexo`
+   - File Types `.pdf,image/*` · Maximum File Size `5000` (em KB, cerca de 5 MB). No export: `fileTypes` e `maxFileSize` no bloco `storage`
    - Source: Form Region · Column `BL_ANEXO`
 4. **Processo "Empresa da sessão"** · Processing · Sequence **antes** do processo de gravação do assistente (ex.: 5) · Execute Code:
    ```sql
@@ -896,12 +1326,14 @@ Depois **Actions › Report › Save Report** › *As Default Report Settings* �
      return l_qt = 1;
    end;
    ```
-   Na validação "Formação da empresa", deixe **Server-side Condition › When Button Pressed** vazio (vale para criar, salvar e excluir).
+   Na validação "Formação da empresa":
+   - deixe **Server-side Condition › When Button Pressed** vazio, para valer para criar, salvar e excluir;
+   - ligue **Always Execute: On**. O botão `DELETE` do assistente vem com *Execute Validations: Off*, que pula **todas** as validações. Sem o *Always Execute*, a exclusão não confere a empresa. No export, a validação passa a ter `alwaysExecute: true` dentro do bloco `validation`.
 6. **Botões e processos do assistente:** mantenha `CANCEL`, `DELETE` (com confirmação), `SAVE` e `CREATE`, e os processos *Initialize form*, *Process form* (Automatic Row Processing) e *Close Dialog*. Traduza os labels: Cancelar, Excluir, Salvar, Criar. Em todos os botões, Authorization `ADMIN_RH`.
 
 ### 4.6 Testar
 
-1. Na página 13, escolha um colaborador no seletor e clique em **Formações**. A página 19 abre com a lista vazia e o nome dele no título.
+1. Na página 13, escolha um colaborador no seletor e clique em **Formações**. A página 19 abre com o cabeçalho igual ao da página 13, a lista vazia e o nome dele no subtítulo.
 2. **Nova formação** › Certificação · título · instituição · conclusão = hoje · validade = daqui a 30 dias · anexe um PDF › **Criar**. A modal fecha e a linha aparece **em amarelo** ("A VENCER").
 3. Abra a formação pelo lápis. O link **Baixar anexo** baixa o PDF.
 4. Mude a validade para uma data passada › **Salvar**. A linha fica **vermelha** ("VENCIDA").
@@ -915,6 +1347,9 @@ Depois **Actions › Report › Save Report** › *As Default Report Settings* �
 | Sintoma | Causa provável | Correção |
 |---|---|---|
 | A lista sempre vazia | `P19_ID_COLABORADOR` não existe ou não está em *Page Items to Submit* | Passos 4.3 e 4.4 |
+| Subtítulo sem o nome do colaborador | O nome está no Source/Default de `P19_NM_COLABORADOR`, que só é calculado depois que a região já foi montada | Busque o nome no processo Validar acesso (§4.3, passo 4) |
+| Cabeçalho sem fundo branco, sem negrito ou com moldura em volta | Faltou o CSS na página, ou o `div class="hc" data-hc` no HTML | §4.3 Passo 5, itens 1 e 2; suba o `.css`/`.min.css` e recarregue com Ctrl+F5 |
+| `ORA-01403: no data found` ao abrir a 19 | `G_ID_EMPRESA` vazio na sessão, e aí o `select ... into` do Validar acesso não acha linha | Confira o processo que preenche `G_ID_EMPRESA` no login (§1.1) |
 | Os campos da modal não aceitam digitação ao editar | Formulário sem o bloco `edit` | Recrie as páginas pelo assistente (§4.2) e confira o export |
 | "Formação não encontrada." ao criar | `P21_ID_COLABORADOR` vazio | O botão "Nova formação" precisa passar `P21_ID_COLABORADOR` = `&P19_ID_COLABORADOR.` |
 | `ORA-02290 ... FORMACAO_COLABORADOR_..._CK` | Validação faltando para essa regra | Crie a validação correspondente do passo 4.5 |
@@ -926,28 +1361,383 @@ Depois **Actions › Report › Save Report** › *As Default Report Settings* �
 
 ## 5. Página 20 · Dashboard RH
 
-- Authorization Scheme: `ADMIN_RH`
-- Itens de período: `P20_DT_INICIO` e `P20_DT_FIM` (Date Picker `DD/MM/YYYY`). Defaults (PL/SQL Expression):
-  - Início: `to_char(add_months(trunc(pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA), 'mm'), -11), 'DD/MM/YYYY')`
-  - Fim: `to_char(pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA), 'DD/MM/YYYY')`
-- DA Change nos dois itens: Refresh nos gráficos 5.1 e 5.2.
+Painel do RH com indicadores de carreira da empresa num período: promoções por departamento (§5.1), turnover (§5.2), tempo médio no cargo (§5.3), formações a vencer (§5.4) e solicitações de correção abertas (§5.5). A página **não está no protótipo** e, por isso, usa o mesmo cabeçalho das páginas 13 e 19.
 
-Todas as consultas usam só movimentações válidas: efetivadas, não estornadas e que não são lançamentos de estorno (`VW_MOVIMENTACAO_VALIDA`).
+Todas as consultas usam só movimentações válidas: efetivadas, não estornadas e que não são lançamentos de estorno (`VW_MOVIMENTACAO_VALIDA`). Toda consulta filtra por `:G_ID_EMPRESA`.
+
+### 5.0 Criar a página e o filtro de período
+
+**Antes de começar, confira:**
+
+- [ ] A página 20 não existe (*App Builder › app 100*: não há página 20 na lista). Se existir uma versão antiga, apague-a como no §4.1.
+- [ ] A view `VW_MOVIMENTACAO_VALIDA` existe (`03_views_carreira.sql`) e o package compila (tem `fn_hoje`).
+- [ ] O esquema de autorização `ADMIN_RH` existe (§1.2).
+
+#### Passo 1 · Criar a página em branco
+
+1. **Create › Page › Blank Page** (confirmar no 26.1.5). Com uma página em branco, cada região é criada à mão, com o tipo certo. O assistente de *Chart* criaria uma página com um gráfico só.
+2. Preencha:
+
+| Campo | Valor |
+|---|---|
+| Page Number | `20` |
+| Name | `Dashboard RH` |
+| Page Mode | Normal |
+| Navigation › Create Navigation Menu Entry | **Off**. A entrada de menu é criada no §7, com autorização |
+| Breadcrumb | Don't use breadcrumbs |
+
+3. **Create Page**. No Page Designer, clique no nó da página e preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Appearance | Page Template | **Standard** (o mesmo da página 13) |
+| CSS | File URLs | `#APP_FILES#historico-carreira#MIN#.css` |
+| Security | Authorization Scheme | **ADMIN_RH** |
+| Security | Page Access Protection | **Arguments Must Have Checksum** |
+
+Por que a autorização vai na página: é a regra de ouro 3. Só esconder a entrada de menu não impede abrir a página pela URL.
+
+#### Passo 2 · Cabeçalho
+
+Igual ao da página 19 (§4.3, Passo 5). Botão direito em **Body** › **Create Region**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Cabeçalho` |
+| Identification | Type | **Static Content** |
+| Layout | Sequence | 5 |
+| Appearance | Template | **Blank with Attributes (No Grid)** |
+| Source | HTML Code | (abaixo) |
+
+```html
+<div class="hc" data-hc>
+  <header class="hc-titulo">
+    <div>
+      <h1>Dashboard RH</h1>
+      <p>Promoções, turnover, tempo no cargo e formações a vencer no período escolhido.</p>
+    </div>
+  </header>
+</div>
+```
+
+O `data-hc` liga o layout de página inteira do `historico-carreira.css`: sem moldura e com o fundo cinza até o rodapé. As regiões com template *Standard* ganham margem de 24px em cima e embaixo e 32px nas laterais.
+
+#### Passo 3 · Região e itens do período
+
+Os filtros ficam numa linha só, acima dos gráficos, e valem para todos eles.
+
+1. Botão direito em **Body** › **Create Region**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Período` |
+| Identification | Type | **Static Content** |
+| Layout | Sequence | 10 |
+| Appearance | Template | **Standard** |
+| Appearance | Template Options › Header | **Hidden but accessible** (no export: `t-Region--hideHeader js-addHiddenHeadingRoleDesc`) |
+
+2. Botão direito na região **Período** › **Create Page Item**, duas vezes:
+
+| Atributo | `P20_DT_INICIO` | `P20_DT_FIM` |
+|---|---|---|
+| Identification › Type | **Date Picker** | **Date Picker** |
+| Label › Label | `De` | `Até` |
+| Layout › Sequence | 10 | 20 |
+| Layout › Start New Row | On | **Off** (fica ao lado do início) |
+| Appearance › Format Mask | `DD/MM/YYYY` | `DD/MM/YYYY` |
+| Settings › Minimum Date | (nenhuma) | **Item** › `P20_DT_INICIO` (no export: `minDate: item`, `minItem: P20_DT_INICIO`) |
+| Appearance › Template | **Required - Floating** | **Required - Floating** |
+| Validation › Value Required | On | On |
+| Default › Type | **Expression** · Language PL/SQL | **Expression** · Language PL/SQL |
+| Default › PL/SQL Expression | (abaixo) | (abaixo) |
+| Source › Type | Null | Null |
+
+Default de `P20_DT_INICIO`, o primeiro dia de 11 meses atrás, para mostrar os últimos 12 meses fechados mais o mês atual:
+```sql
+to_char(add_months(trunc(pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA), 'mm'), -11), 'DD/MM/YYYY')
+```
+Default de `P20_DT_FIM`, hoje no fuso da empresa:
+```sql
+to_char(pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA), 'DD/MM/YYYY')
+```
+
+Por que cada um importa:
+- **Default com `to_char(..., 'DD/MM/YYYY')`:** o Date Picker guarda o valor como texto, no formato da Format Mask. Se o default vier em outro formato, o item mostra a data errada ou dá erro de conversão nas queries.
+- **`fn_hoje`:** usa a data de hoje no fuso da empresa, não a do servidor de banco, que fica em UTC.
+- **Minimum Date no fim:** o calendário não deixa escolher um fim antes do início.
+
+#### Passo 4 · Dynamic Action "Período mudou"
+
+Ao trocar uma das datas, os gráficos atualizam sem recarregar a página.
+
+1. Na aba **Dynamic Actions**, botão direito em **Events › Change** › **Create Dynamic Action** (ou botão direito no item `P20_DT_INICIO` › Create Dynamic Action).
+2. Preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Período mudou` |
+| When | Event | **Change** |
+| When | Selection Type | Item(s) |
+| When | Item(s) | `P20_DT_INICIO,P20_DT_FIM` |
+| Client-side Condition | Type | **JavaScript expression** |
+| Client-side Condition | JavaScript Expression | `$v('P20_DT_INICIO') !== '' && $v('P20_DT_FIM') !== ''` |
+
+3. Ação **True** › Action **Refresh** › Affected Elements › Region **Promoções por departamento**. Crie esta ação depois do §5.1, quando a região existir. Nos §5.2 a 5.4, acrescente uma ação Refresh para cada região nova.
+
+A expressão devolve `true` ou `false`, nunca um texto. Com a versão anterior, `$v(...) && $v(...)`, o resultado era a própria data (um texto), e em 13/10/2026 a DA não disparava no ambiente: o gráfico só mudava com `refresh()` manual. A condição é a principal suspeita (confirmar). A condição evita atualizar os gráficos enquanto uma das datas está vazia, por exemplo no meio da digitação. Quem envia as datas ao servidor é a própria região, pelo *Page Items to Submit* de cada série. A DA não precisa enviar nada.
 
 ### 5.1 Promoções por departamento (Chart · Bar)
 
+Quantas promoções cada departamento teve no período. É uma comparação de quantidade entre categorias, então o formato é **barra horizontal, ordenada da maior para a menor**. Barras horizontais deixam o nome do departamento legível sem girar o texto, e a ordenação mostra o ranking sem o usuário precisar comparar alturas. Como há **uma série só**, o gráfico usa uma cor só, sem legenda: o título da região já diz o que é.
+
+**Antes de começar, confira:**
+
+- [ ] O §5.0 está feito: `P20_DT_INICIO` e `P20_DT_FIM` existem e têm default.
+- [ ] Há dados para ver o gráfico. Rode em **SQL Workshop › SQL Commands**:
+  ```sql
+  select count(*)
+    from vw_movimentacao_valida
+   where cd_tipo = 'PROMOCAO';
+  ```
+  Se der 0, use a massa de demonstração (próximo item) ou efetive uma promoção pela página 13 (Nova movimentação › Promoção › Efetivar).
+
+**Massa de demonstração (opcional).** O `09_dados_demo_dashboard.sql` cria dados marcados como `[DEMO]` que alimentam todos os gráficos da página 20:
+1. Descubra a empresa do seu usuário RH: `select id_empresa, nome from empresa order by id_empresa;`
+2. Abra o `09_dados_demo_dashboard.sql` e troque `c_empresa constant number := 1;` pela sua empresa.
+3. **SQL Workshop › SQL Scripts › Upload** (ou *Create* e cole o conteúdo) › **Run**. SQL Commands não serve, porque roda um comando por vez.
+4. A saída deve terminar com algo como `colaboradores: 16 | admissões: 16 | promoções: 10 | desligamentos: 4`. A consulta de conferência no fim do script lista as promoções por departamento: 4, 3, 2 e 1.
+
+O que cada gráfico mostra com essa massa, no período padrão (últimos 12 meses). Se a empresa já tiver dados reais, eles se somam a estes:
+
+| Gráfico | Resultado esperado |
+|---|---|
+| 5.1 Promoções por departamento | 4 barras: 4, 3, 2 e 1 promoções, nos 4 primeiros departamentos da empresa. **Todas as promoções caem nos últimos 4 meses**, então qualquer período que comece antes disso mostra o mesmo gráfico. Use a tabela "Intervalos para testar o filtro" no Testar do §5.1 |
+| 5.2 Turnover | 7 admissões entre 7 e 11 meses atrás; 4 desligamentos nos últimos 4 meses |
+| 5.3 Tempo médio no cargo | Uma barra por departamento, com médias diferentes |
+| 5.4 Formações a vencer | 5 linhas: 4 certificações e 1 curso (NR-10), vencendo entre 10 e 45 dias |
+| 5.5 Solicitações abertas | 2 linhas |
+
+Os dados aparecem também nas outras telas: lista de colaboradores, seletor da página 13, organograma. Os nomes começam com `[DEMO]`, para ninguém confundir com gente real. Não há data de nascimento, então eles não entram nos aniversariantes da Home. Também não geram comunicados.
+
+Para apagar tudo, rode o `10_remover_dados_demo.sql` da mesma forma, com a mesma `c_empresa`. Ele desliga a trigger que protege a trilha só durante a exclusão e a religa no fim. A última consulta do script confirma `ENABLED`.
+
+> **Por que o script grava direto nas tabelas, e não pelo package:** no SQL Workshop, o código roda dentro da sessão do App Builder, que não tem `G_ID_EMPRESA`. Pelo código do package (`em_sessao_apex` e `fn_empresa_contexto`), ele trataria isso como sessão sem empresa e recusaria com `-20012` ("Sua sessão não está vinculada a uma empresa"). Isso não foi testado no ambiente. O script monta cada lançamento como o package grava (efetivado, com a situação anterior e a nova completas) e não publica comunicado na intranet.
+
+#### Passo 1 · Criar a região do gráfico
+
+1. Botão direito em **Body** › **Create Region**.
+2. Preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Promoções por departamento` |
+| Identification | Type | **Chart** |
+| Layout | Sequence | 20 |
+| Appearance | Template | **Standard** |
+| Advanced | Static ID | `grafico_promocoes` |
+
+Ao trocar o Type para *Chart*, o APEX cria embaixo da região um nó **Series** com uma série de exemplo e um nó **Axes** com os eixos `x` e `y`.
+
+#### Passo 2 · Atributos do gráfico
+
+Os atributos do gráfico (tipo, orientação, legenda, tooltip, mensagens) ficam no componente do gráfico, não no da região. Em versões anteriores isso era o nó/aba **Attributes** da região. No 26.1.5, procure pelo nome do atributo na busca do painel (ex.: `Orientation`) (confirmar no 26.1.5).
+
+| Seção | Atributo | Valor | Por quê |
+|---|---|---|---|
+| Chart | Type | **Bar** | Comparar quantidades entre categorias |
+| Chart | Orientation | **Horizontal** | Nome do departamento legível, sem girar |
+| Chart | Stack | Off | Série única |
+| Appearance | Height | `360` | Altura fixa; com muitos departamentos, aumente |
+| Animation | On Display | **None** | Respeita quem desativa animações; o valor aparece na hora |
+| Legend | Show | **Off** | Série única: o título da região já identifica |
+| Tooltip | Show | On | |
+| Tooltip | Show Series Name | **Off** | "Promoções" já está no título |
+| Tooltip | Show Group Name | On | Mostra o departamento |
+| Tooltip | Show Value | On | |
+| Messages | When No Data Found | `Nenhuma promoção no período.` | Mensagem em pt-BR em vez do padrão em inglês |
+
+#### Passo 3 · Série "Promoções"
+
+1. Abra **Series** e clique na série que o APEX criou.
+2. Preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Promoções` |
+| Source | Location | Local Database |
+| Source | Type | **SQL Query** |
+| Source | SQL Query | (abaixo) |
+| Source | Page Items to Submit | `P20_DT_INICIO,P20_DT_FIM` |
+| Column Mapping | Label | `DEPARTAMENTO` |
+| Column Mapping | Value | `PROMOCOES` |
+| Appearance | Color | `#00688C` |
+| Label | Show | **On** |
+| Label | Position | **Outside Bar Edge** |
+
 ```sql
-select nvl(d.nome, '(sem departamento)') as departamento,
-       count(*)                          as promocoes
+select coalesce(d.nome, '(sem departamento)') as departamento,
+       count(*)                               as promocoes
   from vw_movimentacao_valida v
-  left join departamento d on d.id_departamento = v.id_departamento_novo
+  left join departamento d
+         on d.id_departamento = v.id_departamento_novo
  where v.id_empresa = :G_ID_EMPRESA
    and v.cd_tipo    = 'PROMOCAO'
-   and v.dt_efetiva between to_date(:P20_DT_INICIO, 'DD/MM/YYYY') and to_date(:P20_DT_FIM, 'DD/MM/YYYY')
- group by d.nome
- order by promocoes desc
+   and v.dt_efetiva between to_date(:P20_DT_INICIO, 'DD/MM/YYYY')
+                        and to_date(:P20_DT_FIM,    'DD/MM/YYYY')
+ group by d.id_departamento, d.nome
+ order by promocoes desc, departamento
 ```
-Label `DEPARTAMENTO` · Value `PROMOCOES` · Items to Submit: `P20_DT_INICIO,P20_DT_FIM`
+
+Por que cada parte importa:
+- **`v.id_empresa = :G_ID_EMPRESA`:** é o isolamento entre empresas (regra de ouro 3).
+- **`id_departamento_novo`:** o package grava no lançamento efetivado a situação completa, mesmo quando o departamento não muda. Por isso a promoção conta para o departamento em que a pessoa estava quando foi promovida.
+- **`group by d.id_departamento, d.nome`:** dois departamentos com o mesmo nome continuam separados.
+- **`order by promocoes desc, departamento`:** o gráfico segue a ordem da query. O desempate pelo nome deixa a ordem estável entre atualizações.
+- **`to_date(..., 'DD/MM/YYYY')`:** o mesmo formato da Format Mask dos itens. Sem a máscara explícita, a conversão depende do idioma da sessão.
+- **Page Items to Submit na série:** no Refresh, o APEX envia as datas da tela antes de rodar a query. Sem isso, a query usa as datas antigas da sessão.
+- **Uma cor só, `#00688C`:** é a primária do tema (`--cx-primaria`). O contraste com o fundo branco do cartão é de pelo menos 3:1, que é o mínimo para elementos gráficos. Use o código, não `var(--cx-primaria)`: o gráfico é desenhado em SVG, e a cor vai como atributo, onde variáveis CSS não funcionam em todos os navegadores.
+- **Rótulo com o valor na ponta da barra:** com poucas barras, o número na ponta dispensa ler o eixo e funciona para quem não distingue cores.
+
+#### Passo 4 · Eixos
+
+Abra **Axes**. Na barra horizontal, `x` é o eixo das categorias (departamentos) e `y` é o dos valores.
+
+| Eixo | Seção | Atributo | Valor |
+|---|---|---|---|
+| `x` | Title | Title | (vazio: os nomes dos departamentos já dizem o que é) |
+| `y` | Title | Title | `Promoções` |
+| `y` | Value | Format | **Decimal** · Decimal Places `0` |
+| `y` | Value | Minimum | `0` |
+| `y` | Value | Format Scaling | **None** (mostra "12", não "12K") |
+| `y` | Major Ticks | Minimum Step | `1` (só números inteiros) |
+| `y` | Minor Ticks | Rendered | Off |
+
+Por que: promoção é contagem. Sem casas decimais e com passo 1, o eixo não mostra valores como "0,5 promoção". Começar em zero mantém o comprimento da barra proporcional ao valor.
+
+#### Passo 5 · Ligar o gráfico à DA do período
+
+Volte à DA **Período mudou** (§5.0, Passo 4) e crie a ação True **Refresh** › Region **Promoções por departamento**. Salve a página (Ctrl+S).
+
+A árvore deve ficar assim:
+
+```
+Body
+├── Cabeçalho                    (Static Content · No Grid · seq 5)
+├── Período                      (Static Content · Standard · seq 10)
+│   ├── P20_DT_INICIO            (Date Picker · seq 10)
+│   └── P20_DT_FIM               (Date Picker · seq 20)
+└── Promoções por departamento   (Chart · Bar horizontal · seq 20)
+    ├── Series
+    │   └── Promoções            (SQL Query · #00688C)
+    └── Axes
+        ├── x
+        └── y                    (Promoções · 0 casas · passo 1)
+Dynamic Actions
+└── Change
+    └── Período mudou            (P20_DT_INICIO, P20_DT_FIM)
+        └── True › Refresh       Promoções por departamento
+```
+
+#### Como conferir no export da página 20
+
+- `security { authorizationScheme: @admin-rh ... }` e `css { fileUrls: #APP_FILES#historico-carreira#MIN#.css }` na página;
+- os dois Date Picker com `formatMask: DD/MM/YYYY`, `default { type: expression ... }`, `valueRequired: true`, labels **De** e **Até**, e `P20_DT_FIM` com `minDate: item` / `minItem: P20_DT_INICIO`;
+- `dynamicAction período-mudou` com `items: [P20_DT_INICIO P20_DT_FIM]`, a `clientSideCondition` em JavaScript e uma ação `refresh` para `@grafico_promocoes`. O evento *Change* é o padrão e não aparece no export;
+- a região do gráfico. O tipo *Bar* é o padrão e também não aparece. Trecho real do export (12/10/2026):
+
+```
+region grafico_promocoes (
+    name: Promoções por departamento
+    type: chart
+    chartAppearance { orientation: horizontal }
+    chartLayout     { height: 360 }
+    animation       { onDisplay: none }
+    tooltip         { showSeriesName: false }
+    legend          { show: false }
+    messages        { whenNoDataFound: Nenhuma promoção no período. }
+
+    series promoções (
+        source {
+            type: sqlQuery
+            sqlQuery: ...
+            pageItemsToSubmit: [ P20_DT_INICIO P20_DT_FIM ]
+        }
+        columnMapping { label: DEPARTAMENTO  value: PROMOCOES }
+        appearance    { color: #00688c }
+        label         { show: true  position: outsideBarEdge }
+    )
+
+    axis x ( name: x )
+    axis y (
+        name: y
+        title: Promoções
+        value      { min: 0  format: decimal  decimalPlaces: 0  formatScaling: none }
+        majorTicks { minStep: 1 }
+        minorTicks { show: false }
+    )
+)
+```
+(Blocos condensados em uma linha para caber aqui; no export, cada atributo fica numa linha.)
+
+#### Testar
+
+1. Rode a página 20 com um usuário RH. O cabeçalho "Dashboard RH" aparece igual ao das páginas 13 e 19, e o período vem preenchido com os últimos 12 meses.
+2. As barras aparecem em ordem decrescente, com o número na ponta. Passe o mouse numa barra: o tooltip mostra o departamento e a quantidade, sem o nome da série.
+3. **Filtro de período.** Com a massa de demonstração, as promoções ficam assim (M-1 = mês passado, M-4 = quatro meses atrás):
+
+   | Departamento | Datas das promoções |
+   |---|---|
+   | 1º | dia 7 de M-1, M-2, M-3 e M-4 |
+   | 2º | dia 11 de M-2, M-3 e M-4 |
+   | 3º | dia 15 de M-3 e M-4 |
+   | 4º | dia 19 de M-4 |
+
+   **Intervalos para testar o filtro** (com **Até** = hoje, mudando só o **De**):
+
+   | De | Barras esperadas (1º, 2º, 3º, 4º departamento) |
+   |---|---|
+   | dia 1 do mês atual | nenhuma: "Nenhuma promoção no período." |
+   | dia 1 de M-1 | 1 (só o 1º departamento) |
+   | dia 1 de M-2 | 2 e 1 |
+   | dia 1 de M-3 | 3, 2 e 1 |
+   | dia 1 de M-4 ou antes | 4, 3, 2 e 1 (o gráfico completo) |
+
+   Teste também o **Até**: com De = dia 1 de M-4 e Até = último dia de M-4, aparecem 4 barras com **1 promoção cada**.
+
+   O gráfico deve mudar **sem recarregar a página**, assim que você sai do campo de data. Para ver as datas reais, inclusive as que não são de demonstração:
+   ```sql
+   select d.nome as departamento, v.dt_efetiva
+     from vw_movimentacao_valida v
+     left join departamento d on d.id_departamento = v.id_departamento_novo
+    where v.id_empresa = 1   -- a sua empresa
+      and v.cd_tipo    = 'PROMOCAO'
+    order by v.dt_efetiva desc;
+   ```
+4. Abra o calendário de **Até**: os dias antes da data **De** ficam bloqueados.
+5. Entre com um usuário que não é RH e abra a página 20: o acesso é negado.
+6. Confira o número com SQL:
+   ```sql
+   select count(*)
+     from vw_movimentacao_valida
+    where id_empresa = 1   -- a sua empresa
+      and cd_tipo    = 'PROMOCAO'
+      and dt_efetiva between date '2025-11-01' and date '2026-10-12';
+   ```
+   O total deve ser igual à soma das barras.
+
+#### Se não funcionar
+
+| Sintoma | Causa provável | Correção |
+|---|---|---|
+| "Nenhuma promoção no período." mesmo com promoções | Promoções fora do período, ainda em rascunho ou estornadas | Amplie o período. Só entram promoções efetivadas e não estornadas (`VW_MOVIMENTACAO_VALIDA`) |
+| Ao mudar a data, o gráfico continua igual | As datas escolhidas ainda incluem todas as promoções (com a massa demo, todas estão nos últimos 4 meses) | Use os intervalos do Testar, item 3. Se "dia 1 do mês atual" mostrar "Nenhuma promoção no período.", o filtro funciona |
+| O gráfico só muda depois de rodar `apex.region('<id>').refresh()` no console | A DA "Período mudou" não dispara. Suspeita principal: condição client-side que devolvia texto em vez de `true`/`false` | §5.0, Passo 4: condição `$v('P20_DT_INICIO') !== '' && $v('P20_DT_FIM') !== ''`. Para ver se a DA dispara, rode `apex.debug.setLevel(4)` no console, mude uma data e procure "Período mudou" no log |
+| Nem "dia 1 do mês atual" muda o gráfico | A DA não dispara, ou a série não envia as datas | No console do navegador (F12), rode `apex.region("grafico_promocoes").refresh()`. Se o gráfico mudar, o problema é a DA (Passo 5 e §5.0 Passo 4). Se não mudar, falta *Page Items to Submit* na **série** (Passo 3) |
+| `ORA-01843: not a valid month` ou `ORA-01858` | Default do item ou Format Mask fora de `DD/MM/YYYY` | §5.0, Passo 3: o mesmo formato no default, na máscara e no `to_date` |
+| Barra "(sem departamento)" | O colaborador não tinha departamento no cadastro quando a promoção foi efetivada. Nesse caso o package grava `id_departamento_novo` nulo | Corrija o departamento no cadastro do colaborador. Para lançamentos já efetivados, use uma movimentação de Transferência de área |
+| Eixo com "0,5" ou "1,5" | Faltou formato inteiro no eixo `y` | Passo 4: Decimal Places 0 e Step 1 |
+| Barras verticais com nomes girados | Orientation ficou Vertical | Passo 2: **Horizontal** |
+| Página com moldura branca em volta | Faltou o CSS na página ou o `data-hc` no cabeçalho | §5.0, Passos 1 e 2 |
 
 ### 5.2 Turnover: admissões x desligamentos por mês (Chart · Bar, 2 séries)
 
@@ -987,23 +1777,23 @@ select nvl(s.nm_departamento, '(sem departamento)') as departamento,
 ```
 Value Axis title: "anos"
 
-### 5.4 Certificações a vencer (Classic Report)
+### 5.4 Formações a vencer (Classic Report)
 
 ```sql
 select c.nome_completo        as colaborador,
-       f.ds_titulo            as certificacao,
+       f.ds_titulo            as formacao,
+       f.tp_formacao          as tipo,
        f.ds_instituicao       as emissor,
        f.dt_validade          as validade,
        f.dt_validade - pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) as dias_restantes
   from formacao_colaborador f
   join colaborador c on c.id_colaborador = f.id_colaborador
  where f.id_empresa  = :G_ID_EMPRESA
-   and f.tp_formacao = 'CERTIFICACAO'
    and f.dt_validade between pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA)
                          and pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) + 60
  order by f.dt_validade
 ```
-Coluna `COLABORADOR` como link para a página 19 (`P19_ID_COLABORADOR`).
+Coluna `COLABORADOR` como link para a página 19 (`P19_ID_COLABORADOR`). Coluna `TIPO`: Plain Text (based on List of Values) com `LOV_TIPO_FORMACAO`. Assim como na página 19, entra qualquer formação com validade, não só certificação.
 
 ---
 

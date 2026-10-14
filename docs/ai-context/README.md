@@ -48,8 +48,11 @@
 | 7 | Monitor de Logs | Implementada (sem authorization!) |
 | 11 | Comunicados Oficiais | Placeholder |
 | 12 | Colaboradores | Placeholder |
-| 13 | Histórico de carreira | Placeholder; o módulo existe em `modulos/historico-carreira` |
+| 13 | Histórico de carreira | Montada no ambiente com o módulo `modulos/historico-carreira` (§2 do guia); o `.apx` em `corlixhub/` ainda é o placeholder antigo |
 | 14 | Cadastro de Usuários (cria usuário APEX) | Implementada |
+| 18 | Movimentação (modal do histórico de carreira) | Montada no ambiente pelo guia `modulos/historico-carreira/Etapas-*.md` §3; ainda não exportada para `corlixhub/` |
+| 19 / 21 | Formações e certificações (lista) / Formação (modal) | Montadas no ambiente (§4 do guia, validadas em 12/10/2026); ainda não exportadas para `corlixhub/` |
+| 20 | Dashboard RH | Em construção (§5 do guia) |
 | 15 / 16 | Empresas (lista / modal de cadastro com ViaCEP) | Implementada |
 | 17 | Emitir Comunicado (modal wizard) | Implementada, com bugs |
 | 26 / 27 | Central de Equipes / Nova Equipe (modal) | Implementada |
