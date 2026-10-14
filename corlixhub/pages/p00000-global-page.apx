@@ -50,7 +50,8 @@ page 0 (
                       <span class="corlix-header__user-name">&G_NOME_USUARIO.</span>
                       <span class="corlix-header__user-role">&APP_USER_CARGO.</span>
                     </div>
-                    <img src="&APP_USER_FOTO." alt="Foto do usuário" class="corlix-header__avatar" />
+                    <img src="#APP_FILES#&APP_USER_FOTO." alt="Foto do usuário" class="corlix-header__avatar" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';" />
+                    <span class="corlix-header__avatar cx-avatar-iniciais" aria-hidden="true" style="display:none">&APP_USER_INICIAIS.</span>
                   </div>
                 </div>
                 ```

@@ -188,7 +188,10 @@ create or replace package body pkg_organograma as
     return to_char(p_data, 'fmdd') || ' de ' || mes_por_extenso(p_data);
   end aniversario;
 
-  -- Foto (FOTO_URL ou BLOB) quando existir; senão, iniciais
+  -- Foto (FOTO_URL ou BLOB) por cima das iniciais. FOTO_URL guarda só o nome do
+  -- arquivo em "Fotos Colaboradores/" (Static Application Files); o JS da página
+  -- completa o src com apex.env.APP_FILES (orgCarregarFotos). URL absoluta vai direto.
+  -- Se a imagem falhar, o onerror remove a <img> e as iniciais ficam visíveis.
   function avatar (
     p_id         in number,
     p_nome       in varchar2,
@@ -196,24 +199,36 @@ create or replace package body pkg_organograma as
     p_tem_imagem in varchar2,
     p_tamanho    in varchar2   -- lg | md | row | sm
   ) return varchar2 is
-    l_src varchar2(4000);
+    c_pasta_fotos constant varchar2(30) := 'Fotos Colaboradores/';
+    l_foto varchar2(4000) := trim(p_foto_url);
+    l_img  varchar2(4000);
   begin
-    if p_foto_url is not null then
-      l_src := p_foto_url;
-    elsif p_tem_imagem = 'S' then
-      l_src := apex_page.get_url(
-                 p_request => 'APPLICATION_PROCESS=DOWNLOAD_FOTO',
-                 p_items   => 'ID_COLABORADOR',
-                 p_values  => to_char(p_id));
+    l_foto := regexp_replace(l_foto, '^#APP_FILES#', '');
+
+    if l_foto is null or l_foto = c_pasta_fotos then
+      l_foto := null;
+    elsif regexp_like(l_foto, '^(https?:)?//|^/', 'i') then
+      l_img := 'src="' || a(l_foto) || '"';
+    else
+      if l_foto not like c_pasta_fotos || '%' then
+        l_foto := c_pasta_fotos || l_foto;
+      end if;
+      l_img := 'data-org-foto="' || a(l_foto) || '"';
     end if;
 
-    if l_src is not null then
-      return '<span class="org-avatar org-avatar--' || p_tamanho || '">'
-          || '<img src="' || a(l_src) || '" alt="" loading="lazy"></span>';
+    if l_img is null and p_tem_imagem = 'S' then
+      l_img := 'src="' || a(apex_page.get_url(
+                               p_request => 'APPLICATION_PROCESS=DOWNLOAD_FOTO',
+                               p_items   => 'ID_COLABORADOR',
+                               p_values  => to_char(p_id))) || '"';
     end if;
 
     return '<span class="org-avatar org-avatar--' || p_tamanho || '" aria-hidden="true">'
-        || e(iniciais(p_nome)) || '</span>';
+        || e(iniciais(p_nome))
+        || case when l_img is not null then
+             '<img ' || l_img || ' alt="" loading="lazy" onerror="this.remove()">'
+           end
+        || '</span>';
   end avatar;
 
   -- Linha clicável das listas do drawer (gestor / equipe direta)

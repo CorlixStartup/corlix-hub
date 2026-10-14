@@ -225,6 +225,7 @@ Uso: p1 Home (`cx-badge--info` no mês dos aniversariantes; `cx-etiqueta` no dep
 | `.cx-pessoa`, `__foto` (52px redonda), `__nome` (14px), `__detalhe` (12px `--cx-texto-3`) | foto + nome + cargo | p1 `card_meu_gestor` (HTML Expression) |
 | `.cx-titulo` (26px/32px bold) / `.cx-descricao` (14px `--cx-texto-2`) | título + descrição de página montados em região | p14 região `cadastrar-colaborador-header` |
 | `.cx-titulo-secao` (16px bold, margin-bottom 12px) | título de seção em formulário | p16 `headerText` das 3 regiões |
+| `.cx-avatar-iniciais` (fundo `--cx-primaria-suave`, texto `--cx-primaria`, 18px/600; 12px com `.corlix-header__avatar`) | avatar de iniciais para quem não tem foto. Vai num `<span style="display:none">` logo após a `<img>`, junto da classe de tamanho do avatar (`figma-avatar-img`, `corlix-header__avatar`, `cx-pessoa__foto`); o `onerror` da `<img>` esconde a imagem e limpa o `display` do span (por isso a classe não usa `display` com `!important`). A SQL deve devolver foto **nula** quando não há foto (o `src` vazio dispara o `onerror`). | header (p0), Home: gestor e aniversariantes |
 
 ```html
 <div class="cx-cabecalho-card">
@@ -234,7 +235,8 @@ Uso: p1 Home (`cx-badge--info` no mês dos aniversariantes; `cx-etiqueta` no dep
 
 <div class="cx-pessoa">
   <img src="&FOTO_GESTOR." alt="" class="cx-pessoa__foto"
-       onerror="this.onerror=null; this.src='#APP_FILES#default-user.jpeg';">
+       onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';">
+  <span class="cx-pessoa__foto cx-avatar-iniciais" aria-hidden="true" style="display:none">&INICIAIS_GESTOR.</span>
   <div>
     <strong class="cx-pessoa__nome">&NOME_GESTOR.</strong>
     <span class="cx-pessoa__detalhe">&NOME_CARGO.</span>

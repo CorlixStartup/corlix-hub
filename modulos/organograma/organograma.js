@@ -39,6 +39,17 @@ function orgObterDrawer() {
   return orgDrawer;
 }
 
+/* Fotos: o PL/SQL manda o caminho em data-org-foto ("Fotos Colaboradores/x.jpg");
+   aqui vira URL dos Static Application Files. Sem foto, ficam as iniciais. */
+function orgCarregarFotos(raiz) {
+  if (!raiz) return;
+  raiz.querySelectorAll("img[data-org-foto]").forEach(function (img) {
+    const caminho = img.dataset.orgFoto.split("/").map(encodeURIComponent).join("/");
+    img.removeAttribute("data-org-foto");
+    img.src = apex.env.APP_FILES + caminho;
+  });
+}
+
 function orgEstado(html) {
   return '<div class="org-drawer__estado">' + html + "</div>";
 }
@@ -61,6 +72,7 @@ function orgAbrirDetalhes(valor) {
     .done(function (html) {
       if (pedido !== orgPedido) return;
       painel.innerHTML = html;
+      orgCarregarFotos(painel);
       const titulo = painel.querySelector("#org-drawer-nome");
       if (titulo) titulo.focus();
     })
@@ -128,6 +140,8 @@ function orgCliqueNoDrawer(ev) {
 /* --------------------------------------------------------------------------
    Page Attributes > JavaScript > Execute when Page Loads
    -------------------------------------------------------------------------- */
+orgCarregarFotos(document);
+
 // Caminho e "Ver equipe" -> data-acao="foco"; card e "Ver perfil" -> data-acao="detalhe"
 $("#" + ORG_REGIAO).on("click", "[data-acao]", function () {
   if (this.dataset.acao === "foco") {
@@ -139,6 +153,7 @@ $("#" + ORG_REGIAO).on("click", "[data-acao]", function () {
 
 // Após trocar de nível, leva o foco do teclado para o nome da pessoa em foco
 $("#" + ORG_REGIAO).on("apexafterrefresh", function () {
+  orgCarregarFotos(this);
   const titulo = document.getElementById("org-foco-nome");
   if (titulo) titulo.focus({ preventScroll: true });
 });
