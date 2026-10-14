@@ -4,8 +4,9 @@
    ========================================================================== */
 
 /* --- Tokens ----------------------------------------------------------------
-   Leem os tokens --cx-* do corlix-tema.css; o valor após a vírgula é a reserva. */
-.hc {
+   Leem os tokens --cx-* do corlix-tema.css; o valor após a vírgula é a reserva.
+   .hc-barra-rh fica fora de .hc (é outra região), por isso recebe os tokens também. */
+.hc, .hc-barra-rh {
   --hc-primaria:       var(--cx-primaria, #00688C);
   --hc-primaria-suave: var(--cx-primaria-suave, #E6F2F6);
   --hc-aviso-fundo:    #E6F1F7;
@@ -402,6 +403,56 @@
 .hc-sobre__correcao { display: flex; flex-direction: column; gap: 2px; }
 .hc-sobre__status { font-size: 13px; font-weight: 600; color: var(--hc-aviso-texto); }
 
+/* --- Página inteira -------------------------------------------------------
+   No protótipo o título encosta nas bordas da área de conteúdo e o fundo cinza
+   vai até o rodapé. O Universal Theme coloca 2rem de padding em volta do corpo
+   (--ut-body-content-padding-*), e isso deixava uma moldura branca. :has() limita
+   o ajuste à página que tem a região do histórico. */
+body:has([data-hc]) {
+  --ut-body-content-padding-x: 0;
+  --ut-body-content-padding-y: 0;
+}
+body:has([data-hc]) .t-Body-main,
+body:has([data-hc]) .t-Body-content,
+body:has([data-hc]) .t-Body-contentInner {
+  background: var(--cx-fundo, #F1EFED);
+}
+body:has([data-hc]) .t-Body-contentInner { padding: 0; }
+/* Regiões comuns da página mantêm a margem do conteúdo: "Lançamentos (RH)" na P13,
+   "Período" e os gráficos na P20 (.t-Region) e a lista de formações na P19
+   (Interactive Report, .t-IRR-region). */
+body:has([data-hc]) .t-Body-contentInner .t-Region,
+body:has([data-hc]) .t-Body-contentInner .t-IRR-region { margin: 24px 32px; }
+
+/* --- Barra do RH (região acima da página, só ADMIN_RH) -------------------- */
+/* Região "Barra do RH" · Template Blank with Attributes (No Grid) · CSS Classes hc-barra-rh.
+   Seletor de colaborador à esquerda e botões à direita, numa linha só, colada no título. */
+.hc-barra-rh {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 12px 32px;
+  background: var(--hc-superficie-2);
+  border-bottom: 1px solid var(--hc-borda);
+}
+.hc-barra-rh::before {
+  content: "Visão do RH";
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--hc-tag);
+  color: var(--hc-texto-2);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.hc-barra-rh .t-Form-fieldContainer {
+  flex: 0 1 360px;
+  margin: 0 auto 0 0;   /* empurra os botões para a direita */
+  padding: 0;
+}
+.hc-barra-rh .t-Button { margin: 0; }
+
 /* --- Telas menores -------------------------------------------------------- */
 @media (max-width: 1100px) {
   .hc-conteudo { grid-template-columns: minmax(0, 1fr); }
@@ -409,6 +460,10 @@
 
 @media (max-width: 720px) {
   .hc-titulo { flex-direction: column; align-items: flex-start; padding: 20px 16px; }
+  .hc-barra-rh { padding: 12px 16px; }
+  body:has([data-hc]) .t-Body-contentInner .t-Region,
+  body:has([data-hc]) .t-Body-contentInner .t-IRR-region { margin: 16px; }
+  .hc-barra-rh .t-Form-fieldContainer { flex-basis: 100%; margin-right: 0; }
   .hc-conteudo { padding: 16px; }
   .hc-indicadores { grid-template-columns: minmax(0, 1fr); }
   .hc-indicador + .hc-indicador { border-left: 0; border-top: 1px solid var(--hc-borda); }
@@ -424,7 +479,7 @@
 /* --- Impressão (Exportar PDF) --------------------------------------------- */
 @media print {
   .t-Header, .t-Body-nav, .t-Body-actions, .t-Breadcrumb, .t-Footer,
-  .hc [data-hc-acao], .hc-abas, .hc-sobre .hc-btn, .hc-card__rodape { display: none !important; }
+  .hc [data-hc-acao], .hc-abas, .hc-sobre .hc-btn, .hc-card__rodape, .hc-barra-rh { display: none !important; }
   .t-Body-content, .t-Body-main, .t-Body-contentInner { margin: 0 !important; padding: 0 !important; }
   .hc { background: #FFFFFF; }
   .hc-conteudo { grid-template-columns: minmax(0, 1fr) 260px; padding: 16px 0; }
