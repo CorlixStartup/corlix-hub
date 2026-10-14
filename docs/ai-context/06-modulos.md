@@ -28,7 +28,7 @@ Tabelas existentes (COLABORADOR, CARGO, DEPARTAMENTO, EMPRESA, COMUNICADO)
                      apex.region(id).refresh() e apex.server.process(<Ajax Callback>)
 ```
 
-Por que: os layouts dos protótipos (Figma em `figma/`) não cabem nos templates do Universal Theme; HTML gerado no servidor evita bibliotecas externas (o organograma abandonou a OrgChart JS e sua questão de licença) e mantém regras de visibilidade no banco.
+Por que: os layouts dos protótipos (pen.dev em `pen_dev/`) não cabem nos templates do Universal Theme; HTML gerado no servidor evita bibliotecas externas (o organograma abandonou a OrgChart JS e sua questão de licença) e mantém regras de visibilidade no banco.
 
 Convenções de geração de HTML (idênticas nos dois packages): CLOB temporário global `g_html` + `inicia` / `p(texto)` (`dbms_lob.writeappend`); `e()` = `apex_escape.html`, `a()` = `apex_escape.html_attribute`; ícones Lucide inline (SVG stroke, `currentColor`, `aria-hidden`); textos com entidades HTML (`&atilde;`, `&middot;`) ou `unistr`; datas por extenso com `NLS_DATE_LANGUAGE='BRAZILIAN PORTUGUESE'`; URLs via `apex_page.get_url` (gera checksum); iniciais = 1ª letra do primeiro nome + 1ª do último sobrenome.
 

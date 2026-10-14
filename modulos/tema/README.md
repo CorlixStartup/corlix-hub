@@ -1,6 +1,6 @@
 # Tema Corlix
 
-Tema visual do Corlix Hub, baseado nos protótipos do Figma exportados em `figma/`. A referência principal é a prancha **"Design System · Redwood Light (CorlixHub)"**. O tema fica em `corlixhub/shared-components/static-files/corlix-tema.css`.
+Tema visual do Corlix Hub, baseado nos protótipos do pen.dev exportados em `pen_dev/`. A referência principal é a prancha **"Design System · Redwood Light (CorlixHub)"**. O tema fica em `corlixhub/shared-components/static-files/corlix-tema.css`.
 
 ## Como foi construído
 
@@ -19,7 +19,7 @@ Por isso o tema não é um tema novo nem um template novo. É uma camada de vari
 | Botão secundário | cinza neutro | cinza quente `#EAE7E3` |
 | Foco do teclado | tracejado de 1px | contorno sólido de 2px na primária |
 
-A **fonte** continua a Oracle Sans do Redwood. O Figma usa Figtree só porque a Oracle Sans não está disponível lá. Cantos de botões e campos, rótulo flutuante, switch, checkbox e alertas também ficam como no Redwood, porque a prancha já os desenha assim.
+A **fonte** continua a Oracle Sans do Redwood. O pen.dev usa Figtree só porque a Oracle Sans não está disponível lá. Cantos de botões e campos, rótulo flutuante, switch, checkbox e alertas também ficam como no Redwood, porque a prancha já os desenha assim.
 
 Os nomes das variáveis (`--ut-*`, `--a-*`, `--rw-palette-*`) foram extraídos do CSS do Universal Theme 26.1.5 servido pela própria instância. Se uma atualização do APEX renomear alguma, o tema perde só aquele ajuste, sem quebrar a página.
 
@@ -106,4 +106,4 @@ A seção "Estrutura da aplicação" da prancha traz mudanças de navegação. E
 ## Fora do escopo
 
 - **Modo escuro:** a prancha só tem a versão clara.
-- **As telas de `figma/`:** o tema cobre os componentes da prancha. Cada tela ainda precisa ser montada ou ajustada página a página, como foi feito com o organograma e o histórico de carreira.
+- **As telas de `pen_dev/`:** o tema cobre os componentes da prancha. Cada tela ainda precisa ser montada ou ajustada página a página, como foi feito com o organograma e o histórico de carreira.

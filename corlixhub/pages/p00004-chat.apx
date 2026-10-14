@@ -427,7 +427,7 @@ page 4 (
                 heading: Foto Url
             }
             layout {
-                sequence: 50
+                sequence: 90
             }
             sorting {
                 sortable: false

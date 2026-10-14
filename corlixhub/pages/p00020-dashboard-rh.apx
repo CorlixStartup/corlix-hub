@@ -234,7 +234,7 @@ page 20 (
         }
         clientSideCondition {
             type: jsExpression
-            javaScriptExpression: $v('P20_DT_INICIO') && $v('P20_DT_FIM')
+            javaScriptExpression: $v('P20_DT_INICIO') !== '' && $v('P20_DT_FIM') !== ''
         }
 
         action período-mudou-verdadeiro (

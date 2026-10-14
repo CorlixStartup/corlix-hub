@@ -116,7 +116,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461326023046
-,p_version_scn=>'47047930623091'
+,p_version_scn=>'47048080797486'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -55587,8 +55587,8 @@ wwv_flow_imp_shared.create_acl_role(
 ,p_name=>'Admin RH'
 ,p_description=>unistr('Equipe de RH. Usado pela autoriza\00E7\00E3o ADMIN_RH.')
 ,p_users=>wwv_flow_t_varchar2('ALAIRTONROCHA',
-  'AMANDANUNES',
   'EDUARDOMARINS',
+  'FERNANDALIMA',
   'SARAHSILVA',
   'SARAHSILVA2',
   'TESTE.RH')
@@ -55605,6 +55605,7 @@ wwv_flow_imp_shared.create_acl_role(
 ,p_description=>unistr('Acesso b\00E1sico. Dado a todo usu\00E1rio cadastrado.')
 ,p_users=>wwv_flow_t_varchar2('ALAIRTONROCHA',
   'EDUARDOMARINS',
+  'RAFAELNUNES',
   'TESTE.RH')
 ,p_version_scn=>'SH256:18lWnDdKSAGhW3ELOsjMNYtpJEvidR8A9q0FyVbYqNM'
 );
@@ -55617,6 +55618,7 @@ wwv_flow_imp_shared.create_acl_role(
 ,p_static_id=>'diretoria'
 ,p_name=>'Diretoria'
 ,p_users=>wwv_flow_t_varchar2('ALAIRTONROCHA',
+  'AMANDANUNES',
   'EDUARDOMARINS',
   'SARAHSILVA',
   'SARAHSILVA2')
@@ -55646,6 +55648,7 @@ wwv_flow_imp_shared.create_acl_role(
 ,p_name=>'Gestor'
 ,p_description=>'Lidera equipe. Aparece na lista de gestores da P14.'
 ,p_users=>wwv_flow_t_varchar2('ALAIRTONROCHA',
+  'ANASOUZA',
   'EDUARDOMARINS',
   'SARAHSILVA',
   'SARAHSILVA2',
@@ -55661,6 +55664,7 @@ wwv_flow_imp_shared.create_acl_role(
 ,p_static_id=>unistr('publicador-de-conte\00FAdo')
 ,p_name=>unistr('Publicador de Conte\00FAdo')
 ,p_users=>wwv_flow_t_varchar2('ALAIRTONROCHA',
+  'ANASOUZA',
   'EDUARDOMARINS',
   'SARAHSILVA',
   'SARAHSILVA2',
@@ -57159,10 +57163,10 @@ wwv_flow_imp_page.create_page_plug(
 '    G.PRIMEIRO_NOME || '' '' || G.ULTIMO_NOME AS NOME_GESTOR,',
 '    CASE',
 '        WHEN G.FOTO_URL IS NULL',
-'             OR G.FOTO_URL = ''#APP_FILES#default-user.jpeg'' THEN',
-'            ''#APP_FILES#default-user.jpeg''',
+'             OR G.FOTO_URL = ''#APP_FILES#Fotos Colaboradores/'' THEN',
+'            ''#APP_FILES#Fotos Colaboradores/''',
 '        ELSE',
-'            ''#APP_FILES#fotos/'' || G.FOTO_URL',
+'            ''#APP_FILES#Fotos Colaboradores/'' || G.FOTO_URL',
 '    END AS FOTO_GESTOR',
 'FROM COLABORADOR C',
 'JOIN COLABORADOR G',
@@ -58324,10 +58328,10 @@ wwv_flow_imp_page.create_report_columns(
 ,p_include_in_export=>'Y'
 );
 wwv_flow_imp_page.create_report_columns(
- p_id=>wwv_flow_imp.id(24827404446602605)
+ p_id=>wwv_flow_imp.id(36608294568951803)
 ,p_query_column_id=>5
 ,p_column_alias=>'FOTO_URL'
-,p_column_display_sequence=>50
+,p_column_display_sequence=>90
 ,p_column_heading=>'Foto Url'
 ,p_heading_alignment=>'LEFT'
 ,p_derived_column=>'N'
@@ -63203,7 +63207,7 @@ wwv_flow_imp_page.create_page(
 ,p_page_template_options=>'#DEFAULT#'
 ,p_required_role=>wwv_flow_imp.id(29681448805008196)
 ,p_protection_level=>'C'
-,p_page_component_map=>'17'
+,p_page_component_map=>'04'
 );
 wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(33899493525350926)
@@ -63397,7 +63401,7 @@ wwv_flow_imp_page.create_page_da_event(
 ,p_triggering_element_type=>'ITEM'
 ,p_triggering_element=>'P20_DT_INICIO,P20_DT_FIM'
 ,p_triggering_condition_type=>'JAVASCRIPT_EXPRESSION'
-,p_triggering_expression=>'$v(''P20_DT_INICIO'') && $v(''P20_DT_FIM'')'
+,p_triggering_expression=>'$v(''P20_DT_INICIO'') !== '''' && $v(''P20_DT_FIM'') !== '''''
 ,p_bind_type=>'bind'
 ,p_execution_type=>'IMMEDIATE'
 ,p_bind_event_type=>'change'
@@ -64755,4 +64759,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:KzyiYn71cQ7OVMKA50+lY4QJSPgmu30hoBe4e7addzc=
+-- Application Checksum SH256:pmqCFRlVl6dUIWjbjr3yN552fxxSJRVu1dswpDySxis=

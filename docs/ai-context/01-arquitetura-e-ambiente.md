@@ -48,7 +48,7 @@ CorlixHub/
 │   ├── organograma/           #   vw_org_colaborador, pkg_organograma, organograma.css/js, PNGs de redesign
 │   ├── historico-carreira/    #   (untracked) DDL completo + packages + views + triggers + testes + CSS/JS
 │   └── tema/                  #   (untracked) guia de aplicação do tema visual nas páginas
-├── figma/                     # (untracked) ~28 PNGs com o design-alvo das telas
+├── pen_dev/                   # (untracked) ~28 PNGs com o design-alvo das telas
 ├── scripts/
 │   ├── setup.sh / setup.ps1   # setup do ambiente Docker (macOS/Linux e Windows)
 │   ├── git-hooks/commit-msg   # valida Conventional Commits
@@ -152,6 +152,6 @@ Os backups ficam como artefatos do Jenkins (30 dias) e nunca vão para o Git (`/
 
 ## 9. Estado do working tree no momento desta documentação
 Modificados (não commitados): `application.apx`, páginas 1, 4, 14, 16, 27, `static-files.apx`, `custom.css/.min.css`, `database/f100.sql`, arquivos de `modulos/organograma/`.
-Novos (untracked): `corlix-tema.css/.min.css`, `figma/`, `modulos/historico-carreira/`, `modulos/tema/`, PNGs de redesign do organograma, `scripts/apex-limpar-sql-scripts.sql`.
+Novos (untracked): `corlix-tema.css/.min.css`, `pen_dev/`, `modulos/historico-carreira/`, `modulos/tema/`, PNGs de redesign do organograma, `scripts/apex-limpar-sql-scripts.sql`.
 Deletados: `.env.example`, `docker-compose.yml`.
 Ou seja: há um trabalho grande de **redesign visual (tema Corlix)** + **módulo de histórico de carreira** em andamento.
