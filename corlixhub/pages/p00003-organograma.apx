@@ -54,7 +54,7 @@ page 3 (
                 img.src = apex.env.APP_FILES + caminho;
               });
             }
-
+            
             function orgEstado(html) {
               return '<div class="org-drawer__estado">' + html + "</div>";
             }
@@ -191,59 +191,59 @@ page 3 (
         executeWhenPageLoads:
             ```javascript-browser
             orgCarregarFotos(document);
-
-            $("#" + ORG_REGIAO)
-              .on(
-                "click",
-                "[data-acao]",
-                function () {
-            
-                  if (
-                    this.dataset.acao === "foco"
-                  ) {
-            
-                    orgIrPara(
-                      this.dataset.id
-                    );
-            
-                  } else if (
-                    this.dataset.acao ===
-                    "detalhe"
-                  ) {
-            
-                    orgAbrirDetalhes(
-                      this.dataset.id
-                    );
-            
-                  }
-            
-                }
-              );
             
             $("#" + ORG_REGIAO)
-              .on(
-                "apexafterrefresh",
-                function () {
-
-                  orgCarregarFotos(this);
+                .on(
+                    "click",
+                    "[data-acao]",
+                    function () {
             
-                  const titulo =
-                    document.getElementById(
-                      "org-foco-nome"
-                    );
+                        if (
+                            this.dataset.acao === "foco"
+                        ) {
             
-                  if (titulo) {
-                    titulo.focus({
-                      preventScroll: true
-                    });
-                  }
+                            orgIrPara(
+                                this.dataset.id
+                            );
             
-                }
-              );
+                        } else if (
+                            this.dataset.acao ===
+                            "detalhe"
+                        ) {
+            
+                            orgAbrirDetalhes(
+                                this.dataset.id
+                            );
+            
+                        }
+            
+                    }
+                );
+            
+            $("#" + ORG_REGIAO)
+                .on(
+                    "apexafterrefresh",
+                    function () {
+            
+                        orgCarregarFotos(this);
+            
+                        const titulo =
+                            document.getElementById(
+                                "org-foco-nome"
+                            );
+            
+                        if (titulo) {
+                            titulo.focus({
+                                preventScroll: true
+                            });
+                        }
+            
+                    }
+                );
             ```
     }
     css {
-        fileUrls: #APP_FILES#organograma.css.css
+        fileUrls: #APP_FILES#organograma#MIN#.css
     }
     security {
         pageAccessProtection: argumentsMustHaveChecksum

@@ -39,20 +39,22 @@ page 0 (
             htmlCode:
                 ```html
                 <div class="corlix-header__actions">
-                  <a href="r/corlixhub/&APP_ALIAS./notificacoes?session=&SESSION." class="corlix-header__icon-btn" id="corlix-btn-notif" aria-label="Notificações">
-                    <span class="fa fa-bell-o" aria-hidden="true"></span>
-                  </a>
-                  <a href="r/corlixhub/&APP_ALIAS./configuracoes?session=&SESSION." class="corlix-header__icon-btn" id="corlix-btn-settings" aria-label="Configurações">
-                    <span class="fa fa-cog" aria-hidden="true"></span>
-                  </a>
-                  <div class="corlix-header__user">
-                    <div class="corlix-header__user-info">
-                      <span class="corlix-header__user-name">&G_NOME_USUARIO.</span>
-                      <span class="corlix-header__user-role">&APP_USER_CARGO.</span>
+                    <a href="r/corlixhub/&APP_ALIAS./notificacoes?session=&SESSION." class="corlix-header__icon-btn"
+                        id="corlix-btn-notif" aria-label="Notificações">
+                        <span class="fa fa-bell-o" aria-hidden="true"></span>
+                    </a>
+                    <a href="r/corlixhub/&APP_ALIAS./configuracoes?session=&SESSION." class="corlix-header__icon-btn"
+                        id="corlix-btn-settings" aria-label="Configurações">
+                        <span class="fa fa-cog" aria-hidden="true"></span>
+                    </a>
+                    <div class="corlix-header__user">
+                        <div class="corlix-header__user-info">
+                            <span class="corlix-header__user-name">&G_NOME_USUARIO.</span>
+                            <span class="corlix-header__user-role">&APP_USER_CARGO.</span>
+                        </div>
+                        <img src="#APP_FILES#&APP_USER_FOTO." alt="Foto do usuário" class="corlix-header__avatar" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';" />
+                        <span class="corlix-header__avatar cx-avatar-iniciais" aria-hidden="true" style="display:none">&APP_USER_INICIAIS.</span>
                     </div>
-                    <img src="#APP_FILES#&APP_USER_FOTO." alt="Foto do usuário" class="corlix-header__avatar" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';" />
-                    <span class="corlix-header__avatar cx-avatar-iniciais" aria-hidden="true" style="display:none">&APP_USER_INICIAIS.</span>
-                  </div>
                 </div>
                 ```
         }
