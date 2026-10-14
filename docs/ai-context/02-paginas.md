@@ -181,8 +181,8 @@ Placeholder: só região `breadcrumb` (type breadcrumb, `@breadcrumb`, slot brea
 ### Página 3 — Organograma (`p00003-organograma.apx`)
 Integra o módulo `modulos/organograma/` (detalhes em [06 §1](./06-modulos.md)).
 - **JS da página:** blocos 1 e 2 de `organograma.js` em *Function and Global Variable Declaration* e *Execute when Page Loads*. **CSS:** `#APP_FILES#organograma#MIN#.css`.
-- **Região `organograma`** (Dynamic Content, Blank with Attributes): `pkg_organograma.render(:P3_ID_FOCO)`, submete `P3_ID_FOCO`.
-- **Itens:** `P3_BUSCA` (Popup LOV de `vw_org_colaborador`, label oculto, seq 5, acima do organograma e alinhado à direita via `#P3_BUSCA_CONTAINER`); `P3_ID_FOCO` (Hidden, `valueProtected: false`, o JS altera).
+- **Região `organograma`** (Dynamic Content, Blank with Attributes): `pkg_organograma.render(v_id_foco)`, onde `v_id_foco` é `P3_ID_FOCO` ou, se nulo, o colaborador com `LOGIN_APEX = APP_USER`; submete `P3_ID_FOCO`.
+- **Itens:** `P3_BUSCA` (Popup LOV de `vw_org_colaborador`, template Optional - Floating, seq 30); `P3_ID_FOCO` (Hidden, `valueProtected: false`, o JS altera; default = colaborador com `LOGIN_APEX = APP_USER`). Atenção: `APP_USER` é o login APEX, não o e-mail.
 - **DA** `ir-para-pessoa-buscada`: Change em `P3_BUSCA` → `orgIrPara(id)` e limpa o campo.
 - **Processo `ORG_DETALHES`** (`point: ajaxCallback`): devolve o HTML do drawer (`render_detalhes(g_x01)`).
 - Sem `P3_ID_FOCO`, abre na pessoa do usuário logado (`login_apex = APP_USER`); sem vínculo, no topo da hierarquia.
