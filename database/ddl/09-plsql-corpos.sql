@@ -2479,13 +2479,16 @@ end avatar;
   ------------------------------------------------------------------------------
   function id_raiz return number is
     l_id number;
-  begin
-    select min(id_colaborador)
+    begin
+    select id_colaborador
       into l_id
-      from vw_org_colaborador
-     where id_gestor is null;
+      from colaborador
+     where upper(login_apex) = upper(v('APP_USER'));
     return l_id;
-  end id_raiz;
+    exception
+    when no_data_found then
+        return 1; -- fallback
+    end id_raiz;
 
   ------------------------------------------------------------------------------
   -- ORGANOGRAMA · caminho: Empresa > ... > Pessoa em foco

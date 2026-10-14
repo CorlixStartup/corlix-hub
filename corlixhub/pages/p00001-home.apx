@@ -260,10 +260,10 @@ page 1 (
                     G.PRIMEIRO_NOME || ' ' || G.ULTIMO_NOME AS NOME_GESTOR,
                     CASE
                         WHEN G.FOTO_URL IS NULL
-                             OR G.FOTO_URL = '#APP_FILES#default-user.jpeg' THEN
-                            '#APP_FILES#default-user.jpeg'
+                             OR G.FOTO_URL = '#APP_FILES#Fotos Colaboradores/' THEN
+                            '#APP_FILES#Fotos Colaboradores/'
                         ELSE
-                            '#APP_FILES#fotos/' || G.FOTO_URL
+                            '#APP_FILES#Fotos Colaboradores/' || G.FOTO_URL
                     END AS FOTO_GESTOR
                 FROM COLABORADOR C
                 JOIN COLABORADOR G
