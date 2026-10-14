@@ -140,6 +140,138 @@ page 20 (
 
     )
 
+    region grafico_turnover (
+        name: Turnover: admissões x desligamentos por mês
+        type: chart
+        layout {
+            sequence: 25
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        chartLayout {
+            height: 360
+        }
+        animation {
+            onDisplay: none
+        }
+
+        series desligamentos (
+            name: Desligamentos
+            execution {
+                sequence: 20
+            }
+            source {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    with periodo as (
+                      select to_date(:P20_DT_INICIO, 'DD/MM/YYYY') as dt_inicio,
+                             to_date(:P20_DT_FIM,    'DD/MM/YYYY') as dt_fim
+                        from dual
+                    ),
+                    meses as (
+                      select add_months(trunc(p.dt_inicio, 'mm'), level - 1) as mes
+                        from periodo p
+                     connect by level <= months_between(trunc(p.dt_fim, 'mm'), trunc(p.dt_inicio, 'mm')) + 1
+                    )
+                    select to_char(m.mes, 'mm/yyyy')                              as mes,
+                           count(case when v.cd_tipo = 'ADMISSAO'     then 1 end) as admissoes,
+                           count(case when v.cd_tipo = 'DESLIGAMENTO' then 1 end) as desligamentos
+                      from meses m
+                     cross join periodo p
+                      left join vw_movimentacao_valida v
+                             on v.id_empresa  = :G_ID_EMPRESA
+                            and v.cd_tipo    in ('ADMISSAO', 'DESLIGAMENTO')
+                            and v.dt_efetiva >= m.mes
+                            and v.dt_efetiva <  add_months(m.mes, 1)
+                            and v.dt_efetiva between p.dt_inicio and p.dt_fim
+                     group by m.mes
+                     order by m.mes
+                    
+                    ```
+            }
+            columnMapping {
+                label: MES
+                value: DESLIGAMENTOS
+            }
+            appearance {
+                color: #b3261e
+            }
+        )
+
+        series new (
+            name: Admissões
+            execution {
+                sequence: 10
+            }
+            source {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    with periodo as (
+                      select to_date(:P20_DT_INICIO, 'DD/MM/YYYY') as dt_inicio,
+                             to_date(:P20_DT_FIM,    'DD/MM/YYYY') as dt_fim
+                        from dual
+                    ),
+                    meses as (
+                      select add_months(trunc(p.dt_inicio, 'mm'), level - 1) as mes
+                        from periodo p
+                     connect by level <= months_between(trunc(p.dt_fim, 'mm'), trunc(p.dt_inicio, 'mm')) + 1
+                    )
+                    select to_char(m.mes, 'mm/yyyy')                              as mes,
+                           count(case when v.cd_tipo = 'ADMISSAO'     then 1 end) as admissoes,
+                           count(case when v.cd_tipo = 'DESLIGAMENTO' then 1 end) as desligamentos
+                      from meses m
+                     cross join periodo p
+                      left join vw_movimentacao_valida v
+                             on v.id_empresa  = :G_ID_EMPRESA
+                            and v.cd_tipo    in ('ADMISSAO', 'DESLIGAMENTO')
+                            and v.dt_efetiva >= m.mes
+                            and v.dt_efetiva <  add_months(m.mes, 1)
+                            and v.dt_efetiva between p.dt_inicio and p.dt_fim
+                     group by m.mes
+                     order by m.mes
+                    ```
+                pageItemsToSubmit: [
+                    P20_DT_INICIO
+                    P20_DT_FIM
+                ]
+            }
+            columnMapping {
+                label: MES
+                value: ADMISSOES
+            }
+            appearance {
+                color: #00688c
+            }
+        )
+
+        axis x (
+            name: x
+        )
+
+        axis y (
+            name: y
+            title: Pessoas
+            value {
+                min: 0
+                format: decimal
+                decimalPlaces: 0
+                formatScaling: none
+            }
+            majorTicks {
+                minStep: 1
+            }
+        )
+
+    )
+
     region período (
         name: Período
         type: staticContent
@@ -246,6 +378,19 @@ page 20 (
             }
             execution {
                 sequence: 10
+                fireOnInit: false
+            }
+        )
+
+        action true (
+            name: True
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @grafico_turnover
+            }
+            execution {
+                sequence: 20
                 fireOnInit: false
             }
         )
