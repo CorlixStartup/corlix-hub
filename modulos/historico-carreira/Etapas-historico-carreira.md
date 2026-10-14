@@ -1482,7 +1482,7 @@ Ao trocar uma das datas, os gráficos atualizam sem recarregar a página.
 | Client-side Condition | Type | **JavaScript expression** |
 | Client-side Condition | JavaScript Expression | `$v('P20_DT_INICIO') !== '' && $v('P20_DT_FIM') !== ''` |
 
-3. Ação **True** › Action **Refresh** › Affected Elements › Region **Promoções por departamento**. Crie esta ação depois do §5.1, quando a região existir. Nos §5.2 a 5.4, acrescente uma ação Refresh para cada região nova.
+3. Ação **True** › Action **Refresh** › Affected Elements › Region **Promoções por departamento**. Crie esta ação depois do §5.1, quando a região existir. No §5.2, acrescente uma ação Refresh para o gráfico de turnover. Os §5.3 a 5.5 não usam o período (calculam a partir de hoje) e não precisam de Refresh.
 
 A expressão devolve `true` ou `false`, nunca um texto. Com a versão anterior, `$v(...) && $v(...)`, o resultado era a própria data (um texto), e em 13/10/2026 a DA não disparava no ambiente: o gráfico só mudava com `refresh()` manual. A condição é a principal suspeita (confirmar). A condição evita atualizar os gráficos enquanto uma das datas está vazia, por exemplo no meio da digitação. Quem envia as datas ao servidor é a própria região, pelo *Page Items to Submit* de cada série. A DA não precisa enviar nada.
 
@@ -1741,27 +1741,262 @@ region grafico_promocoes (
 
 ### 5.2 Turnover: admissões x desligamentos por mês (Chart · Bar, 2 séries)
 
+Quantas pessoas entraram e saíram em cada mês do período. É uma comparação de duas quantidades ao longo do tempo, então o formato é **barra vertical agrupada**: os meses ficam no eixo horizontal, da esquerda para a direita, e cada mês tem uma barra de admissões ao lado de uma de desligamentos. Como há **duas séries**, o gráfico tem legenda e uma cor para cada série.
+
+O gráfico mostra contagens, não uma taxa de turnover (que dividiria os desligamentos pelo número médio de pessoas).
+
+**Antes de começar, confira:**
+
+- [ ] O §5.1 está feito e a DA **Período mudou** já atualiza o gráfico de promoções.
+- [ ] Há admissões ou desligamentos para ver o gráfico. Rode em **SQL Workshop › SQL Commands**:
+  ```sql
+  select cd_tipo, count(*)
+    from vw_movimentacao_valida
+   where cd_tipo in ('ADMISSAO', 'DESLIGAMENTO')
+   group by cd_tipo;
+  ```
+  A carga inicial (`06_carga_inicial.sql`) cria uma admissão para cada colaborador, com a data de `DATA_ADMISSAO`, então as admissões já começam preenchidas. Desligamentos só existem a partir do uso do módulo: os inativos de antes da instalação recebem só a admissão. Para ver as duas séries, use a massa de demonstração do §5.1.
+
+#### Passo 1 · Criar a região do gráfico
+
+1. Botão direito em **Body** › **Create Region**.
+2. Preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Turnover: admissões x desligamentos por mês` |
+| Identification | Type | **Chart** |
+| Layout | Sequence | 25 (fica entre promoções, 20, e tempo no cargo, 30) |
+| Appearance | Template | **Standard** |
+| Advanced | Static ID | `grafico_turnover` |
+
+Ao trocar o Type para *Chart*, o APEX cria uma série de exemplo chamada `New` e os eixos `x` e `y`. Renomeie a série no Passo 3. Se o nome da região começar com "New", corrija também.
+
+#### Passo 2 · Atributos do gráfico
+
+Como no §5.1, os atributos ficam no componente do gráfico. Procure pelo nome na busca do painel (confirmar no 26.1.5).
+
+| Seção | Atributo | Valor | Por quê |
+|---|---|---|---|
+| Chart | Type | **Bar** | Comparar quantidades |
+| Chart | Orientation | **Vertical** (padrão) | O tempo corre da esquerda para a direita |
+| Chart | Stack | **Off** | Admissões e desligamentos lado a lado. Empilhados, a altura da barra seria a soma, que não significa nada |
+| Appearance | Height | `360` | A mesma altura do gráfico de promoções |
+| Animation | On Display | **None** | Igual ao §5.1 |
+| Legend | Show | **On** (padrão) | Duas séries: a legenda diz qual cor é qual |
+| Tooltip | Show | On | |
+| Tooltip | Show Series Name | **On** (padrão) | O tooltip diz se o número é de admissões ou de desligamentos |
+| Tooltip | Show Group Name | On | Mostra o mês |
+| Tooltip | Show Value | On | |
+
+A mensagem *When No Data Found* pode ficar como está: a query sempre devolve uma linha por mês do período, com zero nos meses sem movimentação, então essa mensagem nunca aparece.
+
+#### Passo 3 · Séries "Admissões" e "Desligamentos"
+
+As duas séries usam a mesma query e mudam só a coluna de valor.
+
+1. Abra **Series** e clique na série que o APEX criou. Preencha a coluna **Admissões** da tabela abaixo.
+2. Botão direito em **Series** › **Create Series** e preencha a coluna **Desligamentos**.
+
+| Seção | Atributo | Série 1 | Série 2 |
+|---|---|---|---|
+| Identification | Name | `Admissões` | `Desligamentos` |
+| Execution | Sequence | 10 | 20 |
+| Source | Location | Local Database | Local Database |
+| Source | Type | **SQL Query** | **SQL Query** |
+| Source | SQL Query | (abaixo) | (a mesma) |
+| Source | Page Items to Submit | `P20_DT_INICIO,P20_DT_FIM` | `P20_DT_INICIO,P20_DT_FIM` |
+| Column Mapping | Label | `MES` | `MES` |
+| Column Mapping | Value | `ADMISSOES` | `DESLIGAMENTOS` |
+| Appearance | Color | `#00688C` | `#B3261E` |
+| Label | Show | Off | Off |
+
 ```sql
-with meses as (
-  select add_months(trunc(to_date(:P20_DT_INICIO, 'DD/MM/YYYY'), 'mm'), level - 1) as mes
+with periodo as (
+  select to_date(:P20_DT_INICIO, 'DD/MM/YYYY') as dt_inicio,
+         to_date(:P20_DT_FIM,    'DD/MM/YYYY') as dt_fim
     from dual
- connect by add_months(trunc(to_date(:P20_DT_INICIO, 'DD/MM/YYYY'), 'mm'), level - 1)
-            <= to_date(:P20_DT_FIM, 'DD/MM/YYYY')
+),
+meses as (
+  select add_months(trunc(p.dt_inicio, 'mm'), level - 1) as mes
+    from periodo p
+ connect by level <= months_between(trunc(p.dt_fim, 'mm'), trunc(p.dt_inicio, 'mm')) + 1
 )
-select to_char(m.mes, 'mm/yyyy')                                          as mes,
-       count(case when v.cd_tipo = 'ADMISSAO'     then 1 end)             as admissoes,
-       count(case when v.cd_tipo = 'DESLIGAMENTO' then 1 end)             as desligamentos
+select to_char(m.mes, 'mm/yyyy')                              as mes,
+       count(case when v.cd_tipo = 'ADMISSAO'     then 1 end) as admissoes,
+       count(case when v.cd_tipo = 'DESLIGAMENTO' then 1 end) as desligamentos
   from meses m
+ cross join periodo p
   left join vw_movimentacao_valida v
-         on v.id_empresa = :G_ID_EMPRESA
-        and trunc(v.dt_efetiva, 'mm') = m.mes
-        and v.cd_tipo in ('ADMISSAO', 'DESLIGAMENTO')
+         on v.id_empresa  = :G_ID_EMPRESA
+        and v.cd_tipo    in ('ADMISSAO', 'DESLIGAMENTO')
+        and v.dt_efetiva >= m.mes
+        and v.dt_efetiva <  add_months(m.mes, 1)
+        and v.dt_efetiva between p.dt_inicio and p.dt_fim
  group by m.mes
  order by m.mes
 ```
-Série 1 "Admissões": Label `MES` · Value `ADMISSOES`. Série 2 "Desligamentos": a mesma query, Value `DESLIGAMENTOS`.
 
-> A carga inicial cria admissões com a data de `DATA_ADMISSAO`, então o histórico de admissões já começa preenchido. Desligamentos só existem a partir do uso do módulo.
+Por que cada parte importa:
+- **`meses`:** gera uma linha para cada mês, do mês de **De** até o mês de **Até**. Assim, um mês sem nenhuma movimentação aparece com zero, em vez de sumir do eixo e dar a impressão de que os meses vizinhos são seguidos.
+- **`between p.dt_inicio and p.dt_fim`:** só conta o que caiu dentro das datas escolhidas, como no §5.1. Sem essa linha, o primeiro e o último mês entrariam inteiros: com **De** = 15/03, as admissões de 01 a 14/03 seriam contadas. Com ela, o primeiro e o último mês podem ser **parciais**, e a barra deles só tem os dias do período.
+- **`dt_efetiva >= m.mes and dt_efetiva < add_months(m.mes, 1)`:** põe cada lançamento no seu mês. Comparar a coluna direto, sem `trunc(v.dt_efetiva, 'mm')`, deixa o banco usar o índice `historico_carreira_emp_dt_ix` (`id_empresa, dt_efetiva`).
+- **`left join` com os filtros no `on`:** se os filtros de `v` ficassem no `where`, os meses sem movimentação sumiriam, como num `join` comum.
+- **`count(case ... then 1 end)`:** conta só os lançamentos do tipo da coluna. Num mês sem nada, as duas contagens dão 0.
+- **`v.id_empresa = :G_ID_EMPRESA`:** isolamento entre empresas (regra de ouro 3).
+- **`to_char(m.mes, 'mm/yyyy')` e `order by m.mes`:** o rótulo é texto, mas a ordem vem da data. Ordenar pelo texto poria `01/2026` antes de `11/2025`.
+- **Page Items to Submit nas duas séries:** cada série roda a sua própria query no Refresh. Se uma delas não enviar as datas, ela usa as datas antigas da sessão e as duas séries ficam fora de sincronia.
+- **Cores `#00688C` (primária, `--cx-primaria`) e `#B3261E` (`--cx-alerta`):** azul e vermelho continuam distintos para quem tem daltonismo vermelho-verde, o que não acontece com verde (`--cx-sucesso`) e vermelho. As duas têm contraste de pelo menos 3:1 com o fundo branco. Como no §5.1, use o código, não a variável CSS. A legenda e o nome da série no tooltip dispensam depender só da cor.
+- **Sem rótulo na barra:** com 12 meses e 2 barras por mês, são 24 números. O tooltip mostra o valor exato.
+
+#### Passo 4 · Eixos
+
+Na barra vertical, `x` é o eixo das categorias (meses) e `y` é o dos valores.
+
+| Eixo | Seção | Atributo | Valor |
+|---|---|---|---|
+| `x` | Title | Title | (vazio: os rótulos `mm/yyyy` já dizem o que é) |
+| `y` | Title | Title | `Pessoas` |
+| `y` | Value | Format | **Decimal** · Decimal Places `0` |
+| `y` | Value | Minimum | `0` |
+| `y` | Value | Format Scaling | **None** |
+| `y` | Major Ticks | Minimum Step | `1` |
+| `y` | Minor Ticks | Rendered | Off |
+
+Por que: como no §5.1, é contagem de pessoas. Sem casas decimais e com passo 1, o eixo não mostra "0,5 pessoa".
+
+#### Passo 5 · Ligar o gráfico à DA do período
+
+Na DA **Período mudou**, crie uma segunda ação True: **Refresh** › Affected Elements › Region **Turnover: admissões x desligamentos por mês**, Sequence 20. Salve a página (Ctrl+S).
+
+A árvore deve ficar assim (o tempo no cargo, do §5.3, aparece se já tiver sido criado):
+
+```
+Body
+├── Cabeçalho                    (Static Content · No Grid · seq 5)
+├── Período                      (Static Content · Standard · seq 10)
+│   ├── P20_DT_INICIO            (Date Picker · seq 10)
+│   └── P20_DT_FIM               (Date Picker · seq 20)
+├── Promoções por departamento   (Chart · Bar horizontal · seq 20)
+├── Turnover: admissões x desligamentos por mês   (Chart · Bar vertical · seq 25)
+│   ├── Series
+│   │   ├── Admissões            (SQL Query · #00688C · seq 10)
+│   │   └── Desligamentos        (SQL Query · #B3261E · seq 20)
+│   └── Axes
+│       ├── x
+│       └── y                    (Pessoas · 0 casas · passo 1)
+└── Tempo médio no cargo por departamento   (Chart · seq 30 · §5.3)
+Dynamic Actions
+└── Change
+    └── Período mudou            (P20_DT_INICIO, P20_DT_FIM)
+        ├── True › Refresh       Promoções por departamento   (seq 10)
+        └── True › Refresh       Turnover: admissões x ...    (seq 20)
+```
+
+#### Como conferir no export da página 20
+
+O que se espera no export, montado a partir das chaves que o §5.1 já mostrou (ainda não conferido com um export real deste gráfico):
+
+```
+region grafico_turnover (
+    name: Turnover: admissões x desligamentos por mês
+    type: chart
+    layout     { sequence: 25  slot: body }
+    chartLayout { height: 360 }
+    animation  { onDisplay: none }
+
+    series admissões (
+        name: Admissões
+        execution { sequence: 10 }
+        source {
+            type: sqlQuery
+            sqlQuery: ...
+            pageItemsToSubmit: [ P20_DT_INICIO P20_DT_FIM ]
+        }
+        columnMapping { label: MES  value: ADMISSOES }
+        appearance    { color: #00688c }
+    )
+
+    series desligamentos (
+        name: Desligamentos
+        execution { sequence: 20 }
+        source { ... a mesma query e os mesmos pageItemsToSubmit ... }
+        columnMapping { label: MES  value: DESLIGAMENTOS }
+        appearance    { color: #b3261e }
+    )
+
+    axis x ( name: x )
+    axis y (
+        name: y
+        title: Pessoas
+        value      { min: 0  format: decimal  decimalPlaces: 0  formatScaling: none }
+        majorTicks { minStep: 1 }
+        minorTicks { show: false }
+    )
+)
+```
+
+Confira também:
+- **não** há `chartAppearance { orientation: horizontal }`, `legend { show: false }` nem `tooltip { showSeriesName: false }` nesta região. São os valores do §5.1 que não servem aqui;
+- nenhuma série com `name: New`. O identificador depois de `series` pode continuar `new`: no export de 13/10/2026, a série renomeada para *Admissões* manteve `series new (`. O que vale é o `name:`;
+- as **duas** séries com `pageItemsToSubmit: [ P20_DT_INICIO P20_DT_FIM ]`;
+- na `dynamicAction período-mudou`, uma segunda ação `refresh` com `region: @grafico_turnover`.
+
+#### Testar
+
+1. Rode a página 20 com um usuário RH. O gráfico aparece abaixo do de promoções, com uma barra por mês do período, legenda "Admissões" e "Desligamentos", e os meses em ordem, do mais antigo ao mais recente.
+2. Passe o mouse numa barra: o tooltip mostra o mês, o nome da série e a quantidade.
+3. **Valores com a massa de demonstração** no período padrão (M-11 = 11 meses atrás, M0 = mês atual). Admissões nos dias 17 e 22 do mês; desligamentos no dia 20:
+
+   | Mês | Admissões | Desligamentos |
+   |---|---|---|
+   | M-11 | 1 | 0 |
+   | M-10 | 2 | 0 |
+   | M-9 | 2 (dias 17 e 22) | 0 |
+   | M-8 | 1 | 0 |
+   | M-7 | 1 | 0 |
+   | M-6, M-5 | 0 | 0 |
+   | M-4, M-3, M-2, M-1 | 0 | 1 cada (dia 20) |
+   | M0 | 0 | 0 |
+
+   O total é 7 admissões e 4 desligamentos. Se a empresa tiver dados reais, eles se somam a estes.
+
+4. **Filtro de período.** O gráfico deve mudar sem recarregar a página, assim que você sai do campo de data:
+
+   | De | Até | Esperado |
+   |---|---|---|
+   | dia 1 de M-4 | hoje | 5 meses (M-4 a M0): nenhuma admissão e 1 desligamento em cada mês de M-4 a M-1 |
+   | dia 21 de M-4 | hoje | M-4 com **0** desligamentos: o desligamento do dia 20 ficou fora. Prova que o mês parcial conta só os dias do período |
+   | dia 18 de M-9 | hoje | M-9 com **1** admissão (só a do dia 22) |
+   | dia 1 de M-1 | dia 19 de M-1 | 1 mês só, com 0 e 0: o desligamento do dia 20 ficou fora |
+
+5. Confira o total com SQL:
+   ```sql
+   select cd_tipo, count(*)
+     from vw_movimentacao_valida
+    where id_empresa  = 1   -- a sua empresa
+      and cd_tipo    in ('ADMISSAO', 'DESLIGAMENTO')
+      and dt_efetiva between date '2025-11-01' and date '2026-10-13'   -- o período da tela
+    group by cd_tipo;
+   ```
+   Cada total deve ser igual à soma das barras da série.
+
+#### Se não funcionar
+
+| Sintoma | Causa provável | Correção |
+|---|---|---|
+| Ao mudar a data, promoções muda e turnover não | Falta a ação Refresh do turnover na DA | Passo 5 |
+| Só uma das séries muda ao trocar a data | Falta *Page Items to Submit* numa das séries | Passo 3: as duas séries enviam `P20_DT_INICIO,P20_DT_FIM` |
+| Barras empilhadas | Stack ficou On | Passo 2: **Off** |
+| Barras deitadas, meses no eixo vertical | Orientation ficou Horizontal (copiado do §5.1) | Passo 2: **Vertical** |
+| Sem legenda ou tooltip sem o nome da série | `legend { show: false }` ou `showSeriesName: false` copiados do §5.1 | Passo 2 |
+| As duas séries com a mesma cor | Faltou a cor numa das séries | Passo 3 |
+| Uma série chamada "New" na legenda | A série de exemplo não foi renomeada, ou sobrou uma terceira série | Passo 3: renomeie ou apague a série a mais |
+| Meses fora de ordem (`01/2026` antes de `11/2025`) | `order by mes` (o texto) em vez de `order by m.mes` | Use a query do Passo 3 |
+| Meses sem movimentação somem do eixo | Filtros de `v` no `where` em vez do `on` do `left join` | Use a query do Passo 3 |
+| O primeiro mês conta movimentações de antes do **De** | Falta `and v.dt_efetiva between p.dt_inicio and p.dt_fim` | Use a query do Passo 3 |
+| Desligamentos sempre 0, sem a massa demo | Os inativos de antes da instalação têm só a admissão na carga inicial | Esperado. Desligamentos aparecem conforme o RH lança pelo módulo |
+| `ORA-01843: not a valid month` ou `ORA-01858` | Formato da data diferente de `DD/MM/YYYY` | §5.0, Passo 3 |
 
 ### 5.3 Tempo médio no cargo por departamento (Chart · Bar horizontal)
 
@@ -1772,10 +2007,12 @@ select nvl(s.nm_departamento, '(sem departamento)') as departamento,
   from vw_situacao_atual_colaborador s
  where s.id_empresa       = :G_ID_EMPRESA
    and s.fl_vinculo_ativo = 'S'
- group by s.nm_departamento
- order by anos_no_cargo desc
+ group by s.id_departamento, s.nm_departamento
+ order by anos_no_cargo desc, departamento
 ```
 Value Axis title: "anos"
+
+Agrupe por `s.id_departamento, s.nm_departamento`, como no §5.1. Agrupar só pelo nome juntaria numa barra só dois departamentos com o mesmo nome, e a média deles se misturaria. O desempate pelo nome no `order by` deixa a ordem estável quando duas médias empatam.
 
 ### 5.4 Formações a vencer (Classic Report)
 
