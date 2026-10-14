@@ -58,7 +58,7 @@
 - **p0 Global**: a busca global do cabeçalho não tem comportamento. Os links usam o caminho fixo `r/corlixhub/...`.
 
 ### Arquivos e tema
-- As fotos são montadas como `#APP_FILES#fotos/<foto_url>` (app process e Home), mas a pasta real é `static-files/Fotos Colaboradores/` (`nome_sobrenome.jpg`, ~291 fotos fictícias). O fallback é `default-user.jpeg`.
+- As fotos ficam em `static-files/Fotos Colaboradores/` (`nome_sobrenome.jpg`, ~291 fotos fictícias) e são montadas como `#APP_FILES#Fotos Colaboradores/<foto_url>`. Sem foto, o avatar mostra as iniciais (`.cx-avatar-iniciais`, ver 04); a SQL precisa devolver a foto **nula** nesse caso.
 - `custom.css` tem regras globais (`.a-CardView-*` com sombra e raio 14px, `.ui-dialog-titlebar`) que contrariam a política "sem sombra" do tema.
 - `organograma.css` e `historico-carreira.css` ainda não estão em `static-files/`.
 - Static IDs e aliases com acento (`publicador-de-conteúdo`, `histórico-de-carreira`, `NOTIFICAÇÕES`) são frágeis em URLs e scripts.

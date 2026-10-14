@@ -44,6 +44,17 @@ page 3 (
               return orgDrawer;
             }
             
+            /* Fotos: o PL/SQL manda o caminho em data-org-foto ("Fotos Colaboradores/x.jpg");
+               aqui vira URL dos Static Application Files. Sem foto, ficam as iniciais. */
+            function orgCarregarFotos(raiz) {
+              if (!raiz) return;
+              raiz.querySelectorAll("img[data-org-foto]").forEach(function (img) {
+                const caminho = img.dataset.orgFoto.split("/").map(encodeURIComponent).join("/");
+                img.removeAttribute("data-org-foto");
+                img.src = apex.env.APP_FILES + caminho;
+              });
+            }
+
             function orgEstado(html) {
               return '<div class="org-drawer__estado">' + html + "</div>";
             }
@@ -73,6 +84,7 @@ page 3 (
                 if (pedido !== orgPedido) return;
             
                 painel.innerHTML = html;
+                orgCarregarFotos(painel);
             
                 const titulo =
                   painel.querySelector("#org-drawer-nome");
@@ -178,6 +190,8 @@ page 3 (
             ```
         executeWhenPageLoads:
             ```javascript-browser
+            orgCarregarFotos(document);
+
             $("#" + ORG_REGIAO)
               .on(
                 "click",
@@ -210,6 +224,8 @@ page 3 (
               .on(
                 "apexafterrefresh",
                 function () {
+
+                  orgCarregarFotos(this);
             
                   const titulo =
                     document.getElementById(

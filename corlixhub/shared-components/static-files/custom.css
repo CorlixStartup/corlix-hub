@@ -977,3 +977,32 @@
     font-weight: 700;
     color: var(--cx-texto);
 }
+
+/* Avatar de iniciais: substitui a <img> quando o colaborador não tem foto.
+   O span começa com style="display:none"; o onerror da <img> a esconde e
+   limpa o display do span (sem !important aqui, senão o inline não esconde).
+   Use junto da classe de tamanho do avatar: figma-avatar-img, corlix-header__avatar. */
+.cx-avatar-iniciais,
+.figma-avatar-img.cx-avatar-iniciais,
+.corlix-header__avatar.cx-avatar-iniciais {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--cx-primaria-suave);
+    color: var(--cx-primaria);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+.corlix-header__avatar.cx-avatar-iniciais {
+    font-size: 12px;
+}
+
+/* Mantém o fundo suave dentro do anel de aniversário (o anel pinta o padding de branco) */
+.figma-row.is-birthday-today .cx-avatar-iniciais,
+.popup-todos-aniversariantes .figma-row.is-birthday-today .cx-avatar-iniciais {
+    background: var(--cx-primaria-suave) content-box !important;
+}
