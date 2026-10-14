@@ -233,11 +233,11 @@ A query deve devolver **exatamente** as colunas citadas (nomes em maiúsculas co
 ```html
 #CAB_DEPT#
 <a href="javascript:void(0)" class="ch-contact" data-id="#ID_COLABORADOR#">
-  <span class="ch-avatar-wrap"><span class="ch-avatar">#INICIAIS#</span><i class="ch-dot ch-dot--#PRESENCA#"></i></span>
+  <span class="ch-avatar-wrap"><span class="ch-avatar" aria-hidden="true">#INICIAIS#<img src="#APP_FILES##FOTO_URL#" alt="" loading="lazy" onerror="this.remove()"></span><i class="ch-dot ch-dot--#PRESENCA#"></i></span>
   <span class="ch-contact-txt"><b>#NOME_COMPLETO#</b><small>#CARGO#</small></span>
 </a>
 ```
-Colunas: `CAB_DEPT` (HTML `<div class="ch-dept">Depto</div>` só na 1ª linha de cada departamento, via `row_number() over (partition by d.nome ...)`), `ID_COLABORADOR` (lido por JS via `data-id`), `INICIAIS`, `PRESENCA` ∈ `online|ausente|offline` (classes `.ch-dot--online/ausente/offline`; calculada de `presenca_colaborador.data_ultimo_ping` 5/30 min), `NOME_COMPLETO`, `CARGO`. O JS marca o selecionado com `.ch-contact.is-active`.
+Colunas: `CAB_DEPT` (HTML `<div class="ch-dept">Depto</div>` só na 1ª linha de cada departamento, via `row_number() over (partition by d.nome ...)`), `ID_COLABORADOR` (lido por JS via `data-id`), `FOTO_URL` (caminho relativo a `#APP_FILES#`; sem foto, nulo → a `<img>` falha, é removida e ficam as iniciais), `INICIAIS`, `PRESENCA` ∈ `online|ausente|offline` (classes `.ch-dot--online/ausente/offline`; calculada de `presenca_colaborador.data_ultimo_ping` 5/30 min), `NOME_COMPLETO`, `CARGO`. O JS marca o selecionado com `.ch-contact.is-active`.
 
 **`chat-mensagens`** — wrapper `<div class="ch-msgs"> ... </div>`; linha:
 ```html
