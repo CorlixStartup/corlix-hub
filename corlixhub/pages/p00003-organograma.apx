@@ -44,6 +44,17 @@ page 3 (
               return orgDrawer;
             }
             
+            /* Fotos: o PL/SQL manda o caminho em data-org-foto ("Fotos Colaboradores/x.jpg");
+               aqui vira URL dos Static Application Files. Sem foto, ficam as iniciais. */
+            function orgCarregarFotos(raiz) {
+              if (!raiz) return;
+              raiz.querySelectorAll("img[data-org-foto]").forEach(function (img) {
+                const caminho = img.dataset.orgFoto.split("/").map(encodeURIComponent).join("/");
+                img.removeAttribute("data-org-foto");
+                img.src = apex.env.APP_FILES + caminho;
+              });
+            }
+            
             function orgEstado(html) {
               return '<div class="org-drawer__estado">' + html + "</div>";
             }
@@ -73,6 +84,7 @@ page 3 (
                 if (pedido !== orgPedido) return;
             
                 painel.innerHTML = html;
+                orgCarregarFotos(painel);
             
                 const titulo =
                   painel.querySelector("#org-drawer-nome");
@@ -178,56 +190,60 @@ page 3 (
             ```
         executeWhenPageLoads:
             ```javascript-browser
-            $("#" + ORG_REGIAO)
-              .on(
-                "click",
-                "[data-acao]",
-                function () {
-            
-                  if (
-                    this.dataset.acao === "foco"
-                  ) {
-            
-                    orgIrPara(
-                      this.dataset.id
-                    );
-            
-                  } else if (
-                    this.dataset.acao ===
-                    "detalhe"
-                  ) {
-            
-                    orgAbrirDetalhes(
-                      this.dataset.id
-                    );
-            
-                  }
-            
-                }
-              );
+            orgCarregarFotos(document);
             
             $("#" + ORG_REGIAO)
-              .on(
-                "apexafterrefresh",
-                function () {
+                .on(
+                    "click",
+                    "[data-acao]",
+                    function () {
             
-                  const titulo =
-                    document.getElementById(
-                      "org-foco-nome"
-                    );
+                        if (
+                            this.dataset.acao === "foco"
+                        ) {
             
-                  if (titulo) {
-                    titulo.focus({
-                      preventScroll: true
-                    });
-                  }
+                            orgIrPara(
+                                this.dataset.id
+                            );
             
-                }
-              );
+                        } else if (
+                            this.dataset.acao ===
+                            "detalhe"
+                        ) {
+            
+                            orgAbrirDetalhes(
+                                this.dataset.id
+                            );
+            
+                        }
+            
+                    }
+                );
+            
+            $("#" + ORG_REGIAO)
+                .on(
+                    "apexafterrefresh",
+                    function () {
+            
+                        orgCarregarFotos(this);
+            
+                        const titulo =
+                            document.getElementById(
+                                "org-foco-nome"
+                            );
+            
+                        if (titulo) {
+                            titulo.focus({
+                                preventScroll: true
+                            });
+                        }
+            
+                    }
+                );
             ```
     }
     css {
-        fileUrls: #APP_FILES#organograma.css.css
+        fileUrls: #APP_FILES#organograma#MIN#.css
     }
     security {
         pageAccessProtection: argumentsMustHaveChecksum
@@ -263,8 +279,26 @@ page 3 (
         source {
             plsqlFunctionBody:
                 ```plsql
-                return pkg_organograma.render(
-                         to_number(:P3_ID_FOCO default null on conversion error));
+                declare
+                  v_id_foco number;
+                begin
+                  v_id_foco := to_number(:P3_ID_FOCO default null on conversion error);
+                
+                  -- Se não foi informado nenhum ID na URL/Sessão, assume o ID do usuário logado
+                  if v_id_foco is null then
+                    begin
+                      select id_colaborador
+                        into v_id_foco
+                        from vw_org_colaborador
+                       where upper(trim(login_apex)) = upper(trim(:APP_USER));
+                    exception
+                      when no_data_found then
+                        v_id_foco := null;
+                    end;
+                  end if;
+                
+                  return pkg_organograma.render(v_id_foco);
+                end;
                 ```
             pageItemsToSubmit: P3_ID_FOCO
         }
@@ -312,6 +346,15 @@ page 3 (
         layout {
             sequence: 20
             slot: body
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue:
+                ```sql
+                select id_colaborador 
+                  from vw_org_colaborador 
+                 where lower(email) = lower(:APP_USER)
+                ```
         }
     )
 

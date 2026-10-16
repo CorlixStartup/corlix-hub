@@ -255,22 +255,29 @@ page 1 (
             type: sqlQuery
             sqlQuery:
                 ```sql
-                SELECT 
+                SELECT
                     CG.NOME AS NOME_CARGO,
                     G.PRIMEIRO_NOME || ' ' || G.ULTIMO_NOME AS NOME_GESTOR,
                     CASE
-                        WHEN G.FOTO_URL IS NULL
+                        WHEN TRIM(G.FOTO_URL) IS NULL
                              OR G.FOTO_URL = '#APP_FILES#Fotos Colaboradores/' THEN
-                            '#APP_FILES#Fotos Colaboradores/'
+                            NULL
                         ELSE
                             '#APP_FILES#Fotos Colaboradores/' || G.FOTO_URL
-                    END AS FOTO_GESTOR
+                    END AS FOTO_GESTOR,
+                    UPPER(
+                        SUBSTR(TRIM(NVL(G.PRIMEIRO_NOME, G.NOME_COMPLETO)), 1, 1) ||
+                        SUBSTR(TRIM(NVL(G.ULTIMO_NOME,
+                            SUBSTR(TRIM(G.NOME_COMPLETO), NULLIF(INSTR(TRIM(G.NOME_COMPLETO), ' ', -1), 0) + 1))), 1, 1)
+                    ) AS INICIAIS_GESTOR
                 FROM COLABORADOR C
                 JOIN COLABORADOR G
                     ON G.ID_COLABORADOR = C.ID_GESTOR
-                JOIN CARGO CG
+                   AND G.ID_EMPRESA = C.ID_EMPRESA
+                LEFT JOIN CARGO CG
                     ON CG.ID_CARGO = G.ID_CARGO
-                WHERE C.LOGIN_APEX = :APP_USER;
+                WHERE UPPER(TRIM(C.LOGIN_APEX)) = UPPER(TRIM(:APP_USER))
+                  AND C.ID_EMPRESA = :G_ID_EMPRESA
                 ```
         }
         layout {
@@ -304,7 +311,8 @@ page 1 (
             htmlExpression:
                 ```html
                 <div style="display:flex;flex-direction:row;align-items:center;gap:16px;margin-bottom:0;">
-                   <img src="&FOTO_URL." class="figma-avatar-img" onerror="this.onerror=null; this.src='#APP_FILES#default-user.jpeg';">
+                    <img src="&FOTO_GESTOR." alt="" class="figma-avatar-img" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';">
+                    <span class="figma-avatar-img cx-avatar-iniciais" aria-hidden="true" style="display:none">&INICIAIS_GESTOR.</span>
                 
                     <div style="display:flex;flex-direction:column;">
                         <span style="font-size:14px;font-weight:bold;color:#111318;margin-bottom:8px;">&NOME_GESTOR.</span>
