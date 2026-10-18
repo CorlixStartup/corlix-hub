@@ -10,6 +10,7 @@ page 14 (
         cursorFocus: doNotFocusCursor
     }
     security {
+        authorizationScheme: @admin-rh
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
@@ -334,9 +335,9 @@ page 14 (
             type: sqlQuery
             sqlQuery:
                 ```sql
-                SELECT NOME d,
-                       ID_EMPRESA r
+                SELECT NOME d, ID_EMPRESA r
                 FROM EMPRESA
+                WHERE id_empresa = :G_ID_EMPRESA
                 ORDER BY NOME;
                 ```
         }
@@ -358,6 +359,10 @@ page 14 (
             formRegion: @novo
             column: ID_EMPRESA
             dataType: number
+        }
+        default {
+            type: expression
+            plsqlExpression: :G_ID_EMPRESA
         }
     )
 
@@ -603,6 +608,36 @@ page 14 (
         }
     )
 
+    button historico (
+        buttonName: HISTORICO
+        label: Histórico de carreira
+        layout {
+            sequence: 60
+            region: @novo
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 13
+                items: {
+                    P13_ID_COLABORADOR: &P14_ID_COLABORADOR.
+                }
+            }
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P14_ID_COLABORADOR
+        }
+        security {
+            authorizationScheme: @admin-rh
+        }
+    )
+
     button salvar-usuario (
         buttonName: SALVAR_USUARIO
         label: Salvar Usuario
@@ -677,6 +712,20 @@ page 14 (
             }
         )
 
+    )
+
+    validation empresa-do-usuário (
+        name: Empresa do usuário
+        execution {
+            sequence: 5
+        }
+        validation {
+            plsqlExpression: :P14_EMPRESA = :G_ID_EMPRESA
+        }
+        error {
+            errorMessage: Você só pode cadastrar colaboradores na sua empresa.
+            associatedItem: @P14_EMPRESA
+        }
     )
 
     validation validar-confirmação-de-senha (
@@ -855,15 +904,34 @@ page 14 (
         }
     )
 
+    process registrar-admissão (
+        name: Registrar admissão
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                pkg_historico_carreira.registrar_admissao_automatica(:P14_ID_COLABORADOR);
+                
+                ```
+        }
+        execution {
+            sequence: 15
+        }
+        advanced {
+            executionMappingIdentifier: 38252066194320208
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P14_ID_COLABORADOR
+        }
+    )
+
     process salvar-dados-colaborador (
         name: Salvar Dados Colaborador
         type: formAutoRowProcessing
         formRegion: @novo
         execution {
             sequence: 10
-        }
-        successMessage {
-            successMessage: Colaborador cadastrado com sucesso!
         }
         advanced {
             executionMappingIdentifier: 9205500288147838

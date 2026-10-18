@@ -15,6 +15,10 @@
 8. **Segurança**: quando criar ou alterar páginas administrativas, defina `authorizationScheme` **na página**, e não apenas na entrada do menu.
 9. **Commits**: Conventional Commits (`feat(escopo): …`). Faça PR para `DEV`. Nunca versione `apex/`, `oracle_oradata/`, `ords_config/`, `.env`.
 10. **Não invente**: o README e o código divergem em vários pontos (ver [`01`](./01-arquitetura-e-ambiente.md) §6). Confie no código e pergunte ao time sobre o que não estiver confirmado (ambiente atual, DDL das tabelas base, `log_pkg`).
+11. **Passo a passo do Builder é para o APEX 26.1.5.** Os guias (`Etapas-*.md`) descrevem caminhos do Page Designer desta versão, com passos detalhados (onde clicar, seção › atributo, valor, como testar).
+    - Não copie caminhos de versões antigas: no 26.1.5 o painel de propriedades **não tem a aba "Attributes"** e a região de Form **não mostra a seção "Edit"**.
+    - Caminho que não foi conferido na tela do 26.1.5 vai marcado **(confirmar no 26.1.5)** e acompanhado de um jeito de verificar o resultado (o processo que o APEX cria, ou o trecho esperado no export APEXlang).
+    - Se o usuário disser que um caminho não existe, **não chute outro**: peça um print da árvore e do painel de propriedades, e depois corrija o guia com o caminho real.
 
 ## 2. Lacunas estruturais (objetos que faltam no repositório)
 
@@ -30,11 +34,12 @@
 ## 3. Pegadinhas por área
 
 ### Segurança / multi-tenant
-- **Nenhuma página tem authorization própria**: as 3 authorizations (`administration-rights`, `publicador-de-conteudo`, `somente-diretoria`) só escondem entradas do menu. Pela URL, qualquer usuário logado abre p7 (logs), p14 (cria usuários APEX via `apex_util.create_user`), p15/p16 (empresas) e p17 (emitir comunicado).
+- **Nenhuma página tem authorization própria**: as 3 authorizations (`administration-rights`, `publicador-de-conteudo`, `somente-diretoria`) só escondem entradas do menu. Pela URL, qualquer usuário logado abre p7 (logs), p15/p16 (empresas) e p17 (emitir comunicado). A p14 (cria usuários APEX via `apex_util.create_user`) ganhou `ADMIN_RH` no ambiente em 18/10/2026, mas o menu dela continua `somente-diretoria` e o export do repo ainda está sem autorização.
 - As queries de comunicados, aniversariantes, chat, organograma, LOVs e equipes **não filtram por `id_empresa`**.
 - Os app processes (4, `BEFORE_HEADER`, sem condição) rodam em todas as páginas, inclusive no login. Eles ligam o usuário ao colaborador por `COLABORADOR.login_apex = :APP_USER`; algumas comparações usam `UPPER` e outras não.
 
 ### Páginas
+- **Edição de regiões no 26.1.5**: Form e Interactive Grid só são editáveis com o bloco `edit { enabled: true ... }`, que nos exports só aparece em regiões criadas pelo assistente de criação de página; o painel de propriedades não oferece onde ligar. Para cadastros, prefira lista (Interactive Report) + formulário em modal criado pelo assistente (padrão p15/p16). Ver `09` §4.8.
 - **Placeholders** (só breadcrumb): p2 Meu perfil, p3 Organograma, p5 Notificações, p6 Configurações, p11 Comunicados, p12 Colaboradores, p13 Histórico de carreira. A p8 `NOTIFICAÇÕES` está vazia e duplica a p5.
 - **p4 Chat**:
   - A região de mensagens tem a condição de servidor `P4_CANAL_ID is not null`, então ela não existe no DOM ao carregar e o refresh da DA não funciona.
@@ -56,6 +61,7 @@
   - Em `columnCssClasses` há um `.` sobrando.
   - A coluna `CLASSE_DEPTO` não é usada.
 - **p0 Global**: a busca global do cabeçalho não tem comportamento. Os links usam o caminho fixo `r/corlixhub/...`.
+- **Gráficos (JET) com mais de uma série**: o APEX junta os rótulos de todas as séries e os ordena **como texto**, ignorando o `order by` da query. Rótulo de mês em `mm/yyyy` sai fora de ordem ("01/2026" antes de "11/2025"). Use um rótulo que ordene certo como texto, como `to_char(mes, 'yyyy/mm')` (ex.: turnover da p20, `Etapas-historico-carreira.md` §5.2).
 
 ### Arquivos e tema
 - As fotos ficam em `static-files/Fotos Colaboradores/` (`nome_sobrenome.jpg`, ~291 fotos fictícias) e são montadas como `#APP_FILES#Fotos Colaboradores/<foto_url>`. Sem foto, o avatar mostra as iniciais (`.cx-avatar-iniciais`, ver 04); a SQL precisa devolver a foto **nula** nesse caso.
@@ -68,7 +74,8 @@
 - `c_pagina_perfil = 20` do organograma conflita com o Dashboard RH (página 20) planejado pelo histórico de carreira.
 - `vw_org_colaborador` não filtra por empresa, e o drawer de detalhes não verifica permissão.
 - `G_ID_EMPRESA` só é preenchido depois de um novo login. Sem esse item, toda chamada a `pkg_historico_carreira` dentro de uma sessão APEX falha com `-20012`.
-- A spec de `pkg_historico_carreira` diz que a p14 chama `registrar_admissao_automatica`, mas a p14 não faz essa chamada.
+- A p14 chama `registrar_admissao_automatica` (processo "Registrar admissão", seq 15) no ambiente desde 18/10/2026. O export em `corlixhub/` ainda não tem esse processo.
+- O botão "Histórico de carreira" da p14 nunca aparece: a página só cadastra, e o branch pós-salvar limpa `P14_ID_COLABORADOR`.
 - `COMUNICADO.TITULO` aceita até 200 caracteres no formulário (p17), mas o package corta em 100.
 - O README do módulo de carreira fala em "nove códigos padrão" de movimentação, mas o seed cria 11.
 - Perfis de acesso: os papéis vêm de `CARGO_PAPEL`, mas os colaboradores da empresa 1 estão em cargos antigos (101–604) vinculados à mão. Os cargos 605–633 do seed estão vazios. Antes de mexer em cargos, leia `modulos/perfis-acesso/Registro-implantacao.md`.
@@ -76,11 +83,22 @@
 - SQL Commands: um comando por vez (sem `;` final, sem `commit;` junto), mostra só 10 linhas por padrão (campo **Rows**) e não mistura `unistr()` (NVARCHAR2) com VARCHAR2 em `union` sem `to_char`.
 - As contas SARAHSILVA, EDUARDOMARINS e ALAIRTONROCHA são da equipe e não têm colaborador: "SEM VINCULO" na Home é esperado para elas.
 
+### SQL e PL/SQL
+Os erros já vistos (ORA-12704, PLS-00201/00304, PLS-00231, ORA-02000, ORA-01403, Access Denied etc.), com causa, correção e prevenção, estão em [09 · Erros e soluções](./09-erros-e-solucoes.md). Consulte o checklist da §5 desse documento antes de entregar SQL ou PL/SQL.
+
+Regras gerais para scripts PL/SQL:
+- Todo bloco `create or replace package|package body|procedure|function|trigger|type` e todo bloco anônimo `begin … end;` termina com `/` sozinho na linha seguinte. Sem a `/`, o SQLcl não executa o bloco e o próximo comando é anexado a ele.
+- Comandos SQL simples (`create view`, `comment`, `insert`) terminam com `;`, sem `/`. Um `;` seguido de `/` executa o comando duas vezes.
+- Spec e body ficam em arquivos separados (`.pks` e `.pkb`), cada um com sua `/`, e são instalados nessa ordem.
+- Depois de compilar, confira com `show errors package body <nome>` (SQLcl) ou com `select * from user_errors where name = '<NOME>'`. O APEX mostra só a primeira linha do erro.
+- `set define off` no início do script: sem ele, `&` em strings (HTML, URLs) vira variável de substituição.
+- Ao ler `Error at line N`, conte as linhas **a partir do início do comando** (`create or replace …`), não do arquivo.
+
 ### Configuração
 - O idioma primário da app é `en`, com máscaras de data `DS`. Para pt-BR, formate explicitamente com `to_char(..., 'dd/mm/yyyy')`. A LOV `BOOLEAN` mostra "Yes/No".
 - `deployments/default.json` está com `debugging: true`.
-- `400 Request Header Or Cookie Too Large` no host do Autonomous: são cookies acumulados, e o limite do proxy da OCI não pode ser alterado. Limpe **só o host** (DevTools → Application → Clear site data). Veja [`09-erro-400-cookies.md`](./09-erro-400-cookies.md).
-- A sessão do Builder cai e pede o workspace de novo: ou os cookies foram perdidos, ou houve timeout (padrão de 1 h de inatividade e 8 h de duração; a app não define timeout próprio). Diagnóstico com `scripts/apex-sessao-timeouts.sql`; ver `09` §8.
+- `400 Request Header Or Cookie Too Large` no host do Autonomous: são cookies acumulados, e o limite do proxy da OCI não pode ser alterado. Limpe **só o host** (DevTools → Application → Clear site data). Veja [`10-erro-400-cookies.md`](./10-erro-400-cookies.md).
+- A sessão do Builder cai e pede o workspace de novo: ou os cookies foram perdidos, ou houve timeout (padrão de 1 h de inatividade e 8 h de duração; a app não define timeout próprio). Diagnóstico com `scripts/apex-sessao-timeouts.sql`; ver `10` §8.
 - O último commit (`feature: …`) não segue o padrão do hook `commit-msg`.
 
 ## 4. Checklist rápido antes de entregar uma mudança
@@ -90,4 +108,5 @@
 - [ ] Os links foram gerados com checksum (`apex_page.get_url`)?
 - [ ] Os textos estão em pt-BR e as datas formatadas explicitamente?
 - [ ] O SQL novo está num script numerado e idempotente (`create table if not exists`, `create or replace`) e foi adicionado ao `instalar.sql` do módulo?
+- [ ] O SQL/PL/SQL novo passa no checklist da §5 do [09 · Erros e soluções](./09-erros-e-solucoes.md)?
 - [ ] A documentação em `docs/ai-context/` foi atualizada se a mudança altera páginas, schema, tema ou módulos?

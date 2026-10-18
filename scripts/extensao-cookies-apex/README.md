@@ -1,6 +1,6 @@
 # Extensão do Chrome: Cookies do APEX
 
-Extensão local, sem publicação na Chrome Web Store, para o erro `400 Request Header Or Cookie Too Large` e para o logout inesperado do APEX no Autonomous Database (OCI). Contexto e diagnóstico: [`docs/ai-context/09-erro-400-cookies.md`](../../docs/ai-context/09-erro-400-cookies.md).
+Extensão local, sem publicação na Chrome Web Store, para o erro `400 Request Header Or Cookie Too Large` e para o logout inesperado do APEX no Autonomous Database (OCI). Contexto e diagnóstico: [`docs/ai-context/10-erro-400-cookies.md`](../../docs/ai-context/10-erro-400-cookies.md).
 
 ## O que ela faz
 

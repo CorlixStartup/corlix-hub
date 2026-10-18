@@ -60,7 +60,7 @@ list navigation-menu (
             }
         }
         security {
-            authorizationScheme: @somente-diretoria
+            authorizationScheme: @admin-rh
         }
     )
 
