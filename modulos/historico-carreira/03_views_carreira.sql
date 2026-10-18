@@ -95,6 +95,8 @@ select h.id_historico_carreira,
        h.st_registro,
        h.id_registro_estornado,
        case when h.id_registro_estornado is not null then 'S' else 'N' end as fl_estorno,
+       h.id_aprovador,
+       ap.nome_completo               as nm_aprovador,
        h.dt_efetivacao,
        h.usr_efetivacao,
        h.dt_criacao,
@@ -109,7 +111,8 @@ select h.id_historico_carreira,
   left join colaborador   ga on ga.id_colaborador      = h.id_gestor_anterior
   left join cargo         cn on cn.id_cargo            = h.id_cargo_novo
   left join departamento  dn on dn.id_departamento     = h.id_departamento_novo
-  left join colaborador   gn on gn.id_colaborador      = h.id_gestor_novo;
+  left join colaborador   gn on gn.id_colaborador      = h.id_gestor_novo
+  left join colaborador   ap on ap.id_colaborador      = h.id_aprovador;
 
 comment on table vw_historico_carreira is 'Lançamentos do histórico com nomes resolvidos. VL_SALARIO_* só é preenchido para ADMIN_RH (FN_CARREIRA_VE_SALARIO).';
 
@@ -142,15 +145,15 @@ select h.id_empresa,
                  'Entrada como ' || nvl(cn.nome, 'cargo não informado')
                  || nvl2(dn.nome, ' em ' || dn.nome, '')
                when t.cd_tipo in ('PROMOCAO', 'MUDANCA_CARGO') then
-                 nvl(ca.nome, '?') || unistr(' \2192 ') || nvl(cn.nome, '?')
+                 nvl(ca.nome, '?') || to_char(unistr(' \2192 ')) || nvl(cn.nome, '?')
                when t.cd_tipo = 'TRANSFERENCIA_DEPTO' then
-                 nvl(da.nome, '?') || unistr(' \2192 ') || nvl(dn.nome, '?')
+                 nvl(da.nome, '?') || to_char(unistr(' \2192 ')) || nvl(dn.nome, '?')
                  || case when cn.id_cargo <> ca.id_cargo then ' (' || cn.nome || ')' end
              end
              || case
                   when h.ds_motivo is not null
                    and t.cd_tipo in ('ADMISSAO', 'PROMOCAO', 'MUDANCA_CARGO', 'TRANSFERENCIA_DEPTO')
-                    then unistr(' \00B7 ') || h.ds_motivo
+                    then to_char(unistr(' \00B7 ')) || h.ds_motivo
                   else h.ds_motivo
                 end)
        end                                              as ds_descricao,
@@ -188,11 +191,11 @@ select f.id_empresa,
        end                                              as ds_tipo,
        f.ds_titulo                                      as ds_titulo,
        f.ds_instituicao
-       || case when f.dt_conclusao is null then unistr(' \00B7 ') || 'em andamento' end
+       || case when f.dt_conclusao is null then to_char(unistr(' \00B7 ')) || 'em andamento' end
        || case when f.nr_carga_horaria is not null
-               then unistr(' \00B7 ') || to_char(f.nr_carga_horaria, 'fm99990') || 'h' end
+               then to_char(unistr(' \00B7 ')) || to_char(f.nr_carga_horaria, 'fm99990') || 'h' end
        || case when f.dt_validade is not null
-               then unistr(' \00B7 ') || 'válida até ' || to_char(f.dt_validade, 'dd/mm/yyyy') end
+               then to_char(unistr(' \00B7 ')) || 'válida até ' || to_char(f.dt_validade, 'dd/mm/yyyy') end
                                                         as ds_descricao,
        case f.tp_formacao
          when 'CERTIFICACAO' then 'fa-certificate'

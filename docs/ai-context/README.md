@@ -24,15 +24,17 @@
 | 06 | [Módulos](./06-modulos.md) | Organograma e Histórico de carreira: arquitetura, integração no APEX, API JS, template de novo módulo |
 | 07 | [Design (pen.dev)](./07-design-pen-dev.md) | Descrição detalhada de cada tela-alvo e mapeamento para componentes APEX; features sem backend |
 | 08 | [Convenções e pegadinhas](./08-convencoes-e-pegadinhas.md) | **Leia antes de editar qualquer coisa.** Regras de trabalho, lacunas, bugs conhecidos, checklist |
-| 09 | [Cookies e sessão (OCI)](./09-erro-400-cookies.md) | `400 Request Header Or Cookie Too Large` e sessão do Builder caindo/pedindo workspace: causa, diagnóstico, correção |
+| 09 | [Erros e soluções](./09-erros-e-solucoes.md) | Erros de SQL, PL/SQL e APEX já vistos: como ler a mensagem, causa, correção, prevenção e checklist |
+| 10 | [Cookies e sessão (OCI)](./10-erro-400-cookies.md) | `400 Request Header Or Cookie Too Large` e sessão do Builder caindo/pedindo workspace: causa, diagnóstico, correção |
 
 ### Guia por tipo de tarefa
 - **Mexer numa página existente:** 08 → 02 (seção da página) → 03 (componentes que ela usa) → 04 (classes CSS).
 - **Criar uma página ou tela do pen.dev:** 07 (tela) → 02 §1 (sintaxe) → 04 §8 (aplicar tema) → 08.
 - **Mexer no banco ou criar tabela:** 05 → 06 §4 (padrão de módulo) → 08.
 - **Integrar organograma ou histórico de carreira:** 06 → 05 → 02 (páginas 3/13).
+- **Apareceu um erro (ORA-, PLS-, Access denied):** 09.
 - **Ambiente, deploy ou CI:** 01.
-- **Erro 400 "Request Header Or Cookie Too Large" ou sessão do Builder caindo:** 09.
+- **Erro 400 "Request Header Or Cookie Too Large" ou sessão do Builder caindo:** 10.
 
 ## Páginas (visão rápida)
 
@@ -48,8 +50,12 @@
 | 7 | Monitor de Logs | Implementada (sem authorization!) |
 | 11 | Comunicados Oficiais | Placeholder |
 | 12 | Colaboradores | Placeholder |
-| 13 | Histórico de carreira | Placeholder; o módulo existe em `modulos/historico-carreira` |
+| 13 | Histórico de carreira | Montada no ambiente com o módulo `modulos/historico-carreira` (§2 do guia); o `.apx` em `corlixhub/` ainda é o placeholder antigo |
 | 14 | Cadastro de Usuários (cria usuário APEX) | Implementada |
+| 18 | Movimentação (modal do histórico de carreira) | Montada no ambiente pelo guia `modulos/historico-carreira/Etapas-*.md` §3; ainda não exportada para `corlixhub/` |
+| 19 / 21 | Formações e certificações (lista) / Formação (modal) | Montadas no ambiente (§4 do guia, validadas em 12/10/2026); ainda não exportadas para `corlixhub/` |
+| 20 | Dashboard RH | Em construção (§5 do guia) |
+| 23 | Responder solicitação de correção (modal do Dashboard RH) | A criar (§5.5 do guia) |
 | 15 / 16 | Empresas (lista / modal de cadastro com ViaCEP) | Implementada |
 | 17 | Emitir Comunicado (modal wizard) | Implementada, com bugs |
 | 26 / 27 | Central de Equipes / Nova Equipe (modal) | Implementada |
@@ -63,3 +69,4 @@
 5. Ao alterar um `.css`, altere também o `.min.css` e registre arquivos novos em `static-files.apx`.
 6. Se o README raiz divergir do código, confie no código. O que não estiver confirmado, pergunte ao time (ex.: o ambiente atual, já que `docker-compose.yml` foi apagado, e os dados reais do banco).
 7. Ao mudar páginas, schema, tema ou módulos, **atualize o documento correspondente nesta pasta**.
+8. Passo a passo do Builder sempre para o **APEX 26.1.5**: caminho não conferido vai marcado "(confirmar no 26.1.5)"; se não existir, peça print em vez de chutar (ver 08 §1, regra 11).

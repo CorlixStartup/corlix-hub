@@ -1,4 +1,4 @@
-# 09 · Cookies e sessão no APEX (OCI): erro 400 e logout inesperado
+# 10 · Cookies e sessão no APEX (OCI): erro 400 e logout inesperado
 
 > Parte do pacote de contexto para IAs (`docs/ai-context/`). Comece pelo [`README.md`](./README.md) desta pasta.
 > Escrito em 09/10/2026. Ambiente: APEX 26.1 no **Autonomous Database da OCI** (URL `https://<id>.adb.<região>.oraclecloudapps.com/ords/...`).

@@ -69,13 +69,13 @@ Atribuição: na P14, o processo "Atribuir papéis do cargo" chama `pkg_perfis_a
 ### 2.3 Quem acessa o quê (uso real)
 | Onde | Authorization |
 |---|---|
-| Menu "Cadastro de Usuários" (p14) | `@somente-diretoria` |
+| Menu "Cadastro de Usuários" (p14) | `@somente-diretoria` (a página, no ambiente, exige `@admin-rh`: alinhar) |
 | Menu "Emitir Comunicado" (p17) | `@publicador-de-conteudo` |
 | Menu "Empresas Cadastradas" (p15/16) | `@administration-rights` |
 | Coluna `CAB_DEPT` do relatório de contatos do Chat (p4) | `@administration-rights` (cabeçalho de departamento só aparece para a equipe Corlix — provavelmente acidental) |
 
 **Pegadinha de segurança:** nenhuma página tem `authorizationScheme` em nível de página. As authorizations só **escondem itens do menu**; qualquer usuário autenticado acessa p14, p15, p16, p17 e **p7 (Monitor de Logs, sem nenhuma authorization)** digitando a URL. Para proteger de verdade, colocar `security { authorizationScheme: @... }` no `page`.
-O módulo `modulos/historico-carreira/` prevê também as authorizations `GESTOR` e `COLABORADOR` (PL/SQL) e o app item `G_ID_EMPRESA`, que **ainda não existem** nos shared components. `ADMIN_RH` já existe (e ainda não protege nenhuma página).
+O módulo `modulos/historico-carreira/` prevê também as authorizations `GESTOR` e `COLABORADOR` (PL/SQL) e o app item `G_ID_EMPRESA`, que **ainda não existem** nos shared components. `ADMIN_RH` já existe. No ambiente ela protege as páginas 14, 18, 20 e 23 e as regiões e botões de RH da 13; os exports dessas páginas ainda não estão no repositório.
 
 ---
 

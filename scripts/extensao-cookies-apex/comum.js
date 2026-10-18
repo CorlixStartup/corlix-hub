@@ -1,5 +1,5 @@
 // Código compartilhado entre o service worker (background.js) e o popup.
-// Guia: docs/ai-context/09-erro-400-cookies.md, §9.
+// Guia: docs/ai-context/10-erro-400-cookies.md, §9.
 
 const PADRAO_HOST = /(^|\.)oraclecloudapps\.com$/;
 // Buffer do nginx por linha de cabeçalho no padrão (large_client_header_buffers 4 8k).

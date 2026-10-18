@@ -1,6 +1,6 @@
 -- -----------------------------------------------------------------------------
 -- Corlix Hub — diagnóstico (e ajuste opcional) dos timeouts de sessão do APEX
--- Contexto: docs/ai-context/09-erro-400-cookies.md, §8.
+-- Contexto: docs/ai-context/10-erro-400-cookies.md, §8.
 --
 -- Como usar: no Autonomous, Database Actions > SQL, conectado como ADMIN
 -- (o pacote APEX_INSTANCE_ADMIN exige privilégio de administrador da instância).

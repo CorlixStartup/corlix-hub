@@ -401,6 +401,22 @@ create or replace package body pkg_historico_carreira as
       end if;
     end if;
 
+    -- Aprovador: opcional, da mesma empresa e nunca o próprio colaborador.
+    -- Não exige vínculo ativo: lançamentos retroativos podem citar quem já saiu.
+    if p_mov.id_aprovador is not null then
+      if p_mov.id_aprovador = p_col.id_colaborador then
+        erro(c_err_aprovador, 'O colaborador não pode aprovar a própria movimentação.');
+      end if;
+      begin
+        select id_empresa into l_emp from colaborador where id_colaborador = p_mov.id_aprovador;
+      exception
+        when no_data_found then erro(c_err_aprovador, 'Aprovador não encontrado.');
+      end;
+      if l_emp <> p_col.id_empresa then
+        erro(c_err_aprovador, 'O aprovador informado não pertence à empresa do colaborador.');
+      end if;
+    end if;
+
     -- O cargo final precisa ser do departamento final (CARGO.ID_DEPARTAMENTO)
     if p_mov.id_cargo_novo is not null or p_mov.id_departamento_novo is not null then
       l_cargo_final := coalesce(p_mov.id_cargo_novo, p_col.id_cargo);
@@ -437,6 +453,7 @@ create or replace package body pkg_historico_carreira as
     l_titulo  varchar2(400);
     l_texto   varchar2(4000);
     l_id      number;
+    l_usuario constant varchar2(255) := usuario_atual;  -- função privada não pode ser chamada dentro de SQL
   begin
     if not comunicado_automatico(p_id_empresa)
        or p_cd_tipo not in (c_admissao, c_promocao, c_transferencia) then
@@ -475,7 +492,7 @@ create or replace package body pkg_historico_carreira as
       select id_colaborador
         into l_autor
         from colaborador
-       where upper(login_apex) = upper(usuario_atual)
+       where upper(login_apex) = upper(l_usuario)
          and id_empresa        = p_id_empresa;
     exception
       when no_data_found or too_many_rows then
@@ -506,7 +523,15 @@ create or replace package body pkg_historico_carreira as
     if p_momento is null then
       return null;
     end if;
-    select cast(p_momento at time zone l_fuso as date) into l_data from dual;
+    -- AT TIME ZONE com variável (bind) dá ORA-02000 (missing AS keyword).
+    -- O fuso entra como literal; a validação impede injeção de SQL.
+    if l_fuso is null or not regexp_like(l_fuso, '^[A-Za-z0-9_/+:-]{1,64}$') then
+      l_fuso := c_fuso_padrao;
+    end if;
+    execute immediate
+      'select cast(:momento at time zone ''' || l_fuso || ''' as date) from dual'
+      into l_data
+      using p_momento;
     return l_data;
   end fn_data_local;
 
@@ -537,7 +562,8 @@ create or replace package body pkg_historico_carreira as
     p_vl_salario_anterior  in number   default null,
     p_vl_salario_novo      in number   default null,
     p_ds_motivo            in varchar2 default null,
-    p_ds_observacao        in clob     default null
+    p_ds_observacao        in clob     default null,
+    p_id_aprovador         in number   default null
   ) return number is
     l_col  r_colaborador;
     l_tipo tipo_movimentacao%rowtype;
@@ -554,6 +580,7 @@ create or replace package body pkg_historico_carreira as
     l_mov.id_cargo_novo        := p_id_cargo_novo;
     l_mov.id_departamento_novo := p_id_departamento_novo;
     l_mov.id_gestor_novo       := p_id_gestor_novo;
+    l_mov.id_aprovador         := p_id_aprovador;
 
     validar(l_mov, l_col, l_tipo);
 
@@ -564,13 +591,13 @@ create or replace package body pkg_historico_carreira as
       id_empresa, id_colaborador, id_tipo_movimentacao, dt_efetiva,
       id_cargo_anterior, id_departamento_anterior, id_gestor_anterior,
       id_cargo_novo, id_departamento_novo, id_gestor_novo,
-      vl_salario_anterior, vl_salario_novo, ds_motivo, ds_observacao, st_registro
+      vl_salario_anterior, vl_salario_novo, ds_motivo, ds_observacao, id_aprovador, st_registro
     ) values (
       l_col.id_empresa, l_col.id_colaborador, l_tipo.id_tipo_movimentacao, l_mov.dt_efetiva,
       l_col.id_cargo, l_col.id_departamento, l_col.id_gestor,
       l_mov.id_cargo_novo, l_mov.id_departamento_novo, l_mov.id_gestor_novo,
       coalesce(p_vl_salario_anterior, l_ult.vl_salario_novo),
-      p_vl_salario_novo, p_ds_motivo, p_ds_observacao, c_st_rascunho
+      p_vl_salario_novo, p_ds_motivo, p_ds_observacao, l_mov.id_aprovador, c_st_rascunho
     )
     returning id_historico_carreira into l_id;
 
@@ -587,7 +614,8 @@ create or replace package body pkg_historico_carreira as
     p_vl_salario_anterior   in number   default null,
     p_vl_salario_novo       in number   default null,
     p_ds_motivo             in varchar2 default null,
-    p_ds_observacao         in clob     default null
+    p_ds_observacao         in clob     default null,
+    p_id_aprovador          in number   default null
   ) is
     l_mov  historico_carreira%rowtype;
     l_col  r_colaborador;
@@ -607,6 +635,7 @@ create or replace package body pkg_historico_carreira as
     l_mov.id_cargo_novo        := p_id_cargo_novo;
     l_mov.id_departamento_novo := p_id_departamento_novo;
     l_mov.id_gestor_novo       := p_id_gestor_novo;
+    l_mov.id_aprovador         := p_id_aprovador;
 
     validar(l_mov, l_col, l_tipo);
 
@@ -622,7 +651,8 @@ create or replace package body pkg_historico_carreira as
            vl_salario_anterior      = p_vl_salario_anterior,
            vl_salario_novo          = p_vl_salario_novo,
            ds_motivo                = p_ds_motivo,
-           ds_observacao            = p_ds_observacao
+           ds_observacao            = p_ds_observacao,
+           id_aprovador             = l_mov.id_aprovador
      where id_historico_carreira = p_id_historico_carreira;
   end atualizar_rascunho;
 
@@ -650,6 +680,7 @@ create or replace package body pkg_historico_carreira as
     l_depto      number;
     l_gestor     number;
     l_comunicado number;
+    l_usuario constant varchar2(255) := usuario_atual;  -- função privada não pode ser chamada dentro de SQL
   begin
     assert_admin_rh;
     l_mov := carrega_movimentacao(p_id, p_lock => true);
@@ -695,7 +726,7 @@ create or replace package body pkg_historico_carreira as
            vl_salario_novo          = coalesce(vl_salario_novo, vl_salario_anterior),
            id_comunicado            = l_comunicado,
            dt_efetivacao            = systimestamp,
-           usr_efetivacao           = usuario_atual
+           usr_efetivacao           = l_usuario
      where id_historico_carreira = p_id;
 
     update colaborador
@@ -715,6 +746,7 @@ create or replace package body pkg_historico_carreira as
     l_ant    r_evento;
     l_status boolean;
     l_dt_adm date;
+    l_usuario constant varchar2(255) := usuario_atual;  -- função privada não pode ser chamada dentro de SQL
   begin
     assert_admin_rh;
 
@@ -754,7 +786,7 @@ create or replace package body pkg_historico_carreira as
       l_mov.id_cargo_novo, l_mov.id_departamento_novo, l_mov.id_gestor_novo,
       l_ant.id_cargo_novo, l_ant.id_departamento_novo, l_ant.id_gestor_novo,
       l_mov.vl_salario_novo, l_ant.vl_salario_novo, p_motivo,
-      c_st_efetivado, p_id, systimestamp, usuario_atual
+      c_st_efetivado, p_id, systimestamp, l_usuario
     );
 
     -- Única alteração permitida em um efetivado (a trigger confere)
@@ -794,6 +826,7 @@ create or replace package body pkg_historico_carreira as
     l_id_tipo    number;
     l_dt         date;
     l_comunicado number;
+    l_usuario constant varchar2(255) := usuario_atual;  -- função privada não pode ser chamada dentro de SQL
   begin
     l_col := carrega_colaborador(p_id_colaborador, p_lock => true);
 
@@ -829,7 +862,7 @@ create or replace package body pkg_historico_carreira as
       l_col.id_empresa, l_col.id_colaborador, l_id_tipo, l_dt,
       l_col.id_cargo, l_col.id_departamento, l_col.id_gestor,
       'Admissão registrada automaticamente a partir do cadastro.',
-      c_st_efetivado, l_comunicado, systimestamp, usuario_atual
+      c_st_efetivado, l_comunicado, systimestamp, l_usuario
     );
   end registrar_admissao_automatica;
 
@@ -881,6 +914,7 @@ create or replace package body pkg_historico_carreira as
     p_ds_resposta    in varchar2 default null
   ) is
     l_sol solicitacao_correcao%rowtype;
+    l_usuario constant varchar2(255) := usuario_atual;  -- função privada não pode ser chamada dentro de SQL
   begin
     assert_admin_rh;
 
@@ -907,7 +941,7 @@ create or replace package body pkg_historico_carreira as
        set st_solicitacao = p_st_solicitacao,
            ds_resposta    = p_ds_resposta,
            dt_resolucao   = systimestamp,
-           usr_resolucao  = usuario_atual
+           usr_resolucao  = l_usuario
      where id_solicitacao = p_id_solicitacao;
   end responder_solicitacao;
 
@@ -949,6 +983,7 @@ create or replace package body pkg_historico_carreira as
     l_ctx number;
     l_eu  number;
     l_qt  pls_integer;
+    l_usuario constant varchar2(255) := usuario_atual;  -- função privada não pode ser chamada dentro de SQL
   begin
     select id_empresa into l_emp from colaborador where id_colaborador = p_id_colaborador;
 
@@ -968,7 +1003,7 @@ create or replace package body pkg_historico_carreira as
     select id_colaborador
       into l_eu
       from colaborador
-     where upper(login_apex) = upper(usuario_atual)
+     where upper(login_apex) = upper(l_usuario)
        and id_empresa        = l_emp;
 
     if l_eu = p_id_colaborador then
@@ -997,6 +1032,7 @@ create or replace package body pkg_historico_carreira as
   ) is
     pragma autonomous_transaction;
     l_ip varchar2(100);
+    l_usuario constant varchar2(255) := usuario_atual;  -- função privada não pode ser chamada dentro de SQL
   begin
     begin
       l_ip := substr(coalesce(owa_util.get_cgi_env('X-FORWARDED-FOR'),
@@ -1011,7 +1047,7 @@ create or replace package body pkg_historico_carreira as
     select c.id_empresa, c.id_colaborador, substr(p_contexto, 1, 400),
            to_number(v('APP_ID')),
            to_number(v('APP_PAGE_ID')),
-           l_ip, usuario_atual
+           l_ip, l_usuario
       from colaborador c
      where c.id_colaborador = p_id_colaborador;
 
