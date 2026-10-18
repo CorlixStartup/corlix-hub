@@ -61,6 +61,7 @@
   - Em `columnCssClasses` há um `.` sobrando.
   - A coluna `CLASSE_DEPTO` não é usada.
 - **p0 Global**: a busca global do cabeçalho não tem comportamento. Os links usam o caminho fixo `r/corlixhub/...`.
+- **Gráficos (JET) com mais de uma série**: o APEX junta os rótulos de todas as séries e os ordena **como texto**, ignorando o `order by` da query. Rótulo de mês em `mm/yyyy` sai fora de ordem ("01/2026" antes de "11/2025"). Use um rótulo que ordene certo como texto, como `to_char(mes, 'yyyy/mm')` (ex.: turnover da p20, `Etapas-historico-carreira.md` §5.2).
 
 ### Arquivos e tema
 - As fotos são montadas como `#APP_FILES#fotos/<foto_url>` (app process e Home), mas a pasta real é `static-files/Fotos Colaboradores/` (`nome_sobrenome.jpg`, ~291 fotos fictícias). O fallback é `default-user.jpeg`.

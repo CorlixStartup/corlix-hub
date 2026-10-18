@@ -1822,7 +1822,7 @@ meses as (
     from periodo p
  connect by level <= months_between(trunc(p.dt_fim, 'mm'), trunc(p.dt_inicio, 'mm')) + 1
 )
-select to_char(m.mes, 'mm/yyyy')                              as mes,
+select to_char(m.mes, 'yyyy/mm')                              as mes,
        count(case when v.cd_tipo = 'ADMISSAO'     then 1 end) as admissoes,
        count(case when v.cd_tipo = 'DESLIGAMENTO' then 1 end) as desligamentos
   from meses m
@@ -1844,7 +1844,7 @@ Por que cada parte importa:
 - **`left join` com os filtros no `on`:** se os filtros de `v` ficassem no `where`, os meses sem movimentação sumiriam, como num `join` comum.
 - **`count(case ... then 1 end)`:** conta só os lançamentos do tipo da coluna. Num mês sem nada, as duas contagens dão 0.
 - **`v.id_empresa = :G_ID_EMPRESA`:** isolamento entre empresas (regra de ouro 3).
-- **`to_char(m.mes, 'mm/yyyy')` e `order by m.mes`:** o rótulo é texto, mas a ordem vem da data. Ordenar pelo texto poria `01/2026` antes de `11/2025`.
+- **`to_char(m.mes, 'yyyy/mm')`:** o rótulo é texto, e num gráfico com mais de uma série o APEX junta os rótulos das séries e os ordena **como texto**, ignorando o `order by m.mes`. Com `mm/yyyy`, `01/2026` apareceria antes de `11/2025` (visto no teste de 18/10/2026). Com `yyyy/mm`, a ordem do texto é a ordem do calendário.
 - **Page Items to Submit nas duas séries:** cada série roda a sua própria query no Refresh. Se uma delas não enviar as datas, ela usa as datas antigas da sessão e as duas séries ficam fora de sincronia.
 - **Cores `#00688C` (primária, `--cx-primaria`) e `#B3261E` (`--cx-alerta`):** azul e vermelho continuam distintos para quem tem daltonismo vermelho-verde, o que não acontece com verde (`--cx-sucesso`) e vermelho. As duas têm contraste de pelo menos 3:1 com o fundo branco. Como no §5.1, use o código, não a variável CSS. A legenda e o nome da série no tooltip dispensam depender só da cor.
 - **Sem rótulo na barra:** com 12 meses e 2 barras por mês, são 24 números. O tooltip mostra o valor exato.
@@ -1855,7 +1855,7 @@ Na barra vertical, `x` é o eixo das categorias (meses) e `y` é o dos valores.
 
 | Eixo | Seção | Atributo | Valor |
 |---|---|---|---|
-| `x` | Title | Title | (vazio: os rótulos `mm/yyyy` já dizem o que é) |
+| `x` | Title | Title | (vazio: os rótulos `yyyy/mm` já dizem o que é) |
 | `y` | Title | Title | `Pessoas` |
 | `y` | Value | Format | **Decimal** · Decimal Places `0` |
 | `y` | Value | Minimum | `0` |
