@@ -1,6 +1,6 @@
 page 18 (
     name: Movimentação
-    alias: MOVIMENTAÇÃO
+    alias: MOVIMENTACAO
     title: Movimentação
     appearance {
         pageMode: modalDialog
@@ -733,7 +733,7 @@ page 18 (
 
     button excluir (
         buttonName: EXCLUIR
-        label: Excluir rascunho
+        label: Rascunho excluído
         layout {
             sequence: 20
             region: @botões
@@ -941,6 +941,33 @@ page 18 (
         }
         advanced {
             executionMappingIdentifier: 31448997914538707
+        }
+    )
+
+    process registrar-acesso-salarial (
+        name: Registrar acesso salarial
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                pkg_historico_carreira.registrar_acesso_salarial(
+                  p_id_colaborador => :P18_ID_COLABORADOR,
+                  p_contexto       => 'P18 · lançamento #' || :P18_ID_HISTORICO_CARREIRA);
+                ```
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 38252348209320211
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P18_ID_HISTORICO_CARREIRA
+        }
+        security {
+            authorizationScheme: @admin-rh
         }
     )
 
