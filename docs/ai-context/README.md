@@ -53,6 +53,7 @@
 | 18 | Movimentação (modal do histórico de carreira) | Montada no ambiente pelo guia `modulos/historico-carreira/Etapas-*.md` §3; ainda não exportada para `corlixhub/` |
 | 19 / 21 | Formações e certificações (lista) / Formação (modal) | Montadas no ambiente (§4 do guia, validadas em 12/10/2026); ainda não exportadas para `corlixhub/` |
 | 20 | Dashboard RH | Em construção (§5 do guia) |
+| 23 | Responder solicitação de correção (modal do Dashboard RH) | A criar (§5.5 do guia) |
 | 15 / 16 | Empresas (lista / modal de cadastro com ViaCEP) | Implementada |
 | 17 | Emitir Comunicado (modal wizard) | Implementada, com bugs |
 | 26 / 27 | Central de Equipes / Nova Equipe (modal) | Implementada |

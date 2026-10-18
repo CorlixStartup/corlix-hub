@@ -213,7 +213,7 @@ Ajuste as constantes no topo de `08_pkg_historico_carreira_ui.sql` para o seu ap
 | `c_pagina_organograma` / `c_item_organograma` | 3 / `P3_ID_FOCO` | "Ver no organograma". Use o item de foco que você criou no organograma (no guia daquele módulo ele aparece como `P10_ID_FOCO`). |
 | `c_pagina_comunicado` / `c_item_comunicado` | 11 / nulo | "Ver comunicado". Com item nulo, abre a lista de comunicados. |
 | `c_pagina_holerite` | nulo | "Ver holerite" no mérito. Nulo esconde o link até o holerite existir. |
-| `c_pagina_solicitacao` / `c_item_solicitacao` | nulo / `P22_ID_COLABORADOR` | Botão "Solicitar correção". Fica nulo até a página 22 existir (§6); com 22 e sem o item, a página 13 dá `ERR-1002` |
+| `c_pagina_solicitacao` / `c_item_solicitacao` | `22` / `P22_ID_COLABORADOR` | Botão "Solicitar correção". Se a página 22 (§6) ainda não existir, mude para `null` e rode o arquivo: sem o item, a página 13 dá `ERR-1002` |
 | `c_pagina_painel_rh` | 20 | Link para o RH ver as solicitações abertas |
 
 ### 2.5 Região "Lançamentos (RH)"
@@ -1992,7 +1992,7 @@ Confira também:
 | Sem legenda ou tooltip sem o nome da série | `legend { show: false }` ou `showSeriesName: false` copiados do §5.1 | Passo 2 |
 | As duas séries com a mesma cor | Faltou a cor numa das séries | Passo 3 |
 | Uma série chamada "New" na legenda | A série de exemplo não foi renomeada, ou sobrou uma terceira série | Passo 3: renomeie ou apague a série a mais |
-| Meses fora de ordem (`01/2026` antes de `11/2025`) | `order by mes` (o texto) em vez de `order by m.mes` | Use a query do Passo 3 |
+| Meses fora de ordem (`01/2026` antes de `11/2025`) | Rótulo em `mm/yyyy`. Com mais de uma série, o APEX ordena os rótulos como texto e ignora o `order by` | Passo 3: `to_char(m.mes, 'yyyy/mm')` nas duas séries |
 | Meses sem movimentação somem do eixo | Filtros de `v` no `where` em vez do `on` do `left join` | Use a query do Passo 3 |
 | O primeiro mês conta movimentações de antes do **De** | Falta `and v.dt_efetiva between p.dt_inicio and p.dt_fim` | Use a query do Passo 3 |
 | Desligamentos sempre 0, sem a massa demo | Os inativos de antes da instalação têm só a admissão na carga inicial | Esperado. Desligamentos aparecem conforme o RH lança pelo módulo |
@@ -2016,8 +2016,15 @@ Agrupe por `s.id_departamento, s.nm_departamento`, como no §5.1. Agrupar só pe
 
 ### 5.4 Formações a vencer (Classic Report)
 
+Lista as formações que vencem de hoje até daqui a 60 dias, da mais próxima para a mais distante. Assim como na página 19, entra qualquer formação com validade, não só certificação. A janela começa sempre hoje: a região **não** depende de De/Até e não entra na DA "Período mudou".
+
+#### Passo 1 · Região
+
+Crie uma região **Classic Report** no Body, Sequence `45` (depois dos gráficos), Title `Formações a vencer`, Source **SQL Query**:
+
 ```sql
-select c.nome_completo        as colaborador,
+select f.id_colaborador       as id_colaborador,
+       c.nome_completo        as colaborador,
        f.ds_titulo            as formacao,
        f.tp_formacao          as tipo,
        f.ds_instituicao       as emissor,
@@ -2030,20 +2037,194 @@ select c.nome_completo        as colaborador,
                          and pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) + 60
  order by f.dt_validade
 ```
-Coluna `COLABORADOR` como link para a página 19 (`P19_ID_COLABORADOR`). Coluna `TIPO`: Plain Text (based on List of Values) com `LOV_TIPO_FORMACAO`. Assim como na página 19, entra qualquer formação com validade, não só certificação.
+
+Por que cada parte importa:
+- **`f.id_colaborador`:** é o valor que o link do Passo 2 manda para a página 19. Sem essa coluna, o link não tem como dizer qual colaborador abrir.
+- **`fn_hoje`:** devolve a data de hoje no fuso da empresa, já sem hora (`trunc`). Por isso `dias_restantes` sai inteiro e o `between` inclui hoje e o 60º dia.
+- **`f.id_empresa = :G_ID_EMPRESA`:** isolamento entre empresas (regra de ouro 3).
+
+Em **No Data Found**, na própria região (confirmar no 26.1.5): `Nenhuma formação vence nos próximos 60 dias.`
+
+#### Passo 2 · Colunas
+
+| Coluna | Type | Heading | Outros atributos |
+|---|---|---|---|
+| `ID_COLABORADOR` | **Hidden Column** | (vazio) | Só existe para o link |
+| `COLABORADOR` | **Link** | `Colaborador` | Target: Page `19` · Set Items `P19_ID_COLABORADOR` = `#ID_COLABORADOR#` · Link Text `#COLABORADOR#` |
+| `FORMACAO` | Plain Text | `Formação` | |
+| `TIPO` | **Plain Text (based on List of Values)** | `Tipo` | LOV `LOV_TIPO_FORMACAO` (mostra "Certificação" em vez de `CERTIFICACAO`) |
+| `EMISSOR` | Plain Text | `Emissor` | |
+| `VALIDADE` | Plain Text | `Validade` | Format Mask `DD/MM/YYYY` |
+| `DIAS_RESTANTES` | Plain Text | `Dias restantes` | Alinhamento do cabeçalho e da coluna: End (direita) |
+
+- **Set Items do link é obrigatório.** O processo "Validar acesso" da página 19 (§4.3) barra a entrada quando `P19_ID_COLABORADOR` chega vazio. Monte o link pelo editor de link do Builder, não com um `f?p=` à mão: a página 19 exige checksum.
+- **Format Mask da validade:** o idioma técnico da app é `en`, então sem máscara a data pode sair no formato americano.
+- Os cabeçalhos gerados pelo Builder vêm sem acento e em Title Case (`Formacao`, `Dias Restantes`). Corrija-os como na tabela.
+
+#### Como conferir no export da página 20
+
+```
+region formações-a-vencer (
+    name: Formações a vencer
+    type: classicReport
+    layout { sequence: 45  slot: body }
+
+    column COLABORADOR (
+        type: link
+        link {
+            target: {
+                page: 19
+                items: { P19_ID_COLABORADOR: #ID_COLABORADOR# }
+            }
+            linkText: #COLABORADOR#
+        }
+    )
+    column ID_COLABORADOR ( type: hidden )
+    column TIPO     ( type: plainTextBasedOnLov  lov { lov: @lov-tipo-formacao } )
+    column VALIDADE ( appearance { formatMask: DD/MM/YYYY } )
+    ...
+)
+```
+
+Confira também que a região **não** aparece em nenhuma ação da `dynamicAction período-mudou`.
+
+#### Testar
+
+1. Rode a página 20 com um usuário RH. A lista começa pela validade mais próxima, com datas como `05/11/2026`.
+2. Clique num nome. A página 19 abre com as formações **daquele** colaborador, com o nome dele no cabeçalho.
+3. Mude o período De/Até. Esta lista não muda.
+4. Se a lista vier vazia, confira se existe alguma formação vencendo na janela:
+   ```sql
+   select count(*) from formacao_colaborador
+    where id_empresa = 1 and dt_validade between trunc(sysdate) and trunc(sysdate) + 60;
+   ```
+
+#### Se não funcionar
+
+| Sintoma | Causa provável | Correção |
+|---|---|---|
+| Clicar no nome dá erro de acesso ou abre a página 19 vazia | Link sem Set Items `P19_ID_COLABORADOR` | Passo 2 |
+| Não aparece `#ID_COLABORADOR#` como opção no link | A query não traz `id_colaborador` | Passo 1 |
+| Coluna de números (o id) aparecendo na lista | `ID_COLABORADOR` ficou como Plain Text | Passo 2: **Hidden Column** |
+| Tipo aparece como `CERTIFICACAO` | Coluna `TIPO` sem LOV | Passo 2 |
+| Data no formato `11/05/2026` (mês primeiro) ou com hora | `VALIDADE` sem Format Mask | Passo 2: `DD/MM/YYYY` |
+| Região vazia, sem mensagem | No Data Found em branco | Passo 1 |
 
 ---
 
-### 5.5 Solicitações de correção abertas (Interactive Report)
+### 5.5 Solicitações de correção abertas (Interactive Report + modal na página 23)
+
+#### Como funciona
+
+O colaborador abre um pedido de correção pela página 22 (§6), por exemplo "minha promoção está com a data errada". O pedido entra com situação `ABERTA` e aparece nesta lista para o RH. Para cada pedido, o RH:
+
+1. **Clica no nome do colaborador.** Abre a página 13 daquela pessoa. Se o pedido tiver razão, o RH corrige ali: estorna o lançamento errado e lança o certo (§3). O histórico nunca é editado direto, por isso a correção é sempre "estorno + novo lançamento".
+2. **Clica em "Responder".** Abre a página 23, uma modal pequena onde o RH marca o pedido como **Resolvida** (corrigiu) ou **Recusada** (estava certo) e escreve uma resposta para o colaborador. Ao salvar, o pedido sai da lista.
+
+A §5.5 tem duas partes: a **página 23** (Passos 1 a 4), que precisa existir antes porque o link "Responder" aponta para ela, e a **lista na página 20** (Passos 5 a 7).
+
+> **Antes de começar:** confira que o número 23 está livre no app (Builder › Application 100). Se não estiver, use outro e troque `P23_` por `P<número>_` em tudo abaixo.
+
+#### Passo 1 · Criar a página 23 (modal)
+
+1. **Create Page** › **Blank Page**.
+2. Preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Page Number | `23` |
+| Identification | Name | `Responder solicitação` |
+| Appearance | Page Mode | **Modal Dialog** |
+| Navigation | Use Breadcrumb / Navigation Menu | Off (é modal) |
+
+3. Depois de criada, nos atributos da página:
+   - **Security › Authorization Scheme:** `ADMIN_RH`
+   - **Security › Page Access Protection:** **Arguments Must Have Checksum**
+   - Se você usou a Opção B do §1.3, informe também a Error Handling Function aqui.
+
+#### Passo 2 · Itens
+
+Crie uma região **Static Content** chamada `Solicitação` no **Content Body** e, dentro dela, os itens:
+
+| Item | Type | Label | Detalhes |
+|---|---|---|---|
+| `P23_ID_SOLICITACAO` | **Hidden** | | Value Protected: **Yes**. Vem do link da página 20 |
+| `P23_NM_COLABORADOR` | **Display Only** | `Colaborador` | Source: nenhum (o Passo 3 preenche) |
+| `P23_DS_LANCAMENTO` | **Display Only** | `Registro questionado` | Source: nenhum |
+| `P23_DS_MENSAGEM` | **Display Only** | `Pedido` | Source: nenhum |
+| `P23_ST_SOLICITACAO` | **Radio Group** | `Resposta` | Value Required: **On** · List of Values › Type **Static Values**: `Resolvida` = `RESOLVIDA`, `Recusada` = `RECUSADA` · Display Null Value: Off |
+| `P23_DS_RESPOSTA` | **Textarea** | `Mensagem ao colaborador` | Maximum Length `2000` · Help/Inline Help: "Obrigatória se recusar." |
+
+Para que serve cada um:
+- Os três **Display Only** mostram ao RH o que está respondendo. Sem eles, a modal teria só o radio e a caixa de texto, sem dizer de qual pedido se trata.
+- `P23_ST_SOLICITACAO` só aceita `RESOLVIDA` ou `RECUSADA`, os mesmos valores que o package valida. Escreva os valores exatamente assim, em maiúsculas.
+- `P23_DS_RESPOSTA` não é obrigatório na tela porque só é exigido na recusa. Quem confere isso é o package: se o RH recusar sem escrever nada, aparece "Explique ao colaborador por que a solicitação foi recusada." (com o §1.3 configurado, sem "ORA-").
+
+#### Passo 3 · Processo "Carregar solicitação" (Before Header)
+
+Na aba **Pre-Rendering › Before Header**, crie um processo **PL/SQL Code** chamado `Carregar solicitação`:
+
+```sql
+begin
+  select c.nome_completo,
+         s.ds_mensagem,
+         case when h.id_historico_carreira is not null
+              then to_char(h.dt_efetiva, 'dd/mm/yyyy') || ' · ' || t.ds_tipo
+              else 'Não informado'
+         end
+    into :P23_NM_COLABORADOR, :P23_DS_MENSAGEM, :P23_DS_LANCAMENTO
+    from solicitacao_correcao s
+    join colaborador c             on c.id_colaborador        = s.id_colaborador
+    left join historico_carreira h on h.id_historico_carreira = s.id_historico_carreira
+    left join tipo_movimentacao  t on t.id_tipo_movimentacao  = h.id_tipo_movimentacao
+   where s.id_solicitacao = :P23_ID_SOLICITACAO
+     and s.id_empresa     = :G_ID_EMPRESA
+     and s.st_solicitacao = 'ABERTA';
+exception
+  when no_data_found then
+    raise_application_error(-20019, 'Solicitação não encontrada ou já respondida.');
+end;
+```
+
+- **`s.id_empresa = :G_ID_EMPRESA`:** impede abrir pedido de outra empresa trocando o id na URL (o checksum já bloqueia isso, e esta é a segunda proteção).
+- **`st_solicitacao = 'ABERTA'`:** se dois do RH abrirem o mesmo pedido, quem chegar depois vê a mensagem em vez de responder de novo. O package também confere isso ao salvar.
+- **`left join` com o histórico:** o colaborador pode pedir correção sem escolher um registro ("Não sei / vários" na página 22). Nesse caso aparece "Não informado".
+
+#### Passo 4 · Botões e processos
+
+Crie uma região **Buttons Container** no **Dialog Footer** (como no §3.4, Passo 1) com dois botões:
+
+| Button Name | Label | Slot | Behavior |
+|---|---|---|---|
+| `CANCELAR` | Cancelar | **Close** | Action **Defined by Dynamic Action** · DA *Click* › True action **Cancel Dialog** |
+| `RESPONDER` | Responder | **Next** | Action **Submit Page** · **Hot: On** |
+
+Na aba **Processing**, nesta ordem:
+
+1. **Responder** · PL/SQL Code · Server-side Condition › When Button Pressed `RESPONDER`:
+   ```sql
+   pkg_historico_carreira.responder_solicitacao(
+     p_id_solicitacao => :P23_ID_SOLICITACAO,
+     p_st_solicitacao => :P23_ST_SOLICITACAO,
+     p_ds_resposta    => :P23_DS_RESPOSTA);
+   ```
+2. **Fechar** · Type **Close Dialog** · When Button Pressed `RESPONDER` · Success Message `Resposta registrada.`
+
+O package confere de novo que o usuário é do RH, que o pedido é da empresa dele e que ainda está aberto. Também grava quem respondeu e quando (`usr_resolucao`, `dt_resolucao`).
+
+#### Passo 5 · Região na página 20
+
+Volte à página 20 e crie uma região **Interactive Report** no Body, Sequence `55` (depois de Formações a vencer), Title `Solicitações de correção abertas`, Source **SQL Query**:
 
 ```sql
 select s.id_solicitacao,
+       s.id_colaborador,
        c.nome_completo                         as colaborador,
        s.ds_mensagem                           as solicitacao,
        h.dt_efetiva                            as data_lancamento,
        t.ds_tipo                               as lancamento,
        pkg_historico_carreira.fn_data_local(s.id_empresa, s.dt_criacao) as aberta_em,
-       s.id_colaborador
+       'Responder'                             as responder
   from solicitacao_correcao s
   join colaborador c             on c.id_colaborador        = s.id_colaborador
   left join historico_carreira h on h.id_historico_carreira = s.id_historico_carreira
@@ -2052,21 +2233,102 @@ select s.id_solicitacao,
    and s.st_solicitacao = 'ABERTA'
  order by s.dt_criacao
 ```
-- Coluna `COLABORADOR`: link para a página 13 (`P13_ID_COLABORADOR` = `#ID_COLABORADOR#`), onde o RH estorna e lança de novo.
-- Coluna `ID_SOLICITACAO`: link "Responder" para uma modal simples com `P23_ID_SOLICITACAO`, um Radio Group `P23_ST_SOLICITACAO` (Resolvida `RESOLVIDA` / Recusada `RECUSADA`) e `P23_DS_RESPOSTA`. O processo da modal:
-  ```sql
-  pkg_historico_carreira.responder_solicitacao(:P23_ID_SOLICITACAO, :P23_ST_SOLICITACAO, :P23_DS_RESPOSTA);
-  ```
+
+Por que cada parte importa:
+- **`id_solicitacao` e `id_colaborador`:** não aparecem na tela. São os valores que os links mandam para as páginas 23 e 13.
+- **`'Responder' as responder`:** uma coluna só com o texto do link. Assim o link fica numa coluna própria, com cabeçalho, em vez de esconder o link atrás de um número.
+- **`left join` com o histórico:** pedidos sem registro escolhido também aparecem, com Data e Lançamento vazios.
+- **`fn_data_local`:** `dt_criacao` é gravada com fuso horário. A função converte para a hora local da empresa, para "Aberta em" não mostrar 3 horas a mais.
+- **`order by s.dt_criacao`:** o pedido mais antigo aparece primeiro, para ser atendido antes.
+
+> **Não apague colunas pela árvore.** Como no §4.4, no Interactive Report as colunas vêm da query: para tirar ou incluir uma coluna, mude a query.
+
+#### Passo 6 · Colunas
+
+| Coluna | Type | Heading | Outros atributos |
+|---|---|---|---|
+| `ID_SOLICITACAO` | **Hidden Column** | | |
+| `ID_COLABORADOR` | **Hidden Column** | | |
+| `COLABORADOR` | **Link** | `Colaborador` | Target: Page `13` · Set Items `P13_ID_COLABORADOR` = `#ID_COLABORADOR#` · Link Text `#COLABORADOR#` |
+| `SOLICITACAO` | Plain Text | `Pedido` | |
+| `DATA_LANCAMENTO` | Plain Text | `Data do registro` | Format Mask `DD/MM/YYYY` |
+| `LANCAMENTO` | Plain Text | `Registro` | |
+| `ABERTA_EM` | Plain Text | `Aberta em` | Format Mask `DD/MM/YYYY HH24:MI` |
+| `RESPONDER` | **Link** | `Ação` | Target: Page `23` · Set Items `P23_ID_SOLICITACAO` = `#ID_SOLICITACAO#` · Link Text `#RESPONDER#` |
+
+- Monte os dois links pelo editor de link do Builder. As páginas 13 e 23 exigem checksum, e um `f?p=` montado à mão é recusado.
+- Em **No Data Found** da região (confirmar no 26.1.5): `Nenhuma solicitação aberta.`
+
+#### Passo 7 · Atualizar a lista quando a modal fechar
+
+Sem este passo, o pedido respondido continua na lista até a página ser recarregada.
+
+1. Clique com o botão direito na região **Solicitações de correção abertas** › **Create Dynamic Action**.
+2. Name `Atualizar solicitações` · Event **Dialog Closed** · Selection Type **Region** · Region `Solicitações de correção abertas`.
+3. True action: **Refresh** › Affected Elements › Region `Solicitações de correção abertas`.
+
+Esta DA é separada da "Período mudou": a lista não depende de De/Até.
+
+#### Testar
+
+A página 22 (§6), onde o colaborador abre o pedido, vem depois desta etapa. Para testar agora, crie um pedido de teste no **SQL Commands** (um comando por vez, sem `;` no final):
+
+```sql
+insert into solicitacao_correcao (id_empresa, id_colaborador, ds_mensagem)
+select 1, min(id_colaborador), 'TESTE: a data da minha última promoção está errada.'
+  from colaborador
+ where id_empresa = 1 and status
+```
+
+1. Rode a página 20. A lista mostra o pedido de teste, com "Aberta em" na hora local e Data/Registro vazios.
+2. Clique no nome. A página 13 abre no histórico daquela pessoa.
+3. Volte e clique em **Responder**. A modal mostra colaborador, "Não informado" e o texto do pedido.
+4. Marque **Recusada** sem escrever nada e clique em Responder. Aparece "Explique ao colaborador por que a solicitação foi recusada."
+5. Escreva uma resposta e clique em Responder. A modal fecha, aparece "Resposta registrada." e o pedido sai da lista.
+6. Confira no banco:
+   ```sql
+   select st_solicitacao, ds_resposta, usr_resolucao, dt_resolucao
+     from solicitacao_correcao
+    where ds_mensagem like 'TESTE:%'
+   ```
+7. Apague o pedido de teste: `delete from solicitacao_correcao where ds_mensagem like 'TESTE:%'`
+
+#### Se não funcionar
+
+| Sintoma | Causa provável | Correção |
+|---|---|---|
+| Não aparece a página 23 como Target do link | A página 23 ainda não foi criada | Passos 1 a 4 antes do Passo 6 |
+| A modal abre com tudo vazio, ou com "Solicitação não encontrada" | Link "Responder" sem Set Items `P23_ID_SOLICITACAO` | Passo 6 |
+| Clicar no nome abre o histórico do próprio usuário | Link `COLABORADOR` sem Set Items `P13_ID_COLABORADOR` | Passo 6 |
+| Números (os ids) aparecendo na lista | `ID_SOLICITACAO` ou `ID_COLABORADOR` ficaram como Plain Text | Passo 6: **Hidden Column** |
+| Pedido respondido continua na lista | Falta a DA Dialog Closed | Passo 7 |
+| `Responda com RESOLVIDA ou RECUSADA` | Valores do Radio Group diferentes (ex.: `Resolvida`) | Passo 2: valores em maiúsculas |
+| `Esta solicitação já foi respondida` | Outra pessoa do RH respondeu antes | Esperado. Feche a modal |
+| Erro com "ORA-20019" ou "ORA-20012" na tela | Tratamento de erro do §1.3 não configurado para a página 23 | §1.3 |
 
 ---
 
 ## 6. Página 22 · Solicitar correção (Modal)
 
-> Ao terminar esta página, volte `c_pagina_solicitacao` para `22` em `08_pkg_historico_carreira_ui.sql` e rode o arquivo de novo, para o botão "Solicitar correção" aparecer na página 13.
+> Ao terminar esta página, confira que `c_pagina_solicitacao` está `22` em `08_pkg_historico_carreira_ui.sql` (o arquivo já vem assim) e rode o arquivo de novo no banco. Se você tinha mudado para `null` para fugir do `ERR-1002`, o botão "Solicitar correção" só aparece na página 13 depois disso. Para conferir o que está no banco: `select text from user_source where name = 'PKG_HISTORICO_CARREIRA_UI' and text like '%c_pagina_solicitacao%constant%'`.
 
 - Page Mode: **Modal Dialog** · Authorization Scheme: `COLABORADOR` · Title "Solicitar correção"
+- Processo **Colaborador logado** · PL/SQL · Point: **Before Header** · Sequence 10. Preenche o colaborador com o usuário logado antes de a página ser montada:
+  ```sql
+  begin
+    select id_colaborador
+      into :P22_ID_COLABORADOR
+      from colaborador
+     where upper(login_apex) = upper(:APP_USER)
+       and id_empresa = :G_ID_EMPRESA;
+  exception
+    when no_data_found then
+      raise_application_error(-20012, 'Seu usuário não está vinculado a um colaborador.');
+  end;
+  ```
+  Sem esse processo, `P22_ID_COLABORADOR` só tem valor quando a modal é aberta pelo botão da página 13. Aberta de outro jeito (pelo Run do Page Designer, por exemplo), o item fica vazio e o select list "Qual registro?" mostra só "Não sei / vários". Como só o próprio colaborador pode pedir correção, a página sempre usa o usuário logado, mesmo que a URL traga outro id. As contas da equipe sem colaborador veem a mensagem de erro, o que é esperado.
 - Itens:
-  - `P22_ID_COLABORADOR`: Hidden · Checksum Required - Session Level
+  - `P22_ID_COLABORADOR`: Hidden · Checksum Required - Session Level · preenchido pelo processo acima
   - `P22_ID_HISTORICO_CARREIRA`: Select List opcional, Label "Qual registro?", Null display "Não sei / vários". Query:
     ```sql
     select to_char(h.dt_efetiva, 'dd/mm/yyyy') || ' · ' || t.ds_tipo d, h.id_historico_carreira r
