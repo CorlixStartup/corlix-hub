@@ -39,7 +39,7 @@ prompt APPLICATION 100 - Corlix Hub
 --     Pages:                     25
 --       Items:                  102
 --       Validations:             11
---       Processes:               39
+--       Processes:               40
 --       Regions:                 68
 --       Buttons:                 35
 --       Dynamic Actions:         18
@@ -116,7 +116,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461331004339
-,p_version_scn=>'47048987310551'
+,p_version_scn=>'47048988948845'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -62142,7 +62142,7 @@ begin
 wwv_flow_imp_page.create_page(
  p_id=>18
 ,p_name=>unistr('Movimenta\00E7\00E3o')
-,p_alias=>unistr('MOVIMENTA\00C7\00C3O')
+,p_alias=>'MOVIMENTACAO'
 ,p_page_mode=>'MODAL'
 ,p_step_title=>unistr('Movimenta\00E7\00E3o')
 ,p_autocomplete_on_off=>'OFF'
@@ -62320,7 +62320,7 @@ wwv_flow_imp_page.create_page_button(
 ,p_button_action=>'SUBMIT'
 ,p_button_template_options=>'#DEFAULT#'
 ,p_button_template_id=>4073839297780169708
-,p_button_image_alt=>'Excluir rascunho'
+,p_button_image_alt=>unistr('Rascunho exclu\00EDdo')
 ,p_button_position=>'DELETE'
 ,p_button_execute_validations=>'N'
 ,p_confirm_message=>'Excluir este rascunho?'
@@ -62896,6 +62896,23 @@ wwv_flow_imp_page.create_page_process(
 ,p_process_name=>unistr('Initialize form Movimenta\00E7\00E3o')
 ,p_static_id=>unistr('initialize-form-movimenta\00E7\00E3o')
 ,p_internal_uid=>31448997914538707
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(38252348209320211)
+,p_process_sequence=>20
+,p_process_point=>'BEFORE_HEADER'
+,p_process_type=>'NATIVE_PLSQL'
+,p_process_name=>'Registrar acesso salarial'
+,p_static_id=>'registrar-acesso-salarial'
+,p_process_sql_clob=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'pkg_historico_carreira.registrar_acesso_salarial(',
+'  p_id_colaborador => :P18_ID_COLABORADOR,',
+unistr('  p_contexto       => ''P18 \00B7 lan\00E7amento #'' || :P18_ID_HISTORICO_CARREIRA);')))
+,p_process_clob_language=>'PLSQL'
+,p_process_when=>'P18_ID_HISTORICO_CARREIRA'
+,p_process_when_type=>'ITEM_IS_NOT_NULL'
+,p_security_scheme=>wwv_flow_imp.id(29681448805008196)
+,p_internal_uid=>38252348209320211
 );
 wwv_flow_imp_page.create_page_process(
  p_id=>wwv_flow_imp.id(32808139799326813)
@@ -65893,4 +65910,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:77djJyzUJduts8I9emU5WHwcODvkyxZzzQ0pH/NBPRE=
+-- Application Checksum SH256:rxsUoO7zxRgrwdFPzqqOXD/XwqvxHgYbcUsagMoLklY=
