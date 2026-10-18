@@ -2369,7 +2369,16 @@ O package confere que quem pede é o próprio colaborador. Mesmo com o checksum,
      ```
      Além da admissão, isso publica o comunicado de boas-vindas para a equipe (se `CONFIG_CARREIRA.FL_COMUNICADO_AUTOMATICO` estiver ligado, o padrão).
    - Server-side Condition: Item `P14_ID_COLABORADOR` is not null. O processamento automático do form devolve a PK nesse item depois do insert.
-   - Botão **Histórico de carreira** (condição: `P14_ID_COLABORADOR` is not null · Authorization `ADMIN_RH`) · Redirect página 13 com `P13_ID_COLABORADOR` = `&P14_ID_COLABORADOR.`
+   - Botão **Histórico de carreira** · Region `Cadastrar Colaborador` · Slot **Edit** · Action **Redirect to Page in this Application** › Page `13` · Set Items `P13_ID_COLABORADOR` = `&P14_ID_COLABORADOR.` · Server-side Condition **Item is NOT NULL** `P14_ID_COLABORADOR` · Authorization `ADMIN_RH`.
+     > **Hoje esse botão não aparece, e isso é esperado.** A página 14 só cadastra: nenhuma página a abre com um colaborador existente, e depois de salvar o branch "Limpar formulário após carregamento" volta para a 14 com `clearCache: 14`, o que apaga `P14_ID_COLABORADOR`. O botão fica pronto para quando a página 14 também editar colaboradores. Para o RH abrir o histórico de alguém, use o seletor da §2.8 ou, quando existir, a coluna "Histórico" da página 12 (item 2 abaixo).
+   - **Security › Authorization Scheme da página:** `ADMIN_RH`. A página cria usuários APEX e, sem autorização na página, qualquer usuário logado a abria pela URL.
+     - Alinhe a entrada **Cadastro de Usuários** do Navigation Menu (hoje `somente-diretoria`) com a página. Se ficarem diferentes, quem é da diretoria e não é RH vê o item no menu e recebe "acesso negado", e quem é RH abre a página só pela URL.
+   - **Empresa do usuário** (regra de ouro 3). O `registrar_admissao_automatica` não confere a empresa da sessão, só usa a empresa gravada no colaborador, então quem garante o isolamento é a página:
+     - `P14_EMPRESA` › List of Values › SQL Query: `select nome d, id_empresa r from empresa where id_empresa = :G_ID_EMPRESA order by nome`
+     - `P14_EMPRESA` › Default › Type **PL/SQL Expression** › `:G_ID_EMPRESA`. Use expressão, e não o tipo **Item**: o seletor do tipo Item não lista o Application Item `G_ID_EMPRESA`.
+     - Validation **Empresa do usuário** · Sequence 5 · Type **Expression** · `:P14_EMPRESA = :G_ID_EMPRESA` · Error "Você só pode cadastrar colaboradores na sua empresa." · Associated Item `P14_EMPRESA`. O filtro da lista só muda a tela; a validação barra um `id_empresa` trocado na requisição. Com `G_ID_EMPRESA` nulo (conta sem colaborador), ela também barra.
+     - Com isso, ninguém cadastra em outra empresa, nem a equipe Corlix. Se a equipe precisar cadastrar o primeiro RH de um cliente novo, esse fluxo precisa de outro caminho.
+     - **Cuidado:** a condição "Item is NOT NULL `P14_ID_COLABORADOR`" é só do botão Histórico. Na região **Cadastrar Colaborador** ela esconde o formulário inteiro.
 2. **Página 12 · Colaboradores:** quando a lista for criada, adicione uma coluna link "Histórico" para a página 13 com `P13_ID_COLABORADOR` = `#ID_COLABORADOR#`.
 3. **Página 2 · Meu perfil:** botão **Meu histórico** para a página 13 sem parâmetro. A página abre no próprio usuário.
 4. **Navegação:** entradas "Histórico de carreira" (página 13, sem parâmetro) e "Dashboard RH" (página 20, Authorization `ADMIN_RH`) no menu.

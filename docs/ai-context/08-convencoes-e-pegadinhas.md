@@ -34,7 +34,7 @@
 ## 3. Pegadinhas por área
 
 ### Segurança / multi-tenant
-- **Nenhuma página tem authorization própria**: as 3 authorizations (`administration-rights`, `publicador-de-conteudo`, `somente-diretoria`) só escondem entradas do menu. Pela URL, qualquer usuário logado abre p7 (logs), p14 (cria usuários APEX via `apex_util.create_user`), p15/p16 (empresas) e p17 (emitir comunicado).
+- **Nenhuma página tem authorization própria**: as 3 authorizations (`administration-rights`, `publicador-de-conteudo`, `somente-diretoria`) só escondem entradas do menu. Pela URL, qualquer usuário logado abre p7 (logs), p15/p16 (empresas) e p17 (emitir comunicado). A p14 (cria usuários APEX via `apex_util.create_user`) ganhou `ADMIN_RH` no ambiente em 18/10/2026, mas o menu dela continua `somente-diretoria` e o export do repo ainda está sem autorização.
 - As queries de comunicados, aniversariantes, chat, organograma, LOVs e equipes **não filtram por `id_empresa`**.
 - Os app processes (4, `BEFORE_HEADER`, sem condição) rodam em todas as páginas, inclusive no login. Eles ligam o usuário ao colaborador por `COLABORADOR.login_apex = :APP_USER`; algumas comparações usam `UPPER` e outras não.
 
@@ -74,7 +74,8 @@
 - `c_pagina_perfil = 20` do organograma conflita com o Dashboard RH (página 20) planejado pelo histórico de carreira.
 - `vw_org_colaborador` não filtra por empresa, e o drawer de detalhes não verifica permissão.
 - `G_ID_EMPRESA` só é preenchido depois de um novo login. Sem esse item, toda chamada a `pkg_historico_carreira` dentro de uma sessão APEX falha com `-20012`.
-- A spec de `pkg_historico_carreira` diz que a p14 chama `registrar_admissao_automatica`, mas a p14 não faz essa chamada.
+- A p14 chama `registrar_admissao_automatica` (processo "Registrar admissão", seq 15) no ambiente desde 18/10/2026. O export em `corlixhub/` ainda não tem esse processo.
+- O botão "Histórico de carreira" da p14 nunca aparece: a página só cadastra, e o branch pós-salvar limpa `P14_ID_COLABORADOR`.
 - `COMUNICADO.TITULO` aceita até 200 caracteres no formulário (p17), mas o package corta em 100.
 - O README do módulo de carreira fala em "nove códigos padrão" de movimentação, mas o seed cria 11.
 - Perfis de acesso: os papéis vêm de `CARGO_PAPEL`, mas os colaboradores da empresa 1 estão em cargos antigos (101–604) vinculados à mão. Os cargos 605–633 do seed estão vazios. Antes de mexer em cargos, leia `modulos/perfis-acesso/Registro-implantacao.md`.
