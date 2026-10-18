@@ -40,7 +40,7 @@ prompt APPLICATION 100 - Corlix Hub
 --       Items:                   93
 --       Validations:             10
 --       Processes:               32
---       Regions:                 63
+--       Regions:                 65
 --       Buttons:                 30
 --       Dynamic Actions:         15
 --     Shared Components:
@@ -115,8 +115,8 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_string_01=>'APP_NAME'
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
-,p_files_version=>2461328011703
-,p_version_scn=>'47048087990237'
+,p_files_version=>2461331004339
+,p_version_scn=>'47048981810965'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -55356,7 +55356,8 @@ wwv_flow_imp.g_varchar2_table(170) := '746572207B0A2020202020202020646973706C617
 wwv_flow_imp.g_varchar2_table(171) := '2020202E6F72672D666F636F5F5F6964207B0A2020202020202020666C65782D777261703A20777261703B0A202020207D0A7D0A0A406D6564696120286D61782D77696474683A20343830707829207B0A202020202E6F72672D6472617765725F5F636F';
 wwv_flow_imp.g_varchar2_table(172) := '72706F207B0A202020202020202070616464696E673A203230707820313670783B0A202020207D0A0A202020202E6F72672D6472617765725F5F726F64617065207B0A202020202020202070616464696E673A203132707820313670783B0A202020207D';
 wwv_flow_imp.g_varchar2_table(173) := '0A0A202020202E6F72672D6472617765725F5F726F64617065202E6F72672D62746E207B0A2020202020202020666C65783A20313B0A202020207D0A0A202020202E6F72672D6461646F73207B0A2020202020202020677269642D74656D706C6174652D';
-wwv_flow_imp.g_varchar2_table(174) := '636F6C756D6E733A206D696E6D617828302C20316672293B0A202020207D0A7D';
+wwv_flow_imp.g_varchar2_table(174) := '636F6C756D6E733A206D696E6D617828302C20316672293B0A202020207D0A7D0A0A2F2A202D2D2D2042757363612028506F707570204C4F562050335F425553434129206163696D6120646F206F7267616E6F6772616D612C20616C696E6861646120C3';
+wwv_flow_imp.g_varchar2_table(175) := 'A02064697265697461202D2D202A2F0A2350335F42555343415F434F4E5441494E4552207B0A20206D61782D77696474683A2033303070783B0A20206D617267696E2D6C6566743A206175746F3B0A7D';
 wwv_flow_imp_shared.create_app_static_file(
  p_id=>wwv_flow_imp.id(33006600848438371)
 ,p_file_name=>'organograma.css'
@@ -55492,7 +55493,7 @@ wwv_flow_imp.g_varchar2_table(120) := '677269642D74656D706C6174652D636F6C756D6E7
 wwv_flow_imp.g_varchar2_table(121) := '696F733A3A6166746572207B646973706C61793A206E6F6E653B7D2E6F72672D636F6E6563746F7265732D2D756D3A3A6265666F7265207B6865696768743A20323470783B7D2E6F72672D666F636F5F5F6964207B666C65782D777261703A2077726170';
 wwv_flow_imp.g_varchar2_table(122) := '3B7D7D406D6564696120286D61782D77696474683A20343830707829207B2E6F72672D6472617765725F5F636F72706F207B70616464696E673A203230707820313670783B7D2E6F72672D6472617765725F5F726F64617065207B70616464696E673A20';
 wwv_flow_imp.g_varchar2_table(123) := '3132707820313670783B7D2E6F72672D6472617765725F5F726F64617065202E6F72672D62746E207B666C65783A20313B7D2E6F72672D6461646F73207B677269642D74656D706C6174652D636F6C756D6E733A206D696E6D617828302C20316672293B';
-wwv_flow_imp.g_varchar2_table(124) := '7D7D';
+wwv_flow_imp.g_varchar2_table(124) := '7D7D2350335F42555343415F434F4E5441494E4552207B6D61782D77696474683A2033303070783B6D617267696E2D6C6566743A206175746F3B7D';
 wwv_flow_imp_shared.create_app_static_file(
  p_id=>wwv_flow_imp.id(33007131850439182)
 ,p_file_name=>'organograma.min.css'
@@ -63357,6 +63358,117 @@ unistr('      <p>Promo\00E7\00F5es, turnover, tempo no cargo e forma\00E7\00F5es
   'expand_shortcuts', 'N',
   'output_as', 'HTML')).to_clob
 );
+wwv_flow_imp_page.create_report_region(
+ p_id=>wwv_flow_imp.id(38216260044837906)
+,p_name=>unistr('Forma\00E7\00F5es a vencer')
+,p_static_id=>unistr('forma\00E7\00F5es-a-vencer')
+,p_template=>4073835273271169698
+,p_display_sequence=>45
+,p_region_template_options=>'#DEFAULT#:t-Region--scrollBody'
+,p_component_template_options=>'#DEFAULT#:t-Report--altRowsDefault:t-Report--rowHighlight'
+,p_source_type=>'NATIVE_SQL_REPORT'
+,p_query_type=>'SQL'
+,p_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'select f.id_colaborador       as id_colaborador,',
+'       c.nome_completo        as colaborador,',
+'       f.ds_titulo            as formacao,',
+'       f.tp_formacao          as tipo,',
+'       f.ds_instituicao       as emissor,',
+'       f.dt_validade          as validade,',
+'       f.dt_validade - pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) as dias_restantes',
+'  from formacao_colaborador f',
+'  join colaborador c on c.id_colaborador = f.id_colaborador',
+' where f.id_empresa  = :G_ID_EMPRESA',
+'   and f.dt_validade between pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA)',
+'                         and pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) + 60',
+' order by f.dt_validade',
+''))
+,p_ajax_enabled=>'Y'
+,p_lazy_loading=>false
+,p_query_row_template=>2540130677583398057
+,p_query_num_rows=>15
+,p_query_options=>'DERIVED_REPORT_COLUMNS'
+,p_query_num_rows_type=>'NEXT_PREVIOUS_LINKS'
+,p_pagination_display_position=>'BOTTOM_RIGHT'
+,p_csv_output=>'N'
+,p_prn_output=>'N'
+,p_sort_null=>'L'
+,p_plug_query_strip_html=>'N'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(38216304639837907)
+,p_query_column_id=>2
+,p_column_alias=>'COLABORADOR'
+,p_column_display_sequence=>10
+,p_column_heading=>'Colaborador'
+,p_column_link=>'f?p=&APP_ID.:19:&SESSION.::&DEBUG.::P19_ID_COLABORADOR:#ID_COLABORADOR#'
+,p_column_linktext=>'#COLABORADOR#'
+,p_heading_alignment=>'LEFT'
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(38216838373837912)
+,p_query_column_id=>7
+,p_column_alias=>'DIAS_RESTANTES'
+,p_column_display_sequence=>60
+,p_column_heading=>'Dias Restantes'
+,p_column_alignment=>'RIGHT'
+,p_heading_alignment=>'RIGHT'
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(38216674647837910)
+,p_query_column_id=>5
+,p_column_alias=>'EMISSOR'
+,p_column_display_sequence=>40
+,p_column_heading=>'Emissor'
+,p_heading_alignment=>'LEFT'
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(38216482387837908)
+,p_query_column_id=>3
+,p_column_alias=>'FORMACAO'
+,p_column_display_sequence=>20
+,p_column_heading=>'Formacao'
+,p_heading_alignment=>'LEFT'
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(38216988995837913)
+,p_query_column_id=>1
+,p_column_alias=>'ID_COLABORADOR'
+,p_column_display_sequence=>70
+,p_hidden_column=>'Y'
+,p_derived_column=>'N'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(38216557498837909)
+,p_query_column_id=>4
+,p_column_alias=>'TIPO'
+,p_column_display_sequence=>30
+,p_column_heading=>'Tipo'
+,p_heading_alignment=>'LEFT'
+,p_display_as=>'TEXT_FROM_LOV_ESC'
+,p_named_lov=>wwv_flow_imp.id(31257078804130338)
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(38216708079837911)
+,p_query_column_id=>6
+,p_column_alias=>'VALIDADE'
+,p_column_display_sequence=>50
+,p_column_heading=>'Validade'
+,p_column_format=>'DD/MM/YYYY'
+,p_heading_alignment=>'LEFT'
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
+);
 wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(33900060699350932)
 ,p_plug_name=>unistr('Promo\00E7\00F5es por departamento')
@@ -63465,6 +63577,7 @@ wwv_flow_imp_page.create_page_plug(
 ,p_plug_item_display_point=>'ABOVE'
 ,p_location=>null
 ,p_plug_source_type=>'NATIVE_JET_CHART'
+,p_ajax_items_to_submit=>'P20_DT_INICIO,P20_DT_FIM'
 );
 wwv_flow_imp_page.create_jet_chart(
  p_id=>wwv_flow_imp.id(33900650292350938)
@@ -63508,7 +63621,7 @@ wwv_flow_imp_page.create_jet_chart_series(
 '    from periodo p',
 ' connect by level <= months_between(trunc(p.dt_fim, ''mm''), trunc(p.dt_inicio, ''mm'')) + 1',
 ')',
-'select to_char(m.mes, ''mm/yyyy'')                              as mes,',
+'select to_char(m.mes, ''yyyy/mm'')                              as mes,',
 '       count(case when v.cd_tipo = ''ADMISSAO''     then 1 end) as admissoes,',
 '       count(case when v.cd_tipo = ''DESLIGAMENTO'' then 1 end) as desligamentos',
 '  from meses m',
@@ -63522,6 +63635,7 @@ wwv_flow_imp_page.create_jet_chart_series(
 ' group by m.mes',
 ' order by m.mes',
 ''))
+,p_ajax_items_to_submit=>'P20_DT_INICIO,P20_DT_FIM'
 ,p_items_value_column_name=>'DESLIGAMENTOS'
 ,p_items_label_column_name=>'MES'
 ,p_color=>'#b3261e'
@@ -63546,7 +63660,7 @@ wwv_flow_imp_page.create_jet_chart_series(
 '    from periodo p',
 ' connect by level <= months_between(trunc(p.dt_fim, ''mm''), trunc(p.dt_inicio, ''mm'')) + 1',
 ')',
-'select to_char(m.mes, ''mm/yyyy'')                              as mes,',
+'select to_char(m.mes, ''yyyy/mm'')                              as mes,',
 '       count(case when v.cd_tipo = ''ADMISSAO''     then 1 end) as admissoes,',
 '       count(case when v.cd_tipo = ''DESLIGAMENTO'' then 1 end) as desligamentos',
 '  from meses m',
@@ -63612,6 +63726,95 @@ wwv_flow_imp_page.create_page_plug(
 ,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
   'expand_shortcuts', 'N',
   'output_as', 'HTML')).to_clob
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(38215784806837901)
+,p_plug_name=>unistr('Tempo m\00E9dio no cargo por departamento')
+,p_static_id=>unistr('tempo-m\00E9dio-no-cargo-por-departamento')
+,p_region_template_options=>'#DEFAULT#:t-Region--scrollBody'
+,p_escape_on_http_output=>'Y'
+,p_plug_template=>4073835273271169698
+,p_plug_display_sequence=>35
+,p_plug_item_display_point=>'ABOVE'
+,p_location=>null
+,p_plug_source_type=>'NATIVE_JET_CHART'
+);
+wwv_flow_imp_page.create_jet_chart(
+ p_id=>wwv_flow_imp.id(38215838272837902)
+,p_region_id=>wwv_flow_imp.id(38215784806837901)
+,p_chart_type=>'bar'
+,p_height=>'360'
+,p_animation_on_display=>'none'
+,p_animation_on_data_change=>'auto'
+,p_orientation=>'horizontal'
+,p_data_cursor=>'auto'
+,p_data_cursor_behavior=>'auto'
+,p_hover_behavior=>'dim'
+,p_stack=>'off'
+,p_connect_nulls=>'Y'
+,p_sorting=>'label-asc'
+,p_fill_multi_series_gaps=>true
+,p_zoom_and_scroll=>'off'
+,p_tooltip_rendered=>'Y'
+,p_show_series_name=>true
+,p_show_group_name=>true
+,p_show_value=>true
+,p_legend_rendered=>'off'
+);
+wwv_flow_imp_page.create_jet_chart_series(
+ p_id=>wwv_flow_imp.id(38215941694837903)
+,p_chart_id=>wwv_flow_imp.id(38215838272837902)
+,p_static_id=>'new'
+,p_seq=>10
+,p_name=>'Anos no cargo'
+,p_data_source_type=>'SQL'
+,p_data_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'select nvl(s.nm_departamento, ''(sem departamento)'') as departamento,',
+'       round(avg(months_between(pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA),',
+'                                s.dt_inicio_funcao)) / 12, 1) as anos_no_cargo',
+'  from vw_situacao_atual_colaborador s',
+' where s.id_empresa       = :G_ID_EMPRESA',
+'   and s.fl_vinculo_ativo = ''S''',
+' group by s.id_departamento, s.nm_departamento',
+' order by anos_no_cargo desc, departamento'))
+,p_items_value_column_name=>'ANOS_NO_CARGO'
+,p_items_label_column_name=>'DEPARTAMENTO'
+,p_color=>'#00688c'
+,p_assigned_to_y2=>'off'
+,p_items_label_rendered=>false
+);
+wwv_flow_imp_page.create_jet_chart_axis(
+ p_id=>wwv_flow_imp.id(38216068116837904)
+,p_chart_id=>wwv_flow_imp.id(38215838272837902)
+,p_static_id=>'x'
+,p_axis=>'x'
+,p_is_rendered=>'on'
+,p_format_scaling=>'auto'
+,p_scaling=>'linear'
+,p_baseline_scaling=>'zero'
+,p_major_tick_rendered=>'on'
+,p_minor_tick_rendered=>'auto'
+,p_tick_label_rendered=>'on'
+,p_tick_label_rotation=>'auto'
+,p_tick_label_position=>'outside'
+);
+wwv_flow_imp_page.create_jet_chart_axis(
+ p_id=>wwv_flow_imp.id(38216122659837905)
+,p_chart_id=>wwv_flow_imp.id(38215838272837902)
+,p_static_id=>'y'
+,p_axis=>'y'
+,p_is_rendered=>'on'
+,p_title=>'anos'
+,p_min=>0
+,p_format_type=>'decimal'
+,p_decimal_places=>1
+,p_format_scaling=>'none'
+,p_scaling=>'linear'
+,p_baseline_scaling=>'zero'
+,p_position=>'auto'
+,p_major_tick_rendered=>'on'
+,p_minor_tick_rendered=>'auto'
+,p_tick_label_rendered=>'on'
 );
 wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(33899735264350929)
@@ -65045,4 +65248,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:QlRPMYeTQQaQNw93wLMWJxYv0cCGklYL6gYKHNHfPGs=
+-- Application Checksum SH256:6wVY9jo5czBnnhwVgeUCBxEXifDILSl0VgFO2yIrPwU=
