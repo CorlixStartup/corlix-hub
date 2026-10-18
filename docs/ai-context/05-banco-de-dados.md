@@ -816,7 +816,7 @@ Comunicado automático (`publicar_comunicado`, privada): só se `FL_COMUNICADO_A
 ## 10. Package `PKG_HISTORICO_CARREIRA_UI` (`08_pkg_historico_carreira_ui.sql`, `authid definer`)
 
 Público: `function render(p_id_colaborador number) return clob` — HTML completo da página 13 (região Dynamic Content). Gera -20012 se `fn_pode_ver_colaborador = 'N'`.
-Constantes de navegação: `c_pagina_organograma = 3` / `P3_ID_FOCO`; `c_pagina_comunicado = 11` / item nulo; `c_pagina_holerite = null`; `c_pagina_solicitacao = 22` / `P22_ID_COLABORADOR`; `c_pagina_painel_rh = 20`. (As páginas 18–23 são montadas no ambiente pelo guia e ainda não foram exportadas para `corlixhub/`.)
+Constantes de navegação: `c_pagina_organograma = 3` / `P3_ID_FOCO`; `c_pagina_comunicado = 11` / item nulo; `c_pagina_holerite = null`; `c_pagina_solicitacao = 22` / `P22_ID_COLABORADOR`; `c_pagina_painel_rh = 20`. (As páginas 18–23 estão em `corlixhub/pages/`.)
 Lê: `COLABORADOR`, `EMPRESA`, `CARGO`, `DEPARTAMENTO`, `HISTORICO_CARREIRA`, `TIPO_MOVIMENTACAO`, `FORMACAO_COLABORADOR`, `CONFIG_CARREIRA`, `SOLICITACAO_CORRECAO`, `VW_MOVIMENTACAO_VALIDA`, `VW_SITUACAO_ATUAL_COLABORADOR`. Não escreve.
 Regras de exibição: **nunca exibe salário**; eventos `MERITO` só para o próprio colaborador e RH (fora do APEX = RH); motivo de `AFASTAMENTO`/`RETORNO` oculto para quem não é o próprio nem RH; marcos de tempo de casa gerados por `connect by level` a cada 12 meses; escapa tudo com `apex_escape.html`/`html_attribute`.
 

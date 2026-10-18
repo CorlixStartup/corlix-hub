@@ -2372,7 +2372,7 @@ O package confere que quem pede é o próprio colaborador. Mesmo com o checksum,
    - Botão **Histórico de carreira** · Region `Cadastrar Colaborador` · Slot **Edit** · Action **Redirect to Page in this Application** › Page `13` · Set Items `P13_ID_COLABORADOR` = `&P14_ID_COLABORADOR.` · Server-side Condition **Item is NOT NULL** `P14_ID_COLABORADOR` · Authorization `ADMIN_RH`.
      > **Hoje esse botão não aparece, e isso é esperado.** A página 14 só cadastra: nenhuma página a abre com um colaborador existente, e depois de salvar o branch "Limpar formulário após carregamento" volta para a 14 com `clearCache: 14`, o que apaga `P14_ID_COLABORADOR`. O botão fica pronto para quando a página 14 também editar colaboradores. Para o RH abrir o histórico de alguém, use o seletor da §2.8 ou, quando existir, a coluna "Histórico" da página 12 (item 2 abaixo).
    - **Security › Authorization Scheme da página:** `ADMIN_RH`. A página cria usuários APEX e, sem autorização na página, qualquer usuário logado a abria pela URL.
-     - Alinhe a entrada **Cadastro de Usuários** do Navigation Menu (hoje `somente-diretoria`) com a página. Se ficarem diferentes, quem é da diretoria e não é RH vê o item no menu e recebe "acesso negado", e quem é RH abre a página só pela URL.
+     - Use a mesma autorização na entrada **Cadastro de Usuários** do Navigation Menu (`ADMIN_RH`). Se ficarem diferentes, quem tem o papel do menu e não o da página vê o item e recebe "acesso negado", e quem tem só o da página abre a p14 apenas pela URL.
    - **Empresa do usuário** (regra de ouro 3). O `registrar_admissao_automatica` não confere a empresa da sessão, só usa a empresa gravada no colaborador, então quem garante o isolamento é a página:
      - `P14_EMPRESA` › List of Values › SQL Query: `select nome d, id_empresa r from empresa where id_empresa = :G_ID_EMPRESA order by nome`
      - `P14_EMPRESA` › Default › Type **PL/SQL Expression** › `:G_ID_EMPRESA`. Use expressão, e não o tipo **Item**: o seletor do tipo Item não lista o Application Item `G_ID_EMPRESA`.
@@ -2387,17 +2387,81 @@ O package confere que quem pede é o próprio colaborador. Mesmo com o checksum,
 
 ## 8. Checklist de teste no APEX
 
-- [ ] Usuário sem o papel Admin RH não vê o botão "Nova movimentação", nem a região de lançamentos, nem as colunas de salário.
+Teste com pelo menos três logins: um **RH** (papel `ADMIN_RH`), um **gestor** com equipe (de preferência com subordinado indireto) e um **colaborador** comum. As contas da equipe Corlix não têm colaborador e não servem para testar o módulo. Depois de mudar papéis, saia e entre de novo: `G_ID_EMPRESA` e as autorizações são lidos no login.
+
+### 8.0 Antes de testar
+
+Itens que a validação de 18/10/2026 encontrou faltando ou não conseguiu conferir pelos exports:
+
+- [ ] **Página 18 · log de acesso salarial (§3.6).** Confira que o processo "Registrar acesso salarial" existe na p18: Before Header · Sequence 20 (depois do *Initialize form*, que carrega os itens) · Authorization `ADMIN_RH` · Server-side Condition **Item is NOT NULL** `P18_ID_HISTORICO_CARREIRA`. O código vai em *Source › PL/SQL Code*, com `;` no final. Sem ele, só a p13 grava em `LOG_ACESSO_SALARIAL`.
+- [ ] **Erros sem "ORA-" (§1.3).** O `log_pkg` não está no repositório. Confira se ele delega para o módulo:
+  ```sql
+  select line, text from user_source
+   where name = 'LOG_PKG' and upper(text) like '%FN_TRATAR_ERRO%'
+  ```
+  Sem nenhuma linha, aplique a opção A ou B da §1.3.
+- [ ] **Menu "Dashboard RH"** com Authorization `ADMIN_RH`, a mesma da página 20. Sem isso, quem não é RH vê o item e recebe "acesso negado".
+- [ ] **Menu "Cadastro de Usuários"** com `ADMIN_RH`, a mesma da página 14.
+- [ ] **Menu "Solicitar correção"** (abre a p22 sem parâmetro): decida com o time se fica. Se ficar, use a Authorization `COLABORADOR`, a mesma da página, para o RH e as contas sem colaborador não verem o item.
+- [ ] `c_pagina_solicitacao = 22` no banco (§6): `select text from user_source where name = 'PKG_HISTORICO_CARREIRA_UI' and text like '%c_pagina_solicitacao%constant%'`.
+- [ ] `CONFIG_CARREIRA.FL_COMUNICADO_AUTOMATICO` ligado na empresa de teste, para os itens de comunicado automático.
+
+### 8.1 Página 13 · Histórico de carreira
+
+- [ ] Usuário sem o papel Admin RH não vê a barra do RH (seletor, "Formações", "Nova movimentação"), nem a região de lançamentos, nem as colunas de salário.
 - [ ] Trocar o `P13_ID_COLABORADOR` na URL dá erro de checksum.
 - [ ] Gestor abre o histórico de alguém da equipe (inclusive indireto), mas não o de um colega de outra equipe.
-- [ ] Na modal, trocar o tipo para Mérito esconde e limpa cargo, departamento e gestor.
-- [ ] Efetivar uma promoção muda o cargo no organograma (página 3).
-- [ ] Estornar a promoção devolve o cargo anterior, e a timeline mostra o estorno.
-- [ ] Cada abertura de lançamento com salário gera uma linha em `LOG_ACESSO_SALARIAL`.
-- [ ] Erros do package aparecem como mensagem simples, sem "ORA-20005".
-- [ ] A página 13 fica igual ao protótipo: resumo com 3 indicadores, faixa de cargos, abas com contagem, filtro de ano, posição atual e "Sobre este histórico".
+- [ ] A página fica igual ao protótipo: resumo com 3 indicadores, faixa de cargos, abas com contagem, filtro de ano, posição atual e "Sobre este histórico".
 - [ ] Trocar de aba ou de ano esconde os eventos e atualiza a contagem de cada ano.
 - [ ] Um gestor não vê o "Reajuste por mérito" de quem é da equipe; o próprio colaborador vê.
-- [ ] Efetivar uma promoção cria um comunicado na página de comunicados, e o evento mostra "Equipe de ... avisada automaticamente".
 - [ ] "Exportar PDF" abre a impressão só com o conteúdo do histórico, sem menu e sem cabeçalho.
-- [ ] "Solicitar correção" grava o pedido, e a página passa a mostrar "1 solicitação em análise pelo RH".
+- [ ] O menu "Histórico de carreira" volta sempre ao próprio usuário, mesmo depois de o RH escolher outra pessoa no seletor (Clear Cache `13`, §2.8).
+- [ ] RH: abrir a p13 grava uma linha em `LOG_ACESSO_SALARIAL` com o contexto "P13 · lançamentos do histórico".
+
+### 8.2 Página 18 · Movimentação
+
+- [ ] Trocar o tipo para Mérito esconde e limpa cargo, departamento e gestor.
+- [ ] Efetivar uma promoção muda o cargo no organograma (página 3).
+- [ ] Estornar a promoção devolve o cargo anterior, e a timeline mostra o estorno.
+- [ ] Efetivar uma promoção cria um comunicado na página de comunicados, e o evento mostra "Equipe de ... avisada automaticamente".
+- [ ] Cada abertura de lançamento já salvo grava uma linha em `LOG_ACESSO_SALARIAL` com o contexto "P18 · lançamento #…" (depende do item da §8.0).
+- [ ] Erros do package aparecem como mensagem simples, sem "ORA-20005" (ex.: promoção sem cargo novo).
+- [ ] Ao fechar a modal, a p13 atualiza a linha do tempo e os lançamentos sem recarregar a página.
+
+### 8.3 Páginas 19 e 21 · Formações
+
+- [ ] O botão "Formações" da p13 abre a p19 do colaborador que está na tela, com o nome dele no cabeçalho.
+- [ ] Cadastrar uma formação com validade e anexo pela p21; a lista da p19 mostra a formação e o destaque de "a vencer" ou "vencida".
+- [ ] Abrir a p19 sem colaborador na URL (ou com outro id) é barrado.
+
+### 8.4 Página 20 · Dashboard RH
+
+- [ ] Mudar De ou Até atualiza "Promoções por departamento" e "Turnover" sem recarregar a página.
+- [ ] O turnover mostra uma barra por mês do período, em ordem (`2025/11` antes de `2026/01`), com legenda Admissões/Desligamentos.
+- [ ] Começar o período no dia 15 tira da primeira barra o que aconteceu antes do dia 15.
+- [ ] "Tempo médio no cargo" mostra valores com uma casa (ex.: 2,4) e **não** muda com o período.
+- [ ] "Formações a vencer" lista só os próximos 60 dias, com data `DD/MM/YYYY`, e o nome abre a p19 daquela pessoa.
+- [ ] "Solicitações de correção abertas" mostra o título da região, a coluna "Ação" e os pedidos abertos, do mais antigo para o mais novo.
+- [ ] O nome do colaborador na lista de solicitações abre a p13 daquela pessoa.
+
+### 8.5 Página 22 · Solicitar correção
+
+- [ ] Como colaborador, o botão "Solicitar correção" aparece no **próprio** histórico e não aparece no histórico de outra pessoa.
+- [ ] "Qual registro?" lista os registros efetivados e não estornados da pessoa, além de "Não sei / vários".
+- [ ] Cancelar fecha a modal; Enviar com o texto vazio mostra o aviso no campo.
+- [ ] Enviar mostra "Pedido enviado ao RH." e a p13 passa a mostrar "1 solicitação em análise pelo RH".
+
+### 8.6 Página 23 · Responder solicitação
+
+- [ ] "Responder" na p20 abre a modal com colaborador, registro questionado e texto do pedido.
+- [ ] Responder sem marcar Resolvida/Recusada mostra o aviso de campo obrigatório (e não `ORA-01407`).
+- [ ] Recusar sem mensagem mostra "Explique ao colaborador por que a solicitação foi recusada."
+- [ ] Responder fecha a modal com "Resposta registrada.", o pedido sai da lista da p20 e a p13 do colaborador deixa de mostrar a solicitação em análise.
+- [ ] Abrir de novo um pedido já respondido mostra "Solicitação não encontrada ou já respondida."
+
+### 8.7 Página 14 · Cadastro de usuários
+
+- [ ] Só o RH vê "Cadastro de Usuários" no menu e abre a p14; outro usuário recebe "acesso negado" pela URL.
+- [ ] O campo Empresa vem preenchido com a empresa do usuário, sem outras opções, e Departamento, Cargo e Gestor já habilitados.
+- [ ] Cadastrar um colaborador cria a admissão `EFETIVADO` com a data informada (ou a de hoje, se vazia) e o comunicado de boas-vindas.
+- [ ] O colaborador novo entra no sistema, e a p13 dele mostra a admissão.

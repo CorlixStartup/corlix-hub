@@ -69,13 +69,15 @@ Atribuição: na P14, o processo "Atribuir papéis do cargo" chama `pkg_perfis_a
 ### 2.3 Quem acessa o quê (uso real)
 | Onde | Authorization |
 |---|---|
-| Menu "Cadastro de Usuários" (p14) | `@somente-diretoria` (a página, no ambiente, exige `@admin-rh`: alinhar) |
+| Menu "Cadastro de Usuários" (p14) | `@admin-rh` (igual à página) |
+| Menu "Dashboard RH" (p20) | **nenhuma** (a página exige `@admin-rh`: alinhar) |
+| Menu "Solicitar correção" (p22) | **nenhuma** (a página exige `@colaborador`) |
 | Menu "Emitir Comunicado" (p17) | `@publicador-de-conteudo` |
 | Menu "Empresas Cadastradas" (p15/16) | `@administration-rights` |
 | Coluna `CAB_DEPT` do relatório de contatos do Chat (p4) | `@administration-rights` (cabeçalho de departamento só aparece para a equipe Corlix — provavelmente acidental) |
 
 **Pegadinha de segurança:** nenhuma página tem `authorizationScheme` em nível de página. As authorizations só **escondem itens do menu**; qualquer usuário autenticado acessa p14, p15, p16, p17 e **p7 (Monitor de Logs, sem nenhuma authorization)** digitando a URL. Para proteger de verdade, colocar `security { authorizationScheme: @... }` no `page`.
-O módulo `modulos/historico-carreira/` prevê também as authorizations `GESTOR` e `COLABORADOR` (PL/SQL) e o app item `G_ID_EMPRESA`, que **ainda não existem** nos shared components. `ADMIN_RH` já existe. No ambiente ela protege as páginas 14, 18, 20 e 23 e as regiões e botões de RH da 13; os exports dessas páginas ainda não estão no repositório.
+O módulo `modulos/historico-carreira/` usa as authorizations `ADMIN_RH` (papel), `GESTOR` e `COLABORADOR` (PL/SQL) e o app item `G_ID_EMPRESA`, todos já em `shared-components/`. `ADMIN_RH` protege as páginas 14, 18, 19, 20, 21 e 23 e as regiões e botões de RH da 13; `COLABORADOR` protege a 13 e a 22.
 
 ---
 
@@ -142,7 +144,7 @@ Pegadinhas:
 | 40 | `comunicação` | Comunicados | `fa-commenting-o` | p11 | 11 | — |
 | 50 | `colaboradores` | Colaboradores | `fa-users-alt` | p12 | 12 | — |
 | 60 | `histórico-de-carreira` | Histórico de carreira | `fa-workflow` | p13 | 13 | — |
-| 70 | `cadastros` | Cadastro de Usuários | `fa-user-plus` | p14 | 14 | `@somente-diretoria` |
+| 70 | `cadastros` | Cadastro de Usuários | `fa-user-plus` | p14 | 14 | `@admin-rh` |
 | 80 | `emitir-comunicado` | Emitir Comunicado | `fa-magic` | p17 (modal wizard) | 17 | `@publicador-de-conteudo` — **filho de `@home`** (`parentEntry: @home`), aparece como subitem de Home |
 | 110 | `empresas-cadastradas` | Empresas Cadastradas | `fa-building-o` | p15 | 15, 16 | `@administration-rights` |
 | 160 | `central-de-equipes` | Central de Equipes | `fa-table` | p26 | 26, 27 | — |

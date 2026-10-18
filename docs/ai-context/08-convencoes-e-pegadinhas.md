@@ -29,12 +29,13 @@
 | Função `ch_get_canal_direto` (Chat) | Usada na p4, sem fonte. |
 | `docker-compose.yml` e `.env.example` | Deletados no working tree. `scripts/setup.*` dependem deles. O CI ignora a validação do compose quando o arquivo não existe. |
 | Supporting objects | Estão vazios: o export da app não instala nada do schema. |
-| Itens e authorizations exigidos pelos módulos (`G_ID_EMPRESA`, `ID_COLABORADOR`, authorizations PL/SQL `GESTOR` e `COLABORADOR`, processo `DOWNLOAD_FOTO`, páginas 18–23) | Os módulos de organograma e de histórico de carreira ainda não estão integrados ao app. |
+| Itens exigidos pelo organograma (`ID_COLABORADOR`, processo `DOWNLOAD_FOTO`) | Não aparecem em `shared-components/`. O histórico de carreira já está integrado: `G_ID_EMPRESA`, `GESTOR`, `COLABORADOR` e as páginas 18–23 estão no app. |
 
 ## 3. Pegadinhas por área
 
 ### Segurança / multi-tenant
-- **Nenhuma página tem authorization própria**: as 3 authorizations (`administration-rights`, `publicador-de-conteudo`, `somente-diretoria`) só escondem entradas do menu. Pela URL, qualquer usuário logado abre p7 (logs), p15/p16 (empresas) e p17 (emitir comunicado). A p14 (cria usuários APEX via `apex_util.create_user`) ganhou `ADMIN_RH` no ambiente em 18/10/2026, mas o menu dela continua `somente-diretoria` e o export do repo ainda está sem autorização.
+- **Nenhuma página tem authorization própria**: as 3 authorizations (`administration-rights`, `publicador-de-conteudo`, `somente-diretoria`) só escondem entradas do menu. Pela URL, qualquer usuário logado abre p7 (logs), p15/p16 (empresas) e p17 (emitir comunicado). A p14 (cria usuários APEX via `apex_util.create_user`) e o menu dela exigem `ADMIN_RH` desde 18/10/2026.
+- Menus sem a autorização da página: "Dashboard RH" (p20 exige `ADMIN_RH`) e "Solicitar correção" (p22 exige `COLABORADOR`). Quem não tem o papel vê o item e recebe "acesso negado".
 - As queries de comunicados, aniversariantes, chat, organograma, LOVs e equipes **não filtram por `id_empresa`**.
 - Os app processes (4, `BEFORE_HEADER`, sem condição) rodam em todas as páginas, inclusive no login. Eles ligam o usuário ao colaborador por `COLABORADOR.login_apex = :APP_USER`; algumas comparações usam `UPPER` e outras não.
 
@@ -74,7 +75,7 @@
 - `c_pagina_perfil = 20` do organograma conflita com o Dashboard RH (página 20) planejado pelo histórico de carreira.
 - `vw_org_colaborador` não filtra por empresa, e o drawer de detalhes não verifica permissão.
 - `G_ID_EMPRESA` só é preenchido depois de um novo login. Sem esse item, toda chamada a `pkg_historico_carreira` dentro de uma sessão APEX falha com `-20012`.
-- A p14 chama `registrar_admissao_automatica` (processo "Registrar admissão", seq 15) no ambiente desde 18/10/2026. O export em `corlixhub/` ainda não tem esse processo.
+- A p14 chama `registrar_admissao_automatica` (processo "Registrar admissão", seq 15) desde 18/10/2026.
 - O botão "Histórico de carreira" da p14 nunca aparece: a página só cadastra, e o branch pós-salvar limpa `P14_ID_COLABORADOR`.
 - `COMUNICADO.TITULO` aceita até 200 caracteres no formulário (p17), mas o package corta em 100.
 - O README do módulo de carreira fala em "nove códigos padrão" de movimentação, mas o seed cria 11.
