@@ -28,7 +28,7 @@ Tabelas existentes (COLABORADOR, CARGO, DEPARTAMENTO, EMPRESA, COMUNICADO)
                      apex.region(id).refresh() e apex.server.process(<Ajax Callback>)
 ```
 
-Por que: os layouts dos protótipos (Figma em `figma/`) não cabem nos templates do Universal Theme; HTML gerado no servidor evita bibliotecas externas (o organograma abandonou a OrgChart JS e sua questão de licença) e mantém regras de visibilidade no banco.
+Por que: os layouts dos protótipos (pen.dev em `pen_dev/`) não cabem nos templates do Universal Theme; HTML gerado no servidor evita bibliotecas externas (o organograma abandonou a OrgChart JS e sua questão de licença) e mantém regras de visibilidade no banco.
 
 Convenções de geração de HTML (idênticas nos dois packages): CLOB temporário global `g_html` + `inicia` / `p(texto)` (`dbms_lob.writeappend`); `e()` = `apex_escape.html`, `a()` = `apex_escape.html_attribute`; ícones Lucide inline (SVG stroke, `currentColor`, `aria-hidden`); textos com entidades HTML (`&atilde;`, `&middot;`) ou `unistr`; datas por extenso com `NLS_DATE_LANGUAGE='BRAZILIAN PORTUGUESE'`; URLs via `apex_page.get_url` (gera checksum); iniciais = 1ª letra do primeiro nome + 1ª do último sobrenome.
 
@@ -44,7 +44,7 @@ Navegação **por níveis** na hierarquia de gestão (`COLABORADOR.ID_GESTOR`): 
 - Sem foco (ou foco inválido/inativo) → abre no **topo**: `id_raiz` = `min(id_colaborador)` ativo sem gestor.
 - Card em foco: avatar, nome, "cargo · departamento", tag "Topo da hierarquia" (se sem gestor), resumo "N subordinados diretos · M pessoas na estrutura" (M = todos os descendentes ativos, `connect by`), botões "Ver perfil" (abre o drawer) e "Conversar" (oculto se a pessoa é o próprio `APP_USER`, comparando `login_apex`).
 - Cards dos filhos (ordem alfabética): prévia da equipe com até 3 avatares/nomes; acima disso "+N" e "e mais N"; "Sem equipe direta" se 0; botão "Ver equipe" desce um nível.
-- Avatar: `FOTO_URL` se houver; senão BLOB (`IMAGEM_PERFIL`) via `APPLICATION_PROCESS=DOWNLOAD_FOTO` com item `ID_COLABORADOR`; senão iniciais.
+- Avatar: sempre renderiza as iniciais e, se houver foto, uma `<img>` por cima (`onerror="this.remove()"` → volta às iniciais). `FOTO_URL` é só o nome do arquivo em `Fotos Colaboradores/`: o PL/SQL emite `data-org-foto="Fotos Colaboradores/<arquivo>"` e o JS `orgCarregarFotos(raiz)` monta o `src` com `apex.env.APP_FILES` (chamado no load, no `apexafterrefresh` da região e após preencher o drawer). URL absoluta (`http(s)://`, `//`, `/`) vai direto no `src`; prefixo `#APP_FILES#` é removido. Sem `FOTO_URL`, usa BLOB (`IMAGEM_PERFIL`) via `APPLICATION_PROCESS=DOWNLOAD_FOTO` com item `ID_COLABORADOR`.
 - Drawer: Contato (e-mail `mailto` + botão copiar com ✓ por 2 s), Na estrutura ("Reporta-se a" gestor ou "Topo da hierarquia"/"Gestor inativo ou não encontrado"; "Equipe direta" até `c_max_equipe` = 8, depois "e mais N na equipe"; "Ver equipe no organograma"), Sobre (Departamento, Empresa, "Na Corlix desde" = "fevereiro de 2026 · 7 meses" a partir de `DATA_ADMISSAO`, ou "admissão em ..." se futura; Aniversário só dia e mês), nota de privacidade, rodapé "Conversar" + "Ver perfil completo".
 - **Privacidade:** a nota diz "você vê só os dados visíveis para todos", mas hoje e-mail, admissão e aniversário aparecem para qualquer usuário logado. Sugestão do guia: flag de visibilidade no cadastro.
 

@@ -143,6 +143,25 @@ list navigation-menu (
         }
     )
 
+    entry dashboard-rh (
+        label: Dashboard RH
+        icon {
+            imageIconCssClasses: fa-file-o
+        }
+        layout {
+            sequence: 210
+        }
+        isCurrent {
+            type: pages
+            pages: 20
+        }
+        link {
+            target: {
+                page: 20
+            }
+        }
+    )
+
     entry emitir-comunicado (
         label: Emitir Comunicado
         icon {
@@ -206,6 +225,7 @@ list navigation-menu (
         link {
             target: {
                 page: 13
+                clearCache: 13
             }
         }
     )
@@ -275,6 +295,25 @@ list navigation-menu (
             target: {
                 type: url
                 url: &LOGOUT_URL.
+            }
+        }
+    )
+
+    entry solicitar-correção (
+        label: Solicitar correção
+        icon {
+            imageIconCssClasses: fa-file-o
+        }
+        layout {
+            sequence: 230
+        }
+        isCurrent {
+            type: pages
+            pages: 22
+        }
+        link {
+            target: {
+                page: 22
             }
         }
     )

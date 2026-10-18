@@ -48,10 +48,12 @@ CorlixHub/
 │   ├── organograma/           #   vw_org_colaborador, pkg_organograma, organograma.css/js, PNGs de redesign
 │   ├── historico-carreira/    #   (untracked) DDL completo + packages + views + triggers + testes + CSS/JS
 │   └── tema/                  #   (untracked) guia de aplicação do tema visual nas páginas
-├── figma/                     # (untracked) ~28 PNGs com o design-alvo das telas
+├── pen_dev/                   # (untracked) ~28 PNGs com o design-alvo das telas
 ├── scripts/
 │   ├── setup.sh / setup.ps1   # setup do ambiente Docker (macOS/Linux e Windows)
 │   ├── git-hooks/commit-msg   # valida Conventional Commits
+│   ├── apex-sessao-timeouts.sql      # lê/ajusta timeouts de sessão do workspace (ver 10 §8)
+│   ├── extensao-cookies-apex/ # extensão local do Chrome contra o 400 de cookies (ver 10 §9)
 │   ├── apex-limpar-sql-scripts.sql  # apaga SQL Scripts do workspace (dry-run por padrão)
 │   └── backup/                # pipeline de backup (SQLcl + Jenkins): app, DDL e dados
 └── .github/workflows/ci.yml   # CI: valida docker-compose, gitleaks, bloqueia pastas proibidas
@@ -97,6 +99,9 @@ URLs locais: Builder `http://localhost:8081/ords`; app `http://localhost:8081/or
 
 ⚠️ **Consequências se essa deleção for commitada:** o job `validate` do CI passou a ignorar a validação quando o arquivo não existe; `scripts/setup.*` também passam a não funcionar. Pergunte ao time antes de assumir qual é o ambiente atual (possivelmente migraram para uma instância APEX hospedada/OCI ou outra forma de rodar).
 
+### 5.1.1 APEX no Autonomous (OCI)
+O desenvolvimento acontece no APEX do Autonomous Database da OCI (`https://<id>.adb.<região>.oraclecloudapps.com/ords/...`). Depois de longas sessões, o proxy da Oracle pode responder `400 Request Header Or Cookie Too Large`. Causa e solução estão em [`10-erro-400-cookies.md`](./10-erro-400-cookies.md).
+
 ### 5.2 Pastas que nunca vão para o Git
 `apex/` (distribuição Oracle ~1,1 GB), `META-INF/`, `oracle_oradata/` (datafiles), `ords_config/` (contém wallet e chave TLS), `.env*` (exceto `.env.example`), `*.log`, `.DS_Store`. O CI bloqueia `apex/`, `oracle_oradata/`, `ords_config/`, `META-INF/`.
 
@@ -115,7 +120,7 @@ Detalhes em [`05-banco-de-dados.md`](./05-banco-de-dados.md) e [`06-modulos.md`]
 | "Não há packages PL/SQL próprios" | Existem `pkg_historico_carreira`, `pkg_historico_carreira_ui`, `pkg_organograma`; a app usa `log_pkg.apex_error_handler` |
 | "Não há testes" | Existe `modulos/historico-carreira/07_testes.sql` |
 | `docs/` não existe | Agora existe `docs/ai-context/` |
-| Repo sem commits/remote | Remote `https://github.com/CorlixStartup/CorlixHub.git`; branches remotas `DEV` (HEAD), `UAT`, `PROD`, `main`, `feature/cadastro-empresas`; PR #1 mergeado |
+| Repo sem commits/remote | Remote `https://github.com/CorlixStartup/corlix-hub.git`; branches remotas `DEV` (HEAD), `UAT`, `PROD`, `main`, `feature/cadastro-empresas`; PR #1 mergeado |
 | Seis entidades: Empresa, Colaborador, Cargo, Departamento, Movimentacao_Carreira, Comunicado | `MOVIMENTACAO_CARREIRA` existe no banco como tabela legada, sem uso; o módulo novo a substitui por `HISTORICO_CARREIRA` + `TIPO_MOVIMENTACAO`; há também equipes, chat, logs, presença etc. |
 
 Quando o README e o código discordarem, **confie no código** e sinalize a divergência.
@@ -147,6 +152,6 @@ Os backups ficam como artefatos do Jenkins (30 dias) e nunca vão para o Git (`/
 
 ## 9. Estado do working tree no momento desta documentação
 Modificados (não commitados): `application.apx`, páginas 1, 4, 14, 16, 27, `static-files.apx`, `custom.css/.min.css`, `database/f100.sql`, arquivos de `modulos/organograma/`.
-Novos (untracked): `corlix-tema.css/.min.css`, `figma/`, `modulos/historico-carreira/`, `modulos/tema/`, PNGs de redesign do organograma, `scripts/apex-limpar-sql-scripts.sql`.
+Novos (untracked): `corlix-tema.css/.min.css`, `pen_dev/`, `modulos/historico-carreira/`, `modulos/tema/`, PNGs de redesign do organograma, `scripts/apex-limpar-sql-scripts.sql`.
 Deletados: `.env.example`, `docker-compose.yml`.
 Ou seja: há um trabalho grande de **redesign visual (tema Corlix)** + **módulo de histórico de carreira** em andamento.

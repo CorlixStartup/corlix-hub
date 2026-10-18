@@ -1478,6 +1478,11 @@ file custom.min.css (
     charSet: utf-8
 )
 
+file default-user.jpeg (
+    mimeType: image/jpeg
+    charSet: utf-8
+)
+
 file historico-carreira.css (
     mimeType: text/css
     charSet: utf-8
@@ -1485,11 +1490,6 @@ file historico-carreira.css (
 
 file historico-carreira.min.css (
     mimeType: text/css
-    charSet: utf-8
-)
-
-file default-user.jpeg (
-    mimeType: image/jpeg
     charSet: utf-8
 )
 
@@ -1515,6 +1515,16 @@ file "icons/app-icon-32.png" (
 
 file "icons/app-icon-512.png" (
     mimeType: image/png
+    charSet: utf-8
+)
+
+file organograma.css (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file organograma.min.css (
+    mimeType: text/css
     charSet: utf-8
 )
 

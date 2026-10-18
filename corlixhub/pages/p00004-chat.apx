@@ -167,6 +167,18 @@ page 4 (
                 justify-content: center;
                 font-size: 12px;
                 font-weight: 600;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            /* Foto por cima das iniciais; se falhar, o onerror remove a <img> */
+            .ch-avatar img {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 9999px;
             }
             
             .ch-dot {
@@ -328,9 +340,18 @@ page 4 (
                        c.id_colaborador,
                        c.nome_completo,
                        cg.nome                         as cargo,
-                       c.foto_url,
-                       upper(substr(c.primeiro_nome,1,1) ||
-                             substr(c.ultimo_nome,1,1)) as iniciais,
+                       -- caminho relativo a #APP_FILES# (o prefixo fica no template chat-contatos);
+                       -- sem foto, nulo: a <img> falha e ficam as iniciais
+                       case
+                         when trim(c.foto_url) is null
+                              or c.foto_url = '#APP_FILES#Fotos Colaboradores/' then null
+                         else 'Fotos Colaboradores/' || c.foto_url
+                       end                              as foto_url,
+                       upper(
+                         substr(trim(nvl(c.primeiro_nome, c.nome_completo)), 1, 1) ||
+                         substr(trim(nvl(c.ultimo_nome,
+                           substr(trim(c.nome_completo), nullif(instr(trim(c.nome_completo), ' ', -1), 0) + 1))), 1, 1)
+                       )                                as iniciais,
                        case
                          when p.data_ultimo_ping > systimestamp - interval '5' minute
                               and upper(p.status_presenca) = 'ONLINE' then 'online'
@@ -427,7 +448,7 @@ page 4 (
                 heading: Foto Url
             }
             layout {
-                sequence: 50
+                sequence: 90
             }
             sorting {
                 sortable: false

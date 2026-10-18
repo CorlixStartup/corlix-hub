@@ -31,24 +31,29 @@ appProcess app-user-foto (
     source {
         plsqlCode:
             ```plsql
+            -- APP_USER_FOTO = caminho relativo a #APP_FILES# (o prefixo fica no HTML da Global Page).
+            -- Sem foto, fica nulo: a <img> falha e o header mostra APP_USER_INICIAIS.
             BEGIN
               SELECT
                 CASE
-                  WHEN C.foto_url IS NULL THEN
-                    '#APP_FILES#default-user.jpeg'
+                  WHEN TRIM(C.foto_url) IS NULL
+                       OR C.foto_url = '#APP_FILES#Fotos Colaboradores/' THEN
+                    NULL
                   ELSE
-                    '#APP_FILES#fotos/' || C.foto_url
-                END
-                INTO :APP_USER_FOTO
+                    'Fotos Colaboradores/' || C.foto_url
+                END,
+                UPPER(
+                  SUBSTR(TRIM(NVL(C.primeiro_nome, C.nome_completo)), 1, 1) ||
+                  SUBSTR(TRIM(NVL(C.ultimo_nome,
+                    SUBSTR(TRIM(C.nome_completo), NULLIF(INSTR(TRIM(C.nome_completo), ' ', -1), 0) + 1))), 1, 1)
+                )
+                INTO :APP_USER_FOTO, :APP_USER_INICIAIS
                 FROM COLABORADOR C
                WHERE UPPER(TRIM(C.login_apex)) = UPPER(TRIM(:APP_USER));
             EXCEPTION
-              WHEN NO_DATA_FOUND THEN
-                :APP_USER_FOTO := '#APP_FILES#default-user.jpeg';
-              WHEN TOO_MANY_ROWS THEN
-                :APP_USER_FOTO := '#APP_FILES#default-user.jpeg';
               WHEN OTHERS THEN
-                :APP_USER_FOTO := '#APP_FILES#default-user.jpeg';
+                :APP_USER_FOTO := NULL;
+                :APP_USER_INICIAIS := UPPER(SUBSTR(:APP_USER, 1, 1));
             END;
             ```
     }
@@ -104,6 +109,29 @@ appProcess g-nome-usuario (
     }
     execution {
         sequence: 1
+    }
+)
+
+appProcess set-g-id-empresa (
+    name: SET_G_ID_EMPRESA
+    type: executeCode
+    source {
+        plsqlCode:
+            ```plsql
+            begin
+              select id_empresa
+                into :G_ID_EMPRESA
+                from colaborador
+               where upper(trim(login_apex)) = upper(trim(:APP_USER));
+            exception
+              when no_data_found or too_many_rows then
+                :G_ID_EMPRESA := null;
+            end;
+            ```
+    }
+    execution {
+        sequence: 1
+        point: afterAuthentication
     }
 )
 

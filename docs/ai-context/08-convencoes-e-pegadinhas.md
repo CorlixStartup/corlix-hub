@@ -64,7 +64,7 @@
 - **Gráficos (JET) com mais de uma série**: o APEX junta os rótulos de todas as séries e os ordena **como texto**, ignorando o `order by` da query. Rótulo de mês em `mm/yyyy` sai fora de ordem ("01/2026" antes de "11/2025"). Use um rótulo que ordene certo como texto, como `to_char(mes, 'yyyy/mm')` (ex.: turnover da p20, `Etapas-historico-carreira.md` §5.2).
 
 ### Arquivos e tema
-- As fotos são montadas como `#APP_FILES#fotos/<foto_url>` (app process e Home), mas a pasta real é `static-files/Fotos Colaboradores/` (`nome_sobrenome.jpg`, ~291 fotos fictícias). O fallback é `default-user.jpeg`.
+- As fotos ficam em `static-files/Fotos Colaboradores/` (`nome_sobrenome.jpg`, ~291 fotos fictícias) e são montadas como `#APP_FILES#Fotos Colaboradores/<foto_url>`. Sem foto, o avatar mostra as iniciais (`.cx-avatar-iniciais`, ver 04); a SQL precisa devolver a foto **nula** nesse caso.
 - `custom.css` tem regras globais (`.a-CardView-*` com sombra e raio 14px, `.ui-dialog-titlebar`) que contrariam a política "sem sombra" do tema.
 - `organograma.css` e `historico-carreira.css` ainda não estão em `static-files/`.
 - Static IDs e aliases com acento (`publicador-de-conteúdo`, `histórico-de-carreira`, `NOTIFICAÇÕES`) são frágeis em URLs e scripts.
@@ -97,6 +97,8 @@ Regras gerais para scripts PL/SQL:
 ### Configuração
 - O idioma primário da app é `en`, com máscaras de data `DS`. Para pt-BR, formate explicitamente com `to_char(..., 'dd/mm/yyyy')`. A LOV `BOOLEAN` mostra "Yes/No".
 - `deployments/default.json` está com `debugging: true`.
+- `400 Request Header Or Cookie Too Large` no host do Autonomous: são cookies acumulados, e o limite do proxy da OCI não pode ser alterado. Limpe **só o host** (DevTools → Application → Clear site data). Veja [`10-erro-400-cookies.md`](./10-erro-400-cookies.md).
+- A sessão do Builder cai e pede o workspace de novo: ou os cookies foram perdidos, ou houve timeout (padrão de 1 h de inatividade e 8 h de duração; a app não define timeout próprio). Diagnóstico com `scripts/apex-sessao-timeouts.sql`; ver `10` §8.
 - O último commit (`feature: …`) não segue o padrão do hook `commit-msg`.
 
 ## 4. Checklist rápido antes de entregar uma mudança

@@ -36,7 +36,7 @@
 ### 1.2 Cabeçalho global (Global Page 0 — referência cruzada)
 A Page 0 (`pages/p00000-global-page.apx`) injeta duas regiões Static Content (template `@/standard` com `t-Region--removeHeader js-removeLandmark t-Region--noUI t-Region--scrollBody`):
 - slot `afterLogo`: busca `<input id="P0_SEARCH_GLOBAL" class="corlix-header__search-input">` (HTML puro, não é item APEX).
-- slot `afterNavigationBar`: links para notificações/configurações + `&G_NOME_USUARIO.`, `&APP_USER_CARGO.`, `<img src="&APP_USER_FOTO.">`.
+- slot `afterNavigationBar`: links para notificações/configurações + `&G_NOME_USUARIO.`, `&APP_USER_CARGO.`, `<img src="&APP_USER_FOTO.">` com fallback de iniciais `&APP_USER_INICIAIS.` (`.cx-avatar-iniciais`).
   - Os links são **hardcoded**: `r/corlixhub/&APP_ALIAS./notificacoes?session=&SESSION.` e `.../configuracoes?...` (caminho do workspace `corlixhub` fixo; depende de friendly URLs e dos aliases `NOTIFICACOES` (p5) e `CONFIGURACOES` (p6)).
   - Esses slots existem tanto no `@/standard` quanto no `@corlix-standard-page`.
 
@@ -85,7 +85,8 @@ O módulo `modulos/historico-carreira/` prevê também as authorizations `GESTOR
 | Item | Populado por | Usado em |
 |---|---|---|
 | `APP_USER_CARGO` | processo `APP_USER_CARGO` | Page 0 (cabeçalho) |
-| `APP_USER_FOTO` | processo `APP_USER_FOTO` | Page 0 (`<img src="&APP_USER_FOTO.">`) |
+| `APP_USER_FOTO` | processo `APP_USER_FOTO` | Page 0 (`<img src="#APP_FILES#&APP_USER_FOTO.">`); caminho relativo, nulo quando não há foto |
+| `APP_USER_INICIAIS` | processo `APP_USER_FOTO` | Page 0 (avatar de iniciais quando não há foto) |
 | `APP_USER_NOME` | **ninguém** | **ninguém** (item órfão) |
 | `G_NOME_EMPRESA` | processo `G_NOME_EMPRESA` | Home p1 ("Sua jornada de carreira na &G_NOME_EMPRESA.") |
 | `G_NOME_USUARIO` | processo `G_NOME_USUARIO` | Page 0 e Home p1 ("Bem-vindo, &G_NOME_USUARIO.!") |
@@ -102,12 +103,13 @@ SELECT G.nome INTO :APP_USER_CARGO
  WHERE UPPER(TRIM(C.login_apex)) = UPPER(TRIM(:APP_USER));
 -- NO_DATA_FOUND → 'SEM VÍNCULO'; TOO_MANY_ROWS → 'MÚLTIPLOS VÍNCULOS'; OTHERS → 'ERRO AO CARREGAR CARGO'
 
--- APP_USER_FOTO
-SELECT CASE WHEN C.foto_url IS NULL THEN '#APP_FILES#default-user.jpeg'
-            ELSE '#APP_FILES#fotos/' || C.foto_url END
-  INTO :APP_USER_FOTO
+-- APP_USER_FOTO (preenche também APP_USER_INICIAIS)
+SELECT CASE WHEN TRIM(C.foto_url) IS NULL OR C.foto_url = '#APP_FILES#Fotos Colaboradores/' THEN NULL
+            ELSE 'Fotos Colaboradores/' || C.foto_url END,  -- relativo: o #APP_FILES# fica no HTML da p0
+       UPPER(1ª letra de primeiro_nome || 1ª letra de ultimo_nome)  -- fallback: 1º e último nome de nome_completo
+  INTO :APP_USER_FOTO, :APP_USER_INICIAIS
   FROM COLABORADOR C WHERE UPPER(TRIM(C.login_apex)) = UPPER(TRIM(:APP_USER));
--- qualquer exceção → '#APP_FILES#default-user.jpeg'
+-- qualquer exceção → foto NULL, iniciais = UPPER(SUBSTR(:APP_USER, 1, 1))
 
 -- G_NOME_EMPRESA
 SELECT E.nome INTO :G_NOME_EMPRESA
@@ -122,7 +124,7 @@ select initcap(first_name || ' ' || last_name) into :G_NOME_USUARIO
 ```
 
 Pegadinhas:
-- **Caminho da foto quebrado:** `APP_USER_FOTO` monta `#APP_FILES#fotos/<foto_url>`, mas a pasta registrada é `Fotos Colaboradores/` (§9). Não existe pasta `fotos/`. A Home (p1) tem a mesma inconsistência: o card "Meu Gestor" usa `'#APP_FILES#fotos/' || G.FOTO_URL`, enquanto aniversariantes usam `'#APP_FILES#Fotos Colaboradores/' || FOTO_URL`. O avatar do cabeçalho não tem `onerror` de fallback (os da Home têm).
+- **Foto e iniciais:** desde 13/10/2026 o header e a Home montam `#APP_FILES#Fotos Colaboradores/<foto_url>` (antes usavam a pasta inexistente `fotos/`). Sem foto, o avatar mostra as iniciais (`.cx-avatar-iniciais`) em vez de `default-user.jpeg`.
 - `G_NOME_USUARIO` vem do cadastro de usuário do workspace (first/last name), não de `COLABORADOR.nome_completo` → nomes podem divergir.
 - `G_NOME_EMPRESA` expõe `SQLERRM` na tela em caso de erro.
 - Strings `#APP_FILES#` gravadas em item/coluna dependem da substituição feita pelo APEX ao renderizar o HTML (funciona em Static Content/HTML Expression como na Home); em PL/SQL puro o valor é literal.
@@ -231,11 +233,11 @@ A query deve devolver **exatamente** as colunas citadas (nomes em maiúsculas co
 ```html
 #CAB_DEPT#
 <a href="javascript:void(0)" class="ch-contact" data-id="#ID_COLABORADOR#">
-  <span class="ch-avatar-wrap"><span class="ch-avatar">#INICIAIS#</span><i class="ch-dot ch-dot--#PRESENCA#"></i></span>
+  <span class="ch-avatar-wrap"><span class="ch-avatar" aria-hidden="true">#INICIAIS#<img src="#APP_FILES##FOTO_URL#" alt="" loading="lazy" onerror="this.remove()"></span><i class="ch-dot ch-dot--#PRESENCA#"></i></span>
   <span class="ch-contact-txt"><b>#NOME_COMPLETO#</b><small>#CARGO#</small></span>
 </a>
 ```
-Colunas: `CAB_DEPT` (HTML `<div class="ch-dept">Depto</div>` só na 1ª linha de cada departamento, via `row_number() over (partition by d.nome ...)`), `ID_COLABORADOR` (lido por JS via `data-id`), `INICIAIS`, `PRESENCA` ∈ `online|ausente|offline` (classes `.ch-dot--online/ausente/offline`; calculada de `presenca_colaborador.data_ultimo_ping` 5/30 min), `NOME_COMPLETO`, `CARGO`. O JS marca o selecionado com `.ch-contact.is-active`.
+Colunas: `CAB_DEPT` (HTML `<div class="ch-dept">Depto</div>` só na 1ª linha de cada departamento, via `row_number() over (partition by d.nome ...)`), `ID_COLABORADOR` (lido por JS via `data-id`), `FOTO_URL` (caminho relativo a `#APP_FILES#`; sem foto, nulo → a `<img>` falha, é removida e ficam as iniciais), `INICIAIS`, `PRESENCA` ∈ `online|ausente|offline` (classes `.ch-dot--online/ausente/offline`; calculada de `presenca_colaborador.data_ultimo_ping` 5/30 min), `NOME_COMPLETO`, `CARGO`. O JS marca o selecionado com `.ch-contact.is-active`.
 
 **`chat-mensagens`** — wrapper `<div class="ch-msgs"> ... </div>`; linha:
 ```html
@@ -257,15 +259,15 @@ Paginação dos dois: padrão UT (`#PAGINATION_NEXT#` etc.).
 
 | Arquivo | Uso |
 |---|---|
-| `corlix-tema.css` / `corlix-tema.min.css` | Camada de tema (design system do Figma "Redwood Light (CorlixHub)"). Só redefine variáveis do UT (`--ut-*`, `--a-*`) e define tokens **`--cx-*`** (fonte da verdade: `--cx-primaria` = sky-120 `#00688C`, `--cx-primaria-hover`, `--cx-fundo`, `--cx-superficie`, `--cx-borda`, `--cx-texto`, `--cx-raio`, `--cx-raio-card`, `--cx-sucesso`, `--cx-alerta` ...). CSS de módulos (organograma, histórico-carreira) consomem esses tokens. **Novo, não commitado.** |
+| `corlix-tema.css` / `corlix-tema.min.css` | Camada de tema (design system do pen.dev "Redwood Light (CorlixHub)"). Só redefine variáveis do UT (`--ut-*`, `--a-*`) e define tokens **`--cx-*`** (fonte da verdade: `--cx-primaria` = sky-120 `#00688C`, `--cx-primaria-hover`, `--cx-fundo`, `--cx-superficie`, `--cx-borda`, `--cx-texto`, `--cx-raio`, `--cx-raio-card`, `--cx-sucesso`, `--cx-alerta` ...). CSS de módulos (organograma, histórico-carreira) consomem esses tokens. **Novo, não commitado.** |
 | `custom.css` / `custom.min.css` | Ajustes por página: overrides globais do UT, menu lateral (último item vai ao rodapé), header (`.corlix-header__search*`, `__actions`, `__icon-btn`, `__user*`, `__avatar`), card padrão (`.card-default`), Home (`.card-boas-vindas`, `.card-comunicados-oficiais`, `.card-meu-gestor`, `.links-rapidos-card`, `.card-aniversariantes`, `.popup-todos-aniversariantes`, `.figma-row`, `.cx-pessoa`), logs (`.log-descricao`, `.log-detalhe`). Modificado, não commitado. |
-| `default-user.jpeg` | Avatar padrão (fallback em `onerror` e em `APP_USER_FOTO`). |
+| `default-user.jpeg` | Avatar padrão legado; header e Home agora caem no avatar de iniciais (`.cx-avatar-iniciais`). |
 | `icons/app-icon-32.png`, `-144-rounded`, `-192`, `-256-rounded`, `-512` | Ícones do app/PWA; login (p9999) usa `#APP_FILES#icons/app-icon-512.png`. |
 | `Fotos Colaboradores/<nome>_<sobrenome>.jpg` (291 arquivos) | Fotos fictícias dos colaboradores (ex.: `aline_alves.jpg`), `image/jpeg`. |
 
 Como referenciar:
 - `#APP_FILES#arquivo.ext` (em HTML, CSS URLs de página/app, SQL que gera HTML). `#MIN#` vira `.min` fora do modo debug (`#APP_FILES#custom#MIN#.css` → `custom.min.css`); **mantenha o par `.css`/`.min.css` sincronizado manualmente** (não há build automático no repo).
-- Fotos: `#APP_FILES#Fotos Colaboradores/` || `COLABORADOR.FOTO_URL` (espera-se `FOTO_URL` = só o nome do arquivo, ex. `aline_alves.jpg`; o espaço na pasta funciona no browser, mas `%20` pode ser necessário em alguns contextos). Sempre adicionar `onerror="this.onerror=null;this.src='#APP_FILES#default-user.jpeg';"`.
+- Fotos: `#APP_FILES#Fotos Colaboradores/` || `COLABORADOR.FOTO_URL` (espera-se `FOTO_URL` = só o nome do arquivo, ex. `aline_alves.jpg`; o espaço na pasta funciona no browser, mas `%20` pode ser necessário em alguns contextos). Sem foto, devolva `NULL` e use o padrão de avatar de iniciais (`<img ... onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';">` + `<span class="<classe de tamanho> cx-avatar-iniciais" aria-hidden="true" style="display:none">&INICIAIS.</span>`), ver 04.
 - Docs dos módulos pedem subir `organograma.css` e `historico-carreira.css` como static files — **ainda não registrados** em `static-files.apx`.
 
 ---
@@ -295,7 +297,7 @@ Fonte em `database/corlix-hub.sql` (spec + body). `gravar` usa `pragma autonomou
 1. **Ordem dos CSS diverge** entre APEXlang (`corlix-tema` → `custom`) e `database/f100.sql` atual (`custom` → `corlix-tema`, linhas ~140–142). O correto, pelo comentário do próprio `corlix-tema.css`, é tema primeiro.
 2. README aponta para `database/ddl/` e `database/seed/`, que não existem; o DDL base está em `database/corlix-hub.sql`.
 3. Authorizations só no menu; páginas restritas (7, 14, 15, 16, 17) acessíveis por URL. Monitor de Logs sem authorization alguma.
-4. Caminho de foto `#APP_FILES#fotos/` (app process e card Gestor) vs pasta real `Fotos Colaboradores/`.
+4. ~~Caminho de foto `#APP_FILES#fotos/`~~: corrigido em 13/10/2026 (tudo usa `Fotos Colaboradores/`).
 5. 4 app processes sem condição em Before Header (custo por página, rodam no login). `APP_USER_NOME` órfão. `G_NOME_USUARIO` usa usuários do workspace, os demais usam `COLABORADOR.login_apex`.
 6. Lista `emitir-comunicado` aponta para p18/p19 inexistentes e não é usada; números 18–23 reservados pelo módulo histórico-carreira.
 7. Breadcrumb plano (sem pais); entry `cadastros` (p14) sem região; nome "Comunicação" ≠ menu "Comunicados"; static id `terminal` = Monitor de Logs.
@@ -313,4 +315,4 @@ Fonte em `database/corlix-hub.sql` (spec + body). `gravar` usa `pragma autonomou
 - `corlixhub/shared-components/static-files.apx`: registrados `corlix-tema.css` e `corlix-tema.min.css` (arquivos novos, untracked, em `static-files/`).
 - `static-files/custom.css` e `custom.min.css` modificados (~350 linhas; refatoração para usar tokens `--cx-*`).
 - `database/f100.sql` modificado (+814/−510), incluindo `create_app_static_file` dos `corlix-tema*` e `p_css_file_urls` com os dois arquivos (ordem invertida, ver §12.1).
-- Também untracked: `modulos/tema/` (README/Etapas do tema, que documentam a ordem `corlix-tema` → `custom`), `modulos/historico-carreira/`, `figma/`, `scripts/apex-limpar-sql-scripts.sql` (remove SQL Scripts do workspace via `apex_application_files`, `c_dry_run` = true por padrão).
+- Também untracked: `modulos/tema/` (README/Etapas do tema, que documentam a ordem `corlix-tema` → `custom`), `modulos/historico-carreira/`, `pen_dev/`, `scripts/apex-limpar-sql-scripts.sql` (remove SQL Scripts do workspace via `apex_application_files`, `c_dry_run` = true por padrão).

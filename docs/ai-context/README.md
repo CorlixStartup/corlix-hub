@@ -10,7 +10,7 @@
 - **App:** ID `100`, alias `CORLIXHUB`, workspace/schema `WKSP_CORLIXHUB`, autenticação por contas APEX, idioma da UI pt-BR (idioma primário técnico `en`).
 - **Fonte da app:** `corlixhub/` em formato **APEXlang** (`.apx`). `database/f100.sql` é o mesmo app num export SQL de 12 MB: use só para consultar, nunca edite.
 - **Banco:** o DDL das tabelas base (`COLABORADOR`, `CARGO`, `DEPARTAMENTO`, `EMPRESA`, `COMUNICADO`, `EQUIPE`, chat, logs…) está em `database/corlix-hub.sql`. É um snapshot só de estrutura, **sem dados**, e não serve como instalador. O módulo de histórico de carreira tem DDL próprio em `modulos/historico-carreira/`. Dados exportados ficam em `database/dados/` (hoje só `departamento.xlsx`: 6 departamentos da empresa 1).
-- **Em andamento:** redesign visual (tokens `--cx-*` em `corlix-tema.css`), módulos de Organograma e Histórico de carreira (prontos em `modulos/`, ainda **não integrados** às páginas 3 e 13) e ~28 telas-alvo em `figma/`.
+- **Em andamento:** redesign visual (tokens `--cx-*` em `corlix-tema.css`), módulos de Organograma e Histórico de carreira (prontos em `modulos/`, ainda **não integrados** às páginas 3 e 13) e ~28 telas-alvo em `pen_dev/`.
 
 ## Documentos
 
@@ -22,17 +22,19 @@
 | 04 | [Tema e estilos](./04-tema-e-estilos.md) | Tokens `--cx-*`, mapeamento Universal Theme, catálogo de classes CSS, como aplicar o tema numa página |
 | 05 | [Banco de dados](./05-banco-de-dados.md) | Diagrama ER, tabelas (DDL e inferidas), views, triggers, packages, códigos de erro, testes |
 | 06 | [Módulos](./06-modulos.md) | Organograma e Histórico de carreira: arquitetura, integração no APEX, API JS, template de novo módulo |
-| 07 | [Design (Figma)](./07-design-figma.md) | Descrição detalhada de cada tela-alvo e mapeamento para componentes APEX; features sem backend |
+| 07 | [Design (pen.dev)](./07-design-pen-dev.md) | Descrição detalhada de cada tela-alvo e mapeamento para componentes APEX; features sem backend |
 | 08 | [Convenções e pegadinhas](./08-convencoes-e-pegadinhas.md) | **Leia antes de editar qualquer coisa.** Regras de trabalho, lacunas, bugs conhecidos, checklist |
 | 09 | [Erros e soluções](./09-erros-e-solucoes.md) | Erros de SQL, PL/SQL e APEX já vistos: como ler a mensagem, causa, correção, prevenção e checklist |
+| 10 | [Cookies e sessão (OCI)](./10-erro-400-cookies.md) | `400 Request Header Or Cookie Too Large` e sessão do Builder caindo/pedindo workspace: causa, diagnóstico, correção |
 
 ### Guia por tipo de tarefa
 - **Mexer numa página existente:** 08 → 02 (seção da página) → 03 (componentes que ela usa) → 04 (classes CSS).
-- **Criar uma página ou tela do Figma:** 07 (tela) → 02 §1 (sintaxe) → 04 §8 (aplicar tema) → 08.
+- **Criar uma página ou tela do pen.dev:** 07 (tela) → 02 §1 (sintaxe) → 04 §8 (aplicar tema) → 08.
 - **Mexer no banco ou criar tabela:** 05 → 06 §4 (padrão de módulo) → 08.
 - **Integrar organograma ou histórico de carreira:** 06 → 05 → 02 (páginas 3/13).
 - **Apareceu um erro (ORA-, PLS-, Access denied):** 09.
 - **Ambiente, deploy ou CI:** 01.
+- **Erro 400 "Request Header Or Cookie Too Large" ou sessão do Builder caindo:** 10.
 
 ## Páginas (visão rápida)
 

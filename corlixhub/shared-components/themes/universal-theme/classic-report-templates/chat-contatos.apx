@@ -12,7 +12,7 @@ classicReportTemplate chat-contatos (
             #CAB_DEPT#
             <a href="javascript:void(0)" class="ch-contact" data-id="#ID_COLABORADOR#">
               <span class="ch-avatar-wrap">
-                <span class="ch-avatar">#INICIAIS#</span>
+                <span class="ch-avatar" aria-hidden="true">#INICIAIS#<img src="#APP_FILES##FOTO_URL#" alt="" loading="lazy" onerror="this.remove()"></span>
                 <i class="ch-dot ch-dot--#PRESENCA#"></i>
               </span>
               <span class="ch-contact-txt">

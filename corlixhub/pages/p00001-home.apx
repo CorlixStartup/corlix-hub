@@ -40,50 +40,69 @@ page 1 (
             sqlQuery:
                 ```sql
                 SELECT
-                                    ID_COLABORADOR,
-                                    NOME_COMPLETO,
-                                    DATA_DE_NASCIMENTO,
-                                
-                                    -- Retorna o caminho exato corrigido e validado para o APEX
-                                    CASE
-                                        WHEN FOTO_URL IS NULL
-                                             OR FOTO_URL = '#APP_FILES#Fotos Colaboradores/'
-                                        THEN
-                                            '#APP_FILES#Fotos Colaboradores/'
-                                        ELSE
-                                            '#APP_FILES#Fotos Colaboradores/' || FOTO_URL
-                                    END AS FOTO_URL,
-                                
-                                    -- Seu vínculo de NOME limpo para o HTML Expression
-                                    NOME_COMPLETO AS NOME,
-                                
-                                    -- Seu vínculo de DESCRICAO limpa para o HTML Expression
-                                    CASE
-                                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') = TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE), 'MMDD') THEN 'Hoje'
-                                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') = TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE) + 1, 'MMDD') THEN 'Amanhã, ' || TO_CHAR(DATA_DE_NASCIMENTO, 'DD') || ' de ' || RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, 'Month', 'NLS_DATE_LANGUAGE=PORTUGUESE'))
-                                        ELSE TO_CHAR(DATA_DE_NASCIMENTO, 'DD') || ' de ' || RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, 'Month', 'NLS_DATE_LANGUAGE=PORTUGUESE'))
-                                    END AS DESCRICAO,
-                                
-                                    -- Seu vínculo de classe CSS condicional
-                                    CASE 
-                                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') = TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE), 'MMDD') THEN 'is-birthday-today'
-                                        ELSE 'is-normal-day'
-                                    END AS CSS_NIVER_HOJE,
-                                
-                                    -- Seu código original do mês corrente
-                                    RTRIM(
-                                        INITCAP(
-                                            TO_CHAR(
-                                                CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE),
-                                                'Month',
-                                                'NLS_DATE_LANGUAGE=PORTUGUESE'
-                                            )
-                                        )
-                                    ) AS MES_CORRENTE
-                                
-                                FROM COLABORADOR
-                                WHERE TO_CHAR(DATA_DE_NASCIMENTO, 'MM') = TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE), 'MM')
-                                ORDER BY EXTRACT(DAY FROM DATA_DE_NASCIMENTO)
+                    ID_COLABORADOR,
+                    NOME_COMPLETO,
+                    DATA_DE_NASCIMENTO,
+                
+                    -- Retorna o caminho exato corrigido e validado para o APEX
+                    CASE
+                        WHEN FOTO_URL IS NULL
+                             OR FOTO_URL = '#APP_FILES#Fotos Colaboradores/'
+                        THEN
+                            '#APP_FILES#Fotos Colaboradores/'
+                        ELSE
+                            '#APP_FILES#Fotos Colaboradores/' || FOTO_URL
+                    END AS FOTO_URL,
+                
+                    -- Seu vínculo de NOME limpo para o HTML Expression
+                    NOME_COMPLETO AS NOME,
+                
+                    -- Seu vínculo de DESCRICAO limpa para o HTML Expression
+                    CASE
+                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') =
+                             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE), 'MMDD')
+                        THEN 'Hoje'
+                
+                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') =
+                             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE) + 1, 'MMDD')
+                        THEN 'Amanhã, ' || TO_CHAR(DATA_DE_NASCIMENTO, 'DD') || ' de ' ||
+                             RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, 'Month', 'NLS_DATE_LANGUAGE=PORTUGUESE'))
+                
+                        ELSE TO_CHAR(DATA_DE_NASCIMENTO, 'DD') || ' de ' ||
+                             RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, 'Month', 'NLS_DATE_LANGUAGE=PORTUGUESE'))
+                    END AS DESCRICAO,
+                
+                    -- Seu vínculo de classe CSS condicional
+                    CASE
+                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') =
+                             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE), 'MMDD')
+                        THEN 'is-birthday-today'
+                        ELSE 'is-normal-day'
+                    END AS CSS_NIVER_HOJE,
+                
+                    -- Seu código original do mês corrente
+                    RTRIM(
+                        INITCAP(
+                            TO_CHAR(
+                                CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE),
+                                'Month',
+                                'NLS_DATE_LANGUAGE=PORTUGUESE'
+                            )
+                        )
+                    ) AS MES_CORRENTE
+                
+                FROM COLABORADOR
+                
+                WHERE TO_CHAR(DATA_DE_NASCIMENTO, 'MM') =
+                      TO_CHAR(
+                          CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE),
+                          'MM'
+                      )
+                
+                  AND EXTRACT(DAY FROM DATA_DE_NASCIMENTO) >=
+                      EXTRACT(DAY FROM CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE))
+                
+                ORDER BY EXTRACT(DAY FROM DATA_DE_NASCIMENTO)
                 ```
         }
         layout {
@@ -236,22 +255,29 @@ page 1 (
             type: sqlQuery
             sqlQuery:
                 ```sql
-                SELECT 
+                SELECT
                     CG.NOME AS NOME_CARGO,
                     G.PRIMEIRO_NOME || ' ' || G.ULTIMO_NOME AS NOME_GESTOR,
                     CASE
-                        WHEN G.FOTO_URL IS NULL
-                             OR G.FOTO_URL = '#APP_FILES#default-user.jpeg' THEN
-                            '#APP_FILES#default-user.jpeg'
+                        WHEN TRIM(G.FOTO_URL) IS NULL
+                             OR G.FOTO_URL = '#APP_FILES#Fotos Colaboradores/' THEN
+                            NULL
                         ELSE
-                            '#APP_FILES#fotos/' || G.FOTO_URL
-                    END AS FOTO_GESTOR
+                            '#APP_FILES#Fotos Colaboradores/' || G.FOTO_URL
+                    END AS FOTO_GESTOR,
+                    UPPER(
+                        SUBSTR(TRIM(NVL(G.PRIMEIRO_NOME, G.NOME_COMPLETO)), 1, 1) ||
+                        SUBSTR(TRIM(NVL(G.ULTIMO_NOME,
+                            SUBSTR(TRIM(G.NOME_COMPLETO), NULLIF(INSTR(TRIM(G.NOME_COMPLETO), ' ', -1), 0) + 1))), 1, 1)
+                    ) AS INICIAIS_GESTOR
                 FROM COLABORADOR C
                 JOIN COLABORADOR G
                     ON G.ID_COLABORADOR = C.ID_GESTOR
-                JOIN CARGO CG
+                   AND G.ID_EMPRESA = C.ID_EMPRESA
+                LEFT JOIN CARGO CG
                     ON CG.ID_CARGO = G.ID_CARGO
-                WHERE C.LOGIN_APEX = :APP_USER;
+                WHERE UPPER(TRIM(C.LOGIN_APEX)) = UPPER(TRIM(:APP_USER))
+                  AND C.ID_EMPRESA = :G_ID_EMPRESA
                 ```
         }
         layout {
@@ -285,7 +311,8 @@ page 1 (
             htmlExpression:
                 ```html
                 <div style="display:flex;flex-direction:row;align-items:center;gap:16px;margin-bottom:0;">
-                   <img src="&FOTO_URL." class="figma-avatar-img" onerror="this.onerror=null; this.src='#APP_FILES#default-user.jpeg';">
+                    <img src="&FOTO_GESTOR." alt="" class="figma-avatar-img" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';">
+                    <span class="figma-avatar-img cx-avatar-iniciais" aria-hidden="true" style="display:none">&INICIAIS_GESTOR.</span>
                 
                     <div style="display:flex;flex-direction:column;">
                         <span style="font-size:14px;font-weight:bold;color:#111318;margin-bottom:8px;">&NOME_GESTOR.</span>
@@ -475,53 +502,71 @@ page 1 (
             sqlQuery:
                 ```sql
                 SELECT
-                                    ID_COLABORADOR,
-                                    NOME_COMPLETO,
-                                    DATA_DE_NASCIMENTO,
-                                
-                                    -- Retorna o caminho exato corrigido e validado para o APEX
-                                    CASE
-                                        WHEN FOTO_URL IS NULL
-                                             OR FOTO_URL = '#APP_FILES#Fotos Colaboradores/'
-                                        THEN
-                                            '#APP_FILES#Fotos Colaboradores/'
-                                        ELSE
-                                            '#APP_FILES#Fotos Colaboradores/' || FOTO_URL
-                                    END AS FOTO_URL,
-                                
-                                    -- Seu vínculo de NOME limpo para o HTML Expression
-                                    NOME_COMPLETO AS NOME,
-                                
-                                    -- Seu vínculo de DESCRICAO limpa para o HTML Expression
-                                    CASE
-                                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') = TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE), 'MMDD') THEN 'Hoje'
-                                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') = TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE) + 1, 'MMDD') THEN 'Amanhã, ' || TO_CHAR(DATA_DE_NASCIMENTO, 'DD') || ' de ' || RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, 'Month', 'NLS_DATE_LANGUAGE=PORTUGUESE'))
-                                        ELSE TO_CHAR(DATA_DE_NASCIMENTO, 'DD') || ' de ' || RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, 'Month', 'NLS_DATE_LANGUAGE=PORTUGUESE'))
-                                    END AS DESCRICAO,
-                                
-                                    -- Seu vínculo de classe CSS condicional
-                                    CASE 
-                                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') = TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE), 'MMDD') THEN 'is-birthday-today'
-                                        ELSE 'is-normal-day'
-                                    END AS CSS_NIVER_HOJE,
-                                
-                                    -- Seu código original do mês corrente
-                                    RTRIM(
-                                        INITCAP(
-                                            TO_CHAR(
-                                                CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE),
-                                                'Month',
-                                                'NLS_DATE_LANGUAGE=PORTUGUESE'
-                                            )
-                                        )
-                                    ) AS MES_CORRENTE
-                                
-                                FROM COLABORADOR
-                                WHERE TO_CHAR(DATA_DE_NASCIMENTO, 'MM') = TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE), 'MM')
-                                ORDER BY EXTRACT(DAY FROM DATA_DE_NASCIMENTO)
-                                
-                                -- [NOVA TRAVA]: Garante que a Home exiba apenas até 5 pessoas, independente de quantas existam no banco
-                                FETCH FIRST 5 ROWS ONLY;
+                    ID_COLABORADOR,
+                    NOME_COMPLETO,
+                    DATA_DE_NASCIMENTO,
+                
+                    -- Retorna o caminho exato corrigido e validado para o APEX
+                    CASE
+                        WHEN FOTO_URL IS NULL
+                             OR FOTO_URL = '#APP_FILES#Fotos Colaboradores/'
+                        THEN
+                            '#APP_FILES#Fotos Colaboradores/'
+                        ELSE
+                            '#APP_FILES#Fotos Colaboradores/' || FOTO_URL
+                    END AS FOTO_URL,
+                
+                    -- Seu vínculo de NOME limpo para o HTML Expression
+                    NOME_COMPLETO AS NOME,
+                
+                    -- Seu vínculo de DESCRICAO limpa para o HTML Expression
+                    CASE
+                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') =
+                             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE), 'MMDD')
+                        THEN 'Hoje'
+                
+                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') =
+                             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE) + 1, 'MMDD')
+                        THEN 'Amanhã, ' || TO_CHAR(DATA_DE_NASCIMENTO, 'DD') || ' de ' ||
+                             RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, 'Month', 'NLS_DATE_LANGUAGE=PORTUGUESE'))
+                
+                        ELSE TO_CHAR(DATA_DE_NASCIMENTO, 'DD') || ' de ' ||
+                             RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, 'Month', 'NLS_DATE_LANGUAGE=PORTUGUESE'))
+                    END AS DESCRICAO,
+                
+                    -- Seu vínculo de classe CSS condicional
+                    CASE
+                        WHEN TO_CHAR(DATA_DE_NASCIMENTO, 'MMDD') =
+                             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE), 'MMDD')
+                        THEN 'is-birthday-today'
+                        ELSE 'is-normal-day'
+                    END AS CSS_NIVER_HOJE,
+                
+                    -- Seu código original do mês corrente
+                    RTRIM(
+                        INITCAP(
+                            TO_CHAR(
+                                CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE),
+                                'Month',
+                                'NLS_DATE_LANGUAGE=PORTUGUESE'
+                            )
+                        )
+                    ) AS MES_CORRENTE
+                
+                FROM COLABORADOR
+                
+                WHERE TO_CHAR(DATA_DE_NASCIMENTO, 'MM') =
+                      TO_CHAR(
+                          CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE),
+                          'MM'
+                      )
+                
+                  AND EXTRACT(DAY FROM DATA_DE_NASCIMENTO) >=
+                      EXTRACT(DAY FROM CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE))
+                
+                ORDER BY EXTRACT(DAY FROM DATA_DE_NASCIMENTO)
+                
+                FETCH FIRST 3 ROWS ONLY;
                 ```
         }
         layout {
