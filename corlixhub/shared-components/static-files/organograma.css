@@ -918,3 +918,9 @@ a.org-campo__valor:hover {
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* --- Busca (Popup LOV P3_BUSCA) acima do organograma, alinhada à direita -- */
+#P3_BUSCA_CONTAINER {
+  max-width: 300px;
+  margin-left: auto;
+}
