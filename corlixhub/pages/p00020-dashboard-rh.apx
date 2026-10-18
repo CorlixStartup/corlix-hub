@@ -90,6 +90,9 @@ page 20 (
         pagination {
             type: nextAndPreviousLinks
         }
+        messages {
+            whenNoDataFound: Nenhuma formação vence nos próximos 60 dias.
+        }
 
         column COLABORADOR (
             reportColumnQueryId: 2
@@ -119,7 +122,7 @@ page 20 (
             reportColumnQueryId: 7
             derivedColumn: N
             heading {
-                heading: Dias Restantes
+                heading: Dias restantes
                 alignment: end
             }
             layout {
@@ -149,7 +152,7 @@ page 20 (
             reportColumnQueryId: 3
             derivedColumn: N
             heading {
-                heading: Formacao
+                heading: Formação
             }
             layout {
                 sequence: 20
@@ -461,6 +464,244 @@ page 20 (
         }
     )
 
+    region solicitações-de-correção-abertas (
+        name: Solicitações de correção abertas
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select s.id_solicitacao,
+                       s.id_colaborador,
+                       c.nome_completo                         as colaborador,
+                       s.ds_mensagem                           as solicitacao,
+                       h.dt_efetiva                            as data_lancamento,
+                       t.ds_tipo                               as lancamento,
+                       pkg_historico_carreira.fn_data_local(s.id_empresa, s.dt_criacao) as aberta_em,
+                       'Responder'                             as responder
+                  from solicitacao_correcao s
+                  join colaborador c             on c.id_colaborador        = s.id_colaborador
+                  left join historico_carreira h on h.id_historico_carreira = s.id_historico_carreira
+                  left join tipo_movimentacao  t on t.id_tipo_movimentacao  = h.id_tipo_movimentacao
+                 where s.id_empresa     = :G_ID_EMPRESA
+                   and s.st_solicitacao = 'ABERTA'
+                 order by s.dt_criacao
+                
+                ```
+        }
+        layout {
+            sequence: 55
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: Nenhuma solicitação aberta.
+        }
+        advanced {
+            savedReportMappingIdentifier: 38217116175837915
+        }
+
+        column ABERTA_EM (
+            type: plainText
+            heading {
+                heading: Aberta em
+            }
+            layout {
+                sequence: 70
+            }
+            appearance {
+                formatMask: DD/MM/YYYY HH24:MI
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column COLABORADOR (
+            type: link
+            heading {
+                heading: Colaborador
+            }
+            layout {
+                sequence: 30
+            }
+            link {
+                target: {
+                    page: 13
+                    items: {
+                        P13_ID_COLABORADOR: #ID_COLABORADOR#
+                    }
+                }
+                linkText: #COLABORADOR#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column DATA_LANCAMENTO (
+            type: plainText
+            heading {
+                heading: Data do registro
+            }
+            layout {
+                sequence: 50
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column ID_COLABORADOR (
+            type: hidden
+            heading {
+                heading: Id Colaborador
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column ID_SOLICITACAO (
+            type: hidden
+            heading {
+                heading: Responder
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column LANCAMENTO (
+            type: plainText
+            heading {
+                heading: Registro
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column RESPONDER (
+            type: link
+            heading {
+                heading: Ação
+            }
+            layout {
+                sequence: 90
+            }
+            link {
+                target: {
+                    page: 23
+                    items: {
+                        P23_ID_SOLICITACAO: #ID_SOLICITACAO#
+                    }
+                }
+                linkText: #RESPONDER#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column SOLICITACAO (
+            type: plainText
+            heading {
+                heading: Pedido
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn ABERTA_EM (
+                sequence: 5
+            )
+
+            displayColumn COLABORADOR (
+                sequence: 1
+            )
+
+            displayColumn DATA_LANCAMENTO (
+                sequence: 3
+            )
+
+            displayColumn LANCAMENTO (
+                sequence: 4
+            )
+
+            displayColumn RESPONDER (
+                sequence: 6
+            )
+
+            displayColumn SOLICITACAO (
+                sequence: 2
+            )
+
+        )
+
+    )
+
     region tempo-médio-no-cargo-por-departamento (
         name: Tempo médio no cargo por departamento
         type: chart
@@ -594,6 +835,32 @@ page 20 (
                 
                 ```
         }
+    )
+
+    dynamicAction atualizar-solicitações (
+        name: Atualizar solicitações
+        execution {
+            sequence: 20
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @solicitações-de-correção-abertas
+        }
+
+        action true (
+            name: True
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @solicitações-de-correção-abertas
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
     )
 
     dynamicAction período-mudou (
