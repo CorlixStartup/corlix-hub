@@ -76,7 +76,7 @@ page 19 (
         }
         messages {
             whenNoDataFound: Nenhuma formação cadastrada.
-            whenMoreDataFound: The maximum row count for this report is #MAX_ROW_COUNT# rows.  Please apply a filter to reduce the number of records in your query.
+            whenMoreDataFound: O relatório passou do limite de #MAX_ROW_COUNT# linhas. Use um filtro.
         }
         advanced {
             savedReportMappingIdentifier: 33886108875136748
@@ -124,10 +124,16 @@ page 19 (
             }
             link {
                 target: {
-                    type: url
-                    url: #DS_LINK#
+                    page: 21
+                    items: {
+                        P21_ID_FORMACAO: #ID_FORMACAO#
+                    }
+                    clearCache: [
+                        Y
+                        21
+                    ]
                 }
-                linkText: Abrir
+                linkText: <span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>
             }
             source {
                 dataType: STRING
