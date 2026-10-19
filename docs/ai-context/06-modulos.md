@@ -193,7 +193,7 @@ Instalação: `cd modulos/historico-carreira && sql <usuario>@<servico> @instala
 
 ### 2.3 Passo a passo de integração (resumo fiel de `Etapas-historico-carreira.md`)
 
-Pré-requisito: `instalar.sql`. Depois de montar no Builder, exportar em APEXlang para `corlixhub/pages/`. Páginas: 13 (existe, vazia), 18 Movimentação (modal), 19 Formações, 20 Dashboard RH, 21 Formação (modal, formulário com anexo), 22 Solicitar correção (modal), 23 Responder solicitação (modal). Se o número estiver ocupado, trocar prefixos no Builder, no `historico-carreira.js` e nas constantes do `08_`.
+Pré-requisito: `instalar.sql`. Depois de montar no Builder, exportar em APEXlang para `corlixhub/pages/`. Páginas: 13 Histórico de carreira, 18 Movimentação (modal), 19 Formações, 20 Dashboard RH, 21 Formação (modal, formulário com anexo), 22 Solicitar correção (modal), 23 Responder solicitação (modal). Se o número estiver ocupado, trocar prefixos no Builder, no `historico-carreira.js` e nas constantes do `08_`.
 
 **1. Shared Components**
 - App Item `G_ID_EMPRESA` (Restricted – may not be set from browser) + App Process `SET_G_ID_EMPRESA` (*After Authentication*): `select id_empresa into :G_ID_EMPRESA from colaborador where upper(trim(login_apex)) = upper(trim(:APP_USER))` (null em no_data_found/too_many_rows). Sessões abertas precisam relogar.

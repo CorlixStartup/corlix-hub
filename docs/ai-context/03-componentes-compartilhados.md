@@ -270,7 +270,7 @@ Paginação dos dois: padrão UT (`#PAGINATION_NEXT#` etc.).
 Como referenciar:
 - `#APP_FILES#arquivo.ext` (em HTML, CSS URLs de página/app, SQL que gera HTML). `#MIN#` vira `.min` fora do modo debug (`#APP_FILES#custom#MIN#.css` → `custom.min.css`); **mantenha o par `.css`/`.min.css` sincronizado manualmente** (não há build automático no repo).
 - Fotos: `#APP_FILES#Fotos Colaboradores/` || `COLABORADOR.FOTO_URL` (espera-se `FOTO_URL` = só o nome do arquivo, ex. `aline_alves.jpg`; o espaço na pasta funciona no browser, mas `%20` pode ser necessário em alguns contextos). Sem foto, devolva `NULL` e use o padrão de avatar de iniciais (`<img ... onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';">` + `<span class="<classe de tamanho> cx-avatar-iniciais" aria-hidden="true" style="display:none">&INICIAIS.</span>`), ver 04.
-- Docs dos módulos pedem subir `organograma.css` e `historico-carreira.css` como static files — **ainda não registrados** em `static-files.apx`.
+- Docs dos módulos pedem subir `organograma.css` e `historico-carreira.css` como static files. `historico-carreira.css`/`.min.css` e `organograma.css` já estão registrados em `static-files.apx` (conferido em 19/10/2026).
 
 ---
 
