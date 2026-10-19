@@ -116,7 +116,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461332204540
-,p_version_scn=>'47049047560363'
+,p_version_scn=>'47049049154926'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -60009,7 +60009,7 @@ wwv_flow_imp_page.create_page_plug(
 );
 wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(29920100042540307)
-,p_plug_name=>unistr('Hist\00F3rico de Carreiras')
+,p_plug_name=>unistr('Hist\00F3rico de carreira')
 ,p_static_id=>'historico_carreira'
 ,p_title=>unistr('Hist\00F3rico de carreira')
 ,p_region_template_options=>'#DEFAULT#'
@@ -63312,7 +63312,7 @@ begin
 wwv_flow_imp_page.create_page(
  p_id=>19
 ,p_name=>unistr('Forma\00E7\00F5es e certifica\00E7\00F5es')
-,p_alias=>unistr('FORMA\00C7\00D5ES-E-CERTIFICA\00C7\00D5ES')
+,p_alias=>'FORMACOES-E-CERTIFICACOES'
 ,p_step_title=>unistr('Forma\00E7\00F5es e certifica\00E7\00F5es')
 ,p_autocomplete_on_off=>'OFF'
 ,p_css_file_urls=>'#APP_FILES#historico-carreira#MIN#.css'
@@ -63326,7 +63326,6 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(33886069799136748)
 ,p_plug_name=>unistr('Forma\00E7\00F5es e certifica\00E7\00F5es')
 ,p_static_id=>unistr('forma\00E7\00F5es-e-certifica\00E7\00F5es')
-,p_icon_css_classes=>'<span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>'
 ,p_region_template_options=>'#DEFAULT#:t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc'
 ,p_plug_template=>2102002977963900996
 ,p_plug_display_sequence=>20
@@ -63397,7 +63396,7 @@ wwv_flow_imp_page.create_worksheet(
 ,p_download_formats=>'CSV:HTML:XLSX:PDF'
 ,p_enable_mail_download=>'Y'
 ,p_detail_link=>'f?p=&APP_ID.:21:&SESSION.::&DEBUG.:RP,21:P21_ID_FORMACAO:\#ID_FORMACAO#\'
-,p_detail_link_text=>'<span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>'
+,p_detail_link_text=>'<span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>'
 ,p_internal_uid=>33886108875136748
 );
 wwv_flow_imp_page.create_worksheet_column(
@@ -66257,4 +66256,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:EQR3huPGTU6i5qhAQqSP2g59a43Q/hvggv42qLHRquw=
+-- Application Checksum SH256:1f966+KVy2DFcwWJcNbOD+G55zFc4CUsBIHiM3uwmCY=

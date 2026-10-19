@@ -154,7 +154,7 @@ page 13 (
     )
 
     region historico_carreira (
-        name: Histórico de Carreiras
+        name: Histórico de carreira
         title: Histórico de carreira
         type: dynamicContent
         source {
