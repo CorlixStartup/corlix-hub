@@ -146,7 +146,7 @@ list navigation-menu (
     entry dashboard-rh (
         label: Dashboard RH
         icon {
-            imageIconCssClasses: fa-file-o
+            imageIconCssClasses: fa-bar-chart
         }
         layout {
             sequence: 210
@@ -159,6 +159,9 @@ list navigation-menu (
             target: {
                 page: 20
             }
+        }
+        security {
+            authorizationScheme: @admin-rh
         }
     )
 
@@ -227,6 +230,9 @@ list navigation-menu (
                 page: 13
                 clearCache: 13
             }
+        }
+        security {
+            authorizationScheme: @colaborador
         }
     )
 
@@ -302,7 +308,7 @@ list navigation-menu (
     entry solicitar-correção (
         label: Solicitar correção
         icon {
-            imageIconCssClasses: fa-file-o
+            imageIconCssClasses: fa-comment-o
         }
         layout {
             sequence: 230
@@ -315,6 +321,9 @@ list navigation-menu (
             target: {
                 page: 22
             }
+        }
+        security {
+            authorizationScheme: @colaborador
         }
     )
 

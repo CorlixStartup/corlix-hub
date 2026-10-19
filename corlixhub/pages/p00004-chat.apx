@@ -243,6 +243,46 @@ page 4 (
                 min-height: 0;
             }
             
+            /* ---- estado vazio (nenhum contato selecionado) ---- */
+            .ch-vazio {
+                flex: 1 1 auto;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                padding: 24px;
+                text-align: center;
+                color: var(--ch-text-dim);
+            }
+            .ch-vazio .fa { font-size: 40px; color: var(--ch-text-faint); margin-bottom: 6px; }
+            .ch-vazio b { font-size: 14px; font-weight: 600; color: var(--ch-text); }
+            .ch-vazio small { font-size: 12px; }
+            
+            /* ---- cabeçalho da conversa (contato aberto) ---- */
+            .ch-head {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 24px;
+                border-bottom: 1px solid var(--ch-border);
+                background: #fff;
+                flex: 0 0 auto;
+            }
+            
+            /* sem contato: mostra só o estado vazio; com contato: cabeçalho + mensagens */
+            .ch-chat:not(.is-aberto) .ch-head,
+            .ch-chat:not(.is-aberto) .container { display: none !important; }
+            .ch-chat.is-aberto .ch-vazio { display: none; }
+            
+            /* mensagem "nenhuma mensagem" do relatório */
+            .ch-chat .nodatafound {
+                padding: 24px;
+                text-align: center;
+                font-size: 13px;
+                color: var(--ch-text-faint);
+            }
+            
             .ch-msgs {
                 flex: 1 1 auto;
                 min-height: 0;
@@ -299,6 +339,7 @@ page 4 (
             
             .ch-txt {
                 display: block;
+                white-space: pre-wrap;
             }
             
             .ch-time {
@@ -307,6 +348,48 @@ page 4 (
                 font-size: 11px;
                 opacity: .6;
             }
+            
+            /* ---- campo de envio (rodapé da conversa) ---- */
+            .ch-chat .col.ch-composer-col { flex: 0 0 auto; }
+            
+            .ch-composer {
+                display: flex;
+                align-items: flex-end;
+                gap: 10px;
+                padding: 12px 24px;
+                border-top: 1px solid var(--ch-border);
+                background: #fff;
+            }
+            .ch-composer textarea {
+                flex: 1 1 auto;
+                min-height: 40px;
+                max-height: 140px;
+                padding: 9px 12px;
+                border: 1px solid var(--ch-border);
+                border-radius: var(--ch-radius);
+                font: inherit;
+                font-size: 13px;
+                line-height: 1.45;
+                color: var(--ch-text);
+                resize: none;
+            }
+            .ch-composer textarea:focus { outline: none; border-color: var(--ch-blue); }
+            .ch-enviar {
+                flex: 0 0 auto;
+                height: 40px;
+                padding: 0 16px;
+                border: none;
+                border-radius: var(--ch-radius);
+                background: var(--ch-blue);
+                color: #fff;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .ch-enviar:disabled { opacity: .6; cursor: default; }
             ```
     }
     security {
@@ -321,6 +404,34 @@ page 4 (
             sequence: 10
             slot: body
             columnCssClasses: ch-shell
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region composer (
+        name: Composer
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="ch-composer">
+                  <textarea id="ch-texto" rows="1" maxlength="4000"
+                            placeholder="Escreva uma mensagem… (Enter envia, Shift+Enter quebra linha)"
+                            aria-label="Mensagem"></textarea>
+                  <button type="button" class="ch-enviar">
+                    <span class="fa fa-paper-plane" aria-hidden="true"></span> Enviar
+                  </button>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 20
+            parentRegion: @conversa
+            slot: subRegions
+            rowCssClasses: ch-composer-col
         }
         appearance {
             template: @/blank-with-attributes
@@ -371,6 +482,13 @@ page 4 (
                 left   join presenca_colaborador p on p.id_colaborador = c.id_colaborador
                 where  c.status = true
                 and    nvl(upper(c.login_apex),'x') != upper(:APP_USER)
+                -- só colaboradores da mesma empresa do usuário logado
+                and    c.id_empresa = (
+                         select eu.id_empresa
+                         from   colaborador eu
+                         where  upper(eu.login_apex) = upper(:APP_USER)
+                         fetch  first 1 row only
+                       )
                 order  by d.nome, c.nome_completo
                 ```
         }
@@ -389,7 +507,6 @@ page 4 (
         }
         componentAppearance {
             template: @chat-contatos
-            templateOptions: "[object Object]"
         }
         breakFormatting {
             breakColumns: col1
@@ -408,7 +525,6 @@ page 4 (
                 sortable: false
             }
             security {
-                authorizationScheme: @administration-rights
                 escapeSpecialChars: false
             }
         )
@@ -518,6 +634,26 @@ page 4 (
     region conversa (
         name: Conversa
         type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="ch-vazio">
+                  <span class="fa fa-comments-o" aria-hidden="true"></span>
+                  <b>Selecione um colaborador</b>
+                  <small>Escolha alguém na lista ao lado para iniciar uma conversa.</small>
+                </div>
+                <div class="ch-head">
+                  <span class="ch-avatar-wrap">
+                    <span class="ch-avatar"></span>
+                    <i class="ch-dot"></i>
+                  </span>
+                  <span class="ch-contact-txt">
+                    <b></b>
+                    <small></small>
+                  </span>
+                </div>
+                ```
+        }
         layout {
             sequence: 30
             parentRegion: @chat-shell_1
@@ -581,6 +717,9 @@ page 4 (
         componentAppearance {
             template: @chat-mensagens
             templateOptions: #DEFAULT#
+        }
+        messages {
+            whenNoDataFound: Nenhuma mensagem nesta conversa ainda.
         }
 
         column CORPO (
@@ -666,6 +805,186 @@ page 4 (
         }
     )
 
+    pageItem P4_MENSAGEM (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+    )
+
+    dynamicAction enter-envia-mensagem (
+        name: Enter envia mensagem
+        execution {
+            sequence: 30
+        }
+        when {
+            event: keydown
+            selectionType: jQuerySelector
+            jquerySelector: #ch-texto
+        }
+
+        action enviar-com-enter (
+            name: Enviar com Enter
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    const e = this.browserEvent;
+                    // Shift+Enter quebra linha; isComposing evita enviar no meio de um acento
+                    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+                        e.preventDefault();
+                        document.querySelector(".ch-enviar").click();
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction enviar-mensagem (
+        name: Enviar Mensagem
+        execution {
+            sequence: 20
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: .ch-enviar
+        }
+
+        action atualizar-conversa (
+            name: Atualizar conversa
+            action: show
+            affectedElements {
+                selectionType: region
+                region: @msgs
+            }
+            execution {
+                sequence: 30
+            }
+        )
+
+        action gravar-mensagem (
+            name: Gravar mensagem
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    declare
+                      l_eu    colaborador.id_colaborador%type;
+                      l_texto varchar2(32767) := trim(:P4_MENSAGEM);
+                    begin
+                      if l_texto is null then
+                        return;
+                      end if;
+                    
+                      begin
+                        select id_colaborador
+                        into   l_eu
+                        from   colaborador
+                        where  upper(login_apex) = upper(:APP_USER)
+                        fetch  first 1 row only;
+                      exception
+                        when no_data_found then
+                          raise_application_error(-20001,
+                            'Seu usuário não está vinculado a um colaborador.');
+                      end;
+                    
+                      -- P4_CANAL_ID vem do navegador: só grava se eu participo do canal
+                      insert into canal_mensagem (id_canal, id_colaborador, corpo)
+                      select cp.id_canal, l_eu, substrb(l_texto, 1, 4000)
+                      from   canal_participante cp
+                      where  cp.id_canal       = to_number(:P4_CANAL_ID)
+                      and    cp.id_colaborador = l_eu;
+                    
+                      if sql%rowcount = 0 then
+                        raise_application_error(-20003,
+                          'Você não participa desta conversa.');
+                      end if;
+                    
+                      :P4_MENSAGEM := null;
+                    end;
+                    ```
+                itemsToSubmit: [
+                    P4_MENSAGEM
+                    P4_CANAL_ID
+                ]
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action preparar-envio (
+            name: Preparar envio
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    const campo = document.getElementById("ch-texto");
+                    const texto = campo.value.trim();
+                    
+                    // nada para enviar ou nenhuma conversa aberta: interrompe as próximas ações
+                    if (!texto || !apex.item("P4_CANAL_ID").getValue()) {
+                        campo.focus();
+                        apex.da.cancelEvent.call(this);
+                        return;
+                    }
+                    
+                    apex.item("P4_MENSAGEM").setValue(texto);
+                    // limpa já, para um segundo clique não reenviar a mesma mensagem
+                    campo.value = "";
+                    campo.focus();
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction rolar-para-a-última-mensagem (
+        name: Rolar para a última mensagem
+        execution {
+            sequence: 40
+        }
+        when {
+            event: apexafterrefresh
+            selectionType: region
+            region: @msgs
+        }
+
+        action rolar-para-o-fim (
+            name: Rolar para o fim
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    const lista = document.querySelector(".ch-msgs");
+                    if (lista) {
+                        lista.scrollTop = lista.scrollHeight;
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
     dynamicAction selecionar-contato (
         name: Selecionar Contato
         execution {
@@ -696,12 +1015,26 @@ page 4 (
             settings {
                 jsCode:
                     ```javascript-browser
-                    const id = this.triggeringElement.dataset.id;
-                    apex.item("P4_CONTATO_ID").setValue(id);
+                    const contato = this.triggeringElement;
+                    apex.item("P4_CONTATO_ID").setValue(contato.dataset.id);
                     
                     document.querySelectorAll(".ch-contact.is-active")
                             .forEach(el => el.classList.remove("is-active"));
-                    this.triggeringElement.classList.add("is-active");
+                    contato.classList.add("is-active");
+                    
+                    // copia avatar, presença, nome e cargo do contato para o cabeçalho
+                    const head = document.querySelector(".ch-head");
+                    head.querySelector(".ch-avatar").textContent = contato.querySelector(".ch-avatar").textContent;
+                    head.querySelector(".ch-dot").className      = contato.querySelector(".ch-dot").className;
+                    head.querySelector("b").textContent          = contato.querySelector(".ch-contact-txt b").textContent;
+                    head.querySelector("small").textContent      = contato.querySelector(".ch-contact-txt small").textContent;
+                    
+                    document.querySelector(".ch-chat").classList.add("is-aberto");
+                    
+                    // rascunho não passa de uma conversa para outra
+                    const campo = document.getElementById("ch-texto");
+                    campo.value = "";
+                    campo.focus();
                     ```
             }
             execution {
@@ -717,19 +1050,38 @@ page 4 (
                 plsqlCode:
                     ```plsql
                     declare
-                      l_eu number;
+                      l_eu      colaborador.id_colaborador%type;
+                      l_empresa colaborador.id_empresa%type;
+                      l_valido  number;
                     begin
-                      select id_colaborador
-                      into   l_eu
-                      from   colaborador
-                      where  upper(login_apex) = upper(:APP_USER)
-                      fetch  first 1 row only;
+                      begin
+                        select id_colaborador, id_empresa
+                        into   l_eu, l_empresa
+                        from   colaborador
+                        where  upper(login_apex) = upper(:APP_USER)
+                        fetch  first 1 row only;
+                      exception
+                        when no_data_found then
+                          raise_application_error(-20001,
+                            'Seu usuário não está vinculado a um colaborador.');
+                      end;
                     
-                      :P4_CANAL_ID := ch_get_canal_direto(l_eu, :P4_CONTATO_ID);
-                    exception
-                      when no_data_found then
-                        raise_application_error(-20001,
-                          'Seu usuário não está vinculado a um colaborador.');
+                      -- P4_CONTATO_ID vem do navegador: só abre conversa com
+                      -- colaborador ativo, da mesma empresa e diferente de mim
+                      select count(*)
+                      into   l_valido
+                      from   colaborador
+                      where  id_colaborador = to_number(:P4_CONTATO_ID)
+                      and    id_empresa     = l_empresa
+                      and    status         = true
+                      and    id_colaborador != l_eu;
+                    
+                      if l_valido = 0 then
+                        raise_application_error(-20002,
+                          'Não é possível abrir conversa com este colaborador.');
+                      end if;
+                    
+                      :P4_CANAL_ID := ch_get_canal_direto(l_eu, to_number(:P4_CONTATO_ID));
                     end;
                     ```
                 itemsToSubmit: P4_CONTATO_ID
