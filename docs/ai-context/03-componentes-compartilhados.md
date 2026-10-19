@@ -155,7 +155,7 @@ Pegadinhas:
 Fora do menu: p5 (Notificações, acessada pelo sino do cabeçalho), p6 (Configurações, engrenagem), p8 (`NOTIFICAÇÕES`, página vazia/duplicada), p9999 (login). `custom.css` empurra o último item do menu para o rodapé (§9). Ícones são Font APEX (`icons.library: fontApex`), classes `fa-*`.
 
 ### 4.2 `emitir-comunicado` ("Emitir Comunicado") — lista de wizard
-Entradas `Step 1` → p17, `Step 2` → p18, `Step 3` → p19. **Páginas 18 e 19 não existem** e a lista **não é referenciada por nenhuma página** (p17 usa `wizard-modal-dialog`, mas sem região Wizard Progress apontando para ela). Resto de geração automática. Atenção: o módulo histórico-de-carreira planeja usar os números 18–23 para outras páginas.
+Entradas `Step 1` → p17, `Step 2` → p18, `Step 3` → p19. A lista **não é referenciada por nenhuma página** (p17 usa `wizard-modal-dialog`, mas sem região Wizard Progress apontando para ela). Resto de geração automática. Desde a integração do histórico de carreira, as páginas 18 e 19 existem, mas são a Movimentação e as Formações do módulo, e não passos do wizard. Pode ser apagada.
 
 ---
 
@@ -301,7 +301,7 @@ Fonte em `database/corlix-hub.sql` (spec + body). `gravar` usa `pragma autonomou
 3. Authorizations só no menu; páginas restritas (7, 14, 15, 16, 17) acessíveis por URL. Monitor de Logs sem authorization alguma.
 4. ~~Caminho de foto `#APP_FILES#fotos/`~~: corrigido em 13/10/2026 (tudo usa `Fotos Colaboradores/`).
 5. 4 app processes sem condição em Before Header (custo por página, rodam no login). `APP_USER_NOME` órfão. `G_NOME_USUARIO` usa usuários do workspace, os demais usam `COLABORADOR.login_apex`.
-6. Lista `emitir-comunicado` aponta para p18/p19 inexistentes e não é usada; números 18–23 reservados pelo módulo histórico-carreira.
+6. Lista `emitir-comunicado` não é usada e aponta para p18/p19, que hoje são páginas do histórico de carreira (18–23 são do módulo). Pode ser apagada.
 7. Breadcrumb plano (sem pais); entry `cadastros` (p14) sem região; nome "Comunicação" ≠ menu "Comunicados"; static id `terminal` = Monitor de Logs.
 8. `corlix-standard-page`: slot `topNavigation` sem placeholder; sem colunas laterais. Default de página do tema é esse template, mas a maioria das páginas usa `@/standard`.
 9. Static ids com acentos (`publicador-de-conteúdo`, `comunicação`, `histórico-de-carreira`, `configurações`, `notificações`) e páginas duplicadas de notificações (p5 `NOTIFICACOES` usada pelo sino; p8 `NOTIFICAÇÕES` vazia).

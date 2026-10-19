@@ -50,7 +50,7 @@
 - **p17 Comunicado** (modal wizard):
   - O default é `plsqlExpression: SYSDATE;`, com um `;` a mais.
   - Não há processo *Close Dialog*.
-  - A lista do wizard aponta para p18/p19, que não existem.
+  - A lista do wizard (não usada) aponta para p18/p19, que hoje são páginas do histórico de carreira. Não reaproveite a lista; apague-a ou crie outra.
   - Todos os itens estão com `sequence: 10`.
 - **p16 Cadastro de empresa**:
   - Os campos de endereço preenchidos pelo ViaCEP ficam desabilitados, e item desabilitado não é submetido.

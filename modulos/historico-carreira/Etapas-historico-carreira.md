@@ -1071,7 +1071,27 @@ Por que cada um importa:
 
 #### Passo 3 · Link de edição (lápis de cada linha)
 
-O assistente já cria o link apontando para a 21. Para achar a configuração, selecione a região e digite `Link` na busca do painel (confirmar no 26.1.5).
+O assistente já cria o link apontando para a 21; aqui você só confere e troca os textos em inglês.
+
+**Onde fica:** o link do lápis (Link Icon) e a mensagem de limite (When More Data Found) aparecem quando a **região** do Interactive Report está selecionada. Eles somem quando você clica numa coluna (confirmar no 26.1.5):
+1. Na árvore **Rendering** (à esquerda), em **Body**, clique na região **Formações e certificações**: é o Interactive Report, a mesma do Passo 1.
+
+   ```
+   Rendering
+   └─ Body
+      ├─ Cabeçalho                    ← não é esta (só o título da página)
+      └─ Formações e certificações    ← clique AQUI, no nome da região
+         └─ Columns
+            ├─ ID_FORMACAO            ← não clique numa coluna
+            └─ ...
+   ```
+
+   Confira no topo do painel da direita: deve aparecer **Region** com o nome `Formações e certificações` e o Type **Interactive Report**. Se aparecer *Column* ou o nome de uma coluna (`DS_LINK`, `ID_FORMACAO`…), você clicou num nível abaixo; se aparecer `Cabeçalho`, clicou na região errada.
+2. Se o painel da direita não mostrar as seções **Link** e **Messages**, expanda a região na árvore e veja se há um nó filho além de **Columns** (ex.: **Attributes** ou **Interactive Report**). Clique nele. No gráfico da p20 os atributos também ficam num nó próprio, e não na região. Nas versões anteriores ao 26.1, eles ficavam numa aba **Attributes** no topo do painel.
+3. Com a região ou esse nó selecionado, digite `Link Icon` (ou `More Data`) na caixa de busca do painel de propriedades.
+4. Se nada disso mostrar as seções, mande um print da árvore com a região expandida e do painel da direita.
+
+> **Não use a coluna `DS_LINK` para isto.** A seção Link de uma **coluna** (Columns › `DS_LINK`) também tem Target e Link Text, mas ela é o link "Abrir" para o endereço do curso (§4.4, Passo 2: Target Type **URL**, URL `#DS_LINK#`, Link Text `Abrir`). Se o código do lápis for parar no Link Text dela, a coluna vira um segundo lápis para a página 21 e para de abrir o endereço. O lápis de edição é o **Link Icon da região**: no export, `linkIcon` dentro do `link { }` da região, e não `linkText` dentro de `column DS_LINK`.
 
 | Seção | Atributo | Valor |
 |---|---|---|
@@ -1081,6 +1101,22 @@ O assistente já cria o link apontando para a 21. Para achar a configuração, s
 Clicar em **Target** abre a janela do link (Link Builder): Type *Page in this application*, Page, a tabela *Set Items* (Name / Value) e Clear Cache (confirmar os nomes no 26.1.5).
 
 Por que o Clear Cache `21`: sem ele, a modal pode abrir com valores de uma formação vista antes (anexo, datas) nos itens que não vêm da tabela.
+
+Ainda na seção **Link**, troque o texto em inglês do lápis. Em **Link Icon**, apague o que está lá e cole:
+
+```html
+<span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>
+```
+
+Por que trocar: o `aria-label` é o que o leitor de tela lê e o `title` é a dica que aparece ao passar o mouse no lápis. Este parágrafo é só a explicação; nada dele vai em campo nenhum.
+
+**Mensagem de limite de linhas.** Continue com a região **Formações e certificações** selecionada (a mesma do item 1 acima, não uma coluna nem o `Cabeçalho`):
+1. Desça até a seção **Messages**, a mesma em que você pôs `Nenhuma formação cadastrada.` no Passo 1. Se não achar, digite `No Data` na busca do painel.
+2. Logo abaixo de **When No Data Found** está **When More Data Found**, com o texto em inglês "The maximum row count for this report is…".
+3. Apague esse texto e cole `O relatório passou do limite de #MAX_ROW_COUNT# linhas. Use um filtro.` O `#MAX_ROW_COUNT#` é trocado pelo APEX pelo limite de linhas do relatório.
+4. Clique em **Save**.
+
+**Conferir no export:** no bloco `link { }` da região aparecem `linkColumn: customTarget`, `page: 21`, `P21_ID_FORMACAO`, `clearCache: 21` e o `linkIcon` com `Editar`; no bloco `messages { }`, o `whenMoreDataFound` em português.
 
 #### Passo 4 · Botão "Nova formação"
 
@@ -1274,6 +1310,7 @@ Dynamic Actions
 | `ORA-01403: no data found` ao abrir a 19 | `G_ID_EMPRESA` vazio, ou colaborador de outra empresa | Confira o login (§1.1) e o colaborador escolhido na 13 |
 | Coluna Tipo mostra `CERTIFICACAO` em vez de "Certificação" | Coluna sem LOV | Passo 2: Plain Text (based on List of Values) com `LOV_TIPO_FORMACAO` |
 | Colunas que deviam ter sumido ainda aparecem | A query foi editada mas a página não foi salva, ou o export é anterior | Salve (Ctrl+S) e exporte de novo |
+| A coluna "Link" mostra um lápis e abre a página 21, em vez de "Abrir" o endereço do curso | O código do lápis foi colado no **Link Text** da coluna `DS_LINK`, e o Target dela virou página 21 (visto em 19/10/2026) | Columns › `DS_LINK` › Target: Type **URL**, URL `#DS_LINK#` · Link Text `Abrir` (Passo 2). O lápis vai no **Link Icon da região** (Passo 3) |
 | `DS_ALERTA_VALIDADE` não existe em *Columns* e não há como criá-la | A query da região ainda é a do assistente. No Interactive Report as colunas vêm só da query: não existe "Create Column", e apagar colunas na árvore não muda a query | Passo 1: troque o texto de **Source › SQL Query** e salve. No export, a `sqlQuery` não pode mais ter `from "FORMACAO_COLABORADOR"` |
 | Ao salvar a query nova, erro com `PKG_HISTORICO_CARREIRA` ou `FN_HOJE` (`ORA-00904`, `ORA-06553`, `PLS-00201`) | Package não compilado ou inválido, então o Builder recusa a query e mantém a antiga | Recompile `04_pkg_historico_carreira.pks`/`.pkb` e salve de novo (ver `docs/ai-context/09-erros-e-solucoes.md`) |
 | A coluna Situação não aparece | O relatório salvo é anterior à coluna nova | Passo 7, item 2, e salve o Primary de novo |
@@ -1296,7 +1333,7 @@ Dynamic Actions
 | `P21_DS_INSTITUICAO` | Text Field · Value Required On · Label "Instituição" |
 | `P21_DT_INICIO`, `P21_DT_CONCLUSAO`, `P21_DT_VALIDADE` | Date Picker · Format Mask `DD/MM/YYYY` · Labels "Início", "Conclusão", "Validade" (vale para qualquer tipo: certificações, cursos obrigatórios etc.) |
 | `P21_NR_CARGA_HORARIA` | Number Field · Label "Carga horária (h)" |
-| `P21_DS_LINK` | Text Field · Label "Link (https://...)" |
+| `P21_DS_LINK` | Text Field · Label "Link (https://...)". Não existe opção de link no item: aqui o RH só digita o endereço. Quem confere o `https://` é a validação "Link" (passo 5), e o link clicável "Abrir" fica na coluna `DS_LINK` da lista da página 19 (§4.4, Passo 2) |
 | `P21_BL_ANEXO` | **File Upload** (ver passo 3) |
 | `P21_DS_MIME_TYPE`, `P21_DS_NOME_ARQUIVO` | **Apague.** O item de upload já grava essas colunas |
 | `P21_DT_CRIACAO`, `P21_USR_CRIACAO`, `P21_DT_ALTERACAO`, `P21_USR_ALTERACAO` | **Apague.** O trigger preenche e sobrescreve qualquer valor do formulário |
@@ -2140,7 +2177,7 @@ Lista as formações que vencem de hoje até daqui a 60 dias, da mais próxima p
 
 #### Passo 1 · Região
 
-Crie uma região **Classic Report** no Body, Sequence `45` (depois dos gráficos), Title `Formações a vencer`, Source **SQL Query**:
+Crie uma região **Classic Report** no Body, Sequence `45` (depois dos gráficos), Title `Formações a vencer`, **Advanced › Static ID** `rel_formacoes_vencer`, Source **SQL Query**:
 
 ```sql
 select f.id_colaborador       as id_colaborador,
@@ -2184,7 +2221,7 @@ Em **No Data Found**, na própria região (confirmar no 26.1.5): `Nenhuma forma�
 #### Como conferir no export da página 20
 
 ```
-region formações-a-vencer (
+region rel_formacoes_vencer (
     name: Formações a vencer
     type: classicReport
     layout { sequence: 45  slot: body }
@@ -2334,7 +2371,7 @@ O package confere de novo que o usuário é do RH, que o pedido é da empresa de
 
 #### Passo 5 · Região na página 20
 
-Volte à página 20 e crie uma região **Interactive Report** no Body, Sequence `55` (depois de Formações a vencer), Title `Solicitações de correção abertas`, **Appearance › Template: Standard**, Source **SQL Query**.
+Volte à página 20 e crie uma região **Interactive Report** no Body, Sequence `55` (depois de Formações a vencer), Title `Solicitações de correção abertas`, **Appearance › Template: Standard**, **Advanced › Static ID** `rel_solicitacoes`, Source **SQL Query**.
 
 > **Template Standard, não Interactive Report.** O template *Interactive Report* vem com o cabeçalho oculto (`t-IRR-region--hideHeader`) e esconde o título, enquanto os gráficos acima mostram o título. Com Standard, a busca e o menu Actions continuam dentro da região.
 
@@ -2394,7 +2431,9 @@ Sem este passo, o pedido respondido continua na lista até a página ser recarre
 
 1. Clique com o botão direito na região **Solicitações de correção abertas** › **Create Dynamic Action**.
 2. Name `Atualizar solicitações` · Event **Dialog Closed** · Selection Type **Region** · Region `Solicitações de correção abertas`.
-3. True action: **Refresh** › Affected Elements › Region `Solicitações de correção abertas`.
+3. True action: **Refresh** › Name `Atualizar lista` › Affected Elements › Region `Solicitações de correção abertas`.
+
+No export, a DA aparece com `region: @rel_solicitacoes` no `when` e no `affectedElements`: o export mostra o Static ID, e não o título.
 
 Esta DA é separada da "Período mudou": a lista não depende de De/Até.
 
@@ -2637,6 +2676,31 @@ Resultado da validação completa do módulo (§1 a §8) contra os exports de `c
 
 > **Atualização de 19/10/2026 (backup das 09:11):** a §9.1 (`log_pkg`) e a §9.3 (CSS) já estão no ambiente. Nenhum item bloqueia mais; ficam os recomendados e os cosméticos.
 
+#### Situação na revalidação de 19/10/2026 (backup das 10:06)
+
+Conferido item por item no export. ✅ = aplicado e confirmado no export · ⏳ = ainda falta · 🔎 = o export não mostra; confira uma vez no Builder.
+
+| Seção | Item | Situação |
+|---|---|---|
+| 9.1 | `log_pkg` delegando ao `fn_tratar_erro` | ✅ (falta só o teste do item 8 do checklist) |
+| 9.2 | Authorization das entradas do menu (Dashboard RH `ADMIN_RH`; Histórico e Solicitar correção `COLABORADOR`) e ícones | ✅ |
+| 9.3 | Margem do Interactive Report no CSS do ambiente | ✅ |
+| 9.4 | p18: rótulo "Excluir rascunho" e mensagem "Rascunho excluído." | ✅ |
+| 9.4 | p18: processo "Mensagem do rascunho" (seq 15) e Salvar sem mensagem | ✅ |
+| 9.4 | p18: "- Selecione -" no tipo | ✅ |
+| 9.4 | p18: Wait For Result na ação "Buscar código do tipo" | 🔎 o export omite o padrão (On); só aparece se alguém desligar |
+| 9.5 | p22: processo com `trim` e `too_many_rows`, Required - Floating, slots Close/Next, região "Botões", breadcrumb removido | ✅ |
+| 9.6 | p23: Required - Floating no radio, DA e ação "Cancelar" | ✅ |
+| 9.7 | Mensagens de erro de `COLABORADOR` e `GESTOR` | ✅ |
+| 9.8 | p21: confirmação de exclusão em pt-BR | ✅ |
+| 9.9 | Alias da p13 e da p21 sem acento; Authorization nos botões da p13; região "Cabeçalho" da p19; "Botões" da p21; Static IDs e nomes das ações da p20 | ✅ |
+| 9.9 | p19: Link Icon com "Edit" e When More Data Found em inglês | ⏳ |
+| 9.9 | p19: alias `FORMAÇÕES-E-CERTIFICAÇÕES` com acento | ⏳ (item novo) |
+| 9.9 | p20: Minor Ticks do eixo y do turnover | ⏳ |
+| 9.9 | p21: Maximum Length `255` nos itens de data e na carga horária | ⏳ |
+
+Com a troca dos aliases, o backup renomeou os arquivos para `p00013-historico-de-carreira.apx` e `p00021-formacao.apx`. Os links não mudam (§9.9). Os ⏳ que sobraram são todos cosméticos.
+
 | Gravidade | O que significa |
 |---|---|
 | **Bloqueia** | Um item do checklist (§8) falha |
@@ -2674,7 +2738,7 @@ Resultado da validação completa do módulo (§1 a §8) contra os exports de `c
 
 **Se não funcionar:** se a mensagem continuar com "ORA-", confira com `select line, text from user_source where name = 'LOG_PKG' and upper(text) like '%FN_TRATAR_ERRO%'` se o Save & Compile pegou. Se o `LOG_PKG` não compilar por falta de permissão para `pkg_historico_carreira`, os dois estão no mesmo schema (`WKSP_CORLIXHUB`): confira se o `instalar.sql` do módulo foi rodado.
 
-### 9.2 Menu (Recomendado)
+### 9.2 Menu (Recomendado) · ✅ aplicado em 19/10/2026
 
 **Situação** (`corlixhub/shared-components/lists.apx`): "Dashboard RH", "Solicitar correção" e "Histórico de carreira" não têm Authorization. Quem não tem o papel vê o item e recebe "acesso negado".
 
@@ -2706,7 +2770,7 @@ Sobre "Solicitar correção": a entrada abre a p22 sem parâmetro, o que funcion
 
 **Testar:** na p20, a lista de solicitações e a de formações têm a mesma margem lateral dos gráficos.
 
-### 9.4 Página 18 · Movimentação (Recomendado)
+### 9.4 Página 18 · Movimentação (Recomendado) · ✅ aplicado em 19/10/2026
 
 1. **Rótulo do botão e mensagem trocados.** O export de 18/10/2026 tem o botão `EXCLUIR` com o rótulo "Rascunho excluído" e o processo com a mensagem "Excluir rascunho".
    - Clique no botão **EXCLUIR** › Identification › **Label**: `Excluir rascunho`.
@@ -2716,11 +2780,11 @@ Sobre "Solicitar correção": a entrada abre a p22 sem parâmetro, o que funcion
    - Processing › clique com o botão direito em **Processing** › **Create Process**: Name `Mensagem do rascunho` · Type **Execute Code** · PL/SQL Code `null;` · Sequence `15` · Server-side Condition › **When Button Pressed** `SALVAR_RASCUNHO` · Success Message `Rascunho salvo.`
    - Ordem final: Salvar movimentação (10) → Mensagem do rascunho (15) → Efetivar (20) → Estornar (30) → Excluir rascunho (40) → Fechar (50).
 3. **Opção vazia do tipo.** `P18_ID_TIPO_MOVIMENTACAO` não tem valor nulo: a lista pode abrir já com o primeiro tipo. Item › List of Values › **Display Null Value: On** · **Null Display Value**: `- Selecione -` (confirmar no 26.1.5).
-4. **Wait For Result.** Na DA "Tipo mudou", ação **Buscar código do tipo** (Set Value): confira que **Wait For Result** está **On** (o export não mostra o valor padrão). Sem ele, "Ajustar campos" pode rodar antes de `P18_CD_TIPO` mudar.
+4. **Wait For Result.** Na DA "Tipo mudou", ação **Buscar código do tipo** (Set Value): confira que **Wait For Result** está **On**. O export não mostra esse atributo enquanto ele estiver no padrão (On): se um dia aparecer `waitForResult: false` no bloco da ação, ele foi desligado. Sem ele, "Ajustar campos" pode rodar antes de `P18_CD_TIPO` mudar.
 
 **Testar:** abra uma movimentação nova: o tipo aparece "- Selecione -". Salve um rascunho: só "Rascunho salvo.". Efetive: só "Movimentação efetivada.". Exclua um rascunho: o botão diz "Excluir rascunho" e a mensagem "Rascunho excluído.".
 
-### 9.5 Página 22 · Solicitar correção (Recomendado)
+### 9.5 Página 22 · Solicitar correção (Recomendado) · ✅ aplicado em 19/10/2026
 
 1. **Processo "Colaborador logado".** Before Header › **Colaborador logado** › PL/SQL Code: troque pelo código da §6 (com `upper(trim(...))` e `when no_data_found or too_many_rows`). Por que: igual à p13, um login com espaço ou duplicado mostraria erro técnico.
 2. **Asterisco de obrigatório.** `P22_DS_MENSAGEM` › Appearance › Template: **Required - Floating**.
@@ -2729,12 +2793,12 @@ Sobre "Solicitar correção": a entrada abre a p22 sem parâmetro, o que funcion
 
 **Testar:** a modal mostra o asterisco em "O que está incorreto?", Cancelar à esquerda e Enviar à direita.
 
-### 9.6 Página 23 · Responder solicitação (Cosmético)
+### 9.6 Página 23 · Responder solicitação (Cosmético) · ✅ aplicado em 19/10/2026
 
 1. `P23_ST_SOLICITACAO` › Appearance › Template: **Required - Floating** (o Value Required já está On).
 2. DA **Click** (do Cancelar) › renomeie a DA e a ação para `Cancelar`.
 
-### 9.7 Autorizações sem mensagem própria (Cosmético)
+### 9.7 Autorizações sem mensagem própria (Cosmético) · ✅ aplicado em 19/10/2026
 
 Shared Components › **Authorization Schemes**:
 - `COLABORADOR` › **Error Message**: `Sua conta não está vinculada a um colaborador desta empresa.`
@@ -2742,7 +2806,7 @@ Shared Components › **Authorization Schemes**:
 
 **Testar:** com uma conta da equipe (sem colaborador), abra a p13 pela URL: aparece a mensagem acima, e não a padrão do APEX.
 
-### 9.8 Página 21 · Formação (Recomendado)
+### 9.8 Página 21 · Formação (Recomendado) · ✅ aplicado em 19/10/2026
 
 - Botão **DELETE** › **Confirmation › Message**: `Excluir esta formação? O anexo também será apagado.` Hoje ele usa `&APP_TEXT$DELETE_MSG!RAW.`, que aparece em inglês porque o idioma técnico da app é `en`.
 
@@ -2752,20 +2816,21 @@ Nenhum destes muda o comportamento. Os links do módulo usam o **número** da p�
 
 | Página | Onde | De | Para |
 |---|---|---|---|
-| 13 | Page › Identification › Alias | `HISTÓRICO-DE-CARREIRA` | `HISTORICO-DE-CARREIRA` |
-| 13 | Botões `FORMACOES` e `NOVA_MOVIMENTACAO` › Security › Authorization | (vazio) | `ADMIN_RH` (a região já protege; é uma segunda proteção, §2.6) |
-| 19 | Região do IR › Link › Link Icon | `aria-label="Edit" title="Edit"` | `aria-label="Editar" title="Editar"` |
-| 19 | Região do IR › Messages › When More Data Found | texto em inglês | `O relatório passou do limite de #MAX_ROW_COUNT# linhas. Use um filtro.` |
-| 19 | Região `Header` › Name | `Header` | `Cabeçalho` |
-| 21 | Page › Alias | `FORMAÇÃO` | `FORMACAO` |
-| 21 | Região `Buttons` › Name | `Buttons` | `Botões` |
-| 21 | `P21_BL_ANEXO` e itens de data › Validation › Maximum Length | `255` | vazio (sobra do assistente, sem efeito) |
-| 20 | Região "Tempo médio no cargo" › Advanced › Static ID | `tempo-médio-no-cargo-por-departamento` | `grafico_tempo_cargo` |
-| 20 | Região "Formações a vencer" › Static ID | `formações-a-vencer` | `rel_formacoes_vencer` |
-| 20 | Região "Solicitações de correção abertas" › Static ID | `solicitações-de-correção-abertas` | `rel_solicitacoes` |
-| 20 | DA "Período mudou" › ação seq 20 › Name | `True` | `Atualizar turnover` |
-| 20 | DA "Atualizar solicitações" › ação › Name | `True` | `Atualizar lista` |
-| 20 | Eixo `y` do turnover › Minor Ticks › Rendered | (padrão) | **Off** (§5.2, Passo 4) |
+| 13 | Page › Identification › Alias | `HISTÓRICO-DE-CARREIRA` | `HISTORICO-DE-CARREIRA` ✅ |
+| 13 | Botões `FORMACOES` e `NOVA_MOVIMENTACAO` › Security › Authorization | (vazio) | `ADMIN_RH` (a região já protege; é uma segunda proteção, §2.6) ✅ |
+| 19 | Região do IR › Link › Link Icon | `aria-label="Edit" title="Edit"` | `aria-label="Editar" title="Editar"` ⏳ (onde achar: §4.4, Passo 3) |
+| 19 | Região do IR › Messages › When More Data Found | texto em inglês | `O relatório passou do limite de #MAX_ROW_COUNT# linhas. Use um filtro.` ⏳ |
+| 19 | Região `Header` › Name | `Header` | `Cabeçalho` ✅ |
+| 19 | Page › Identification › Alias | `FORMAÇÕES-E-CERTIFICAÇÕES` | `FORMACOES-E-CERTIFICACOES` ⏳ |
+| 21 | Page › Alias | `FORMAÇÃO` | `FORMACAO` ✅ |
+| 21 | Região `Buttons` › Name | `Buttons` | `Botões` ✅ |
+| 21 | `P21_BL_ANEXO` e itens de data › Validation › Maximum Length | `255` | vazio (sobra do assistente, sem efeito) ⏳ (o `P21_BL_ANEXO` já está ✅; faltam `P21_DT_INICIO`, `P21_DT_CONCLUSAO`, `P21_DT_VALIDADE` e `P21_NR_CARGA_HORARIA`) |
+| 20 | Região "Tempo médio no cargo" › Advanced › Static ID | `tempo-médio-no-cargo-por-departamento` | `grafico_tempo_cargo` ✅ |
+| 20 | Região "Formações a vencer" › Static ID | `formações-a-vencer` | `rel_formacoes_vencer` ✅ |
+| 20 | Região "Solicitações de correção abertas" › Static ID | `solicitações-de-correção-abertas` | `rel_solicitacoes` ✅ |
+| 20 | DA "Período mudou" › ação seq 20 › Name | `True` | `Atualizar turnover` ✅ |
+| 20 | DA "Atualizar solicitações" › ação › Name | `True` | `Atualizar lista` ✅ |
+| 20 | Eixo `y` do turnover › Minor Ticks › Rendered | (padrão) | **Off** (§5.2, Passo 4) ⏳ |
 
 Depois de trocar o Static ID das regiões da p20, abra a DA "Atualizar solicitações" e confira que o Event e o Affected Element continuam apontando para a região. O Builder guarda a referência pelo id interno, mas o export passa a mostrar o nome novo (`region: @rel_solicitacoes`).
 
