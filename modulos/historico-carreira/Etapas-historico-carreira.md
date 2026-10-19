@@ -2678,37 +2678,39 @@ Resultado da validação completa do módulo (§1 a §8) contra os exports de `c
 
 > **Atualização de 19/10/2026 (backup das 09:11):** a §9.1 (`log_pkg`) e a §9.3 (CSS) já estão no ambiente. Nenhum item bloqueia mais; ficam os recomendados e os cosméticos.
 
-#### Situação na revalidação de 19/10/2026 (backup das 10:50)
+#### Situação na revalidação de 19/10/2026 (backup das 11:16)
 
-Revalidação completa (§1 a §8 e esta seção) contra o export da `DEV` em `f7a7073`. ✅ = aplicado e confirmado no export · ⏳ = ainda falta · 🔎 = o export não mostra; confira uma vez no Builder. O passo a passo de tudo o que falta está na §9.10.
+Revalidação contra o export da `DEV` em `ea23493`, o backup das 11:16. As páginas e os objetos que não mudaram desde o backup das 10:50 (§1, §3, §6, §7, p22 e p23) continuam como na revalidação completa daquele backup. ✅ = aplicado e confirmado no export · ⏳ = ainda falta · 🔎 = o export não mostra; confira uma vez no Builder.
 
 | Seção | Item | Situação |
 |---|---|---|
 | §1 | `G_ID_EMPRESA` (Restricted, conferido no `f100.sql`), `SET_G_ID_EMPRESA`, papel e authorizations, Error Handling, LOVs | ✅ |
-| §2 | Página 13 (processos, regiões, barra e seletor do RH, DA da modal) | ✅, menos o seletor do RH (§9.10, etapa 3) |
+| §2 | Página 13 (processos, regiões, barra e seletor do RH, DA da modal) | ✅ (seletor com Source `used: always` no backup das 11:16) |
 | §3 | Página 18 (itens, LOVs, DA "Tipo mudou", botões, Processing 10/15/20/30/40/50, log salarial) | ✅ |
-| §4 | Páginas 19 e 21 | ✅, menos a coluna `DS_LINK` da p19 (§9.10, etapa 1) |
-| §5 | Página 20 e modal 23 | ✅, menos o Clear Cache do link "Responder" (§9.10, etapa 4) |
+| §4 | Páginas 19 e 21 | ✅ (coluna `DS_LINK` de volta para "Abrir" no backup das 11:16) |
+| §5 | Página 20 e modal 23 | ✅ (Clear Cache `23` no "Responder" no backup das 11:16) |
 | §6 | Página 22 | ✅ |
 | §7 | p14 (processo, botão, `P14_EMPRESA`, validação); p2 e p12 ficam para depois (§9.11) | ✅ |
-| 9.1 | `log_pkg` delegando ao `fn_tratar_erro` | ✅ (falta só o teste do item 8 do checklist) |
+| 9.1 | `log_pkg` delegando ao `fn_tratar_erro` | ✅ testado em 19/10/2026: Promoção sem cargo mostra só "Informe o novo cargo." e o erro aparece na p7 |
 | 9.2 | Authorization e ícones das entradas do menu | ✅ |
-| 9.3 | CSS do ambiente igual à fonte do módulo (`.css` e `.min.css`, 144 regras) | ✅ |
+| 9.3 | CSS do ambiente igual à fonte do módulo | ✅ |
 | 9.4 | p18: rótulo, mensagens, "Mensagem do rascunho", "- Selecione -" | ✅ |
-| 9.4 | p18: Wait For Result na ação "Buscar código do tipo" | 🔎 o export omite o padrão (On); só aparece se alguém desligar |
-| 9.5 | p22 | ✅ |
-| 9.6 | p23 | ✅ |
-| 9.7 | Mensagens de `COLABORADOR` e `GESTOR` | ✅ |
-| 9.8 | p21: confirmação de exclusão em pt-BR | ✅ |
-| 9.9 | p19: When More Data Found em pt-BR | ✅ (backup das 10:50) |
-| 9.9 | p19: Link Icon da **região** ainda com "Edit" | ⏳ o "Editar" foi parar na coluna `DS_LINK` (§9.10, etapa 1) |
-| 9.9 | p19: alias `FORMAÇÕES-E-CERTIFICAÇÕES` com acento | ⏳ |
-| 9.9 | p20: Minor Ticks do eixo y do turnover | ⏳ |
-| 9.9 | p21: Maximum Length `255` em `P21_DT_INICIO`, `P21_DT_CONCLUSAO`, `P21_DT_VALIDADE` e `P21_NR_CARGA_HORARIA` | ⏳ |
-| §9.10 | `trim` no login dentro dos pacotes | ⏳ fonte do módulo corrigido em 19/10/2026; falta instalar no banco (§9.10, etapa 5) |
-| — | Triggers `trg_*` do módulo (`05_triggers_auditoria.sql`) | 🔎 `database/ddl/10-triggers.sql` está vazio no backup: o extrator não exporta triggers. Confira com `select trigger_name, status from user_triggers where trigger_name like 'TRG_%'` |
+| 9.4 | p18: Wait For Result na ação "Buscar código do tipo" | ✅ testado em 19/10/2026: os campos acompanham cada troca de tipo, inclusive em trocas rápidas (o export omite o atributo porque está no padrão On) |
+| 9.5 a 9.8 | p22, p23, mensagens das authorizations, confirmação da p21 | ✅ |
+| 9.10 · 1.1 | p19: coluna `DS_LINK` com URL `#DS_LINK#` e "Abrir" | ✅ |
+| 9.10 · 1.2 | p19: lápis com "Editar" | ✅ `linkIcon` com "Editar" e Appearance › Icon vazio (export colado em 19/10/2026) |
+| 9.10 · 1.3 | p19: alias sem acento | ✅ `FORMACOES-E-CERTIFICACOES` (export colado em 19/10/2026; o próximo backup renomeia o arquivo para `p00019-formacoes-e-certificacoes.apx`) |
+| 9.10 · 2 | p21: `P21_DS_LINK` com Maximum Length 1000; `255` removido das datas e da carga horária | ✅ |
+| 9.10 · 3.1 | p13: Source do seletor = `P13_ID_COLABORADOR`, Always | ✅ |
+| 9.10 · 3.2 | p13: nome da região | ✅ Name e Title `Histórico de carreira` (export colado em 19/10/2026) |
+| 9.10 · 3.3 | p13: Show Processing na ação "Trocar colaborador" | ✅ conferido no Builder (print de 19/10/2026). Na ação Submit Page ele vem **On** por padrão, então o export não mostra o atributo |
+| 9.10 · 4.1 | p20: Clear Cache `23` no "Responder" | ✅ |
+| 9.10 · 4.2 a 4.5 | p20: Minor Ticks do turnover, nome "Atualizar promoções", heading de `ID_SOLICITACAO`, Page Items to Submit da região | ✅ (o heading de `ID_COLABORADOR` continua `Id Colaborador`, opcional) |
+| 9.10 · 5.1 | `trim` no login dos pacotes, instalado no banco | ✅ (`database/ddl/09-plsql-corpos.sql`) |
+| 9.10 · 5.2 | 8 triggers do módulo, com as `_log` na versão corrigida | ✅ (`database/ddl/10-triggers.sql`, todas `ENABLE`) · 🔎 confira uma vez que nenhuma está `INVALID` (consulta da etapa 5.2) |
+| 9.10 · 7 | Teste final: erro sem "ORA-" e Wait For Result | ✅ (19/10/2026) |
 
-Nenhum item bloqueia. O roteiro para finalizar o módulo, na ordem, está na §9.10.
+Nenhum item bloqueia. A página 19 ficou completa (export colado em 19/10/2026). A página 13 também ficou completa, e os dois testes da etapa 7 passaram em 19/10/2026. **O roteiro da §9.10 está concluído.** O que sobra são as decisões do time (fim da §9.10) e o que ficou fora (§9.11).
 
 | Gravidade | O que significa |
 |---|---|
@@ -2827,23 +2829,25 @@ Nenhum destes muda o comportamento. Os links do módulo usam o **número** da p�
 |---|---|---|---|
 | 13 | Page › Identification › Alias | `HISTÓRICO-DE-CARREIRA` | `HISTORICO-DE-CARREIRA` ✅ |
 | 13 | Botões `FORMACOES` e `NOVA_MOVIMENTACAO` › Security › Authorization | (vazio) | `ADMIN_RH` (a região já protege; é uma segunda proteção, §2.6) ✅ |
-| 19 | Região do IR › Link › Link Icon | `aria-label="Edit" title="Edit"` | `aria-label="Editar" title="Editar"` ⏳ (onde achar: §4.4, Passo 3; no backup das 10:50 o texto foi parar na coluna `DS_LINK`, ver §9.10, etapa 1) |
+| 19 | Região do IR › Link › Link Icon | `aria-label="Edit" title="Edit"` | `aria-label="Editar" title="Editar"` ✅ |
 | 19 | Região do IR › Messages › When More Data Found | texto em inglês | `O relatório passou do limite de #MAX_ROW_COUNT# linhas. Use um filtro.` ✅ |
 | 19 | Região `Header` › Name | `Header` | `Cabeçalho` ✅ |
-| 19 | Page › Identification › Alias | `FORMAÇÕES-E-CERTIFICAÇÕES` | `FORMACOES-E-CERTIFICACOES` ⏳ |
+| 19 | Page › Identification › Alias | `FORMAÇÕES-E-CERTIFICAÇÕES` | `FORMACOES-E-CERTIFICACOES` ✅ |
 | 21 | Page › Alias | `FORMAÇÃO` | `FORMACAO` ✅ |
 | 21 | Região `Buttons` › Name | `Buttons` | `Botões` ✅ |
-| 21 | `P21_BL_ANEXO` e itens de data › Validation › Maximum Length | `255` | vazio (sobra do assistente, sem efeito) ⏳ (o `P21_BL_ANEXO` já está ✅; faltam `P21_DT_INICIO`, `P21_DT_CONCLUSAO`, `P21_DT_VALIDADE` e `P21_NR_CARGA_HORARIA`) |
+| 21 | `P21_BL_ANEXO` e itens de data › Validation › Maximum Length | `255` | vazio (sobra do assistente, sem efeito) ✅ (backup das 11:16) |
 | 20 | Região "Tempo médio no cargo" › Advanced › Static ID | `tempo-médio-no-cargo-por-departamento` | `grafico_tempo_cargo` ✅ |
 | 20 | Região "Formações a vencer" › Static ID | `formações-a-vencer` | `rel_formacoes_vencer` ✅ |
 | 20 | Região "Solicitações de correção abertas" › Static ID | `solicitações-de-correção-abertas` | `rel_solicitacoes` ✅ |
 | 20 | DA "Período mudou" › ação seq 20 › Name | `True` | `Atualizar turnover` ✅ |
 | 20 | DA "Atualizar solicitações" › ação › Name | `True` | `Atualizar lista` ✅ |
-| 20 | Eixo `y` do turnover › Minor Ticks › Rendered | (padrão) | **Off** (§5.2, Passo 4) ⏳ |
+| 20 | Eixo `y` do turnover › Minor Ticks › Rendered | (padrão) | **Off** (§5.2, Passo 4) ✅ |
 
 Depois de trocar o Static ID das regiões da p20, abra a DA "Atualizar solicitações" e confira que o Event e o Affected Element continuam apontando para a região. O Builder guarda a referência pelo id interno, mas o export passa a mostrar o nome novo (`region: @rel_solicitacoes`).
 
 ### 9.10 Roteiro para finalizar o módulo (revalidação de 19/10/2026, backup das 10:50)
+
+> **Situação no backup das 11:16:** as etapas 1.1, 2, 3.1, 4 e 5 estão aplicadas e conferidas no export. Depois, a página 19 (1.2 e 1.3) foi concluída. Depois, a 3.2 e a 3.3 também foram concluídas, e o teste final (etapa 7) passou. **Roteiro concluído em 19/10/2026.** Detalhes na tabela de situação no início da §9.
 
 Este roteiro junta tudo o que falta, na ordem em que vale fazer. Os ajustes estão agrupados por página, para você abrir cada página uma vez só. Nenhum item bloqueia o checklist (§8). As etapas 1 a 5 trazem os **Recomendados**, que corrigem algo que o usuário vê errado ou que pode levar o RH a errar. Os **Cosméticos** estão marcados.
 
@@ -2876,6 +2880,13 @@ Este roteiro junta tudo o que falta, na ordem em que vale fazer. Os ajustes est�
    <span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>
    ```
 4. **Não mexa** no **Link Column** nem no **Target** da região: eles já apontam para a página 21 com `P21_ID_FORMACAO` e Clear Cache 21.
+
+> **Não é Appearance › Icon.** Buscar só `Icon` no painel também acha **Appearance › Icon**, que é o ícone do cabeçalho da região e não o lápis das linhas. No backup das 11:16, o `<span>` foi colado ali: o export mostra `icon: <span ...>` dentro de `appearance { }`, enquanto o `linkIcon` do bloco `link { }` continua com "Edit". Para corrigir:
+> 1. Região **Formações e certificações** › **Appearance › Icon**: apague o conteúdo e deixe vazio. Esse campo espera uma classe (ex.: `fa-edit`), não HTML, e com o cabeçalho oculto ele não aparece.
+> 2. Na busca do painel, digite `Link Icon` (as duas palavras). O campo certo fica na seção **Link**, junto de **Link Column** e **Target**.
+> 3. Se a busca por `Link Icon` não mostrar nenhum campo com a região selecionada, **não procure por tentativa**: mande um print da árvore com a região selecionada e do painel da direita com a seção **Link** aberta, para registrar aqui o caminho certo do 26.1.5.
+
+> **Situação em 19/10/2026:** com a região selecionada, a busca por `Link Icon` não achou o campo no 26.1.5. Mesmo assim, o export colado depois já trazia o `linkIcon` com "Editar" ✅. O caminho do Builder que funcionou ainda precisa ser registrado aqui (confirmar no 26.1.5).
 
 **1.3 Alias sem acento (Cosmético).**
 1. Na árvore, clique no nó do topo, **Page 19: Formações e certificações**.
@@ -2936,16 +2947,24 @@ Se `column DS_LINK` ainda mostrar `page: 21`, o passo 1.1 não foi salvo.
 
 Por que isso não quebra a troca de colaborador: o processo "Trocar colaborador" põe a pessoa escolhida em `P13_ID_COLABORADOR` e a página recarrega. O seletor, então, lê esse valor novo.
 
-**3.2 Nome da região (Cosmético).** Clique na região **Histórico de Carreiras** › **Identification › Title** (ou **Name**): `Histórico de carreira`. O Static ID `historico_carreira` não muda.
+**3.2 Nome da região (Cosmético).** No 26.1.5 a região tem **Name** (o nome na árvore do Builder) e **Title** (o título na tela) separados. Clique na região **Histórico de Carreiras** › **Identification**: **Title** `Histórico de carreira` (✅ no backup das 11:16) e **Name** `Histórico de carreira`. O Static ID `historico_carreira` não muda.
 
 **3.3 Indicador de carregamento na troca (Cosmético).**
 1. Em **Dynamic Actions**, expanda **Trocar colaborador › True** e clique na ação **Submit Page**.
-2. Em **Settings › Show Processing**, ligue (**On**) (confirmar no 26.1.5; se não achar, digite `Processing` na busca do painel).
+2. Em **Settings › Show Processing**, confira que está ligado (**On**). Na ação Submit Page ele já vem ligado; só ligue se alguém tiver desligado (conferido no 26.1.5 em 19/10/2026).
 3. Clique em **Save**.
 
 **Testar:** como RH, troque o seletor para a pessoa A. Vá à página 20 e clique no nome da pessoa B numa solicitação (ou abra o histórico de B pela p14). A página 13 abre em B, e o seletor também mostra **B**. Volte ao seletor, escolha outra pessoa: a página recarrega com um indicador de carregamento.
 
-**Conferir no export:** `pageItem P13_COLABORADOR_SELECIONADO` passa a ter um bloco `source { ... }` com `P13_ID_COLABORADOR`. A forma exata ainda não foi conferida: registre neste guia o trecho que aparecer. A região passa a ter `name: Histórico de carreira`. A ação Submit Page fica com `showProcessing: true` (confirmar no export).
+**Conferir no export** (conferido no backup das 11:16): `pageItem P13_COLABORADOR_SELECIONADO` com
+```
+        source {
+            type: item
+            item: P13_ID_COLABORADOR
+            used: always
+        }
+```
+A região fica com `name: Histórico de carreira` e `title: Histórico de carreira`. O Show Processing não aparece no export da ação Submit Page: ele vem **On** por padrão nessa ação, e o export omite os atributos que estão no padrão. Confira no Builder (Settings › Show Processing). O `showProcessing: true` que aparece na p17 é de um **botão**, em que o padrão é Off.
 
 #### Etapa 4 · Página 20 · Dashboard RH (Recomendado + Cosmético)
 
