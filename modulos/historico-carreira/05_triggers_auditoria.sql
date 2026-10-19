@@ -152,6 +152,10 @@ end;
 create or replace trigger trg_historico_carreira_log
 after insert or update or delete on historico_carreira
 for each row
+declare
+  -- inserting/updating só valem em PL/SQL; dentro do insert dão ORA-00984
+  l_op log_auditoria_carreira.tp_operacao%type :=
+    case when inserting then 'I' when updating then 'U' else 'D' end;
 begin
   insert into log_auditoria_carreira (
     id_empresa, nm_tabela, id_registro, tp_operacao, st_anterior, st_novo, usr_criacao
@@ -159,7 +163,7 @@ begin
     coalesce(:new.id_empresa, :old.id_empresa),
     'HISTORICO_CARREIRA',
     coalesce(:new.id_historico_carreira, :old.id_historico_carreira),
-    case when inserting then 'I' when updating then 'U' else 'D' end,
+    l_op,
     :old.st_registro,
     :new.st_registro,
     coalesce(sys_context('APEX$SESSION', 'APP_USER'), sys_context('USERENV', 'SESSION_USER'))
@@ -194,6 +198,10 @@ end;
 create or replace trigger trg_formacao_colaborador_log
 after insert or update or delete on formacao_colaborador
 for each row
+declare
+  -- inserting/updating só valem em PL/SQL; dentro do insert dão ORA-00984
+  l_op log_auditoria_carreira.tp_operacao%type :=
+    case when inserting then 'I' when updating then 'U' else 'D' end;
 begin
   insert into log_auditoria_carreira (
     id_empresa, nm_tabela, id_registro, tp_operacao, usr_criacao
@@ -201,7 +209,7 @@ begin
     coalesce(:new.id_empresa, :old.id_empresa),
     'FORMACAO_COLABORADOR',
     coalesce(:new.id_formacao, :old.id_formacao),
-    case when inserting then 'I' when updating then 'U' else 'D' end,
+    l_op,
     coalesce(sys_context('APEX$SESSION', 'APP_USER'), sys_context('USERENV', 'SESSION_USER'))
   );
 end;
@@ -234,6 +242,10 @@ end;
 create or replace trigger trg_solicitacao_correcao_log
 after insert or update or delete on solicitacao_correcao
 for each row
+declare
+  -- inserting/updating só valem em PL/SQL; dentro do insert dão ORA-00984
+  l_op log_auditoria_carreira.tp_operacao%type :=
+    case when inserting then 'I' when updating then 'U' else 'D' end;
 begin
   insert into log_auditoria_carreira (
     id_empresa, nm_tabela, id_registro, tp_operacao, st_anterior, st_novo, usr_criacao
@@ -241,7 +253,7 @@ begin
     coalesce(:new.id_empresa, :old.id_empresa),
     'SOLICITACAO_CORRECAO',
     coalesce(:new.id_solicitacao, :old.id_solicitacao),
-    case when inserting then 'I' when updating then 'U' else 'D' end,
+    l_op,
     :old.st_solicitacao,
     :new.st_solicitacao,
     coalesce(sys_context('APEX$SESSION', 'APP_USER'), sys_context('USERENV', 'SESSION_USER'))

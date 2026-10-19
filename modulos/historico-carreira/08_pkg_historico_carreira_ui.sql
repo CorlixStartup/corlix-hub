@@ -262,7 +262,7 @@ create or replace package body pkg_historico_carreira_ui as
     select max(nome_completo)
       into l_nome
       from colaborador
-     where upper(login_apex) = upper(p_login)
+     where upper(trim(login_apex)) = upper(trim(p_login))
        and id_empresa        = g_id_empresa;
     return l_nome;
   end nome_por_login;

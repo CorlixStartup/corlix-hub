@@ -492,7 +492,7 @@ create or replace package body pkg_historico_carreira as
       select id_colaborador
         into l_autor
         from colaborador
-       where upper(login_apex) = upper(l_usuario)
+       where upper(trim(login_apex)) = upper(trim(l_usuario))
          and id_empresa        = p_id_empresa;
     exception
       when no_data_found or too_many_rows then
@@ -881,7 +881,7 @@ create or replace package body pkg_historico_carreira as
   begin
     if em_sessao_apex then
       select login_apex into l_login from colaborador where id_colaborador = p_id_colaborador;
-      if upper(l_login) <> upper(usuario_atual) or l_login is null then
+      if upper(trim(l_login)) <> upper(trim(usuario_atual)) or l_login is null then
         erro(c_err_permissao, 'Só o próprio colaborador pode pedir a correção do histórico.');
       end if;
     end if;
@@ -1003,7 +1003,7 @@ create or replace package body pkg_historico_carreira as
     select id_colaborador
       into l_eu
       from colaborador
-     where upper(login_apex) = upper(l_usuario)
+     where upper(trim(login_apex)) = upper(trim(l_usuario))
        and id_empresa        = l_emp;
 
     if l_eu = p_id_colaborador then
