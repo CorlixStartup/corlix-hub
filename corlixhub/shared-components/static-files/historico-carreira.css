@@ -818,9 +818,12 @@ body:has([data-hc]) .t-Body-contentInner {
     padding: 0;
 }
 
-/* Regiões comuns da página (ex.: "Lançamentos (RH)") mantêm a margem do conteúdo */
-body:has([data-hc]) .t-Body-contentInner .t-Region {
-    margin: 0 32px 32px;
+/* Regiões comuns da página mantêm a margem do conteúdo: "Lançamentos (RH)" na P13,
+   "Período" e os gráficos na P20 (.t-Region) e a lista de formações na P19
+   (Interactive Report, .t-IRR-region). */
+body:has([data-hc]) .t-Body-contentInner .t-Region,
+body:has([data-hc]) .t-Body-contentInner .t-IRR-region {
+    margin: 24px 32px;
 }
 
 /* --- Barra do RH (região acima da página, só ADMIN_RH) -------------------- */
@@ -876,8 +879,9 @@ body:has([data-hc]) .t-Body-contentInner .t-Region {
         padding: 12px 16px;
     }
 
-    body:has([data-hc]) .t-Body-contentInner .t-Region {
-        margin: 0 16px 16px;
+    body:has([data-hc]) .t-Body-contentInner .t-Region,
+    body:has([data-hc]) .t-Body-contentInner .t-IRR-region {
+        margin: 16px;
     }
 
     .hc-barra-rh .t-Form-fieldContainer {

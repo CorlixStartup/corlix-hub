@@ -65,6 +65,9 @@
         || case when p_error.error_statement is not null
                 then chr(10) || chr(10) || 'Comando:' || chr(10) || p_error.error_statement end
     );
+    if p_error.ora_sqlcode between -20099 and -20001 then
+      return pkg_historico_carreira.fn_tratar_erro(p_error);
+    end if;
     return l_result;
   end;
 
