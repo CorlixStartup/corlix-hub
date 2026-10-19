@@ -155,6 +155,7 @@ page 13 (
 
     region historico_carreira (
         name: Histórico de Carreiras
+        title: Histórico de carreira
         type: dynamicContent
         source {
             plsqlFunctionBody: return pkg_historico_carreira_ui.render(:P13_ID_COLABORADOR);
@@ -590,6 +591,11 @@ page 13 (
             template: @/optional-floating
             templateOptions: #DEFAULT#
             width: 30
+        }
+        source {
+            type: item
+            item: P13_ID_COLABORADOR
+            used: always
         }
         default {
             type: item

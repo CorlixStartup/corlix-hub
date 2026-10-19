@@ -356,7 +356,7 @@ Sem parâmetro, a página abre no próprio usuário. Para o RH abrir o históric
 
 **Item `P13_COLABORADOR_SELECIONADO`**
 - Type: **Popup LOV** · Label "Ver histórico de" · Authorization Scheme `ADMIN_RH`
-- Source: nenhum · Default › Type **Item** › `P13_ID_COLABORADOR` (abre mostrando quem está na tela)
+- Source › Type **Item** › `P13_ID_COLABORADOR` · Used: **Always, replacing any existing value in session state** (confirmar no 26.1.5). Assim o seletor sempre mostra quem está na tela. Com o Default no lugar do Source, ele guarda a última pessoa escolhida e mostra o nome errado quando o RH chega pela p20 ou pela p14 (§9.10, etapa 3)
 - List of Values › Type **SQL Query** (inclui inativos, porque o RH também consulta quem saiu):
   ```sql
   select nome_completo
@@ -1273,6 +1273,7 @@ Dynamic Actions
   ```
   Se aparecer `P21_ID_COLABORADOR:` sem nada depois, o Value ficou vazio (Passo 4);
 - `button voltar-ao-historico` com `target: { page: 13 }`;
+- `column DS_LINK` com `type: url`, `url: #DS_LINK#` e `linkText: Abrir`. Se aparecer `page: 21` ou o lápis nessa coluna, o código do lápis foi colado no lugar errado (tabela "Se não funcionar" desta seção);
 - o `link` da região com `page: 21`, `P21_ID_FORMACAO: \#ID_FORMACAO#\` e, de preferência, `clearCache: 21`;
 - `savedReport primary` só com as colunas da query nova (incluindo `displayColumn DS_ALERTA_VALIDADE`) e com as duas regras de destaque. O Highlight Type *Row* e o operador `=` são o padrão, por isso o export não os mostra:
   ```
@@ -2420,9 +2421,10 @@ Por que cada parte importa:
 | `DATA_LANCAMENTO` | Plain Text | `Data do registro` | Format Mask `DD/MM/YYYY` |
 | `LANCAMENTO` | Plain Text | `Registro` | |
 | `ABERTA_EM` | Plain Text | `Aberta em` | Format Mask `DD/MM/YYYY HH24:MI` |
-| `RESPONDER` | **Link** | `Ação` | Target: Page `23` · Set Items `P23_ID_SOLICITACAO` = `#ID_SOLICITACAO#` · Link Text `#RESPONDER#` |
+| `RESPONDER` | **Link** | `Ação` | Target: Page `23` · Set Items `P23_ID_SOLICITACAO` = `#ID_SOLICITACAO#` · Clear Cache `23` · Link Text `#RESPONDER#` |
 
 - Monte os dois links pelo editor de link do Builder. As páginas 13 e 23 exigem checksum, e um `f?p=` montado à mão é recusado.
+- O **Clear Cache `23`** é obrigatório: sem ele, depois de responder um pedido, o próximo abre com a situação e a resposta do anterior já preenchidas, e o RH pode mandar a resposta errada.
 - Em **No Data Found** da região (confirmar no 26.1.5): `Nenhuma solicitação aberta.`
 
 #### Passo 7 · Atualizar a lista quando a modal fechar
@@ -2676,30 +2678,37 @@ Resultado da validação completa do módulo (§1 a §8) contra os exports de `c
 
 > **Atualização de 19/10/2026 (backup das 09:11):** a §9.1 (`log_pkg`) e a §9.3 (CSS) já estão no ambiente. Nenhum item bloqueia mais; ficam os recomendados e os cosméticos.
 
-#### Situação na revalidação de 19/10/2026 (backup das 10:06)
+#### Situação na revalidação de 19/10/2026 (backup das 10:50)
 
-Conferido item por item no export. ✅ = aplicado e confirmado no export · ⏳ = ainda falta · 🔎 = o export não mostra; confira uma vez no Builder.
+Revalidação completa (§1 a §8 e esta seção) contra o export da `DEV` em `f7a7073`. ✅ = aplicado e confirmado no export · ⏳ = ainda falta · 🔎 = o export não mostra; confira uma vez no Builder. O passo a passo de tudo o que falta está na §9.10.
 
 | Seção | Item | Situação |
 |---|---|---|
+| §1 | `G_ID_EMPRESA` (Restricted, conferido no `f100.sql`), `SET_G_ID_EMPRESA`, papel e authorizations, Error Handling, LOVs | ✅ |
+| §2 | Página 13 (processos, regiões, barra e seletor do RH, DA da modal) | ✅, menos o seletor do RH (§9.10, etapa 3) |
+| §3 | Página 18 (itens, LOVs, DA "Tipo mudou", botões, Processing 10/15/20/30/40/50, log salarial) | ✅ |
+| §4 | Páginas 19 e 21 | ✅, menos a coluna `DS_LINK` da p19 (§9.10, etapa 1) |
+| §5 | Página 20 e modal 23 | ✅, menos o Clear Cache do link "Responder" (§9.10, etapa 4) |
+| §6 | Página 22 | ✅ |
+| §7 | p14 (processo, botão, `P14_EMPRESA`, validação); p2 e p12 ficam para depois (§9.11) | ✅ |
 | 9.1 | `log_pkg` delegando ao `fn_tratar_erro` | ✅ (falta só o teste do item 8 do checklist) |
-| 9.2 | Authorization das entradas do menu (Dashboard RH `ADMIN_RH`; Histórico e Solicitar correção `COLABORADOR`) e ícones | ✅ |
-| 9.3 | Margem do Interactive Report no CSS do ambiente | ✅ |
-| 9.4 | p18: rótulo "Excluir rascunho" e mensagem "Rascunho excluído." | ✅ |
-| 9.4 | p18: processo "Mensagem do rascunho" (seq 15) e Salvar sem mensagem | ✅ |
-| 9.4 | p18: "- Selecione -" no tipo | ✅ |
+| 9.2 | Authorization e ícones das entradas do menu | ✅ |
+| 9.3 | CSS do ambiente igual à fonte do módulo (`.css` e `.min.css`, 144 regras) | ✅ |
+| 9.4 | p18: rótulo, mensagens, "Mensagem do rascunho", "- Selecione -" | ✅ |
 | 9.4 | p18: Wait For Result na ação "Buscar código do tipo" | 🔎 o export omite o padrão (On); só aparece se alguém desligar |
-| 9.5 | p22: processo com `trim` e `too_many_rows`, Required - Floating, slots Close/Next, região "Botões", breadcrumb removido | ✅ |
-| 9.6 | p23: Required - Floating no radio, DA e ação "Cancelar" | ✅ |
-| 9.7 | Mensagens de erro de `COLABORADOR` e `GESTOR` | ✅ |
+| 9.5 | p22 | ✅ |
+| 9.6 | p23 | ✅ |
+| 9.7 | Mensagens de `COLABORADOR` e `GESTOR` | ✅ |
 | 9.8 | p21: confirmação de exclusão em pt-BR | ✅ |
-| 9.9 | Alias da p13 e da p21 sem acento; Authorization nos botões da p13; região "Cabeçalho" da p19; "Botões" da p21; Static IDs e nomes das ações da p20 | ✅ |
-| 9.9 | p19: Link Icon com "Edit" e When More Data Found em inglês | ⏳ |
-| 9.9 | p19: alias `FORMAÇÕES-E-CERTIFICAÇÕES` com acento | ⏳ (item novo) |
+| 9.9 | p19: When More Data Found em pt-BR | ✅ (backup das 10:50) |
+| 9.9 | p19: Link Icon da **região** ainda com "Edit" | ⏳ o "Editar" foi parar na coluna `DS_LINK` (§9.10, etapa 1) |
+| 9.9 | p19: alias `FORMAÇÕES-E-CERTIFICAÇÕES` com acento | ⏳ |
 | 9.9 | p20: Minor Ticks do eixo y do turnover | ⏳ |
-| 9.9 | p21: Maximum Length `255` nos itens de data e na carga horária | ⏳ |
+| 9.9 | p21: Maximum Length `255` em `P21_DT_INICIO`, `P21_DT_CONCLUSAO`, `P21_DT_VALIDADE` e `P21_NR_CARGA_HORARIA` | ⏳ |
+| §9.10 | `trim` no login dentro dos pacotes | ⏳ fonte do módulo corrigido em 19/10/2026; falta instalar no banco (§9.10, etapa 5) |
+| — | Triggers `trg_*` do módulo (`05_triggers_auditoria.sql`) | 🔎 `database/ddl/10-triggers.sql` está vazio no backup: o extrator não exporta triggers. Confira com `select trigger_name, status from user_triggers where trigger_name like 'TRG_%'` |
 
-Com a troca dos aliases, o backup renomeou os arquivos para `p00013-historico-de-carreira.apx` e `p00021-formacao.apx`. Os links não mudam (§9.9). Os ⏳ que sobraram são todos cosméticos.
+Nenhum item bloqueia. O roteiro para finalizar o módulo, na ordem, está na §9.10.
 
 | Gravidade | O que significa |
 |---|---|
@@ -2818,8 +2827,8 @@ Nenhum destes muda o comportamento. Os links do módulo usam o **número** da p�
 |---|---|---|---|
 | 13 | Page › Identification › Alias | `HISTÓRICO-DE-CARREIRA` | `HISTORICO-DE-CARREIRA` ✅ |
 | 13 | Botões `FORMACOES` e `NOVA_MOVIMENTACAO` › Security › Authorization | (vazio) | `ADMIN_RH` (a região já protege; é uma segunda proteção, §2.6) ✅ |
-| 19 | Região do IR › Link › Link Icon | `aria-label="Edit" title="Edit"` | `aria-label="Editar" title="Editar"` ⏳ (onde achar: §4.4, Passo 3) |
-| 19 | Região do IR › Messages › When More Data Found | texto em inglês | `O relatório passou do limite de #MAX_ROW_COUNT# linhas. Use um filtro.` ⏳ |
+| 19 | Região do IR › Link › Link Icon | `aria-label="Edit" title="Edit"` | `aria-label="Editar" title="Editar"` ⏳ (onde achar: §4.4, Passo 3; no backup das 10:50 o texto foi parar na coluna `DS_LINK`, ver §9.10, etapa 1) |
+| 19 | Região do IR › Messages › When More Data Found | texto em inglês | `O relatório passou do limite de #MAX_ROW_COUNT# linhas. Use um filtro.` ✅ |
 | 19 | Região `Header` › Name | `Header` | `Cabeçalho` ✅ |
 | 19 | Page › Identification › Alias | `FORMAÇÕES-E-CERTIFICAÇÕES` | `FORMACOES-E-CERTIFICACOES` ⏳ |
 | 21 | Page › Alias | `FORMAÇÃO` | `FORMACAO` ✅ |
@@ -2834,7 +2843,198 @@ Nenhum destes muda o comportamento. Os links do módulo usam o **número** da p�
 
 Depois de trocar o Static ID das regiões da p20, abra a DA "Atualizar solicitações" e confira que o Event e o Affected Element continuam apontando para a região. O Builder guarda a referência pelo id interno, mas o export passa a mostrar o nome novo (`region: @rel_solicitacoes`).
 
-### 9.10 O que ficou fora
+### 9.10 Roteiro para finalizar o módulo (revalidação de 19/10/2026, backup das 10:50)
+
+Este roteiro junta tudo o que falta, na ordem em que vale fazer. Os ajustes estão agrupados por página, para você abrir cada página uma vez só. Nenhum item bloqueia o checklist (§8). As etapas 1 a 5 trazem os **Recomendados**, que corrigem algo que o usuário vê errado ou que pode levar o RH a errar. Os **Cosméticos** estão marcados.
+
+**Antes de começar**
+- Entre no Builder com uma conta de desenvolvedor do workspace `WKSP_CORLIXHUB` e abra a app **100 · CORLIXHUB**.
+- Em cada página: faça os ajustes, clique em **Save** (Ctrl+S) e só então vá para a próxima. Se o Builder mostrar erro ao salvar, não troque de página: anote a mensagem e veja a [`09-erros-e-solucoes.md`](../../docs/ai-context/09-erros-e-solucoes.md).
+- Os passos marcados **(confirmar no 26.1.5)** não foram conferidos na tela desta versão. Se o caminho não existir, use a busca do painel de propriedades com a palavra indicada. Se ainda assim não achar, tire um print da árvore e do painel em vez de procurar por tentativa.
+
+#### Etapa 1 · Página 19 · Formações e certificações (Recomendado)
+
+**1.1 Coluna `DS_LINK` de volta para "Abrir".** No backup das 10:50, o código do lápis foi parar no Link Text da **coluna** `DS_LINK`, e o Target dela passou a ser a página 21. Resultado: a lista mostra dois lápis, e o RH não consegue mais abrir o endereço do curso.
+
+1. Abra a página **19** no Page Designer.
+2. Na árvore **Rendering**, expanda **Body › Formações e certificações › Columns** e clique em **DS_LINK**. No topo do painel da direita deve aparecer *Column* `DS_LINK`.
+3. Na seção **Link**, clique no botão de **Target** (ele mostra hoje "Page 21"). Abre a janela do link (Link Builder).
+4. Na janela:
+   - **Type**: troque de *Page in this application* para **URL**.
+   - **URL**: `#DS_LINK#`
+   - Os campos de página, itens e Clear Cache somem quando o Type vira URL. Se algum continuar visível, deixe-o vazio.
+   - Clique em **OK**.
+5. Ainda na seção **Link**, em **Link Text**, apague o `<span ...>` do lápis e digite `Abrir`.
+6. Se a seção Link tiver **Link Attributes**, deixe como estava (vazio ou `target="_blank"`).
+
+**1.2 Lápis da região em português.** O lápis de editar cada linha é o **Link Icon da região**, não da coluna.
+
+1. Na árvore, clique no nome da região **Formações e certificações** (o nível de cima de *Columns*). O painel deve mostrar *Region* e Type **Interactive Report**.
+2. Na busca do painel de propriedades, digite `Link Icon` (o passo a passo completo, com a árvore, está na §4.4, Passo 3).
+3. Em **Link Icon**, apague o conteúdo e cole:
+   ```html
+   <span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>
+   ```
+4. **Não mexa** no **Link Column** nem no **Target** da região: eles já apontam para a página 21 com `P21_ID_FORMACAO` e Clear Cache 21.
+
+**1.3 Alias sem acento (Cosmético).**
+1. Na árvore, clique no nó do topo, **Page 19: Formações e certificações**.
+2. **Identification › Alias**: troque `FORMAÇÕES-E-CERTIFICAÇÕES` por `FORMACOES-E-CERTIFICACOES`.
+3. Clique em **Save**. Os links do módulo usam o número da página, então nada quebra. O próximo backup vai renomear o arquivo para `p00019-formacoes-e-certificacoes.apx`.
+
+**Testar a etapa 1:** rode a página 19 de um colaborador que tenha uma formação **com** link. A coluna "Link" mostra **Abrir** e abre o endereço do curso. O lápis do começo da linha abre a modal da página 21. Passe o mouse no lápis: a dica é "Editar".
+
+**Conferir no próximo export** (`corlixhub/pages/p00019-...apx`):
+```
+alias: FORMACOES-E-CERTIFICACOES
+...
+        link {
+            linkColumn: customTarget
+            target: { page: 21 ... clearCache: 21 ... }
+            linkIcon: <span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>
+        }
+...
+        column DS_LINK (
+            type: link
+            ...
+            link {
+                target: {
+                    type: url
+                    url: #DS_LINK#
+                }
+                linkText: Abrir
+            }
+```
+Se `column DS_LINK` ainda mostrar `page: 21`, o passo 1.1 não foi salvo.
+
+> **Linhas sem link.** Com o Type URL, as formações sem endereço mostram "Abrir" sem destino. Se isso incomodar, é um ajuste futuro: gerar o link na própria query. Não faz parte deste roteiro.
+
+#### Etapa 2 · Página 21 · Formação (Recomendado + Cosmético)
+
+**2.1 Tamanho máximo do link (Recomendado).** A coluna `DS_LINK` aceita até 1000 caracteres. Sem limite no item, um endereço maior dá `ORA-12899` em vez de uma mensagem simples.
+1. Abra a página **21**. Na árvore, **Body › Formação › Items › P21_DS_LINK**.
+2. Na seção **Validation**, em **Maximum Length**, digite `1000`.
+
+**2.2 Tirar o `255` que sobrou do assistente (Cosmético).** Nas datas e na carga horária, o assistente deixou Maximum Length `255`. Não tem efeito, mas confunde quem for manter a página.
+1. Clique em **P21_DT_INICIO** › seção **Validation** › **Maximum Length**: apague o `255` e deixe vazio.
+2. Repita em **P21_DT_CONCLUSAO**, **P21_DT_VALIDADE** e **P21_NR_CARGA_HORARIA**.
+3. Clique em **Save**.
+
+**Testar:** abra uma formação, cole um link com mais de 1000 caracteres e salve. Deve aparecer uma mensagem de tamanho no campo, e não um erro ORA-.
+
+**Conferir no export:** `pageItem P21_DS_LINK` com `validation { maxLength: 1000 }`. Os quatro outros itens ficam **sem** `maxLength: 255`.
+
+#### Etapa 3 · Página 13 · Histórico de carreira (Recomendado + Cosmético)
+
+**3.1 Seletor do RH mostrando a pessoa certa (Recomendado).** Hoje `P13_COLABORADOR_SELECIONADO` só tem **Default**, que vale apenas quando o item está vazio na sessão. Depois que o RH troca de colaborador uma vez, o seletor guarda essa pessoa. Se o RH abre outro histórico pelo link da p20 ou da p14, a linha do tempo é da pessoa certa, mas o seletor mostra a anterior.
+1. Abra a página **13**. Na árvore, **Body › Barra do RH** (ou digite `COLABORADOR_SELECIONADO` na busca da árvore) e clique em **P13_COLABORADOR_SELECIONADO**.
+2. Na seção **Source**:
+   - **Type**: **Item**
+   - **Item**: `P13_ID_COLABORADOR`
+   - **Used**: **Always, replacing any existing value in session state** (confirmar no 26.1.5)
+3. Deixe a seção **Default** como está (Item › `P13_ID_COLABORADOR`).
+
+Por que isso não quebra a troca de colaborador: o processo "Trocar colaborador" põe a pessoa escolhida em `P13_ID_COLABORADOR` e a página recarrega. O seletor, então, lê esse valor novo.
+
+**3.2 Nome da região (Cosmético).** Clique na região **Histórico de Carreiras** › **Identification › Title** (ou **Name**): `Histórico de carreira`. O Static ID `historico_carreira` não muda.
+
+**3.3 Indicador de carregamento na troca (Cosmético).**
+1. Em **Dynamic Actions**, expanda **Trocar colaborador › True** e clique na ação **Submit Page**.
+2. Em **Settings › Show Processing**, ligue (**On**) (confirmar no 26.1.5; se não achar, digite `Processing` na busca do painel).
+3. Clique em **Save**.
+
+**Testar:** como RH, troque o seletor para a pessoa A. Vá à página 20 e clique no nome da pessoa B numa solicitação (ou abra o histórico de B pela p14). A página 13 abre em B, e o seletor também mostra **B**. Volte ao seletor, escolha outra pessoa: a página recarrega com um indicador de carregamento.
+
+**Conferir no export:** `pageItem P13_COLABORADOR_SELECIONADO` passa a ter um bloco `source { ... }` com `P13_ID_COLABORADOR`. A forma exata ainda não foi conferida: registre neste guia o trecho que aparecer. A região passa a ter `name: Histórico de carreira`. A ação Submit Page fica com `showProcessing: true` (confirmar no export).
+
+#### Etapa 4 · Página 20 · Dashboard RH (Recomendado + Cosmético)
+
+**4.1 Link "Responder" limpando a página 23 (Recomendado).** O link da coluna `RESPONDER` não limpa o cache da página 23. Depois de responder o pedido A, o pedido B abre com a situação e a resposta de A já preenchidas, e o RH pode mandar a resposta errada.
+1. Abra a página **20**. Na árvore, **Body › Solicitações de correção abertas › Columns › RESPONDER**.
+2. Seção **Link** › clique em **Target** (mostra "Page 23").
+3. Na janela do link, em **Clear Cache**, digite `23`. Não mexa em **Set Items** (`P23_ID_SOLICITACAO` = `#ID_SOLICITACAO#`).
+4. Clique em **OK**.
+
+**4.2 Minor Ticks do turnover (Cosmético).**
+1. Na árvore, **Body › Turnover: admissões x desligamentos por mês › Axes › y**.
+2. Seção **Minor Ticks › Rendered**: **Off**. É o mesmo ajuste que já está no eixo y de "Promoções por departamento".
+
+**4.3 Nome da ação do período (Cosmético).** Em **Dynamic Actions › Período mudou › True**, clique na ação de Sequence **10** (hoje "Período mudou - Verdadeiro" ou "Refresh") › **Identification › Name**: `Atualizar promoções`.
+
+**4.4 Cabeçalhos das colunas ocultas (Cosmético, opcional).** Em **Solicitações de correção abertas › Columns**:
+- `ID_SOLICITACAO` › **Heading** › apague `Responder`.
+- `ID_COLABORADOR` › **Heading** › apague `Id Colaborador`.
+
+Elas não aparecem na tela, e o cabeçalho "Responder" na coluna oculta confunde com a coluna `RESPONDER`. Se o Builder não aceitar o Heading vazio, deixe como está.
+
+**4.5 Itens enviados pela região do turnover (Cosmético, opcional).** Clique na região **Turnover…** › seção **Source** › **Page Items to Submit**: apague `P20_DT_INICIO,P20_DT_FIM`. As duas **séries** já enviam esses itens, e são elas que usam. Se o campo não aparecer na região, pule este passo (confirmar no 26.1.5).
+
+Clique em **Save**.
+
+**Testar:** responda um pedido na página 20 e, sem recarregar a página, clique em **Responder** em outro. O radio e a resposta vêm vazios. Mude o período De/Até: os dois gráficos do topo se atualizam, e o eixo y do turnover não mostra tracinhos intermediários.
+
+**Conferir no export:** no `column RESPONDER`, o `target` tem `clearCache: 23`. O `axis y` do turnover tem `minorTicks { show: false }`. A ação de sequence 10 tem `name: Atualizar promoções`.
+
+#### Etapa 5 · Banco de dados (Recomendado)
+
+**5.1 Login com espaço.** A p13 e a p22 acham o colaborador com `upper(trim(login_apex))`, mas o pacote comparava sem `trim` em quatro lugares. Com um login gravado com espaço, a p13 recusava o acesso à própria linha do tempo, e o Enviar da p22 recusava o pedido ("Só o próprio colaborador…"). O fonte do módulo já foi corrigido (`04_pkg_historico_carreira.pkb` e `08_pkg_historico_carreira_ui.sql`, 19/10/2026). Falta instalar no banco:
+1. **SQL Workshop › SQL Scripts › Upload**: escolha `modulos/historico-carreira/04_pkg_historico_carreira.pkb` › **Upload** › clique no script › **Run** › **Run Now**.
+2. Repita com `modulos/historico-carreira/08_pkg_historico_carreira_ui.sql`. Ele recria a spec e o body do pacote de tela, então rode-o **depois** do 04.
+3. Em **SQL Workshop › SQL Commands**, confira que nada ficou inválido:
+   ```sql
+   select object_name, object_type, status
+     from user_objects
+    where object_name like 'PKG_HISTORICO_CARREIRA%'
+   ```
+   As quatro linhas (spec e body de cada pacote) devem estar `VALID`. Se alguma vier `INVALID`, rode `select line, text from user_errors where name like 'PKG_HISTORICO_CARREIRA%'` e veja a [`09-erros-e-solucoes.md`](../../docs/ai-context/09-erros-e-solucoes.md).
+4. Opcional, mas recomendado: veja se existe algum login com espaço e corrija-o na origem:
+   ```sql
+   select id_colaborador, '[' || login_apex || ']' as login
+     from colaborador
+    where login_apex <> trim(login_apex)
+   ```
+
+**5.2 Triggers do módulo (conferir uma vez).** O backup não exporta triggers (`database/ddl/10-triggers.sql` está vazio), então o repositório não mostra se elas estão no banco. Em **SQL Commands**:
+```sql
+select trigger_name, status
+  from user_triggers
+ where trigger_name in ('TRG_CONFIG_CARREIRA_AUD', 'TRG_TIPO_MOVIMENTACAO_AUD',
+                        'TRG_HISTORICO_CARREIRA_AUD', 'TRG_HISTORICO_CARREIRA_LOG',
+                        'TRG_FORMACAO_COLABORADOR_AUD', 'TRG_FORMACAO_COLABORADOR_LOG',
+                        'TRG_SOLICITACAO_CORRECAO_AUD', 'TRG_SOLICITACAO_CORRECAO_LOG')
+```
+Devem voltar **8 linhas**, todas `ENABLED`. Se faltar alguma, rode `modulos/historico-carreira/05_triggers_auditoria.sql` por **SQL Scripts** (como no 5.1).
+
+Depois, confira que nenhuma está inválida (deve voltar **0 linhas**):
+```sql
+select object_name from user_objects where object_type = 'TRIGGER' and status = 'INVALID'
+```
+
+> **Visto em 19/10/2026:** as três `trg_*_log` não compilavam (`ORA-00984: column not allowed here`), porque usavam `inserting`/`updating` dentro do `insert`. O script foi corrigido no mesmo dia. Uma trigger com erro de compilação fica **inválida e habilitada**, e aí todo insert, update ou delete na tabela falha com `ORA-04098`. Se você rodou a versão antiga, rode a nova **imediatamente**. Detalhes em [`09-erros-e-solucoes.md`](../../docs/ai-context/09-erros-e-solucoes.md) §2.5.
+
+#### Etapa 6 · Backup e conferência
+
+1. Gere o backup (job `corlixhub-backup` no Jenkins, ou como o time costuma fazer). Ele publica na `DEV` e atualiza o PR `DEV` → `PROD`.
+2. Confira os trechos "Conferir no export" das etapas 1 a 4 no diff do PR. Se a forma do `source` do seletor da p13 (3.1) for diferente da descrita, registre-a neste guia.
+3. Confira que `database/ddl/09-plsql-corpos.sql` passou a ter `upper(trim(login_apex))` dentro do `PKG_HISTORICO_CARREIRA`. É a prova de que o 5.1 foi instalado.
+4. Na tabela "Situação" do início da §9, troque os ⏳ por ✅.
+
+#### Etapa 7 · Teste final (checklist §8)
+
+Rode o checklist completo da §8 com os três logins (RH, gestor e colaborador). Dois itens ainda não foram testados depois dos ajustes de 19/10:
+- **Item 8 · erro sem "ORA-" (§9.1):** na p18, crie uma **Promoção** sem escolher o cargo novo e clique em **Efetivar**. A mensagem aparece sem "ORA-20005" e sem pilha, e o erro aparece no Monitor de Logs (p7).
+- **§9.4, item 4 · Wait For Result:** na p18, troque o tipo de movimentação várias vezes, rápido. Os campos de cargo e salário aparecem e somem de acordo com o tipo, sem atraso de uma troca.
+
+Quando tudo passar, o módulo está pronto para a `PROD`.
+
+#### Decisões do time (não são erros; fora deste roteiro)
+
+- Uma conta `ADMIN_RH` sem colaborador vinculado (ex.: equipe Corlix) que abre a p13 pelo menu recebe a mensagem -20012 e nem chega ao seletor. Se o RH precisar entrar assim, o processo "Colaborador padrão" pode cair no primeiro colaborador ativo da empresa quando o usuário for `ADMIN_RH`.
+- "Formações a vencer" (p20) inclui colaboradores desligados.
+- O filtro De/Até da p20 só limita as datas no calendário. Uma data digitada com o fim antes do início esvazia os gráficos.
+- Fora do módulo: o processo "Criar usuário APEX" da p14 usa `raise_application_error(-20000, ...)`, fora da faixa tratada (§9.1), e mostra "ORA-20000" com a pilha.
+
+### 9.11 O que ficou fora
 
 - **Página 2 · Meu perfil** e **Página 12 · Colaboradores** ainda são placeholders. O botão "Meu histórico" e a coluna "Histórico" (§7, itens 2 e 3) entram quando essas páginas forem montadas.
 - **Botão "Histórico de carreira" da p14:** configurado, mas não aparece enquanto a p14 só cadastrar (§7, item 1).

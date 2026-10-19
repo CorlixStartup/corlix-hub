@@ -135,6 +135,9 @@ page 21 (
             templateOptions: #DEFAULT#
             width: 30
         }
+        validation {
+            maxLength: 1000
+        }
         source {
             formRegion: @formação
             column: DS_LINK
@@ -188,9 +191,6 @@ page 21 (
             formatMask: DD/MM/YYYY
             width: 32
         }
-        validation {
-            maxLength: 255
-        }
         source {
             formRegion: @formação
             column: DT_CONCLUSAO
@@ -216,9 +216,6 @@ page 21 (
             formatMask: DD/MM/YYYY
             width: 32
         }
-        validation {
-            maxLength: 255
-        }
         source {
             formRegion: @formação
             column: DT_INICIO
@@ -243,9 +240,6 @@ page 21 (
             templateOptions: #DEFAULT#
             formatMask: DD/MM/YYYY
             width: 32
-        }
-        validation {
-            maxLength: 255
         }
         source {
             formRegion: @formação
@@ -320,9 +314,6 @@ page 21 (
             template: @/optional-floating
             templateOptions: #DEFAULT#
             width: 32
-        }
-        validation {
-            maxLength: 255
         }
         source {
             formRegion: @formação

@@ -116,7 +116,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461332204540
-,p_version_scn=>'47049046504922'
+,p_version_scn=>'47049047560363'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -60011,6 +60011,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(29920100042540307)
 ,p_plug_name=>unistr('Hist\00F3rico de Carreiras')
 ,p_static_id=>'historico_carreira'
+,p_title=>unistr('Hist\00F3rico de carreira')
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>4502917002193490937
 ,p_plug_display_sequence=>20
@@ -60317,10 +60318,12 @@ wwv_flow_imp_page.create_page_item(
 ,p_name=>'P13_COLABORADOR_SELECIONADO'
 ,p_item_sequence=>10
 ,p_item_plug_id=>wwv_flow_imp.id(29922082206540326)
+,p_use_cache_before_default=>'NO'
 ,p_item_default=>'P13_ID_COLABORADOR'
 ,p_item_default_type=>'ITEM'
 ,p_prompt=>unistr('Ver hist\00F3rico de')
-,p_source_type=>'ALWAYS_NULL'
+,p_source=>'P13_ID_COLABORADOR'
+,p_source_type=>'ITEM'
 ,p_display_as=>'NATIVE_POPUP_LOV'
 ,p_lov=>wwv_flow_string.join(wwv_flow_t_varchar2(
 'select nome_completo',
@@ -63323,6 +63326,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(33886069799136748)
 ,p_plug_name=>unistr('Forma\00E7\00F5es e certifica\00E7\00F5es')
 ,p_static_id=>unistr('forma\00E7\00F5es-e-certifica\00E7\00F5es')
+,p_icon_css_classes=>'<span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>'
 ,p_region_template_options=>'#DEFAULT#:t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc'
 ,p_plug_template=>2102002977963900996
 ,p_plug_display_sequence=>20
@@ -63424,8 +63428,8 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_display_order=>84
 ,p_column_identifier=>'N'
 ,p_column_label=>'Link'
-,p_column_link=>'f?p=&APP_ID.:21:&SESSION.::&DEBUG.:Y,21:P21_ID_FORMACAO:#ID_FORMACAO#'
-,p_column_linktext=>'<span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>'
+,p_column_link=>'#DS_LINK#'
+,p_column_linktext=>'Abrir'
 ,p_column_type=>'STRING'
 ,p_heading_alignment=>'LEFT'
 ,p_use_as_row_header=>'N'
@@ -63965,7 +63969,6 @@ wwv_flow_imp_page.create_page_plug(
 ,p_plug_item_display_point=>'ABOVE'
 ,p_location=>null
 ,p_plug_source_type=>'NATIVE_JET_CHART'
-,p_ajax_items_to_submit=>'P20_DT_INICIO,P20_DT_FIM'
 );
 wwv_flow_imp_page.create_jet_chart(
  p_id=>wwv_flow_imp.id(33900650292350938)
@@ -64099,7 +64102,7 @@ wwv_flow_imp_page.create_jet_chart_axis(
 ,p_position=>'auto'
 ,p_major_tick_rendered=>'on'
 ,p_min_step=>1
-,p_minor_tick_rendered=>'auto'
+,p_minor_tick_rendered=>'off'
 ,p_tick_label_rendered=>'on'
 );
 wwv_flow_imp_page.create_page_plug(
@@ -64351,7 +64354,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_db_column_name=>'ID_SOLICITACAO'
 ,p_display_order=>10
 ,p_column_identifier=>'A'
-,p_column_label=>'Responder'
+,p_column_label=>unistr('ID Solicita\00E7\00E3o')
 ,p_column_type=>'NUMBER'
 ,p_display_text_as=>'HIDDEN_ESCAPE_SC'
 ,p_available_clientside=>'N'
@@ -64373,7 +64376,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_display_order=>90
 ,p_column_identifier=>'H'
 ,p_column_label=>unistr('A\00E7\00E3o')
-,p_column_link=>'f?p=&APP_ID.:23:&SESSION.::&DEBUG.::P23_ID_SOLICITACAO:#ID_SOLICITACAO#'
+,p_column_link=>'f?p=&APP_ID.:23:&SESSION.::&DEBUG.:23:P23_ID_SOLICITACAO:#ID_SOLICITACAO#'
 ,p_column_linktext=>'#RESPONDER#'
 ,p_column_type=>'STRING'
 ,p_heading_alignment=>'LEFT'
@@ -64496,7 +64499,7 @@ wwv_flow_imp_page.create_page_da_action(
 ,p_event_result=>'TRUE'
 ,p_action_sequence=>10
 ,p_execute_on_page_init=>'N'
-,p_name=>unistr('Per\00EDodo mudou - Verdadeiro')
+,p_name=>unistr('Atualizar promo\00E7\00F5es')
 ,p_static_id=>unistr('per\00EDodo-mudou-verdadeiro')
 ,p_action=>'NATIVE_REFRESH'
 ,p_affected_elements_type=>'REGION'
@@ -64701,6 +64704,7 @@ wwv_flow_imp_page.create_page_item(
 ,p_source=>'DS_LINK'
 ,p_display_as=>'NATIVE_TEXT_FIELD'
 ,p_cSize=>30
+,p_cMaxlength=>1000
 ,p_field_template=>1610598304472262251
 ,p_item_template_options=>'#DEFAULT#'
 ,p_is_persistent=>'N'
@@ -64744,7 +64748,6 @@ wwv_flow_imp_page.create_page_item(
 ,p_source=>'DT_CONCLUSAO'
 ,p_display_as=>'NATIVE_DATE_PICKER_APEX'
 ,p_cSize=>32
-,p_cMaxlength=>255
 ,p_field_template=>1610598304472262251
 ,p_item_template_options=>'#DEFAULT#'
 ,p_is_persistent=>'N'
@@ -64768,7 +64771,6 @@ wwv_flow_imp_page.create_page_item(
 ,p_source=>'DT_INICIO'
 ,p_display_as=>'NATIVE_DATE_PICKER_APEX'
 ,p_cSize=>32
-,p_cMaxlength=>255
 ,p_field_template=>1610598304472262251
 ,p_item_template_options=>'#DEFAULT#'
 ,p_is_persistent=>'N'
@@ -64792,7 +64794,6 @@ wwv_flow_imp_page.create_page_item(
 ,p_source=>'DT_VALIDADE'
 ,p_display_as=>'NATIVE_DATE_PICKER_APEX'
 ,p_cSize=>32
-,p_cMaxlength=>255
 ,p_field_template=>1610598304472262251
 ,p_item_template_options=>'#DEFAULT#'
 ,p_is_persistent=>'N'
@@ -64858,7 +64859,6 @@ wwv_flow_imp_page.create_page_item(
 ,p_source=>'NR_CARGA_HORARIA'
 ,p_display_as=>'NATIVE_NUMBER_FIELD'
 ,p_cSize=>32
-,p_cMaxlength=>255
 ,p_field_template=>1610598304472262251
 ,p_item_template_options=>'#DEFAULT#'
 ,p_is_persistent=>'N'
@@ -66257,4 +66257,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:eC/gugnIQ6VsFcOt+0WrzwoU+1NNAXGsdS+/m7lA8b8=
+-- Application Checksum SH256:EQR3huPGTU6i5qhAQqSP2g59a43Q/hvggv42qLHRquw=

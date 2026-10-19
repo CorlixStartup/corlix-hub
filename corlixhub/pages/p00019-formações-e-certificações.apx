@@ -58,6 +58,7 @@ page 19 (
                 #DEFAULT#
                 t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
             ]
+            icon: <span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>
         }
         link {
             linkColumn: customTarget
@@ -124,16 +125,10 @@ page 19 (
             }
             link {
                 target: {
-                    page: 21
-                    items: {
-                        P21_ID_FORMACAO: #ID_FORMACAO#
-                    }
-                    clearCache: [
-                        Y
-                        21
-                    ]
+                    type: url
+                    url: #DS_LINK#
                 }
-                linkText: <span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>
+                linkText: Abrir
             }
             source {
                 dataType: STRING

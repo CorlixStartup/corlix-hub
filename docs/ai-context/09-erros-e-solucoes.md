@@ -83,6 +83,24 @@ begin
 
 **Também acontece em blocos anônimos.** Exemplo: o `09_dados_demo_dashboard.sql` declarava a função local `id_tipo` no `declare` e a chamava dentro do `insert … values`. O erro apontou `line 53, column 25`, e a linha é contada a partir do `declare`, não do início do arquivo. A correção foi a mesma: guardar `id_tipo(p_cd)` numa constante antes do `insert`. Como o bloco não compilou, nada foi gravado, e o script pode ser rodado de novo depois de corrigido.
 
+### 2.5 `ORA-00984: column not allowed here` em trigger (`inserting`/`updating` dentro do SQL)
+**Sintoma** (SQL Scripts, 19/10/2026, `05_triggers_auditoria.sql`): as três triggers `trg_*_log` com
+```
+Error at line 2: PL/SQL: SQL Statement ignored
+Error at line 8: PL/SQL: ORA-00984: column not allowed here
+```
+**Causa:** `inserting`, `updating` e `deleting` são predicados de trigger e só existem em PL/SQL. Dentro de um `insert … values (case when inserting then 'I' … end)` quem avalia é o motor SQL, que não os conhece. Igual ao 2.4, a linha conta a partir do `begin`/`declare` da trigger.
+
+**Correção:** calcule o valor numa variável no `declare` e use a variável no `insert`:
+```sql
+declare
+  l_op log_auditoria_carreira.tp_operacao%type :=
+    case when inserting then 'I' when updating then 'U' else 'D' end;
+begin
+  insert into log_auditoria_carreira (…, tp_operacao, …) values (…, l_op, …);
+```
+**Atenção:** com erro de compilação, o `create or replace trigger` **cria a trigger mesmo assim, inválida e habilitada**. A partir daí, todo `insert`/`update`/`delete` na tabela falha com `ORA-04098: trigger '…' is invalid and failed re-validation`. Corrija e rode o script de novo na hora, ou desabilite a trigger (`alter trigger … disable`) até corrigir. Confira com `select trigger_name, status from user_triggers` e `select object_name from user_objects where object_type = 'TRIGGER' and status = 'INVALID'`.
+
 ---
 
 ## 3. PL/SQL em tempo de execução (compila, mas falha ao rodar)
