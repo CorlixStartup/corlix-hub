@@ -1,6 +1,6 @@
 page 21 (
     name: Formação
-    alias: FORMAÇÃO
+    alias: FORMACAO
     title: Formação
     appearance {
         pageMode: modalDialog
@@ -20,7 +20,7 @@ page 21 (
     }
 
     region buttons (
-        name: Buttons
+        name: Botões
         type: staticContent
         layout {
             sequence: 20
@@ -82,9 +82,6 @@ page 21 (
             template: @/optional-floating
             templateOptions: #DEFAULT#
             width: 60
-        }
-        validation {
-            maxLength: 255
         }
         source {
             formRegion: @formação
@@ -439,7 +436,7 @@ page 21 (
             requiresConfirmation: true
         }
         confirmation {
-            message: &APP_TEXT$DELETE_MSG!RAW.
+            message: Excluir esta formação? O anexo também será apagado.
             style: danger
         }
         serverSideCondition {

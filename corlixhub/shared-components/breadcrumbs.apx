@@ -157,19 +157,6 @@ breadcrumb breadcrumb (
         }
     )
 
-    entry solicitar-correção (
-        name: Solicitar correção
-        pageNumber: 22
-        execution {
-            sequence: 10
-        }
-        link {
-            target: {
-                page: 22
-            }
-        }
-    )
-
     entry terminal (
         name: Monitor de Logs
         pageNumber: 7

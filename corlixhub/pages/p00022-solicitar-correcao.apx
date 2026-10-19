@@ -17,7 +17,7 @@ page 22 (
     }
 
     region contêiner-de-botões (
-        name: Contêiner de Botões
+        name: Botões
         type: staticContent
         layout {
             sequence: 10
@@ -41,7 +41,7 @@ page 22 (
             alignment: left
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
             width: 30
             height: 5
@@ -107,7 +107,7 @@ page 22 (
         layout {
             sequence: 40
             region: @contêiner-de-botões
-            slot: regionBody
+            slot: close
         }
         appearance {
             buttonTemplate: @/text
@@ -124,7 +124,7 @@ page 22 (
         layout {
             sequence: 50
             region: @contêiner-de-botões
-            slot: regionBody
+            slot: next
         }
         appearance {
             buttonTemplate: @/text
@@ -213,11 +213,12 @@ page 22 (
                   select id_colaborador
                     into :P22_ID_COLABORADOR
                     from colaborador
-                   where upper(login_apex) = upper(:APP_USER)
+                   where upper(trim(login_apex)) = upper(trim(:APP_USER))
                      and id_empresa = :G_ID_EMPRESA;
                 exception
-                  when no_data_found then
-                    raise_application_error(-20012, 'Seu usuário não está vinculado a um colaborador.');
+                  when no_data_found or too_many_rows then
+                    raise_application_error(-20012,
+                      'Sua conta não está vinculada a um colaborador desta empresa. Fale com o RH.');
                 end;
                 ```
         }

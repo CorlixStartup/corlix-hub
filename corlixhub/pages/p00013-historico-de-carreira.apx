@@ -1,6 +1,6 @@
 page 13 (
     name: Histórico de carreira
-    alias: HISTÓRICO-DE-CARREIRA
+    alias: HISTORICO-DE-CARREIRA
     title: Histórico de carreira
     appearance {
         pageTemplate: @/standard
@@ -632,6 +632,9 @@ page 13 (
                 }
             }
         }
+        security {
+            authorizationScheme: @admin-rh
+        }
     )
 
     button nova-movimentação_1 (
@@ -656,6 +659,9 @@ page 13 (
                 }
                 clearCache: 18
             }
+        }
+        security {
+            authorizationScheme: @admin-rh
         }
     )
 

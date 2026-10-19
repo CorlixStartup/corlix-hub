@@ -47,6 +47,9 @@ authorization colaborador (
             end;
             ```
     }
+    error {
+        errorMessage: Sua conta não está vinculada a um colaborador desta empresa.
+    }
     advanced {
         evaluationType: perSession
     }
@@ -70,6 +73,9 @@ authorization gestor (
               return l_qt > 0;
             end;
             ```
+    }
+    error {
+        errorMessage: Acesso restrito a gestores.
     }
     advanced {
         evaluationType: perSession
