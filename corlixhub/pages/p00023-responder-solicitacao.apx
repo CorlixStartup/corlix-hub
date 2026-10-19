@@ -153,7 +153,7 @@ page 23 (
             alignment: left
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
         }
         validation {
@@ -208,7 +208,7 @@ page 23 (
         }
 
         action click (
-            name: Click
+            name: Cancelar
             action: cancelDialog
             execution {
                 sequence: 10

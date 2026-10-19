@@ -366,7 +366,7 @@ page 19 (
     )
 
     region header (
-        name: Header
+        name: Cabeçalho
         type: staticContent
         source {
             htmlCode:

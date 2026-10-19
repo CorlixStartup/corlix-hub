@@ -479,6 +479,7 @@ page 18 (
         lov {
             type: sharedComponent
             lov: @lov-tipo-movimentacao
+            nullDisplayValue: - Selecione -
         }
         layout {
             sequence: 10
@@ -733,7 +734,7 @@ page 18 (
 
     button excluir (
         buttonName: EXCLUIR
-        label: Rascunho excluído
+        label: Excluir rascunho
         layout {
             sequence: 20
             region: @botões
@@ -906,7 +907,7 @@ page 18 (
             sequence: 40
         }
         successMessage {
-            successMessage: Excluir rascunho
+            successMessage: Rascunho excluído.
         }
         advanced {
             executionMappingIdentifier: 32808402069326816
@@ -941,6 +942,26 @@ page 18 (
         }
         advanced {
             executionMappingIdentifier: 31448997914538707
+        }
+    )
+
+    process mensagem-do-rascunho (
+        name: Mensagem do rascunho
+        type: executeCode
+        source {
+            plsqlCode: null;
+        }
+        execution {
+            sequence: 15
+        }
+        successMessage {
+            successMessage: Rascunho salvo.
+        }
+        advanced {
+            executionMappingIdentifier: 38252491075320212
+        }
+        serverSideCondition {
+            whenButtonPressed: @salvar-rascunho
         }
     )
 
@@ -1010,9 +1031,6 @@ page 18 (
         }
         execution {
             sequence: 10
-        }
-        successMessage {
-            successMessage: Rascunho salvo.
         }
         advanced {
             executionMappingIdentifier: 32808139799326813

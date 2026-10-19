@@ -44,171 +44,6 @@ page 20 (
         }
     )
 
-    region formações-a-vencer (
-        name: Formações a vencer
-        type: classicReport
-        source {
-            location: localDatabase
-            type: sqlQuery
-            sqlQuery:
-                ```sql
-                select f.id_colaborador       as id_colaborador,
-                       c.nome_completo        as colaborador,
-                       f.ds_titulo            as formacao,
-                       f.tp_formacao          as tipo,
-                       f.ds_instituicao       as emissor,
-                       f.dt_validade          as validade,
-                       f.dt_validade - pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) as dias_restantes
-                  from formacao_colaborador f
-                  join colaborador c on c.id_colaborador = f.id_colaborador
-                 where f.id_empresa  = :G_ID_EMPRESA
-                   and f.dt_validade between pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA)
-                                         and pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) + 60
-                 order by f.dt_validade
-                
-                ```
-        }
-        layout {
-            sequence: 45
-            slot: body
-        }
-        appearance {
-            template: @/standard
-            templateOptions: [
-                #DEFAULT#
-                t-Region--scrollBody
-            ]
-        }
-        componentAppearance {
-            template: @/standard
-            templateOptions: [
-                #DEFAULT#
-                t-Report--altRowsDefault
-                t-Report--rowHighlight
-            ]
-        }
-        pagination {
-            type: nextAndPreviousLinks
-        }
-        messages {
-            whenNoDataFound: Nenhuma formação vence nos próximos 60 dias.
-        }
-
-        column COLABORADOR (
-            reportColumnQueryId: 2
-            derivedColumn: N
-            type: link
-            heading {
-                heading: Colaborador
-            }
-            layout {
-                sequence: 10
-            }
-            link {
-                target: {
-                    page: 19
-                    items: {
-                        P19_ID_COLABORADOR: #ID_COLABORADOR#
-                    }
-                }
-                linkText: #COLABORADOR#
-            }
-            sorting {
-                sortable: false
-            }
-        )
-
-        column DIAS_RESTANTES (
-            reportColumnQueryId: 7
-            derivedColumn: N
-            heading {
-                heading: Dias restantes
-                alignment: end
-            }
-            layout {
-                sequence: 60
-                columnAlignment: end
-            }
-            sorting {
-                sortable: false
-            }
-        )
-
-        column EMISSOR (
-            reportColumnQueryId: 5
-            derivedColumn: N
-            heading {
-                heading: Emissor
-            }
-            layout {
-                sequence: 40
-            }
-            sorting {
-                sortable: false
-            }
-        )
-
-        column FORMACAO (
-            reportColumnQueryId: 3
-            derivedColumn: N
-            heading {
-                heading: Formação
-            }
-            layout {
-                sequence: 20
-            }
-            sorting {
-                sortable: false
-            }
-        )
-
-        column ID_COLABORADOR (
-            reportColumnQueryId: 1
-            derivedColumn: N
-            type: hidden
-            layout {
-                sequence: 70
-            }
-        )
-
-        column TIPO (
-            reportColumnQueryId: 4
-            derivedColumn: N
-            type: plainTextBasedOnLov
-            heading {
-                heading: Tipo
-            }
-            lov {
-                type: sharedComponent
-                lov: @lov-tipo-formacao
-            }
-            layout {
-                sequence: 30
-            }
-            sorting {
-                sortable: false
-            }
-        )
-
-        column VALIDADE (
-            reportColumnQueryId: 6
-            derivedColumn: N
-            heading {
-                heading: Validade
-            }
-            layout {
-                sequence: 50
-            }
-            appearance {
-                formatMask: DD/MM/YYYY
-            }
-            sorting {
-                sortable: false
-            }
-        )
-
-    )
-
     region grafico_promocoes (
         name: Promoções por departamento
         type: chart
@@ -300,6 +135,78 @@ page 20 (
             }
             minorTicks {
                 show: false
+            }
+        )
+
+    )
+
+    region grafico_tempo_cargo (
+        name: Tempo médio no cargo por departamento
+        type: chart
+        layout {
+            sequence: 35
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        chartAppearance {
+            orientation: horizontal
+        }
+        chartLayout {
+            height: 360
+        }
+        animation {
+            onDisplay: none
+        }
+        legend {
+            show: false
+        }
+
+        series new (
+            name: Anos no cargo
+            execution {
+                sequence: 10
+            }
+            source {
+                type: sqlQuery
+                sqlQuery:
+                    ```sql
+                    select nvl(s.nm_departamento, '(sem departamento)') as departamento,
+                           round(avg(months_between(pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA),
+                                                    s.dt_inicio_funcao)) / 12, 1) as anos_no_cargo
+                      from vw_situacao_atual_colaborador s
+                     where s.id_empresa       = :G_ID_EMPRESA
+                       and s.fl_vinculo_ativo = 'S'
+                     group by s.id_departamento, s.nm_departamento
+                     order by anos_no_cargo desc, departamento
+                    ```
+            }
+            columnMapping {
+                label: DEPARTAMENTO
+                value: ANOS_NO_CARGO
+            }
+            appearance {
+                color: #00688c
+            }
+        )
+
+        axis x (
+            name: x
+        )
+
+        axis y (
+            name: y
+            title: anos
+            value {
+                min: 0
+                format: decimal
+                decimalPlaces: 1
+                formatScaling: none
             }
         )
 
@@ -464,7 +371,172 @@ page 20 (
         }
     )
 
-    region solicitações-de-correção-abertas (
+    region rel_formacoes_vencer (
+        name: Formações a vencer
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select f.id_colaborador       as id_colaborador,
+                       c.nome_completo        as colaborador,
+                       f.ds_titulo            as formacao,
+                       f.tp_formacao          as tipo,
+                       f.ds_instituicao       as emissor,
+                       f.dt_validade          as validade,
+                       f.dt_validade - pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) as dias_restantes
+                  from formacao_colaborador f
+                  join colaborador c on c.id_colaborador = f.id_colaborador
+                 where f.id_empresa  = :G_ID_EMPRESA
+                   and f.dt_validade between pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA)
+                                         and pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) + 60
+                 order by f.dt_validade
+                
+                ```
+        }
+        layout {
+            sequence: 45
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: nextAndPreviousLinks
+        }
+        messages {
+            whenNoDataFound: Nenhuma formação vence nos próximos 60 dias.
+        }
+
+        column COLABORADOR (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Colaborador
+            }
+            layout {
+                sequence: 10
+            }
+            link {
+                target: {
+                    page: 19
+                    items: {
+                        P19_ID_COLABORADOR: #ID_COLABORADOR#
+                    }
+                }
+                linkText: #COLABORADOR#
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column DIAS_RESTANTES (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Dias restantes
+                alignment: end
+            }
+            layout {
+                sequence: 60
+                columnAlignment: end
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column EMISSOR (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Emissor
+            }
+            layout {
+                sequence: 40
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FORMACAO (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Formação
+            }
+            layout {
+                sequence: 20
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column ID_COLABORADOR (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column TIPO (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: plainTextBasedOnLov
+            heading {
+                heading: Tipo
+            }
+            lov {
+                type: sharedComponent
+                lov: @lov-tipo-formacao
+            }
+            layout {
+                sequence: 30
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column VALIDADE (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Validade
+            }
+            layout {
+                sequence: 50
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region rel_solicitacoes (
         name: Solicitações de correção abertas
         type: interactiveReport
         source {
@@ -702,78 +774,6 @@ page 20 (
 
     )
 
-    region tempo-médio-no-cargo-por-departamento (
-        name: Tempo médio no cargo por departamento
-        type: chart
-        layout {
-            sequence: 35
-            slot: body
-        }
-        appearance {
-            template: @/standard
-            templateOptions: [
-                #DEFAULT#
-                t-Region--scrollBody
-            ]
-        }
-        chartAppearance {
-            orientation: horizontal
-        }
-        chartLayout {
-            height: 360
-        }
-        animation {
-            onDisplay: none
-        }
-        legend {
-            show: false
-        }
-
-        series new (
-            name: Anos no cargo
-            execution {
-                sequence: 10
-            }
-            source {
-                type: sqlQuery
-                sqlQuery:
-                    ```sql
-                    select nvl(s.nm_departamento, '(sem departamento)') as departamento,
-                           round(avg(months_between(pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA),
-                                                    s.dt_inicio_funcao)) / 12, 1) as anos_no_cargo
-                      from vw_situacao_atual_colaborador s
-                     where s.id_empresa       = :G_ID_EMPRESA
-                       and s.fl_vinculo_ativo = 'S'
-                     group by s.id_departamento, s.nm_departamento
-                     order by anos_no_cargo desc, departamento
-                    ```
-            }
-            columnMapping {
-                label: DEPARTAMENTO
-                value: ANOS_NO_CARGO
-            }
-            appearance {
-                color: #00688c
-            }
-        )
-
-        axis x (
-            name: x
-        )
-
-        axis y (
-            name: y
-            title: anos
-            value {
-                min: 0
-                format: decimal
-                decimalPlaces: 1
-                formatScaling: none
-            }
-        )
-
-    )
-
     pageItem P20_DT_FIM (
         type: datePicker
         label {
@@ -845,15 +845,15 @@ page 20 (
         when {
             event: apexafterclosedialog
             selectionType: region
-            region: @solicitações-de-correção-abertas
+            region: @rel_solicitacoes
         }
 
         action true (
-            name: True
+            name: Atualizar lista
             action: refresh
             affectedElements {
                 selectionType: region
-                region: @solicitações-de-correção-abertas
+                region: @rel_solicitacoes
             }
             execution {
                 sequence: 10
@@ -894,7 +894,7 @@ page 20 (
         )
 
         action true (
-            name: True
+            name: Atualizar turnover
             action: refresh
             affectedElements {
                 selectionType: region
