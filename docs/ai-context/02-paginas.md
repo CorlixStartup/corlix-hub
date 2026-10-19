@@ -104,8 +104,14 @@
 | 8 | Notificações | NOTIFICAÇÕES | p00008-notificações.apx | @/standard | normal | nenhuma | Vazia (nem breadcrumb) — duplicata da 5 |
 | 11 | Comunicados Oficiais | COMUNICADOS-OFICIAIS | p00011-comunicados-oficiais.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (breadcrumb) |
 | 12 | Colaboradores | COLABORADORES | p00012-colaboradores.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (breadcrumb) |
-| 13 | Histórico de carreira | HISTÓRICO-DE-CARREIRA | p00013-histórico-de-carreira.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (módulo em `modulos/historico-carreira/`, não integrado) |
+| 13 | Histórico de carreira | HISTORICO-DE-CARREIRA | p00013-historico-de-carreira.apx | @/standard | normal | @colaborador / menu: @colaborador | Implementada (linha do tempo do módulo `modulos/historico-carreira/`; barra e lançamentos do RH com @admin-rh) |
 | 14 | Cadastro de Usuários | CADASTROS-DE-USUARIOS | p00014-cadastros-de-usuarios.apx | @/standard | normal | @admin-rh / menu: @admin-rh | Implementada (form COLABORADOR + cria usuário APEX + admissão no histórico) |
+| 18 | Movimentação | MOVIMENTACAO | p00018-movimentacao.apx | @/modal-dialog | modal | @admin-rh | Implementada (rascunho, efetivar, estornar, excluir; guia §3) |
+| 19 | Formações e certificações | FORMAÇÕES-E-CERTIFICAÇÕES | p00019-formações-e-certificações.apx | @corlix-standard-page | normal | @admin-rh | Implementada (IR de `FORMACAO_COLABORADOR`; guia §4) |
+| 20 | Dashboard RH | DASHBOARD-RH | p00020-dashboard-rh.apx | @/standard | normal | @admin-rh / menu: @admin-rh | Implementada (3 gráficos, formações a vencer, solicitações abertas; guia §5) |
+| 21 | Formação | FORMACAO | p00021-formacao.apx | @/modal-dialog | modal | @admin-rh | Implementada (form `FORMACAO_COLABORADOR` com anexo; guia §4) |
+| 22 | Solicitar correção | SOLICITAR-CORRECAO | p00022-solicitar-correcao.apx | @/modal-dialog | modal | @colaborador / menu: @colaborador | Implementada (guia §6) |
+| 23 | Responder solicitação | RESPONDER-SOLICITACAO | p00023-responder-solicitacao.apx | @/modal-dialog | modal | @admin-rh | Implementada (aberta pela p20; guia §5.5) |
 | 15 | Empresas Cadastradas | EMPRESAS-CADASTRADAS | p00015-empresas-cadastradas.apx | @/standard | normal | nenhuma / menu: @administration-rights | Implementada (IR EMPRESA) |
 | 16 | Cadastro de Empresas | CADASTRO-DE-EMPRESAS | p00016-cadastro-de-empresas.apx | @/modal-dialog | modal | nenhuma / (isCurrent do item 15) | Implementada (form EMPRESA + ViaCEP) |
 | 17 | Emitir Comunicado | COMUNICADO | p00017-comunicado.apx | @/wizard-modal-dialog | modal (h=600) | nenhuma / menu: @publicador-de-conteudo | Implementada (form COMUNICADO) |
@@ -116,7 +122,7 @@
 Notas da tabela:
 - Grupo de páginas: existe só `pageGroup administration` (`corlixhub/page-groups.apx`), **nenhuma página o referencia**.
 - Autorizações existentes (`shared-components/authorizations.apx`, todas `isInRoleOrGroup`, avaliação por sessão): `administration-rights` ("Equipe do Corlix Hub"), `publicador-de-conteudo` ("Publicador de Conteúdo"), `somente-diretoria` ("Diretoria"). Só são usadas em entradas do menu e na coluna CAB_DEPT do Chat.
-- Páginas inexistentes mas referenciadas: 18 e 19 (lista `emitir-comunicado`, steps 2 e 3 do wizard).
+- A lista `emitir-comunicado` (steps 2 e 3 do wizard) aponta para 18 e 19, que hoje são as páginas 18 (Movimentação) e 19 (Formações) do histórico de carreira. A lista não é usada por nenhuma página, então não quebra nada, mas pode ser apagada.
 - Menu lateral (`list navigation-menu`): Home(1) seq10 → Meu Perfil(2) 20 → Organograma(3) 30 → Comunicados(11) 40 → Colaboradores(12) 50 → Histórico de carreira(13) 60 → Cadastro de Usuários(14) 70 → Emitir Comunicado(17) 80 (filho de Home) → Empresas Cadastradas(15) 110 → Central de Equipes(26) 160 → Chat(4) 170 → Monitor de Logs(7) 190 → Sair (`&LOGOUT_URL.`) 10000. Páginas 5, 6, 8 não estão no menu (5 e 6 são acessadas pelo header da Global Page).
 - Breadcrumb único `breadcrumb` (shared component): entradas planas (sem hierarquia/parent) para 1, 2, 3, 5, 6, 7, 11, 12, 13, 14, 15, 26. Páginas 14 e 15 não exibem região breadcrumb (14 não tem; 15 tem).
 
@@ -233,8 +239,8 @@ Placeholder (só `breadcrumb`). Template @/standard. No menu como "Comunicados" 
 ### Página 12 — Colaboradores (`p00012-colaboradores.apx`)
 Placeholder (só `breadcrumb`). Template @/standard.
 
-### Página 13 — Histórico de carreira (`p00013-histórico-de-carreira.apx`)
-Placeholder (só `breadcrumb`). Alias com acento `HISTÓRICO-DE-CARREIRA`. Módulo em desenvolvimento fora do app em `modulos/historico-carreira/` (DDL, views, `pkg_historico_carreira`, `pkg_historico_carreira_ui`, triggers, JS/CSS da página, `instalar.sql`) — não commitado e ainda não ligado à página.
+### Página 13 — Histórico de carreira (`p00013-historico-de-carreira.apx`)
+Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colaborador`. Regiões: `hc_barra_rh` "Barra do RH" (seletor de colaborador e botões, só `@admin-rh`), `historico_carreira` (Dynamic Content gerado por `pkg_historico_carreira_ui`, com o JS e o CSS do módulo) e `lançamentos-rh` (botões "Formações" e "Nova movimentação", também com `@admin-rh` nos botões). Alias sem acento desde 19/10/2026. Passo a passo e checklist no guia `modulos/historico-carreira/Etapas-historico-carreira.md` (§2 e §8); as páginas 18 a 23 do módulo estão na tabela acima.
 
 ### Página 14 — Cadastro de Usuários (`p00014-cadastros-de-usuarios.apx`)
 - **Propósito**: cadastrar colaborador (insert em COLABORADOR) e criar o usuário de login no APEX.
@@ -322,7 +328,7 @@ Placeholder (só `breadcrumb`). Alias com acento `HISTÓRICO-DE-CARREIRA`. Módu
   - **Não há processo `closeDialog` nem branch** → após inserir, o modal não fecha (recarrega a si mesmo); a Home não é atualizada.
   - Default `SYSDATE;` com ponto e vírgula em "PL/SQL expression" pode gerar erro de compilação (deveria ser `SYSDATE`). Defaults SQL também terminam com `;`.
   - `buttonName` em minúsculas (`cancelar`, `enviar_comunicado`) — REQUEST será esse nome; a DML automática usa `databaseAction: insert` do botão, então funciona.
-  - Template wizard + lista `emitir-comunicado` aponta para páginas 18 e 19 inexistentes (wizard abandonado em 1 passo).
+  - Template wizard + lista `emitir-comunicado` aponta para as páginas 18 e 19, que hoje são as páginas 18 (Movimentação) e 19 (Formações) do histórico de carreira. A lista não é usada por nenhuma página, então não quebra nada, mas pode ser apagada (wizard abandonado em 1 passo).
   - P17_ID_DEPARTAMENTO opcional: nulo = "Geral" na Home.
   - Sem autorização na página; só o menu exige `publicador-de-conteudo`, e o botão da Home é livre.
   - P17_TITULO usa `@/optional-floating` apesar de `valueRequired: true`.
@@ -392,8 +398,8 @@ Menu lateral: 1, 2, 3, 11, 12, 13, 14*, 17**, 15***, 26, 4, 7, Sair(&LOGOUT_URL.
 
 [4 Chat] — sem navegação; AJAX (DA) seleciona contato -> P4_CANAL_ID -> refresh msgs
 
-Lista "emitir-comunicado" (wizard): 17 -> 18 -> 19   (18 e 19 NÃO EXISTEM)
-Órfãs: [8 Notificações duplicada] (nenhum link). Páginas 2,3,11,12,13 só via menu, sem conteúdo.
+Lista "emitir-comunicado" (wizard, não usada): 17 -> 18 -> 19   (18 e 19 hoje são do histórico de carreira)
+Órfãs: [8 Notificações duplicada] (nenhum link). Páginas 2,3,11,12 só via menu, sem conteúdo.
 ```
 
 ---
@@ -425,9 +431,9 @@ O DDL dessas tabelas, de `CH_GET_CANAL_DIRETO` e de `LOG_PKG` está em `database
 1. **Autorização só no menu**: nenhuma página tem `authorizationScheme`; 7 (logs), 14 (cria usuários), 15/16 (empresas) e 17 (comunicados) são acessíveis por URL por qualquer usuário autenticado. Para proteger, adicionar `security { authorizationScheme: @... }` na página.
 2. **Multi-tenant ausente nas consultas**: quase nenhuma SQL filtra por `ID_EMPRESA` do usuário (exceção: LOV de departamento da página 17).
 3. **Duas páginas de Notificações** (5 implementada como placeholder com breadcrumb e alias ASCII `NOTIFICACOES`, usada pelo header; 8 vazia, alias `NOTIFICAÇÕES`, órfã).
-4. **Aliases e nomes de arquivo com acento** (8, 13) — cuidado com URLs amigáveis e scripts.
+4. **Aliases e nomes de arquivo com acento** (8, 19) — cuidado com URLs amigáveis e scripts. A 13 e a 21 foram trocadas em 19/10/2026.
 5. Chat: região de mensagens condicionada no servidor + refresh por DA = não funciona; `templateOptions: "[object Object]"`; CAB_DEPT só para admins; sem envio.
-6. Modal 17 sem closeDialog; wizard aponta para 18/19 inexistentes; `SYSDATE;` no default.
+6. Modal 17 sem closeDialog; lista do wizard aponta para 18/19, hoje páginas do histórico de carreira; `SYSDATE;` no default.
 7. Modal 16: campos de endereço desabilitados (não submetidos); maxLengths curtos; logotipo em `appTempFiles`.
 8. ~~Caminhos de foto divergentes~~: corrigido em 13/10/2026; header e Home usam `#APP_FILES#Fotos Colaboradores/` (o organograma monta a mesma pasta via `apex.env.APP_FILES`, ver 06).
 9. Links mortos/placeholder: busca global sem JS, `href="#"` (gestor, empresa), links rápidos apontando para 5/6/7.

@@ -116,7 +116,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461332204540
-,p_version_scn=>'47049043942264'
+,p_version_scn=>'47049046504922'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -63382,7 +63382,7 @@ wwv_flow_imp_page.create_page_plug(
 );
 wwv_flow_imp_page.create_worksheet(
  p_id=>wwv_flow_imp.id(33886108875136748)
-,p_max_row_count_message=>'The maximum row count for this report is #MAX_ROW_COUNT# rows.  Please apply a filter to reduce the number of records in your query.'
+,p_max_row_count_message=>unistr('O relat\00F3rio passou do limite de #MAX_ROW_COUNT# linhas. Use um filtro.')
 ,p_no_data_found_message=>unistr('Nenhuma forma\00E7\00E3o cadastrada.')
 ,p_pagination_type=>'ROWS_X_TO_Y'
 ,p_pagination_display_pos=>'BOTTOM_RIGHT'
@@ -63424,8 +63424,8 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_display_order=>84
 ,p_column_identifier=>'N'
 ,p_column_label=>'Link'
-,p_column_link=>'#DS_LINK#'
-,p_column_linktext=>'Abrir'
+,p_column_link=>'f?p=&APP_ID.:21:&SESSION.::&DEBUG.:Y,21:P21_ID_FORMACAO:#ID_FORMACAO#'
+,p_column_linktext=>'<span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>'
 ,p_column_type=>'STRING'
 ,p_heading_alignment=>'LEFT'
 ,p_use_as_row_header=>'N'
@@ -66257,4 +66257,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:LYQDGcY5Qw1Yj+z9kvoI0cAgPNS9FHQQ4iwDlqp8EA0=
+-- Application Checksum SH256:eC/gugnIQ6VsFcOt+0WrzwoU+1NNAXGsdS+/m7lA8b8=
