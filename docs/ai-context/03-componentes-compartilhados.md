@@ -292,7 +292,7 @@ Nenhum DDL acompanha a app (sem supporting objects). O `README.md` cita `databas
 ---
 
 ## 11. `log_pkg.apex_error_handler`
-Fonte em `database/corlix-hub.sql` (spec + body). `gravar` usa `pragma autonomous_transaction` e grava em `APP_LOG`; `erro`/`aviso`/`info` são atalhos. `apex_error_handler` registra origem (tipo do componente), `ORA-`, backtrace sem linhas `APEX_`/`SYS.` e o comando, e devolve `apex_error.init_error_result(p_error)` sem alterar a mensagem. **Não delega** -20001..-20099 a `pkg_historico_carreira.fn_tratar_erro`, como o guia do módulo recomenda. Detalhes em `05` §4.9.
+Fonte em `database/corlix-hub.sql` (spec + body). `gravar` usa `pragma autonomous_transaction` e grava em `APP_LOG`; `erro`/`aviso`/`info` são atalhos. `apex_error_handler` registra origem (tipo do componente), `ORA-`, backtrace sem linhas `APEX_`/`SYS.` e o comando, e devolve `apex_error.init_error_result(p_error)` sem alterar a mensagem. **Não delega** -20001..-20099 a `pkg_historico_carreira.fn_tratar_erro`, como o guia do módulo recomenda (confirmado em 18/10/2026 também no snapshot `database/ddl/09-plsql-corpos.sql`): os erros do módulo aparecem com "ORA-200xx". Passo a passo da correção no guia do histórico de carreira, §9.1. Detalhes em `05` §4.9.
 ---
 
 ## 12. Pegadinhas e inconsistências (resumo)

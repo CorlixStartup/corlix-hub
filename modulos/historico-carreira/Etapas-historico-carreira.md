@@ -2,7 +2,7 @@
 
 Este guia monta as páginas do módulo no App Builder do **APEX 26.1.5**, a versão do ambiente (o app já é versionado em APEXlang, `mmdVersion 26.1.0`). O banco precisa estar instalado antes: rode o `instalar.sql` (veja o `README-historico-carreira.md`).
 
-Depois de montar as páginas no Builder, exporte o app em APEXlang como já é feito hoje, para que as páginas novas entrem no Git em `corlixhub/pages/`.
+Depois de montar as páginas no Builder, não é preciso exportar à mão: o backup diário (Jenkins) exporta o app de PRD em APEXlang para `corlixhub/` na `DEV`. Mudança feita só no `.apx` do repositório, sem levar ao APEX, é **desfeita** no próximo backup.
 
 ### Como ler os caminhos deste guia (APEX 26.1.5)
 
@@ -15,7 +15,7 @@ Depois de montar as páginas no Builder, exporte o app em APEXlang como já é f
 
 | Página | Nome | Tipo | Quem acessa |
 |---|---|---|---|
-| 13 | Histórico de carreira (já existe, vazia) | Normal | ADMIN_RH, gestor da equipe, o próprio colaborador |
+| 13 | Histórico de carreira | Normal | ADMIN_RH, gestor da equipe (qualquer nível), o próprio colaborador · Authorization `COLABORADOR` |
 | 18 | Movimentação | Modal Dialog | ADMIN_RH |
 | 19 | Formações e certificações | Normal | ADMIN_RH |
 | 20 | Dashboard RH | Normal | ADMIN_RH |
@@ -97,6 +97,14 @@ begin
 end;
 ```
 
+Em cada esquema, preencha também **Error Message**, para o usuário não ver a mensagem padrão do APEX:
+
+| Esquema | Error Message |
+|---|---|
+| `ADMIN_RH` | `Acesso restrito ao RH.` (já vem do módulo de perfis de acesso) |
+| `GESTOR` | `Acesso restrito a gestores.` |
+| `COLABORADOR` | `Sua conta não está vinculada a um colaborador desta empresa.` |
+
 O detalhe "gestor só vê a própria equipe" fica na função `pkg_historico_carreira.fn_pode_ver_colaborador`, chamada pela página 13 (item 2.2). Ela libera o colaborador para o gestor de qualquer nível acima dele.
 
 ### 1.3 Mensagens de erro amigáveis
@@ -109,6 +117,7 @@ A aplicação já usa `log_pkg.apex_error_handler` como Error Handling Function.
     return pkg_historico_carreira.fn_tratar_erro(p_error);
   end if;
   ```
+  O `LOG_PKG` está em `database/ddl/09-plsql-corpos.sql` (snapshot gerado pelo backup; não é instalador). Em 18/10/2026 ele **ainda não delegava**: o passo a passo está na §9.1.
 - **Opção B:** nas páginas 18, 19 e 21, em *Page > Error Handling > Error Handling Function*, informe `pkg_historico_carreira.fn_tratar_erro`. Essas páginas deixam de passar pelo `log_pkg` nesse caso.
 
 ### 1.4 Listas de valores (Shared Components > List of Values)
@@ -166,14 +175,21 @@ Salário nunca aparece nessa região: o valor fica só na lista "Lançamentos (R
 
 1. **Colaborador padrão** (PL/SQL, seq. 10): sem parâmetro, abre o histórico do próprio usuário.
    ```sql
-   if :P13_ID_COLABORADOR is null then
-     select id_colaborador
-       into :P13_ID_COLABORADOR
-       from colaborador
-      where upper(login_apex) = upper(:APP_USER)
-        and id_empresa = :G_ID_EMPRESA;
-   end if;
+   begin
+     if :P13_ID_COLABORADOR is null then
+       select id_colaborador
+         into :P13_ID_COLABORADOR
+         from colaborador
+        where upper(trim(login_apex)) = upper(trim(:APP_USER))
+          and id_empresa = :G_ID_EMPRESA;
+     end if;
+   exception
+     when no_data_found or too_many_rows then
+       raise_application_error(-20012,
+         'Sua conta não está vinculada a um colaborador desta empresa. Fale com o RH.');
+   end;
    ```
+   Por que o `trim` e o `exception`: um login gravado com espaço no fim não seria encontrado, e uma conta sem colaborador (como as da equipe Corlix) veria `ORA-01403` em vez de uma mensagem clara.
 2. **Validar acesso** (PL/SQL, seq. 20):
    ```sql
    if :P13_ID_COLABORADOR is null
@@ -195,6 +211,7 @@ Salário nunca aparece nessa região: o valor fica só na lista "Lançamentos (R
 3. Largura e altura toda: use o page template **Standard** com as regiões em *Body*, sem nenhum ajuste extra. O próprio `historico-carreira.css` faz o resto: só na página que tem a região do histórico (`body:has([data-hc])`), ele zera o padding de 2rem que o Universal Theme coloca em volta do corpo e pinta o fundo `#F1EFED` até o rodapé. O título fica encostado nas bordas da área de conteúdo, como no protótipo. A região "Lançamentos (RH)" mantém uma margem de 32px.
    - Se continuar com a moldura branca em volta, o CSS antigo está em cache. Suba o `.css` e o `.min.css` de novo e recarregue com Ctrl+F5.
    - `:has()` funciona no Chrome, Edge e Safari atuais e no Firefox 121 ou mais novo. Em navegadores antigos, a página só fica com a moldura, sem quebrar.
+   - **Sempre que mudar `modulos/historico-carreira/historico-carreira.css`, reenvie o `.css` e o `.min.css`** em Static Application Files. O backup traz para `corlixhub/shared-components/static-files/` a versão que está no ambiente, não a do módulo. Em 18/10/2026 faltava no ambiente a margem do Interactive Report (§9.3).
 
 ### 2.4 Região "Histórico de carreira"
 
@@ -232,7 +249,7 @@ Lista de todos os lançamentos, incluindo rascunhos. É por aqui que o RH edita 
      and id_empresa     = :G_ID_EMPRESA
    order by dt_efetiva desc, id_historico_carreira desc
   ```
-- Colunas `VL_SALARIO_ANTERIOR` e `VL_SALARIO_NOVO`: Server-side Condition **Authorization Scheme `ADMIN_RH`**. A view já mascara o salário para outros perfis; a condição tira até o cabeçalho da coluna.
+- Colunas `VL_SALARIO_ANTERIOR` e `VL_SALARIO_NOVO`: **Security › Authorization Scheme** `ADMIN_RH`. A view já mascara o salário para outros perfis; a condição tira até o cabeçalho da coluna.
 - Coluna `ID_HISTORICO_CARREIRA`: Type Link · Target página 18 · Items `P18_ID_HISTORICO_CARREIRA` = `#ID_HISTORICO_CARREIRA#`, `P18_ID_COLABORADOR` = `&P13_ID_COLABORADOR.` · Clear Cache 18 · Link Text `<span class="fa fa-edit"></span>`
 
 ### 2.6 Barra do RH (botões e seletor)
@@ -299,7 +316,7 @@ O botão principal (Hot) fica por último, na ponta direita, como o "Exportar PD
 #### Como conferir no export da página 13
 
 ```
-region barra-do-rh (
+region hc_barra_rh (
     name: Barra do RH
     type: staticContent
     ...
@@ -312,7 +329,7 @@ region barra-do-rh (
     }
 )
 ```
-(Os nomes `blank-with-attributes-no-grid` e `cssClasses` são o formato esperado do export; confirmar no 26.1.5.) Os botões e o item devem ter `region: @barra-do-rh` e as sequências 10, 20 e 30.
+O identificador depois de `region` é o Static ID (`hc_barra_rh`), não o nome. Os botões e o item devem ter `region: @hc_barra_rh` e as sequências 10, 20 e 30. Confirmado no export de 18/10/2026.
 
 #### Se não funcionar
 
@@ -402,7 +419,7 @@ Itens (crie os que não vierem do assistente):
 | `P18_ST_REGISTRO` | Display Only | Label "Situação" · Default `RASCUNHO` |
 | `P18_FL_ESTORNO` | Hidden | |
 | `P18_CD_TIPO` | Hidden | Value Protected: **No** (o JS lê o valor) |
-| `P18_ID_DEPARTAMENTO_ATUAL` | Hidden | Source: nenhum · Default (SQL): `select id_departamento from colaborador where id_colaborador = :P18_ID_COLABORADOR and id_empresa = :G_ID_EMPRESA` |
+| `P18_ID_DEPARTAMENTO_ATUAL` | Hidden | Source › Type **SQL Query (return single value)**: `select id_departamento from colaborador where id_colaborador = :P18_ID_COLABORADOR and id_empresa = :G_ID_EMPRESA`. Com Source (e não Default), o valor é recalculado sempre que a modal abre, inclusive ao reabrir um rascunho |
 | `P18_ID_TIPO_MOVIMENTACAO` | Select List | LOV `LOV_TIPO_MOVIMENTACAO` · obrigatório |
 | `P18_DT_EFETIVA` | Date Picker | Format Mask `DD/MM/YYYY` · obrigatório |
 | `P18_NM_CARGO_ANTERIOR` | Display Only | Label "Cargo atual" · Source: Database Column `NM_CARGO_ANTERIOR` · Settings › Based On: **Page Item Value** · **Default** › Type: **SQL Query** (não use List of Values): `select cg.nome from colaborador c join cargo cg on cg.id_cargo = c.id_cargo where c.id_colaborador = :P18_ID_COLABORADOR and c.id_empresa = :G_ID_EMPRESA` |
@@ -410,8 +427,8 @@ Itens (crie os que não vierem do assistente):
 | `P18_ID_DEPARTAMENTO_NOVO` | Popup LOV | LOV `LOV_DEPARTAMENTO_EMPRESA` · Label "Novo departamento" |
 | `P18_ID_CARGO_NOVO` | Popup LOV | Label "Novo cargo" · LOV em cascata (abaixo) |
 | `P18_ID_GESTOR_NOVO` | Popup LOV | LOV `LOV_COLABORADOR_ATIVO` · Label "Novo gestor" |
-| `P18_VL_SALARIO_ANTERIOR` | Number Field | Server-side Condition: Authorization `ADMIN_RH` · sem Format Mask |
-| `P18_VL_SALARIO_NOVO` | Number Field | Server-side Condition: Authorization `ADMIN_RH` · sem Format Mask |
+| `P18_VL_SALARIO_ANTERIOR` | Number Field | Security › Authorization Scheme `ADMIN_RH` · sem Format Mask |
+| `P18_VL_SALARIO_NOVO` | Number Field | Security › Authorization Scheme `ADMIN_RH` · sem Format Mask |
 | `P18_DS_MOTIVO` | Textarea | Max 1000 |
 | `P18_ID_APROVADOR` | Popup LOV | LOV `LOV_COLABORADOR_ATIVO` · Label "Aprovado por" · opcional (em geral a gestão que aprovou; não pode ser o próprio colaborador) · aparece em todos os tipos |
 | `P18_DS_OBSERVACAO` | Textarea | |
@@ -715,7 +732,7 @@ Os botões que enviam a página só gravam alguma coisa depois que os processos 
 
 Nenhum faz DML direto: todos chamam o package.
 
-1. **Salvar movimentação** · PL/SQL · roda com `SALVAR_RASCUNHO` **ou** `EFETIVAR`. *When Button Pressed* aceita um botão só, então deixe-o **vazio** e use *Server-side Condition* › Type **Request is contained in Value** › Value `SALVAR_RASCUNHO,EFETIVAR` (nomes dos botões, separados por vírgula, sem espaço). Sem isso, Efetivar numa movimentação nova chama `efetivar_movimentacao` com ID nulo.
+1. **Salvar movimentação** · PL/SQL · Success Message: **(vazio)** · roda com `SALVAR_RASCUNHO` **ou** `EFETIVAR`. *When Button Pressed* aceita um botão só, então deixe-o **vazio** e use *Server-side Condition* › Type **Request is contained in Value** › Value `SALVAR_RASCUNHO,EFETIVAR` (nomes dos botões, separados por vírgula, sem espaço). Sem isso, Efetivar numa movimentação nova chama `efetivar_movimentacao` com ID nulo.
    ```sql
    begin
      if :P18_ID_HISTORICO_CARREIRA is null then
@@ -755,7 +772,8 @@ Nenhum faz DML direto: todos chamam o package.
    ```sql
    pkg_historico_carreira.estornar_movimentacao(:P18_ID_HISTORICO_CARREIRA, :P18_DS_MOTIVO_ESTORNO);
    ```
-4. **Excluir rascunho** · When Button Pressed `EXCLUIR`
+   **1b. Mensagem do rascunho** · Execute Code `null;` · Sequence 15 · When Button Pressed `SALVAR_RASCUNHO` · Success Message "Rascunho salvo.". Por que: o Efetivar também roda o "Salvar movimentação"; com a mensagem nele, Efetivar mostraria "Rascunho salvo." e "Movimentação efetivada." juntas.
+4. **Excluir rascunho** · When Button Pressed `EXCLUIR` · Success Message "Rascunho excluído." (o rótulo do **botão** continua "Excluir rascunho")
    ```sql
    pkg_historico_carreira.excluir_rascunho(:P18_ID_HISTORICO_CARREIRA);
    ```
@@ -926,7 +944,7 @@ A página 19 não está no protótipo. Para parecer parte do mesmo módulo, ela 
 | Identification | Name | `Cabeçalho` |
 | Identification | Type | **Static Content** |
 | Source | HTML Code | (HTML abaixo) |
-| Layout | Sequence | **5** (antes do Interactive Report, que é 10) |
+| Layout | Sequence | **5** (o Interactive Report criado pelo assistente fica em 10 ou 20; o cabeçalho só precisa vir antes) |
 | Appearance | Template | **Blank with Attributes (No Grid)** |
 
 ```html
@@ -1289,7 +1307,7 @@ Dynamic Actions
    - Storage › Type: **BLOB column specified in Item Source attribute**
    - MIME Type Column `DS_MIME_TYPE` · Filename Column `DS_NOME_ARQUIVO`
    - Download Link Text `Baixar anexo`
-   - File Types `.pdf,image/*` · Maximum File Size `5000` (em KB, cerca de 5 MB). No export: `fileTypes` e `maxFileSize` no bloco `storage`
+   - File Types `.pdf,image/*` · Maximum File Size `5120` (em KB = 5 MB). No export: `fileTypes` e `maxFileSize` no bloco `storage`
    - Source: Form Region · Column `BL_ANEXO`
 4. **Processo "Empresa da sessão"** · Processing · Sequence **antes** do processo de gravação do assistente (ex.: 5) · Execute Code:
    ```sql
@@ -1766,7 +1784,7 @@ O gráfico mostra contagens, não uma taxa de turnover (que dividiria os desliga
 |---|---|---|
 | Identification | Name | `Turnover: admissões x desligamentos por mês` |
 | Identification | Type | **Chart** |
-| Layout | Sequence | 25 (fica entre promoções, 20, e tempo no cargo, 30) |
+| Layout | Sequence | 25 (fica entre promoções, 20, e tempo no cargo, 35) |
 | Appearance | Template | **Standard** |
 | Advanced | Static ID | `grafico_turnover` |
 
@@ -1885,7 +1903,7 @@ Body
 │   └── Axes
 │       ├── x
 │       └── y                    (Pessoas · 0 casas · passo 1)
-└── Tempo médio no cargo por departamento   (Chart · seq 30 · §5.3)
+└── Tempo médio no cargo por departamento   (Chart · seq 35 · §5.3)
 Dynamic Actions
 └── Change
     └── Período mudou            (P20_DT_INICIO, P20_DT_FIM)
@@ -2000,6 +2018,43 @@ Confira também:
 
 ### 5.3 Tempo médio no cargo por departamento (Chart · Bar horizontal)
 
+Quanto tempo, em média, quem está ativo ocupa o cargo atual, por departamento. Mostra a situação de **hoje**: não depende de De/Até e **não** entra na DA "Período mudou".
+
+#### Passo 1 · Criar a região do gráfico
+
+Na página 20, clique com o botão direito em **Body** › **Create Region**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Tempo médio no cargo por departamento` |
+| Identification | Type | **Chart** |
+| Layout | Sequence | `35` (depois do turnover, 25) |
+| Appearance | Template | **Standard** |
+| Advanced | Static ID | `grafico_tempo_cargo` (sem acento, como os outros gráficos) |
+
+#### Passo 2 · Atributos do gráfico
+
+| Seção | Atributo | Valor | Por quê |
+|---|---|---|---|
+| Chart | Type / Orientation | **Bar** · **Horizontal** | Nome do departamento legível e ranking de cima para baixo |
+| Appearance | Height | `360` | Igual aos outros gráficos |
+| Animation | On Display | **None** | Igual ao §5.1 |
+| Legend | Show | **Off** | Uma série só |
+| Tooltip | Show Series Name | **Off** (opcional) | Uma série só: o nome repetiria o título |
+
+#### Passo 3 · Série "Anos no cargo"
+
+O Builder cria uma série chamada `New`. Clique nela:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Anos no cargo` (não deixe `New`: aparece no tooltip) |
+| Source | Type | **SQL Query** (abaixo) |
+| Source | Page Items to Submit | (nenhum) |
+| Column Mapping | Label / Value | `DEPARTAMENTO` / `ANOS_NO_CARGO` |
+| Appearance | Color | `#00688C` |
+| Label | Show / Position | On / **Outside Bar Edge** (opcional, como no §5.1) |
+
 ```sql
 select nvl(s.nm_departamento, '(sem departamento)') as departamento,
        round(avg(months_between(pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA),
@@ -2010,9 +2065,74 @@ select nvl(s.nm_departamento, '(sem departamento)') as departamento,
  group by s.id_departamento, s.nm_departamento
  order by anos_no_cargo desc, departamento
 ```
-Value Axis title: "anos"
 
-Agrupe por `s.id_departamento, s.nm_departamento`, como no §5.1. Agrupar só pelo nome juntaria numa barra só dois departamentos com o mesmo nome, e a média deles se misturaria. O desempate pelo nome no `order by` deixa a ordem estável quando duas médias empatam.
+Por que cada parte importa:
+- **`fl_vinculo_ativo = 'S'`:** deixa os desligados de fora.
+- **`round(..., 1)`:** anos com uma casa decimal (2,4 anos).
+- **`group by s.id_departamento, s.nm_departamento`:** como no §5.1. Agrupar só pelo nome juntaria numa barra dois departamentos com o mesmo nome, e a média se misturaria.
+- **`order by anos_no_cargo desc, departamento`:** o desempate pelo nome deixa a ordem estável quando duas médias empatam.
+
+O identificador da série no export pode continuar `series new (`: o que vale é o `name:`.
+
+#### Passo 4 · Eixos
+
+| Eixo | Seção | Atributo | Valor |
+|---|---|---|---|
+| `y` | Title | Title | `anos` |
+| `y` | Value | Format · Decimal Places | **Decimal** · `1` |
+| `y` | Value | Minimum | `0` |
+| `y` | Value | Format Scaling | **None** |
+
+Com `0` casas, uma média de 2,4 anos aparece como "2".
+
+#### Como conferir no export da página 20
+
+```
+region grafico_tempo_cargo (
+    name: Tempo médio no cargo por departamento
+    type: chart
+    layout          { sequence: 35  slot: body }
+    chartAppearance { orientation: horizontal }
+    chartLayout     { height: 360 }
+    animation       { onDisplay: none }
+    legend          { show: false }
+
+    series new (
+        name: Anos no cargo
+        columnMapping { label: DEPARTAMENTO  value: ANOS_NO_CARGO }
+        appearance    { color: #00688c }
+    )
+    axis y (
+        title: anos
+        value { min: 0  format: decimal  decimalPlaces: 1  formatScaling: none }
+    )
+)
+```
+
+Confira também que a região **não** aparece em nenhuma ação da `dynamicAction período-mudou` e que a série **não** tem `pageItemsToSubmit`.
+
+#### Testar
+
+1. As barras vêm em ordem decrescente, com valores como "2,4".
+2. Mudar De/Até atualiza promoções e turnover, e este gráfico fica igual.
+3. Conferir um departamento:
+   ```sql
+   select nm_departamento, count(*), round(avg(months_between(sysdate, dt_inicio_funcao))/12, 1)
+     from vw_situacao_atual_colaborador
+    where id_empresa = 1 and fl_vinculo_ativo = 'S'
+    group by id_departamento, nm_departamento
+   ```
+   A query usa `sysdate`; se `fn_hoje` estiver com outro fuso, pode haver diferença pequena.
+
+#### Se não funcionar
+
+| Sintoma | Causa provável | Correção |
+|---|---|---|
+| Valores inteiros ("2" em vez de "2,4") | Decimal Places `0` | Passo 4 |
+| "New" no tooltip | Série não renomeada | Passo 3 |
+| Dois departamentos somados numa barra | `group by` só pelo nome | Query do Passo 3 |
+| O gráfico muda com o período | Região incluída na DA "Período mudou" | Tire a ação de Refresh deste gráfico |
+| Ponto em vez de vírgula ("2.4") | Idioma técnico da app é `en` | Esperado; registrar no 08 se incomodar |
 
 ### 5.4 Formações a vencer (Classic Report)
 
@@ -2152,12 +2272,12 @@ Crie uma região **Static Content** chamada `Solicitação` no **Content Body** 
 | `P23_NM_COLABORADOR` | **Display Only** | `Colaborador` | Source: nenhum (o Passo 3 preenche) |
 | `P23_DS_LANCAMENTO` | **Display Only** | `Registro questionado` | Source: nenhum |
 | `P23_DS_MENSAGEM` | **Display Only** | `Pedido` | Source: nenhum |
-| `P23_ST_SOLICITACAO` | **Radio Group** | `Resposta` | Value Required: **On** · List of Values › Type **Static Values**: `Resolvida` = `RESOLVIDA`, `Recusada` = `RECUSADA` · Display Null Value: Off |
+| `P23_ST_SOLICITACAO` | **Radio Group** | `Resposta` | Value Required: **On** · Template **Required - Floating** · List of Values › Type **Static Values**: `Resolvida` = `RESOLVIDA`, `Recusada` = `RECUSADA` · Display Null Value: Off |
 | `P23_DS_RESPOSTA` | **Textarea** | `Mensagem ao colaborador` | Maximum Length `2000` · Help/Inline Help: "Obrigatória se recusar." |
 
 Para que serve cada um:
 - Os três **Display Only** mostram ao RH o que está respondendo. Sem eles, a modal teria só o radio e a caixa de texto, sem dizer de qual pedido se trata.
-- `P23_ST_SOLICITACAO` só aceita `RESOLVIDA` ou `RECUSADA`, os mesmos valores que o package valida. Escreva os valores exatamente assim, em maiúsculas.
+- `P23_ST_SOLICITACAO` só aceita `RESOLVIDA` ou `RECUSADA`, os mesmos valores que o package valida. Escreva os valores exatamente assim, em maiúsculas. **Value Required é obrigatório:** sem ele, responder sem escolher manda nulo ao package, que não barra nulo, e o `update` falha com `ORA-01407`.
 - `P23_DS_RESPOSTA` não é obrigatório na tela porque só é exigido na recusa. Quem confere isso é o package: se o RH recusar sem escrever nada, aparece "Explique ao colaborador por que a solicitação foi recusada." (com o §1.3 configurado, sem "ORA-").
 
 #### Passo 3 · Processo "Carregar solicitação" (Before Header)
@@ -2214,7 +2334,11 @@ O package confere de novo que o usuário é do RH, que o pedido é da empresa de
 
 #### Passo 5 · Região na página 20
 
-Volte à página 20 e crie uma região **Interactive Report** no Body, Sequence `55` (depois de Formações a vencer), Title `Solicitações de correção abertas`, Source **SQL Query**:
+Volte à página 20 e crie uma região **Interactive Report** no Body, Sequence `55` (depois de Formações a vencer), Title `Solicitações de correção abertas`, **Appearance › Template: Standard**, Source **SQL Query**.
+
+> **Template Standard, não Interactive Report.** O template *Interactive Report* vem com o cabeçalho oculto (`t-IRR-region--hideHeader`) e esconde o título, enquanto os gráficos acima mostram o título. Com Standard, a busca e o menu Actions continuam dentro da região.
+
+Query:
 
 ```sql
 select s.id_solicitacao,
@@ -2242,6 +2366,11 @@ Por que cada parte importa:
 - **`order by s.dt_criacao`:** o pedido mais antigo aparece primeiro, para ser atendido antes.
 
 > **Não apague colunas pela árvore.** Como no §4.4, no Interactive Report as colunas vêm da query: para tirar ou incluir uma coluna, mude a query.
+
+> **Coluna nova não aparece no relatório.** Se você mudar a query depois de criar a região (por exemplo, para incluir `responder`), a coluna nova entra como *não exibida* no relatório padrão. Rode a página e:
+> 1. **Actions › Columns** › passe a coluna para *Display in Report* › Apply.
+> 2. **Actions › Report › Save Report** › **As Default Report Settings** › **Primary** (confirmar no 26.1.5).
+> 3. No export, o `savedReport primary` deve ter um `displayColumn` para a coluna (ex.: `displayColumn RESPONDER`).
 
 #### Passo 6 · Colunas
 
@@ -2305,6 +2434,9 @@ select 1, min(id_colaborador), 'TESTE: a data da minha última promoção está 
 | `Responda com RESOLVIDA ou RECUSADA` | Valores do Radio Group diferentes (ex.: `Resolvida`) | Passo 2: valores em maiúsculas |
 | `Esta solicitação já foi respondida` | Outra pessoa do RH respondeu antes | Esperado. Feche a modal |
 | Erro com "ORA-20019" ou "ORA-20012" na tela | Tratamento de erro do §1.3 não configurado para a página 23 | §1.3 |
+| O título "Solicitações de correção abertas" não aparece | Template *Interactive Report* com Hide Header | Passo 5: Template **Standard** |
+| A coluna "Ação" (Responder) não aparece | Coluna fora do relatório salvo | Passo 5: *Save Report* como padrão |
+| `ORA-01407` ao responder sem escolher | `P23_ST_SOLICITACAO` sem Value Required | Passo 2 |
 
 ---
 
@@ -2319,11 +2451,12 @@ select 1, min(id_colaborador), 'TESTE: a data da minha última promoção está 
     select id_colaborador
       into :P22_ID_COLABORADOR
       from colaborador
-     where upper(login_apex) = upper(:APP_USER)
+     where upper(trim(login_apex)) = upper(trim(:APP_USER))
        and id_empresa = :G_ID_EMPRESA;
   exception
-    when no_data_found then
-      raise_application_error(-20012, 'Seu usuário não está vinculado a um colaborador.');
+    when no_data_found or too_many_rows then
+      raise_application_error(-20012,
+        'Sua conta não está vinculada a um colaborador desta empresa. Fale com o RH.');
   end;
   ```
   Sem esse processo, `P22_ID_COLABORADOR` só tem valor quando a modal é aberta pelo botão da página 13. Aberta de outro jeito (pelo Run do Page Designer, por exemplo), o item fica vazio e o select list "Qual registro?" mostra só "Não sei / vários". Como só o próprio colaborador pode pedir correção, a página sempre usa o usuário logado, mesmo que a URL traga outro id. As contas da equipe sem colaborador veem a mensagem de erro, o que é esperado.
@@ -2340,9 +2473,17 @@ select 1, min(id_colaborador), 'TESTE: a data da minha última promoção está 
        and h.id_registro_estornado is null
      order by h.dt_efetiva desc
     ```
-  - `P22_DS_MENSAGEM`: Textarea obrigatório, Label "O que está incorreto?", Max 2000
+  - `P22_DS_MENSAGEM`: Textarea · Label "O que está incorreto?" · Value Required **On** · Template **Required - Floating** · Max 2000
 - Texto de apoio: "O RH revisa o pedido. Se houver correção, ela também fica registrada no histórico."
-- Botões: `CANCELAR` (Cancel Dialog) e `ENVIAR` (Hot)
+- Botões:
+
+| Componente | Atributo | Valor |
+|---|---|---|
+| Região `Botões` | Type · Slot · Template | Static Content · **Dialog Footer** · **Buttons Container** |
+| `CANCELAR` | Behavior › Action · Slot | **Defined by Dynamic Action** · **Close**. DA *Click* › True action **Cancel Dialog** |
+| `ENVIAR` | Behavior › Action · Slot | Submit Page · **Next** · **Hot: On** |
+
+  Sem *Defined by Dynamic Action*, o Cancelar fica com a ação padrão (Submit Page): a modal recarrega e continua aberta.
 - Processo **Enviar** · When Button Pressed `ENVIAR`:
   ```sql
   declare
@@ -2357,6 +2498,19 @@ select 1, min(id_colaborador), 'TESTE: a data da minha última promoção está 
 - Processo **Fechar** · Close Dialog · Server-side Condition: When Button Pressed `ENVIAR` · Success Message "Pedido enviado ao RH."
 
 O package confere que quem pede é o próprio colaborador. Mesmo com o checksum, ninguém consegue abrir pedidos em nome de outra pessoa.
+
+**Testar**
+1. Como colaborador, abra pelo botão **Solicitar correção** da p13 e pelo menu. Nos dois casos, "Qual registro?" lista o histórico da pessoa.
+2. Cancelar fecha a modal; Enviar com o texto vazio mostra o aviso no campo.
+3. Enviar mostra "Pedido enviado ao RH." e a p13 passa a mostrar "1 solicitação em análise pelo RH".
+
+**Se não funcionar**
+
+| Sintoma | Causa provável | Correção |
+|---|---|---|
+| "Qual registro?" só mostra "Não sei / vários" | `P22_ID_COLABORADOR` vazio | Processo "Colaborador logado" |
+| Cancelar recarrega a modal em vez de fechar | Botão sem *Defined by Dynamic Action* | Tabela de botões |
+| O botão não aparece na p13 | `c_pagina_solicitacao` nulo no banco | Aviso do começo desta seção |
 
 ---
 
@@ -2380,8 +2534,17 @@ O package confere que quem pede é o próprio colaborador. Mesmo com o checksum,
      - Com isso, ninguém cadastra em outra empresa, nem a equipe Corlix. Se a equipe precisar cadastrar o primeiro RH de um cliente novo, esse fluxo precisa de outro caminho.
      - **Cuidado:** a condição "Item is NOT NULL `P14_ID_COLABORADOR`" é só do botão Histórico. Na região **Cadastrar Colaborador** ela esconde o formulário inteiro.
 2. **Página 12 · Colaboradores:** quando a lista for criada, adicione uma coluna link "Histórico" para a página 13 com `P13_ID_COLABORADOR` = `#ID_COLABORADOR#`.
-3. **Página 2 · Meu perfil:** botão **Meu histórico** para a página 13 sem parâmetro. A página abre no próprio usuário.
-4. **Navegação:** entradas "Histórico de carreira" (página 13, sem parâmetro) e "Dashboard RH" (página 20, Authorization `ADMIN_RH`) no menu.
+3. **Página 2 · Meu perfil** (pendente: a p2 ainda é placeholder): botão `MEU_HISTORICO` · Action **Redirect to Page in this Application** › Page `13` · Clear Cache `13` · sem Set Items. A página abre no próprio usuário.
+4. **Navegação** (Shared Components › Navigation Menu › Desktop Navigation Menu). Cada entrada usa a **mesma** autorização da página, para ninguém ver um item que dá "acesso negado":
+
+| Entrada | Página | Authorization | Outros |
+|---|---|---|---|
+| Histórico de carreira | 13 | `COLABORADOR` | Clear Cache `13`, sem parâmetro (§2.8) |
+| Dashboard RH | 20 | `ADMIN_RH` | Ícone sugerido `fa-bar-chart` |
+| Solicitar correção | 22 | `COLABORADOR` | Opcional: o botão da p13 já leva à p22. Ícone sugerido `fa-comment-o` |
+| Cadastro de Usuários | 14 | `ADMIN_RH` | Igual à página (§7 item 1) |
+
+   As contas da equipe Corlix não têm colaborador: com `COLABORADOR` no menu, elas não veem os itens do módulo, o que é esperado.
 
 ---
 
@@ -2391,10 +2554,10 @@ Teste com pelo menos três logins: um **RH** (papel `ADMIN_RH`), um **gestor** c
 
 ### 8.0 Antes de testar
 
-Itens que a validação de 18/10/2026 encontrou faltando ou não conseguiu conferir pelos exports:
+Itens que a validação de 18/10/2026 encontrou faltando ou não conseguiu conferir pelos exports. O passo a passo de cada ajuste no ambiente está na **§9**.
 
 - [ ] **Página 18 · log de acesso salarial (§3.6).** Confira que o processo "Registrar acesso salarial" existe na p18: Before Header · Sequence 20 (depois do *Initialize form*, que carrega os itens) · Authorization `ADMIN_RH` · Server-side Condition **Item is NOT NULL** `P18_ID_HISTORICO_CARREIRA`. O código vai em *Source › PL/SQL Code*, com `;` no final. Sem ele, só a p13 grava em `LOG_ACESSO_SALARIAL`.
-- [ ] **Erros sem "ORA-" (§1.3).** O `log_pkg` não está no repositório. Confira se ele delega para o módulo:
+- [ ] **Erros sem "ORA-" (§1.3).** Em 18/10/2026 o `log_pkg.apex_error_handler` (`database/ddl/09-plsql-corpos.sql`) **não** delegava para o módulo: aplique a §9.1. Para conferir no banco:
   ```sql
   select line, text from user_source
    where name = 'LOG_PKG' and upper(text) like '%FN_TRATAR_ERRO%'
@@ -2465,3 +2628,142 @@ Itens que a validação de 18/10/2026 encontrou faltando ou não conseguiu confe
 - [ ] O campo Empresa vem preenchido com a empresa do usuário, sem outras opções, e Departamento, Cargo e Gestor já habilitados.
 - [ ] Cadastrar um colaborador cria a admissão `EFETIVADO` com a data informada (ou a de hoje, se vazia) e o comunicado de boas-vindas.
 - [ ] O colaborador novo entra no sistema, e a p13 dele mostra a admissão.
+
+---
+
+## 9. Ajustes da validação de 18/10/2026
+
+Resultado da validação completa do módulo (§1 a §8) contra os exports de `corlixhub/` e os scripts de `modulos/historico-carreira/`, feita em 18/10/2026. O guia acima já foi corrigido onde estava desatualizado; esta seção lista **o que ainda precisa ser feito no ambiente**, na ordem de prioridade. Marque cada item depois de conferir no export do próximo backup.
+
+| Gravidade | O que significa |
+|---|---|
+| **Bloqueia** | Um item do checklist (§8) falha |
+| **Recomendado** | Funciona, mas o usuário vê algo errado ou confuso |
+| **Cosmético** | Nome, texto ou ícone; não muda o comportamento |
+
+### 9.1 Erros do módulo sem "ORA-" (Bloqueia · item 8 do checklist)
+
+**Situação:** o `LOG_PKG.apex_error_handler` (`database/ddl/09-plsql-corpos.sql`, função a partir da linha 37) só grava o log e devolve o `init_error_result`. Ele não repassa os erros -20001 a -20099 para `pkg_historico_carreira.fn_tratar_erro`, então uma promoção sem cargo novo mostra "ORA-20005: ..." em vez da mensagem simples. As páginas 18, 19 e 21 também não têm Error Handling próprio (opção B da §1.3).
+
+**Passo a passo (opção A da §1.3):**
+1. **SQL Workshop › Object Browser**, escolha **Packages** na lista à esquerda e clique em `LOG_PKG`.
+2. Abra a aba **Body** e clique em **Edit**.
+3. Dentro de `function apex_error_handler`, encontre o fim da função:
+   ```sql
+       );
+       return l_result;
+     end;
+   ```
+   e troque o `return l_result;` por:
+   ```sql
+       if p_error.ora_sqlcode between -20099 and -20001 then
+         return pkg_historico_carreira.fn_tratar_erro(p_error);
+       end if;
+       return l_result;
+   ```
+4. Clique em **Save & Compile**.
+5. Confira que compilou: no SQL Commands, `select line, text from user_errors where name = 'LOG_PKG'` não deve devolver linhas.
+
+**Por que nessa posição:** o `gravar(...)` vem antes, então o erro continua registrado no Monitor de Logs (p7). Só a mensagem mostrada ao usuário muda.
+
+**Testar:** na p18, crie uma **Promoção** sem escolher o cargo novo e clique em **Efetivar**. A mensagem deve aparecer sem "ORA-20005" e sem pilha. Na p7, o erro aparece no log.
+
+**Se não funcionar:** se a mensagem continuar com "ORA-", confira com `select line, text from user_source where name = 'LOG_PKG' and upper(text) like '%FN_TRATAR_ERRO%'` se o Save & Compile pegou. Se o `LOG_PKG` não compilar por falta de permissão para `pkg_historico_carreira`, os dois estão no mesmo schema (`WKSP_CORLIXHUB`): confira se o `instalar.sql` do módulo foi rodado.
+
+### 9.2 Menu (Recomendado)
+
+**Situação** (`corlixhub/shared-components/lists.apx`): "Dashboard RH", "Solicitar correção" e "Histórico de carreira" não têm Authorization. Quem não tem o papel vê o item e recebe "acesso negado".
+
+**Passo a passo:** Shared Components › **Navigation Menu** › **Desktop Navigation Menu**. Para cada entrada, clique no nome, ajuste e clique em **Apply Changes**:
+
+| Entrada | Authorization Scheme | Icon (opcional) |
+|---|---|---|
+| Dashboard RH | `ADMIN_RH` | `fa-bar-chart` |
+| Histórico de carreira | `COLABORADOR` | (mantém) |
+| Solicitar correção | `COLABORADOR` | `fa-comment-o` |
+
+Sobre "Solicitar correção": a entrada abre a p22 sem parâmetro, o que funciona por causa do processo "Colaborador logado" (§6). Se o time preferir que o pedido só saia do histórico, apague a entrada; o botão da p13 continua.
+
+**Testar:** entre como colaborador comum: o menu mostra "Histórico de carreira" e "Solicitar correção", e **não** mostra "Dashboard RH" nem "Cadastro de Usuários". Entre como RH: aparecem os quatro.
+
+**Conferir no export:** cada `entry` em `lists.apx` com `security { authorizationScheme: @... }`.
+
+### 9.3 CSS do ambiente atrás da fonte do módulo (Recomendado)
+
+**Situação:** `modulos/historico-carreira/historico-carreira.css` tem a regra de margem para `.t-IRR-region` nas páginas com `data-hc` (`margin: 24px 32px`, e `16px` no celular). A versão do ambiente (`corlixhub/shared-components/static-files/historico-carreira.css`) só tem a de `.t-Region` (`0 32px 32px`). Sem ela, o Interactive Report das páginas 19 e 20 fica encostado nas bordas.
+
+**Passo a passo:**
+1. Shared Components › **Static Application Files**.
+2. Clique em `historico-carreira.css` › **Edit**, cole o conteúdo de `modulos/historico-carreira/historico-carreira.css` e salve. Se a tela não tiver Edit, apague o arquivo e faça **Create File** com o mesmo nome (confirmar no 26.1.5).
+3. Faça o mesmo com `historico-carreira.min.css`, colando a versão minificada do mesmo arquivo.
+4. Recarregue a p19 e a p20 com Ctrl+F5.
+
+**Testar:** na p20, a lista de solicitações e a de formações têm a mesma margem lateral dos gráficos.
+
+### 9.4 Página 18 · Movimentação (Recomendado)
+
+1. **Rótulo do botão e mensagem trocados.** O export de 18/10/2026 tem o botão `EXCLUIR` com o rótulo "Rascunho excluído" e o processo com a mensagem "Excluir rascunho".
+   - Clique no botão **EXCLUIR** › Identification › **Label**: `Excluir rascunho`.
+   - Aba **Processing** › processo **Excluir rascunho** › **Success Message**: `Rascunho excluído.`
+2. **Duas mensagens ao efetivar** (cosmético). Efetivar numa movimentação nova mostra "Rascunho salvo." e "Movimentação efetivada.".
+   - Processo **Salvar movimentação** › Success Message: apague o texto.
+   - Processing › clique com o botão direito em **Processing** › **Create Process**: Name `Mensagem do rascunho` · Type **Execute Code** · PL/SQL Code `null;` · Sequence `15` · Server-side Condition › **When Button Pressed** `SALVAR_RASCUNHO` · Success Message `Rascunho salvo.`
+   - Ordem final: Salvar movimentação (10) → Mensagem do rascunho (15) → Efetivar (20) → Estornar (30) → Excluir rascunho (40) → Fechar (50).
+3. **Opção vazia do tipo.** `P18_ID_TIPO_MOVIMENTACAO` não tem valor nulo: a lista pode abrir já com o primeiro tipo. Item › List of Values › **Display Null Value: On** · **Null Display Value**: `- Selecione -` (confirmar no 26.1.5).
+4. **Wait For Result.** Na DA "Tipo mudou", ação **Buscar código do tipo** (Set Value): confira que **Wait For Result** está **On** (o export não mostra o valor padrão). Sem ele, "Ajustar campos" pode rodar antes de `P18_CD_TIPO` mudar.
+
+**Testar:** abra uma movimentação nova: o tipo aparece "- Selecione -". Salve um rascunho: só "Rascunho salvo.". Efetive: só "Movimentação efetivada.". Exclua um rascunho: o botão diz "Excluir rascunho" e a mensagem "Rascunho excluído.".
+
+### 9.5 Página 22 · Solicitar correção (Recomendado)
+
+1. **Processo "Colaborador logado".** Before Header › **Colaborador logado** › PL/SQL Code: troque pelo código da §6 (com `upper(trim(...))` e `when no_data_found or too_many_rows`). Por que: igual à p13, um login com espaço ou duplicado mostraria erro técnico.
+2. **Asterisco de obrigatório.** `P22_DS_MENSAGEM` › Appearance › Template: **Required - Floating**.
+3. **Posição dos botões** (cosmético). `CANCELAR` › Layout › Slot **Close**; `ENVIAR` › Slot **Next**. Renomeie a região `Contêiner de Botões` para `Botões`.
+4. **Breadcrumb sobrando** (cosmético). Shared Components › **Breadcrumbs** › Breadcrumb › apague a entrada "Solicitar correção" (a modal não tem mais região de breadcrumb).
+
+**Testar:** a modal mostra o asterisco em "O que está incorreto?", Cancelar à esquerda e Enviar à direita.
+
+### 9.6 Página 23 · Responder solicitação (Cosmético)
+
+1. `P23_ST_SOLICITACAO` › Appearance › Template: **Required - Floating** (o Value Required já está On).
+2. DA **Click** (do Cancelar) › renomeie a DA e a ação para `Cancelar`.
+
+### 9.7 Autorizações sem mensagem própria (Cosmético)
+
+Shared Components › **Authorization Schemes**:
+- `COLABORADOR` › **Error Message**: `Sua conta não está vinculada a um colaborador desta empresa.`
+- `GESTOR` › **Error Message**: `Acesso restrito a gestores.`
+
+**Testar:** com uma conta da equipe (sem colaborador), abra a p13 pela URL: aparece a mensagem acima, e não a padrão do APEX.
+
+### 9.8 Página 21 · Formação (Recomendado)
+
+- Botão **DELETE** › **Confirmation › Message**: `Excluir esta formação? O anexo também será apagado.` Hoje ele usa `&APP_TEXT$DELETE_MSG!RAW.`, que aparece em inglês porque o idioma técnico da app é `en`.
+
+### 9.9 Nomes, aliases e IDs (Cosmético)
+
+Nenhum destes muda o comportamento. Os links do módulo usam o **número** da página (`apex_page.get_url`), então trocar o alias não quebra nenhum link.
+
+| Página | Onde | De | Para |
+|---|---|---|---|
+| 13 | Page › Identification › Alias | `HISTÓRICO-DE-CARREIRA` | `HISTORICO-DE-CARREIRA` |
+| 13 | Botões `FORMACOES` e `NOVA_MOVIMENTACAO` › Security › Authorization | (vazio) | `ADMIN_RH` (a região já protege; é uma segunda proteção, §2.6) |
+| 19 | Região do IR › Link › Link Icon | `aria-label="Edit" title="Edit"` | `aria-label="Editar" title="Editar"` |
+| 19 | Região do IR › Messages › When More Data Found | texto em inglês | `O relatório passou do limite de #MAX_ROW_COUNT# linhas. Use um filtro.` |
+| 19 | Região `Header` › Name | `Header` | `Cabeçalho` |
+| 21 | Page › Alias | `FORMAÇÃO` | `FORMACAO` |
+| 21 | Região `Buttons` › Name | `Buttons` | `Botões` |
+| 21 | `P21_BL_ANEXO` e itens de data › Validation › Maximum Length | `255` | vazio (sobra do assistente, sem efeito) |
+| 20 | Região "Tempo médio no cargo" › Advanced › Static ID | `tempo-médio-no-cargo-por-departamento` | `grafico_tempo_cargo` |
+| 20 | Região "Formações a vencer" › Static ID | `formações-a-vencer` | `rel_formacoes_vencer` |
+| 20 | Região "Solicitações de correção abertas" › Static ID | `solicitações-de-correção-abertas` | `rel_solicitacoes` |
+| 20 | DA "Período mudou" › ação seq 20 › Name | `True` | `Atualizar turnover` |
+| 20 | DA "Atualizar solicitações" › ação › Name | `True` | `Atualizar lista` |
+| 20 | Eixo `y` do turnover › Minor Ticks › Rendered | (padrão) | **Off** (§5.2, Passo 4) |
+
+Depois de trocar o Static ID das regiões da p20, abra a DA "Atualizar solicitações" e confira que o Event e o Affected Element continuam apontando para a região. O Builder guarda a referência pelo id interno, mas o export passa a mostrar o nome novo (`region: @rel_solicitacoes`).
+
+### 9.10 O que ficou fora
+
+- **Página 2 · Meu perfil** e **Página 12 · Colaboradores** ainda são placeholders. O botão "Meu histórico" e a coluna "Histórico" (§7, itens 2 e 3) entram quando essas páginas forem montadas.
+- **Botão "Histórico de carreira" da p14:** configurado, mas não aparece enquanto a p14 só cadastrar (§7, item 1).

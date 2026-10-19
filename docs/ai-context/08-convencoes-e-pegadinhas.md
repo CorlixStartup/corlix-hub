@@ -76,6 +76,8 @@
 - `vw_org_colaborador` não filtra por empresa, e o drawer de detalhes não verifica permissão.
 - `G_ID_EMPRESA` só é preenchido depois de um novo login. Sem esse item, toda chamada a `pkg_historico_carreira` dentro de uma sessão APEX falha com `-20012`.
 - A p14 chama `registrar_admissao_automatica` (processo "Registrar admissão", seq 15) desde 18/10/2026.
+- Os erros do módulo de carreira (-20001 a -20099) aparecem com "ORA-" porque o `log_pkg.apex_error_handler` não delega para `pkg_historico_carreira.fn_tratar_erro`. Correção no guia do módulo, §9.1.
+- `corlixhub/shared-components/static-files/` traz a versão do CSS que está **no ambiente**. Ao mudar `modulos/historico-carreira/historico-carreira.css`, reenvie `.css` e `.min.css` pelo Builder (guia §2.3 e §9.3).
 - O botão "Histórico de carreira" da p14 nunca aparece: a página só cadastra, e o branch pós-salvar limpa `P14_ID_COLABORADOR`.
 - `COMUNICADO.TITULO` aceita até 200 caracteres no formulário (p17), mas o package corta em 100.
 - O README do módulo de carreira fala em "nove códigos padrão" de movimentação, mas o seed cria 11.
