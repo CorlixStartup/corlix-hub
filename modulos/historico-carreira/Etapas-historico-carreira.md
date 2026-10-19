@@ -117,7 +117,7 @@ A aplicação já usa `log_pkg.apex_error_handler` como Error Handling Function.
     return pkg_historico_carreira.fn_tratar_erro(p_error);
   end if;
   ```
-  O `LOG_PKG` está em `database/ddl/09-plsql-corpos.sql` (snapshot gerado pelo backup; não é instalador). Em 18/10/2026 ele **ainda não delegava**: o passo a passo está na §9.1.
+  O `LOG_PKG` está em `database/ddl/09-plsql-corpos.sql` (snapshot gerado pelo backup; não é instalador). A delegação foi aplicada em 19/10/2026 (backup das 09:11). O passo a passo está na §9.1, caso precise refazer em outro ambiente.
 - **Opção B:** nas páginas 18, 19 e 21, em *Page > Error Handling > Error Handling Function*, informe `pkg_historico_carreira.fn_tratar_erro`. Essas páginas deixam de passar pelo `log_pkg` nesse caso.
 
 ### 1.4 Listas de valores (Shared Components > List of Values)
@@ -2557,7 +2557,7 @@ Teste com pelo menos três logins: um **RH** (papel `ADMIN_RH`), um **gestor** c
 Itens que a validação de 18/10/2026 encontrou faltando ou não conseguiu conferir pelos exports. O passo a passo de cada ajuste no ambiente está na **§9**.
 
 - [ ] **Página 18 · log de acesso salarial (§3.6).** Confira que o processo "Registrar acesso salarial" existe na p18: Before Header · Sequence 20 (depois do *Initialize form*, que carrega os itens) · Authorization `ADMIN_RH` · Server-side Condition **Item is NOT NULL** `P18_ID_HISTORICO_CARREIRA`. O código vai em *Source › PL/SQL Code*, com `;` no final. Sem ele, só a p13 grava em `LOG_ACESSO_SALARIAL`.
-- [ ] **Erros sem "ORA-" (§1.3).** Em 18/10/2026 o `log_pkg.apex_error_handler` (`database/ddl/09-plsql-corpos.sql`) **não** delegava para o módulo: aplique a §9.1. Para conferir no banco:
+- [ ] **Erros sem "ORA-" (§1.3).** Desde 19/10/2026 o `log_pkg.apex_error_handler` (`database/ddl/09-plsql-corpos.sql`) delega para o módulo (§9.1). Para conferir no banco:
   ```sql
   select line, text from user_source
    where name = 'LOG_PKG' and upper(text) like '%FN_TRATAR_ERRO%'
@@ -2635,13 +2635,17 @@ Itens que a validação de 18/10/2026 encontrou faltando ou não conseguiu confe
 
 Resultado da validação completa do módulo (§1 a §8) contra os exports de `corlixhub/` e os scripts de `modulos/historico-carreira/`, feita em 18/10/2026. O guia acima já foi corrigido onde estava desatualizado; esta seção lista **o que ainda precisa ser feito no ambiente**, na ordem de prioridade. Marque cada item depois de conferir no export do próximo backup.
 
+> **Atualização de 19/10/2026 (backup das 09:11):** a §9.1 (`log_pkg`) e a §9.3 (CSS) já estão no ambiente. Nenhum item bloqueia mais; ficam os recomendados e os cosméticos.
+
 | Gravidade | O que significa |
 |---|---|
 | **Bloqueia** | Um item do checklist (§8) falha |
 | **Recomendado** | Funciona, mas o usuário vê algo errado ou confuso |
 | **Cosmético** | Nome, texto ou ícone; não muda o comportamento |
 
-### 9.1 Erros do módulo sem "ORA-" (Bloqueia · item 8 do checklist)
+### 9.1 Erros do módulo sem "ORA-" (Bloqueia · item 8 do checklist) · ✅ aplicado em 19/10/2026
+
+> **Status:** o backup de 19/10/2026 às 09:11 já traz as três linhas no `database/ddl/09-plsql-corpos.sql`. Falta só o **Testar** abaixo. O passo a passo fica registrado para refazer em outro ambiente.
 
 **Situação:** o `LOG_PKG.apex_error_handler` (`database/ddl/09-plsql-corpos.sql`, função a partir da linha 37) só grava o log e devolve o `init_error_result`. Ele não repassa os erros -20001 a -20099 para `pkg_historico_carreira.fn_tratar_erro`, então uma promoção sem cargo novo mostra "ORA-20005: ..." em vez da mensagem simples. As páginas 18, 19 e 21 também não têm Error Handling próprio (opção B da §1.3).
 
@@ -2688,7 +2692,9 @@ Sobre "Solicitar correção": a entrada abre a p22 sem parâmetro, o que funcion
 
 **Conferir no export:** cada `entry` em `lists.apx` com `security { authorizationScheme: @... }`.
 
-### 9.3 CSS do ambiente atrás da fonte do módulo (Recomendado)
+### 9.3 CSS do ambiente atrás da fonte do módulo (Recomendado) · ✅ aplicado em 19/10/2026
+
+> **Status:** o backup de 19/10/2026 às 09:11 trouxe a regra de `.t-IRR-region` para os static files (margem `24px 32px`, e `16px` no celular, junto com `.t-Region`). Falta só o **Testar** abaixo.
 
 **Situação:** `modulos/historico-carreira/historico-carreira.css` tem a regra de margem para `.t-IRR-region` nas páginas com `data-hc` (`margin: 24px 32px`, e `16px` no celular). A versão do ambiente (`corlixhub/shared-components/static-files/historico-carreira.css`) só tem a de `.t-Region` (`0 32px 32px`). Sem ela, o Interactive Report das páginas 19 e 20 fica encostado nas bordas.
 
