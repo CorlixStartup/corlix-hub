@@ -215,12 +215,6 @@ page 20 (
     region grafico_turnover (
         name: Turnover: admissões x desligamentos por mês
         type: chart
-        source {
-            pageItemsToSubmit: [
-                P20_DT_INICIO
-                P20_DT_FIM
-            ]
-        }
         layout {
             sequence: 25
             slot: body
@@ -349,6 +343,9 @@ page 20 (
             }
             majorTicks {
                 minStep: 1
+            }
+            minorTicks {
+                show: false
             }
         )
 
@@ -665,7 +662,7 @@ page 20 (
         column ID_SOLICITACAO (
             type: hidden
             heading {
-                heading: Responder
+                heading: ID Solicitação
             }
             layout {
                 sequence: 10
@@ -708,6 +705,7 @@ page 20 (
                     items: {
                         P23_ID_SOLICITACAO: #ID_SOLICITACAO#
                     }
+                    clearCache: 23
                 }
                 linkText: #RESPONDER#
             }
@@ -881,7 +879,7 @@ page 20 (
         }
 
         action período-mudou-verdadeiro (
-            name: Período mudou - Verdadeiro
+            name: Atualizar promoções
             action: refresh
             affectedElements {
                 selectionType: region
