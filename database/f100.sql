@@ -36,14 +36,14 @@ prompt APPLICATION 100 - Corlix Hub
 --   Exported By:     WKSP_CORLIXHUB
 --   Flashback:       0
 --   Export Type:     Application Export
---     Pages:                     26
+--     Pages:                     25
 --       Items:                  104
 --       Computations:             1
 --       Validations:             11
 --       Processes:               41
---       Regions:                 74
---       Buttons:                 37
---       Dynamic Actions:         22
+--       Regions:                 63
+--       Buttons:                 35
+--       Dynamic Actions:         21
 --     Shared Components:
 --       Logic:
 --         Items:                  7
@@ -117,7 +117,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461334014030
-,p_version_scn=>'47049087416884'
+,p_version_scn=>'47049088599836'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -302,7 +302,7 @@ wwv_flow_imp_shared.create_list(
  p_id=>wwv_flow_imp.id(10016114704229685)
 ,p_name=>'Navigation Menu'
 ,p_static_id=>'navigation-menu'
-,p_version_scn=>'SH256:SouPwG5DyCc75txmpi-xyF3ZiB8UOZ3qGzOj2IbL_pw'
+,p_version_scn=>'SH256:XD5W5PhCPGsOZl9FNRzssl7SFiFL07uvzGdk-mzpVS8'
 );
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(10300139268463692)
@@ -367,18 +367,6 @@ wwv_flow_imp_shared.create_list_item(
 ,p_list_item_current_for_pages=>'20'
 );
 wwv_flow_imp_shared.create_list_item(
- p_id=>wwv_flow_imp.id(9243823976112731)
-,p_list_item_display_sequence=>80
-,p_list_item_link_text=>'Emitir Comunicado'
-,p_static_id=>'emitir-comunicado'
-,p_list_item_link_target=>'f?p=&APP_ID.:17:&SESSION.::&DEBUG.::::'
-,p_list_item_icon=>'fa-magic'
-,p_parent_list_item_id=>wwv_flow_imp.id(10027834603229832)
-,p_security_scheme=>wwv_flow_imp.id(10412382793426827)
-,p_list_item_current_type=>'COLON_DELIMITED_PAGE_LIST'
-,p_list_item_current_for_pages=>'17'
-);
-wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(9982701530177537)
 ,p_list_item_display_sequence=>110
 ,p_list_item_link_text=>'Empresas Cadastradas'
@@ -401,22 +389,14 @@ wwv_flow_imp_shared.create_list_item(
 ,p_list_item_current_for_pages=>'13'
 );
 wwv_flow_imp_shared.create_list_item(
- p_id=>wwv_flow_imp.id(10027834603229832)
-,p_list_item_display_sequence=>1000
-,p_list_item_link_text=>'Home'
-,p_static_id=>'home'
-,p_list_item_link_target=>'f?p=&APP_ID.:1000:&SESSION.::&DEBUG.::::'
-,p_list_item_icon=>'fa-home'
-,p_list_item_current_type=>'TARGET_PAGE'
-);
-wwv_flow_imp_shared.create_list_item(
- p_id=>wwv_flow_imp.id(39069948741366636)
-,p_list_item_display_sequence=>1
+ p_id=>wwv_flow_imp.id(39075568069437456)
+,p_list_item_display_sequence=>10
 ,p_list_item_link_text=>unistr('In\00EDcio')
 ,p_static_id=>unistr('in\00EDcio')
 ,p_list_item_link_target=>'f?p=&APP_ID.:1:&SESSION.::&DEBUG.::::'
 ,p_list_item_icon=>'fa-home'
-,p_list_item_current_type=>'TARGET_PAGE'
+,p_list_item_current_type=>'COLON_DELIMITED_PAGE_LIST'
+,p_list_item_current_for_pages=>'1'
 );
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(10217417131385177)
@@ -59804,294 +59784,24 @@ prompt --application/pages/page_00001
 begin
 wwv_flow_imp_page.create_page(
  p_id=>1
-,p_name=>'Home'
-,p_alias=>'HOME'
-,p_step_title=>'CorlixHub'
+,p_name=>unistr('In\00EDcio')
+,p_alias=>unistr('IN\00CDCIO')
+,p_step_title=>unistr('In\00EDcio')
 ,p_autocomplete_on_off=>'OFF'
-,p_javascript_code_onload=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'function carregarCapasComunicados() {',
-'    document.querySelectorAll(''.lista-de-comunicados img.a-CardView-mediaImg'').forEach(function (img, i) {',
-'        img.loading = ''eager'';',
-'        img.decoding = ''async'';',
-'        if (i === 0) {',
-'            img.fetchPriority = ''high'';',
-'        }',
-'    });',
-'}',
-'carregarCapasComunicados();',
-'$(''.lista-de-comunicados'').on(''apexafterrefresh'', carregarCapasComunicados);'))
-,p_step_template=>4073832297226169690
+,p_step_template=>wwv_flow_imp.id(19815602566775266)
 ,p_page_template_options=>'#DEFAULT#'
 ,p_protection_level=>'C'
 ,p_page_component_map=>'13'
 );
 wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(9374641660951626)
-,p_plug_name=>unistr('Todos os Aniversariantes do M\00EAs')
-,p_static_id=>'POPUP_ANIVERSARIANTES'
-,p_title=>unistr('TODOS OS ANIVERSARIANTES DO M\00CAS')
-,p_region_css_classes=>'popup-todos-aniversariantes'
-,p_region_template_options=>'#DEFAULT#:js-dialog-autoheight:js-dialog-size600x400'
-,p_plug_template=>2674150083631647148
-,p_plug_display_sequence=>50
-,p_plug_display_point=>'REGION_POSITION_04'
-,p_plug_item_display_point=>'ABOVE'
-,p_query_type=>'SQL'
-,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'SELECT',
-'    ID_COLABORADOR,',
-'    NOME_COMPLETO,',
-'    DATA_DE_NASCIMENTO,',
-'',
-'    -- Retorna o caminho exato corrigido e validado para o APEX',
-'    CASE',
-'        WHEN FOTO_URL IS NULL',
-'             OR FOTO_URL = ''#APP_FILES#Fotos Colaboradores/''',
-'        THEN',
-'            ''#APP_FILES#Fotos Colaboradores/''',
-'        ELSE',
-'            ''#APP_FILES#Fotos Colaboradores/'' || FOTO_URL',
-'    END AS FOTO_URL,',
-'',
-unistr('    -- Seu v\00EDnculo de NOME limpo para o HTML Expression'),
-'    NOME_COMPLETO AS NOME,',
-'',
-unistr('    -- Seu v\00EDnculo de DESCRICAO limpa para o HTML Expression'),
-'    CASE',
-'        WHEN TO_CHAR(DATA_DE_NASCIMENTO, ''MMDD'') =',
-'             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE), ''MMDD'')',
-'        THEN ''Hoje''',
-'',
-'        WHEN TO_CHAR(DATA_DE_NASCIMENTO, ''MMDD'') =',
-'             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE) + 1, ''MMDD'')',
-unistr('        THEN ''Amanh\00E3, '' || TO_CHAR(DATA_DE_NASCIMENTO, ''DD'') || '' de '' ||'),
-'             RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, ''Month'', ''NLS_DATE_LANGUAGE=PORTUGUESE''))',
-'',
-'        ELSE TO_CHAR(DATA_DE_NASCIMENTO, ''DD'') || '' de '' ||',
-'             RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, ''Month'', ''NLS_DATE_LANGUAGE=PORTUGUESE''))',
-'    END AS DESCRICAO,',
-'',
-unistr('    -- Seu v\00EDnculo de classe CSS condicional'),
-'    CASE',
-'        WHEN TO_CHAR(DATA_DE_NASCIMENTO, ''MMDD'') =',
-'             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE), ''MMDD'')',
-'        THEN ''is-birthday-today''',
-'        ELSE ''is-normal-day''',
-'    END AS CSS_NIVER_HOJE,',
-'',
-unistr('    -- Seu c\00F3digo original do m\00EAs corrente'),
-'    RTRIM(',
-'        INITCAP(',
-'            TO_CHAR(',
-'                CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE),',
-'                ''Month'',',
-'                ''NLS_DATE_LANGUAGE=PORTUGUESE''',
-'            )',
-'        )',
-'    ) AS MES_CORRENTE',
-'',
-'FROM COLABORADOR',
-'',
-'WHERE TO_CHAR(DATA_DE_NASCIMENTO, ''MM'') =',
-'      TO_CHAR(',
-'          CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE),',
-'          ''MM''',
-'      )',
-'',
-'  AND EXTRACT(DAY FROM DATA_DE_NASCIMENTO) >=',
-'      EXTRACT(DAY FROM CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE))',
-'',
-'ORDER BY EXTRACT(DAY FROM DATA_DE_NASCIMENTO)'))
-,p_lazy_loading=>true
-,p_plug_source_type=>'NATIVE_CARDS'
-,p_plug_query_num_rows_type=>'SCROLL'
-,p_show_total_row_count=>false
-);
-wwv_flow_imp_page.create_card(
- p_id=>wwv_flow_imp.id(25416786942476816)
-,p_region_id=>wwv_flow_imp.id(9374641660951626)
-,p_layout_type=>'GRID'
-,p_title_adv_formatting=>true
-,p_title_html_expr=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'<div class="figma-row &CSS_NIVER_HOJE.">',
-unistr('    <!-- Foto Circular com Fallback Corrigido para Usu\00E1rio Padr\00E3o -->'),
-'    <div class="figma-avatar-wrapper">',
-'        <img src="&FOTO_URL." class="figma-avatar-img" onerror="this.onerror=null; this.src=''https://dicebear.com.'';">',
-'    </div>',
-'    ',
-'    <!-- Bloco de Texto Empilhado -->',
-'    <div class="figma-info-wrapper">',
-'        <span class="figma-name-text">&NOME.</span>',
-'        <span class="figma-date-text">',
-'            &DESCRICAO.',
-unistr('            <!-- O bolo s\00F3 aparece se for HOJE atrav\00E9s do CSS condicional -->'),
-unistr('            <span class="figma-cake-icon">\D83C\DF82</span>'),
-'        </span>',
-'    </div>',
-'</div>'))
-,p_sub_title_adv_formatting=>false
-,p_body_adv_formatting=>false
-,p_second_body_adv_formatting=>false
-,p_media_adv_formatting=>false
-,p_media_css_classes=>'u-circle'
-,p_pk1_column_name=>'ID_COLABORADOR'
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(9289454531503202)
-,p_plug_name=>'emitir_comunicado'
-,p_static_id=>'botao-emitir-comunicado'
-,p_parent_plug_id=>wwv_flow_imp.id(10212189338327026)
-,p_region_template_options=>'#DEFAULT#'
-,p_plug_template=>4502917002193490937
-,p_plug_display_sequence=>10
-,p_plug_grid_column_css_classes=>'emitir-comunicado'
-,p_plug_display_point=>'SUB_REGIONS'
-,p_plug_item_display_point=>'ABOVE'
-,p_location=>null
-,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
-  'expand_shortcuts', 'N',
-  'output_as', 'HTML')).to_clob
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(10213930955327044)
-,p_plug_name=>'card_aniversariantes'
-,p_static_id=>'card-aniversariantes'
-,p_parent_plug_id=>wwv_flow_imp.id(10213727731327042)
-,p_region_template_options=>'#DEFAULT#'
-,p_plug_template=>4502917002193490937
-,p_plug_display_sequence=>50
-,p_plug_grid_column_css_classes=>'card-default card-aniversariantes'
-,p_plug_item_display_point=>'ABOVE'
-,p_location=>null
-,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'<div',
-'    style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 16px 16px 12px 16px; font-family: ''Segoe UI'', sans-serif; box-sizing: border-box;">',
-'',
-unistr('    <!-- T\00EDtulo Principal alinhado -->'),
-'    <h3 style="margin: 0; text-transform: uppercase;">Aniversariantes</h3>',
-'',
-unistr('    <!-- Badge Din\00E2mico do M\00EAs -->'),
-'    <span class="figma-badge-mes cx-badge cx-badge--info"></span>',
-'</div>'))
-,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
-  'expand_shortcuts', 'N',
-  'output_as', 'HTML')).to_clob
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(10210251712327007)
-,p_plug_name=>'card_boas_vindas'
-,p_static_id=>'card-boas-vindas'
-,p_parent_plug_id=>wwv_flow_imp.id(10213652689327041)
-,p_region_template_options=>'#DEFAULT#'
-,p_plug_template=>4502917002193490937
-,p_plug_display_sequence=>10
-,p_plug_grid_column_css_classes=>'card-default card-boas-vindas'
-,p_plug_display_point=>'SUB_REGIONS'
-,p_plug_item_display_point=>'ABOVE'
-,p_location=>null
-,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
-unistr('<h1>Bem-vindo, &G_NOME_USUARIO.! \D83D\DC4B</h1>'),
-'<p>Sua jornada de carreira na <a href="#" class="link-empresa">&G_NOME_EMPRESA.</a>',
-unistr('    est\00E1 indo muito bem. Veja o que temos para hoje.</p>')))
-,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
-  'expand_shortcuts', 'N',
-  'output_as', 'HTML')).to_clob
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(10212053712327025)
-,p_plug_name=>'card_comunicados_oficiais'
-,p_static_id=>'card-comunicados-oficiais'
-,p_title=>'Comunicados Oficiais'
-,p_parent_plug_id=>wwv_flow_imp.id(10213652689327041)
+ p_id=>wwv_flow_imp.id(77327930780757662)
+,p_plug_name=>'Coluna lateral'
+,p_static_id=>'coluna-lateral'
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>4502917002193490937
 ,p_plug_display_sequence=>30
-,p_plug_grid_column_css_classes=>'card-default card-comunicados-oficiais'
-,p_plug_display_point=>'SUB_REGIONS'
-,p_plug_item_display_point=>'ABOVE'
-,p_location=>null
-,p_plug_source=>'<h2> Comunicados Oficiais </h2>'
-,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
-  'expand_shortcuts', 'N',
-  'output_as', 'HTML')).to_clob
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(10213522252327040)
-,p_plug_name=>'card_meu_gestor'
-,p_static_id=>'card-meu-gestor'
-,p_title=>'Meu Gestor'
-,p_parent_plug_id=>wwv_flow_imp.id(10213727731327042)
-,p_region_css_classes=>'card-default card-meu-gestor'
-,p_region_template_options=>'#DEFAULT#:t-CardsRegion--hideHeader js-addHiddenHeadingRoleDesc'
-,p_plug_template=>2074200852440250129
-,p_plug_display_sequence=>10
-,p_plug_item_display_point=>'ABOVE'
-,p_query_type=>'SQL'
-,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'SELECT',
-'    CG.NOME AS NOME_CARGO,',
-'    G.PRIMEIRO_NOME || '' '' || G.ULTIMO_NOME AS NOME_GESTOR,',
-'    CASE',
-'        WHEN TRIM(G.FOTO_URL) IS NULL',
-'             OR G.FOTO_URL = ''#APP_FILES#Fotos Colaboradores/'' THEN',
-'            NULL',
-'        ELSE',
-'            ''#APP_FILES#Fotos Colaboradores/'' || G.FOTO_URL',
-'    END AS FOTO_GESTOR,',
-'    UPPER(',
-'        SUBSTR(TRIM(NVL(G.PRIMEIRO_NOME, G.NOME_COMPLETO)), 1, 1) ||',
-'        SUBSTR(TRIM(NVL(G.ULTIMO_NOME,',
-'            SUBSTR(TRIM(G.NOME_COMPLETO), NULLIF(INSTR(TRIM(G.NOME_COMPLETO), '' '', -1), 0) + 1))), 1, 1)',
-'    ) AS INICIAIS_GESTOR',
-'FROM COLABORADOR C',
-'JOIN COLABORADOR G',
-'    ON G.ID_COLABORADOR = C.ID_GESTOR',
-'   AND G.ID_EMPRESA = C.ID_EMPRESA',
-'LEFT JOIN CARGO CG',
-'    ON CG.ID_CARGO = G.ID_CARGO',
-'WHERE UPPER(TRIM(C.LOGIN_APEX)) = UPPER(TRIM(:APP_USER))',
-'  AND C.ID_EMPRESA = :G_ID_EMPRESA'))
-,p_lazy_loading=>false
-,p_plug_source_type=>'NATIVE_CARDS'
-,p_plug_query_num_rows_type=>'SCROLL'
-,p_show_total_row_count=>false
-,p_plug_header=>'<h3>Meu gestor</h3>'
-,p_plug_footer=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'<div style="display:flex;flex-direction:row;align-items:center;gap:8px;justify-content:center;">',
-'    <a href="#" style="background-color:#F6F6F8;padding:8px 55px;border-radius:8px;color:#111318;font-size:14px;font-weight:bold;">Chat</a>',
-'    <a href="#" style="background-color:#F6F6F8;padding:8px 55px;border-radius:8px;color:#111318;font-size:14px;font-weight:bold;">E-mail</a>',
-'</div>'))
-);
-wwv_flow_imp_page.create_card(
- p_id=>wwv_flow_imp.id(9206723220147850)
-,p_region_id=>wwv_flow_imp.id(10213522252327040)
-,p_layout_type=>'GRID'
-,p_title_adv_formatting=>true
-,p_title_html_expr=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'<div style="display:flex;flex-direction:row;align-items:center;gap:16px;margin-bottom:0;">',
-'    <img src="&FOTO_GESTOR." alt="" class="figma-avatar-img" onerror="this.onerror=null; this.style.display=''none''; this.nextElementSibling.style.display='''';">',
-'    <span class="figma-avatar-img cx-avatar-iniciais" aria-hidden="true" style="display:none">&INICIAIS_GESTOR.</span>',
-'',
-'    <div style="display:flex;flex-direction:column;">',
-'        <span style="font-size:14px;font-weight:bold;color:#111318;margin-bottom:8px;">&NOME_GESTOR.</span>',
-'        <span style="font-size:12px;color:#636F88;">&NOME_CARGO.</span>',
-'    </div>',
-'</div>'))
-,p_sub_title_adv_formatting=>false
-,p_body_adv_formatting=>false
-,p_second_body_adv_formatting=>false
-,p_media_adv_formatting=>false
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(10213727731327042)
-,p_plug_name=>'container-conteudo-diversos'
-,p_static_id=>'container-conteudo-diversos'
-,p_region_template_options=>'#DEFAULT#'
-,p_plug_template=>4502917002193490937
-,p_plug_display_sequence=>40
 ,p_plug_new_grid_row=>false
 ,p_plug_grid_column_span=>4
-,p_plug_grid_column_css_classes=>'container-conteudo-diversos'
 ,p_plug_item_display_point=>'ABOVE'
 ,p_location=>null
 ,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
@@ -60099,334 +59809,197 @@ wwv_flow_imp_page.create_page_plug(
   'output_as', 'HTML')).to_clob
 );
 wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(10213652689327041)
-,p_plug_name=>'container-conteudo-principal'
-,p_static_id=>'container-conteudo-principal'
-,p_region_template_options=>'#DEFAULT#'
-,p_plug_template=>4502917002193490937
-,p_plug_display_sequence=>10
-,p_plug_grid_column_span=>8
-,p_plug_grid_column_css_classes=>'.container-conteudo-principal'
-,p_plug_item_display_point=>'ABOVE'
-,p_location=>null
-,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
-  'expand_shortcuts', 'N',
-  'output_as', 'HTML')).to_clob
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(10212189338327026)
-,p_plug_name=>'lista_de_comunicados'
-,p_static_id=>'id-lista-de-comunicados'
-,p_parent_plug_id=>wwv_flow_imp.id(10212053712327025)
-,p_region_template_options=>'#DEFAULT#:t-CardsRegion--hideHeader js-addHiddenHeadingRoleDesc'
-,p_plug_template=>wwv_flow_imp.id(10205076729845143)
-,p_plug_display_sequence=>30
-,p_plug_grid_column_css_classes=>'lista-de-comunicados'
+ p_id=>wwv_flow_imp.id(77329169207757675)
+,p_plug_name=>'Aniversariantes'
+,p_static_id=>'home_aniversariantes'
+,p_title=>'<span class="fa fa-birthday-cake" aria-hidden="true"></span>Aniversariantes de &P28_MES_ATUAL.'
+,p_parent_plug_id=>wwv_flow_imp.id(77327930780757662)
+,p_region_css_classes=>'cx-home-card'
+,p_region_template_options=>'#DEFAULT#:t-Region--noPadding:t-Region--scrollBody'
+,p_plug_template=>4073835273271169698
+,p_plug_display_sequence=>20
 ,p_plug_display_point=>'SUB_REGIONS'
+,p_plug_item_display_point=>'ABOVE'
+,p_location=>null
+,p_function_body_language=>'PLSQL'
+,p_plug_source=>'return pkg_home_ui.render_aniversariantes;'
+,p_lazy_loading=>false
+,p_plug_source_type=>'NATIVE_DYNAMIC_CONTENT'
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(77328273993757666)
+,p_plug_name=>'Comunicados'
+,p_static_id=>'home_comunicados'
+,p_title=>unistr('Comunicados<span class="cx-home-card__subtitulo">Publica\00E7\00F5es oficiais da empresa</span>')
+,p_region_css_classes=>'cx-home-card cx-home-comunicados'
+,p_region_template_options=>'#DEFAULT#:t-Region--noPadding:t-Region--scrollBody'
+,p_plug_template=>4073835273271169698
+,p_plug_display_sequence=>20
+,p_plug_grid_column_span=>8
 ,p_plug_item_display_point=>'ABOVE'
 ,p_query_type=>'SQL'
 ,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'SELECT',
-'  c.ID_COMUNICADO,',
-'  c.TITULO,',
-'  DBMS_LOB.SUBSTR(c.CONTEUDO, 250, 1) CONTEUDO,',
-'  c.DATA_PUBLICACAO,',
-'  c.IMAGEM,',
-'  c.MIME_TYPE,',
-'  c.NOME_ARQUIVO,',
-'  NVL(d.NOME, ''Geral'') DEPARTAMENTO,',
-'  ''dept-'' || NVL(TO_CHAR(MOD(d.ID_DEPARTAMENTO, 6)), ''geral'') CLASSE_DEPTO,',
-'  CASE TRUNC(SYSDATE) - TRUNC(c.DATA_PUBLICACAO)',
-'    WHEN 0 THEN ''Hoje''',
-'    WHEN 1 THEN ''Ontem''',
-unistr('    ELSE TO_CHAR(TRUNC(SYSDATE) - TRUNC(c.DATA_PUBLICACAO)) || '' dias atr\00E1s'''),
-'  END TEMPO_PUBLICACAO',
-'FROM COMUNICADO c',
-'LEFT JOIN DEPARTAMENTO d',
-'  ON d.ID_DEPARTAMENTO = c.ID_DEPARTAMENTO',
-'ORDER BY c.DATA_PUBLICACAO DESC',
-'FETCH FIRST 3 ROWS ONLY;',
-' '))
+'select c.id_comunicado,',
+'       c.titulo,',
+'       -- resumo em texto puro: tira as tags do editor e corta em 220 caracteres',
+'       substr(trim(regexp_replace(regexp_replace(dbms_lob.substr(c.conteudo, 1000, 1),',
+'                                                 ''<[^>]+>'', '' ''),',
+'                                  ''\s+'', '' '')), 1, 220) as resumo,',
+'       c.imagem,',
+'       c.mime_type,',
+'       ''Para: '' || nvl(d.nome, ''Todos'') as publico,',
+'       to_char(c.data_publicacao, ''fmdd'') || '' de ''',
+'         || to_char(c.data_publicacao, ''fmmonth'', ''NLS_DATE_LANGUAGE=''''BRAZILIAN PORTUGUESE'''''')',
+'         || case when extract(year from c.data_publicacao) <> extract(year from sysdate)',
+'                 then '' de '' || to_char(c.data_publicacao, ''yyyy'')',
+'            end as data_publicacao_txt',
+'  from comunicado c',
+'  left join departamento d',
+'    on d.id_departamento = c.id_departamento',
+' where c.id_empresa = :G_ID_EMPRESA',
+' order by c.data_publicacao desc, c.id_comunicado desc',
+' fetch first 3 rows only',
+''))
 ,p_lazy_loading=>false
 ,p_plug_source_type=>'NATIVE_CARDS'
 ,p_plug_query_num_rows_type=>'SCROLL'
+,p_plug_query_no_data_found=>unistr('Nenhum comunicado publicado. Os comunicados oficiais aparecer\00E3o aqui.')
 ,p_show_total_row_count=>false
 );
 wwv_flow_imp_page.create_card(
- p_id=>wwv_flow_imp.id(10213244379327037)
-,p_region_id=>wwv_flow_imp.id(10212189338327026)
+ p_id=>wwv_flow_imp.id(39078148319437479)
+,p_region_id=>wwv_flow_imp.id(77328273993757666)
 ,p_layout_type=>'ROW'
 ,p_title_adv_formatting=>true
 ,p_title_html_expr=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'<div class="cmt-meta">',
-'  <span class="cmt-badge &CLASSE_DEPTO.">&DEPARTAMENTO.</span>',
-'  <span class="cmt-date">&TEMPO_PUBLICACAO.</span>',
-'</div>',
-'<div class="cmt-title">&TITULO.</div>'))
+'<span class="cx-home-comunicado__meta">',
+'  <span class="cx-etiqueta">&PUBLICO.</span>',
+'  <span>&DATA_PUBLICACAO_TXT.</span>',
+'</span>',
+'<span class="cx-home-comunicado__titulo">&TITULO.</span>'))
 ,p_sub_title_adv_formatting=>false
 ,p_body_adv_formatting=>false
-,p_body_column_name=>'CONTEUDO'
+,p_body_column_name=>'RESUMO'
 ,p_second_body_adv_formatting=>false
 ,p_media_adv_formatting=>false
 ,p_media_source_type=>'BLOB'
 ,p_media_blob_column_name=>'IMAGEM'
 ,p_media_display_position=>'FIRST'
-,p_media_sizing=>'FIT'
-,p_media_css_classes=>'imagem-capa-comunicado'
+,p_media_sizing=>'COVER'
 ,p_pk1_column_name=>'ID_COMUNICADO'
 ,p_mime_type_column_name=>'MIME_TYPE'
 );
 wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(10213837105327043)
-,p_plug_name=>'card_links_rapidos'
-,p_static_id=>'links-rapidos'
-,p_parent_plug_id=>wwv_flow_imp.id(10213727731327042)
-,p_region_template_options=>'#DEFAULT#'
-,p_plug_template=>4502917002193490937
-,p_plug_display_sequence=>40
-,p_plug_grid_column_css_classes=>'card-default card-links-rapidos'
-,p_plug_item_display_point=>'ABOVE'
-,p_location=>null
-,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'<div class="links-rapidos-card">',
-unistr('  <h3>Links R\00E1pidos</h3>'),
-'',
-'  <div class="link-item" onclick="apex.navigation.redirect(''f?p=&APP_ID.:5:&SESSION.'')">',
-'    <span class="icon">',
-unistr('      <!-- \00CDcone Holerite -->'),
-'      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">',
-'        <rect x="1" y="3" width="16" height="12" rx="2" ry="2" stroke="#4f46e5" stroke-width="1.5" fill="none"/>',
-'        <circle cx="9" cy="9" r="2.5" fill="#4f46e5"/>',
-'        <line x1="1" y1="7" x2="17" y2="7" stroke="#4f46e5" stroke-width="1"/>',
-'        <line x1="1" y1="11" x2="17" y2="11" stroke="#4f46e5" stroke-width="1"/>',
-'      </svg>',
-'    </span>',
-'    <span class="text">Holerite Digital</span>',
-'    <span class="arrow"><i class="fa fa-chevron-right"></i></span>',
-'  </div>',
-'',
-'  <div class="link-item" onclick="apex.navigation.redirect(''f?p=&APP_ID.:6:&SESSION.'')">',
-'    <span class="icon">',
-unistr('      <!-- \00CDcone Rel\00F3gio -->'),
-'      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">',
-'        <circle cx="9" cy="9" r="7" stroke="#4f46e5" stroke-width="1.5" fill="none"/>',
-'        <path d="M9 5v4l3 2" stroke="#4f46e5" stroke-width="1.5" fill="none"/>',
-'      </svg>',
-'    </span>',
-unistr('    <span class="text">Ponto Eletr\00F4nico</span>'),
-'    <span class="arrow"><i class="fa fa-chevron-right"></i></span>',
-'  </div>',
-'',
-'  <div class="link-item" onclick="apex.navigation.redirect(''f?p=&APP_ID.:7:&SESSION.'')">',
-'    <span class="icon">',
-unistr('      <!-- \00CDcone Suporte -->'),
-'      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">',
-'        <path d="M9 2a7 7 0 0 0-7 7v3a1.5 1.5 0 0 0 1.5 1.5H5v-4H3v-1a6 6 0 0 1 12 0v1h-2v4h1.5A1.5 1.5 0 0 0 16 12V9a7 7 0 0 0-7-7z" fill="#4f46e5"/>',
-'      </svg>',
-'    </span>',
-'    <span class="text">Suporte TI</span>',
-'    <span class="arrow"><i class="fa fa-chevron-right"></i></span>',
-'  </div>',
-'</div>',
-''))
-,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
-  'expand_shortcuts', 'N',
-  'output_as', 'HTML')).to_clob
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(9374042765951620)
-,p_plug_name=>'lista_aniversariantes'
-,p_static_id=>'lista-aniversariantes'
-,p_parent_plug_id=>wwv_flow_imp.id(10213930955327044)
+ p_id=>wwv_flow_imp.id(77328180261757665)
+,p_plug_name=>unistr('In\00EDcio')
+,p_static_id=>'home_hero'
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>4502917002193490937
 ,p_plug_display_sequence=>10
+,p_plug_item_display_point=>'ABOVE'
+,p_location=>null
+,p_function_body_language=>'PLSQL'
+,p_plug_source=>'return pkg_home_ui.render_hero;'
+,p_lazy_loading=>false
+,p_plug_source_type=>'NATIVE_DYNAMIC_CONTENT'
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(77329078072757674)
+,p_plug_name=>'Meu gestor'
+,p_static_id=>'home_meu_gestor'
+,p_parent_plug_id=>wwv_flow_imp.id(77327930780757662)
+,p_region_css_classes=>'cx-home-card'
+,p_region_template_options=>'#DEFAULT#:t-Region--noPadding:t-Region--scrollBody'
+,p_plug_template=>4073835273271169698
+,p_plug_display_sequence=>10
 ,p_plug_display_point=>'SUB_REGIONS'
 ,p_plug_item_display_point=>'ABOVE'
-,p_query_type=>'SQL'
-,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'SELECT',
-'    ID_COLABORADOR,',
-'    NOME_COMPLETO,',
-'    DATA_DE_NASCIMENTO,',
-'',
-'    -- Retorna o caminho exato corrigido e validado para o APEX',
-'    CASE',
-'        WHEN FOTO_URL IS NULL',
-'             OR FOTO_URL = ''#APP_FILES#Fotos Colaboradores/''',
-'        THEN',
-'            ''#APP_FILES#Fotos Colaboradores/''',
-'        ELSE',
-'            ''#APP_FILES#Fotos Colaboradores/'' || FOTO_URL',
-'    END AS FOTO_URL,',
-'',
-unistr('    -- Seu v\00EDnculo de NOME limpo para o HTML Expression'),
-'    NOME_COMPLETO AS NOME,',
-'',
-unistr('    -- Seu v\00EDnculo de DESCRICAO limpa para o HTML Expression'),
-'    CASE',
-'        WHEN TO_CHAR(DATA_DE_NASCIMENTO, ''MMDD'') =',
-'             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE), ''MMDD'')',
-'        THEN ''Hoje''',
-'',
-'        WHEN TO_CHAR(DATA_DE_NASCIMENTO, ''MMDD'') =',
-'             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE) + 1, ''MMDD'')',
-unistr('        THEN ''Amanh\00E3, '' || TO_CHAR(DATA_DE_NASCIMENTO, ''DD'') || '' de '' ||'),
-'             RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, ''Month'', ''NLS_DATE_LANGUAGE=PORTUGUESE''))',
-'',
-'        ELSE TO_CHAR(DATA_DE_NASCIMENTO, ''DD'') || '' de '' ||',
-'             RTRIM(TO_CHAR(DATA_DE_NASCIMENTO, ''Month'', ''NLS_DATE_LANGUAGE=PORTUGUESE''))',
-'    END AS DESCRICAO,',
-'',
-unistr('    -- Seu v\00EDnculo de classe CSS condicional'),
-'    CASE',
-'        WHEN TO_CHAR(DATA_DE_NASCIMENTO, ''MMDD'') =',
-'             TO_CHAR(CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE), ''MMDD'')',
-'        THEN ''is-birthday-today''',
-'        ELSE ''is-normal-day''',
-'    END AS CSS_NIVER_HOJE,',
-'',
-unistr('    -- Seu c\00F3digo original do m\00EAs corrente'),
-'    RTRIM(',
-'        INITCAP(',
-'            TO_CHAR(',
-'                CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE),',
-'                ''Month'',',
-'                ''NLS_DATE_LANGUAGE=PORTUGUESE''',
-'            )',
-'        )',
-'    ) AS MES_CORRENTE',
-'',
-'FROM COLABORADOR',
-'',
-'WHERE TO_CHAR(DATA_DE_NASCIMENTO, ''MM'') =',
-'      TO_CHAR(',
-'          CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE),',
-'          ''MM''',
-'      )',
-'',
-'  AND EXTRACT(DAY FROM DATA_DE_NASCIMENTO) >=',
-'      EXTRACT(DAY FROM CAST(SYSTIMESTAMP AT TIME ZONE ''America/Sao_Paulo'' AS DATE))',
-'',
-'ORDER BY EXTRACT(DAY FROM DATA_DE_NASCIMENTO)',
-'',
-'FETCH FIRST 3 ROWS ONLY;'))
+,p_location=>null
+,p_function_body_language=>'PLSQL'
+,p_plug_source=>'return pkg_home_ui.render_meu_gestor;'
 ,p_lazy_loading=>false
-,p_plug_source_type=>'NATIVE_CARDS'
-,p_plug_query_num_rows_type=>'SCROLL'
-,p_show_total_row_count=>false
-);
-wwv_flow_imp_page.create_card(
- p_id=>wwv_flow_imp.id(9374184510951621)
-,p_region_id=>wwv_flow_imp.id(9374042765951620)
-,p_layout_type=>'GRID'
-,p_title_adv_formatting=>true
-,p_title_html_expr=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'<div class="figma-row &CSS_NIVER_HOJE.">',
-unistr('    <!-- Foto Circular com Fallback Corrigido para Usu\00E1rio Padr\00E3o -->'),
-'    <div class="figma-avatar-wrapper">',
-'        <img src="&FOTO_URL." alt="Foto de perfil" class="figma-avatar-img" onerror="this.onerror=null; this.src=''#APP_FILES#default-user.jpeg'';">',
-'    </div>',
-'    ',
-'    <!-- Bloco de Texto Empilhado -->',
-'    <div class="figma-info-wrapper">',
-'        <span class="figma-name-text">&NOME.</span>',
-'        <span class="figma-date-text">',
-'            &DESCRICAO.',
-unistr('            <!-- O bolo s\00F3 aparece se for HOJE atrav\00E9s do CSS condicional -->'),
-unistr('            <span class="figma-cake-icon">\D83C\DF82</span>'),
-'        </span>',
-'    </div>',
-'</div>'))
-,p_sub_title_adv_formatting=>false
-,p_body_adv_formatting=>false
-,p_second_body_adv_formatting=>false
-,p_media_adv_formatting=>false
+,p_plug_source_type=>'NATIVE_DYNAMIC_CONTENT'
 );
 wwv_flow_imp_page.create_page_button(
- p_id=>wwv_flow_imp.id(25416800685476817)
-,p_button_sequence=>10
-,p_button_plug_id=>wwv_flow_imp.id(9374042765951620)
-,p_button_name=>'B_VER_TODOS'
-,p_static_id=>'B_VER_TODOS'
-,p_show_as_disabled=>false
-,p_button_action=>'DEFINED_BY_DA'
-,p_button_template_options=>'#DEFAULT#'
-,p_button_template_id=>4073839297780169708
-,p_button_image_alt=>'Ver Todos'
-,p_button_position=>'NEXT'
-,p_warn_on_unsaved_changes=>null
-,p_button_css_classes=>'figma-footer-link'
-,p_button_cattributes=>'style="display: block !important; text-align: center !important; color: #3B66F5 !important; background: transparent !important; border: none !important; box-shadow: none !important; text-decoration: underline !important; font-weight: 600 !important; '
-||'width: 100% !important; margin-top: 00px !important; font-size: 19px !important;"'
-);
-wwv_flow_imp_page.create_page_button(
- p_id=>wwv_flow_imp.id(10214154898327046)
-,p_button_sequence=>10
-,p_button_plug_id=>wwv_flow_imp.id(9289454531503202)
-,p_button_name=>'botao_emitir_comunicado'
-,p_static_id=>'emitir-comunicado'
+ p_id=>wwv_flow_imp.id(39078731694437480)
+,p_button_sequence=>20
+,p_button_plug_id=>wwv_flow_imp.id(77328273993757666)
+,p_button_name=>'NOVO_COMUNICADO'
+,p_static_id=>'novo-comunicado'
 ,p_show_as_disabled=>false
 ,p_button_action=>'REDIRECT_PAGE'
-,p_button_template_options=>'#DEFAULT#'
-,p_button_template_id=>4073839297780169708
-,p_button_image_alt=>'Emitir Comunicado'
-,p_button_redirect_url=>'f?p=&APP_ID.:17:&SESSION.::&DEBUG.:::'
+,p_button_template_options=>'#DEFAULT#:t-Button--iconLeft'
+,p_button_template_id=>2084305881903810008
+,p_button_is_hot=>'Y'
+,p_button_image_alt=>'Novo comunicado'
+,p_button_position=>'EDIT'
+,p_button_redirect_url=>'f?p=&APP_ID.:17:&SESSION.::&DEBUG.:17::'
 ,p_warn_on_unsaved_changes=>null
-,p_button_css_classes=>'botao-emitir-comunicado'
-,p_grid_new_row=>'Y'
+,p_icon_css_classes=>'fa-plus'
+,p_security_scheme=>wwv_flow_imp.id(10412382793426827)
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(39079195073437482)
+,p_button_sequence=>10
+,p_button_plug_id=>wwv_flow_imp.id(77328273993757666)
+,p_button_name=>'VER_TODOS'
+,p_static_id=>'ver-todos'
+,p_show_as_disabled=>false
+,p_button_action=>'REDIRECT_PAGE'
+,p_button_template_options=>'#DEFAULT#:t-Button--noUI:t-Button--iconRight'
+,p_button_template_id=>2084305881903810008
+,p_button_image_alt=>'Ver todos'
+,p_button_position=>'COPY'
+,p_button_redirect_url=>'f?p=&APP_ID.:11:&SESSION.::&DEBUG.:::'
+,p_warn_on_unsaved_changes=>null
+,p_icon_css_classes=>'fa-arrow-right'
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(77329232304757680)
+,p_name=>'P1_MES_ATUAL'
+,p_item_sequence=>100
+,p_item_plug_id=>wwv_flow_imp.id(77327930780757662)
+,p_source_type=>'ALWAYS_NULL'
+,p_display_as=>'NATIVE_HIDDEN'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'value_protected', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_computation(
+ p_id=>wwv_flow_imp.id(39080257970437491)
+,p_computation_sequence=>10
+,p_computation_item=>'P1_MES_ATUAL'
+,p_static_id=>'p9-mes-atual'
+,p_computation_point=>'BEFORE_HEADER'
+,p_computation_type=>'EXPRESSION'
+,p_computation_language=>'PLSQL'
+,p_computation=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'pkg_home_ui.mes_atual',
+''))
 );
 wwv_flow_imp_page.create_page_da_event(
- p_id=>wwv_flow_imp.id(25416924226476818)
-,p_name=>'Abrir Popup Aniversariantes'
-,p_static_id=>'abrir-popup-aniversariantes'
-,p_event_sequence=>20
+ p_id=>wwv_flow_imp.id(39080677222437493)
+,p_name=>'Atualizar comunicados'
+,p_static_id=>'atualizar-comunicados'
+,p_event_sequence=>10
 ,p_triggering_element_type=>'BUTTON'
-,p_triggering_button_id=>wwv_flow_imp.id(25416800685476817)
+,p_triggering_button_id=>wwv_flow_imp.id(39078731694437480)
 ,p_bind_type=>'bind'
 ,p_execution_type=>'IMMEDIATE'
-,p_bind_event_type=>'click'
+,p_bind_event_type=>'apexafterclosedialog'
 );
 wwv_flow_imp_page.create_page_da_action(
- p_id=>wwv_flow_imp.id(25417090163476819)
-,p_event_id=>wwv_flow_imp.id(25416924226476818)
+ p_id=>wwv_flow_imp.id(39081067345437496)
+,p_event_id=>wwv_flow_imp.id(39080677222437493)
 ,p_event_result=>'TRUE'
 ,p_action_sequence=>10
 ,p_execute_on_page_init=>'N'
-,p_static_id=>'native-javascript-code'
-,p_action=>'NATIVE_OPEN_REGION'
+,p_name=>'Atualizar comunicados'
+,p_static_id=>'atualizar-comunicados'
+,p_action=>'NATIVE_REFRESH'
 ,p_affected_elements_type=>'REGION'
-,p_affected_region_id=>wwv_flow_imp.id(9374641660951626)
-);
-wwv_flow_imp_page.create_page_da_event(
- p_id=>wwv_flow_imp.id(9374259104951622)
-,p_name=>unistr('Carregar M\00EAs no Badge')
-,p_static_id=>unistr('carregar-m\00EAs-no-badge')
-,p_event_sequence=>10
-,p_bind_type=>'bind'
-,p_bind_event_type=>'ready'
-);
-wwv_flow_imp_page.create_page_da_action(
- p_id=>wwv_flow_imp.id(9374328343951623)
-,p_event_id=>wwv_flow_imp.id(9374259104951622)
-,p_event_result=>'TRUE'
-,p_action_sequence=>10
-,p_static_id=>'native-javascript-code'
-,p_action=>'NATIVE_JAVASCRIPT_CODE'
+,p_affected_region_id=>wwv_flow_imp.id(77328273993757666)
 ,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
-  'js_code', wwv_flow_string.join(wwv_flow_t_varchar2(
-    unistr('// Captura o m\00EAs atual por extenso em portugu\00EAs (ex: "agosto")'),
-    'const nomeMes = new Date().toLocaleString(''pt-BR'', { month: ''long'' });',
-    '',
-    unistr('// For\00E7a a primeira letra a ficar mai\00FAscula (ex: "Agosto")'),
-    'const mesFormatado = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);',
-    '',
-    unistr('// Busca a nova caixinha azul criada pelo HTML Expression e injeta o m\00EAs'),
-    'const badge = document.querySelector(''.figma-badge-mes'');',
-    'if (badge) {',
-    '    badge.innerText = mesFormatado;',
-    '}',
-    '')))).to_clob
+  'maintain_pagination', 'N')).to_clob
 );
 end;
 /
@@ -60954,24 +60527,72 @@ unistr('/* repassa a altura: regi\00E3o \2192 #report_catch */'),
 '    overflow-y: auto;',
 '}',
 '',
+unistr('/* cabe\00E7alho do departamento: bot\00E3o que abre/fecha o grupo */'),
 '.ch-dept {',
 '    position: sticky;',
 '    top: 0;',
 '    z-index: 1;',
 '    flex: 0 0 auto;',
+'    display: flex;',
+'    align-items: center;',
+'    gap: 8px;',
+'    width: 100%;',
 '    padding: 10px 16px;',
+'    border: none;',
+'    border-top: 1px solid var(--ch-border);',
+'    border-bottom: 1px solid var(--ch-border);',
+'    background: var(--ch-surface);',
+'    font: inherit;',
 '    font-size: 11px;',
 '    font-weight: 600;',
 '    letter-spacing: .04em;',
 '    text-transform: uppercase;',
+'    text-align: left;',
 '    color: var(--ch-text-dim);',
-'    background: var(--ch-surface);',
-'    border-top: 1px solid var(--ch-border);',
-'    border-bottom: 1px solid var(--ch-border);',
+'    cursor: pointer;',
 '}',
 '',
 '.ch-dept:first-child {',
 '    border-top: none;',
+'}',
+'',
+'.ch-dept:hover {',
+'    color: var(--ch-text);',
+'}',
+'',
+'.ch-dept:focus-visible {',
+'    outline: 2px solid var(--ch-blue);',
+'    outline-offset: -2px;',
+'}',
+'',
+'.ch-dept-ico {',
+'    font-size: 10px;',
+'    transition: transform .15s ease;',
+'}',
+'',
+'.ch-dept[aria-expanded="true"] .ch-dept-ico {',
+'    transform: rotate(90deg);',
+'}',
+'',
+'.ch-dept-nome {',
+'    flex: 1 1 auto;',
+'    min-width: 0;',
+'    white-space: nowrap;',
+'    overflow: hidden;',
+'    text-overflow: ellipsis;',
+'}',
+'',
+'.ch-dept-qtd {',
+'    flex: 0 0 auto;',
+'    font-weight: 500;',
+'    letter-spacing: 0;',
+'    color: var(--ch-text-faint);',
+'}',
+'',
+unistr('/* departamentos come\00E7am colapsados; a DA "Abrir/fechar'),
+'   marca os contatos do grupo aberto com .is-visivel */',
+'.ch-contacts .ch-contact:not(.is-visivel) {',
+'    display: none;',
 '}',
 '',
 '.ch-contact {',
@@ -61232,7 +60853,7 @@ unistr('/* ---- campo de envio (rodap\00E9 da conversa) ---- */'),
 '    flex: 0 0 auto;',
 '    align-items: flex-end;',
 '    gap: 10px;',
-unistr('    padding: 12px 24px 20px; /* folga extra embaixo, longe da borda da p\00E1gina */'),
+unistr('    padding: 12px 24px 30px; /* folga extra embaixo, longe da borda da p\00E1gina */'),
 '    border-top: 1px solid var(--ch-border);',
 '    background: #fff;',
 '}',
@@ -61364,11 +60985,15 @@ wwv_flow_imp_page.create_report_region(
 '         else ''offline''',
 '       end                              as presenca,',
 '       case when row_number() over (',
-'                   partition by d.nome',
-'                   order by c.nome_completo',
-'                 ) = 1',
-'            then ''<div class="ch-dept">'' || d.nome || ''</div>''',
-'       end                              as cab_dept',
+'            partition by d.nome',
+'            order by c.nome_completo',
+'          ) = 1',
+'        then ''<button type="button" class="ch-dept" aria-expanded="false">'' ||',
+'            ''<span class="fa fa-chevron-right ch-dept-ico" aria-hidden="true"></span>'' ||',
+'            ''<span class="ch-dept-nome">'' || apex_escape.html(d.nome) || ''</span>'' ||',
+'            ''<span class="ch-dept-qtd">'' || count(*) over (partition by d.nome) || ''</span>'' ||',
+'          ''</button>''',
+'        end                              as cab_dept',
 'from   colaborador  c',
 'join   departamento d  on d.id_departamento = c.id_departamento',
 'left   join cargo   cg on cg.id_cargo       = c.id_cargo',
@@ -61627,6 +61252,35 @@ wwv_flow_imp_page.create_page_item(
 ,p_display_as=>'NATIVE_HIDDEN'
 ,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
   'value_protected', 'N')).to_clob
+);
+wwv_flow_imp_page.create_page_da_event(
+ p_id=>wwv_flow_imp.id(9292598873503233)
+,p_name=>'Abrir/fechar departamento'
+,p_static_id=>'abrir-fechar-departamento'
+,p_event_sequence=>50
+,p_triggering_element_type=>'JQUERY_SELECTOR'
+,p_triggering_element=>'.ch-dept'
+,p_bind_type=>'bind'
+,p_execution_type=>'IMMEDIATE'
+,p_bind_event_type=>'click'
+);
+wwv_flow_imp_page.create_page_da_action(
+ p_id=>wwv_flow_imp.id(9292636012503234)
+,p_event_id=>wwv_flow_imp.id(9292598873503233)
+,p_event_result=>'TRUE'
+,p_action_sequence=>10
+,p_execute_on_page_init=>'N'
+,p_name=>'Alternar departamento'
+,p_static_id=>'alternar-departamento'
+,p_action=>'NATIVE_JAVASCRIPT_CODE'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'js_code', wwv_flow_string.join(wwv_flow_t_varchar2(
+    'const cab   = this.triggeringElement;',
+    'const abrir = cab.getAttribute("aria-expanded") !== "true";',
+    'cab.setAttribute("aria-expanded", abrir);',
+    '',
+    unistr('// contatos do grupo = irm\00E3os at\00E9 o pr\00F3ximo cabe\00E7alho'),
+    '$(cab).nextUntil(".ch-dept", ".ch-contact").toggleClass("is-visivel", abrir);')))).to_clob
 );
 wwv_flow_imp_page.create_page_da_event(
  p_id=>wwv_flow_imp.id(9292114947503229)
@@ -62659,229 +62313,6 @@ wwv_flow_imp_page.create_page(
 ,p_page_template_options=>'#DEFAULT#'
 ,p_protection_level=>'C'
 ,p_page_component_map=>'11'
-);
-end;
-/
-prompt --application/pages/page_00009
-begin
-wwv_flow_imp_page.create_page(
- p_id=>9
-,p_name=>'Home Teste'
-,p_alias=>'HOME-TESTE'
-,p_step_title=>'Home Teste'
-,p_autocomplete_on_off=>'OFF'
-,p_step_template=>wwv_flow_imp.id(19815602566775266)
-,p_page_template_options=>'#DEFAULT#'
-,p_protection_level=>'C'
-,p_page_component_map=>'23'
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(38252671095320214)
-,p_plug_name=>'Coluna lateral'
-,p_static_id=>'coluna-lateral'
-,p_region_template_options=>'#DEFAULT#'
-,p_plug_template=>4502917002193490937
-,p_plug_display_sequence=>30
-,p_plug_new_grid_row=>false
-,p_plug_grid_column_span=>4
-,p_plug_item_display_point=>'ABOVE'
-,p_location=>null
-,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
-  'expand_shortcuts', 'N',
-  'output_as', 'HTML')).to_clob
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(38253909522320227)
-,p_plug_name=>'Aniversariantes'
-,p_static_id=>'home_aniversariantes'
-,p_title=>'<span class="fa fa-birthday-cake" aria-hidden="true"></span>Aniversariantes de &P28_MES_ATUAL.'
-,p_parent_plug_id=>wwv_flow_imp.id(38252671095320214)
-,p_region_css_classes=>'cx-home-card'
-,p_region_template_options=>'#DEFAULT#:t-Region--noPadding:t-Region--scrollBody'
-,p_plug_template=>4073835273271169698
-,p_plug_display_sequence=>20
-,p_plug_display_point=>'SUB_REGIONS'
-,p_plug_item_display_point=>'ABOVE'
-,p_location=>null
-,p_function_body_language=>'PLSQL'
-,p_plug_source=>'return pkg_home_ui.render_aniversariantes;'
-,p_lazy_loading=>false
-,p_plug_source_type=>'NATIVE_DYNAMIC_CONTENT'
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(38253014308320218)
-,p_plug_name=>'Comunicados'
-,p_static_id=>'home_comunicados'
-,p_title=>unistr('Comunicados<span class="cx-home-card__subtitulo">Publica\00E7\00F5es oficiais da empresa</span>')
-,p_region_css_classes=>'cx-home-card cx-home-comunicados'
-,p_region_template_options=>'#DEFAULT#:t-Region--noPadding:t-Region--scrollBody'
-,p_plug_template=>4073835273271169698
-,p_plug_display_sequence=>20
-,p_plug_grid_column_span=>8
-,p_plug_item_display_point=>'ABOVE'
-,p_query_type=>'SQL'
-,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'select c.id_comunicado,',
-'       c.titulo,',
-'       -- resumo em texto puro: tira as tags do editor e corta em 220 caracteres',
-'       substr(trim(regexp_replace(regexp_replace(dbms_lob.substr(c.conteudo, 1000, 1),',
-'                                                 ''<[^>]+>'', '' ''),',
-'                                  ''\s+'', '' '')), 1, 220) as resumo,',
-'       c.imagem,',
-'       c.mime_type,',
-'       ''Para: '' || nvl(d.nome, ''Todos'') as publico,',
-'       to_char(c.data_publicacao, ''fmdd'') || '' de ''',
-'         || to_char(c.data_publicacao, ''fmmonth'', ''NLS_DATE_LANGUAGE=''''BRAZILIAN PORTUGUESE'''''')',
-'         || case when extract(year from c.data_publicacao) <> extract(year from sysdate)',
-'                 then '' de '' || to_char(c.data_publicacao, ''yyyy'')',
-'            end as data_publicacao_txt',
-'  from comunicado c',
-'  left join departamento d',
-'    on d.id_departamento = c.id_departamento',
-' where c.id_empresa = :G_ID_EMPRESA',
-' order by c.data_publicacao desc, c.id_comunicado desc',
-' fetch first 3 rows only',
-''))
-,p_lazy_loading=>false
-,p_plug_source_type=>'NATIVE_CARDS'
-,p_plug_query_num_rows_type=>'SCROLL'
-,p_plug_query_no_data_found=>unistr('Nenhum comunicado publicado. Os comunicados oficiais aparecer\00E3o aqui.')
-,p_show_total_row_count=>false
-);
-wwv_flow_imp_page.create_card(
- p_id=>wwv_flow_imp.id(38253129983320219)
-,p_region_id=>wwv_flow_imp.id(38253014308320218)
-,p_layout_type=>'ROW'
-,p_title_adv_formatting=>true
-,p_title_html_expr=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'<span class="cx-home-comunicado__meta">',
-'  <span class="cx-etiqueta">&PUBLICO.</span>',
-'  <span>&DATA_PUBLICACAO_TXT.</span>',
-'</span>',
-'<span class="cx-home-comunicado__titulo">&TITULO.</span>'))
-,p_sub_title_adv_formatting=>false
-,p_body_adv_formatting=>false
-,p_body_column_name=>'RESUMO'
-,p_second_body_adv_formatting=>false
-,p_media_adv_formatting=>false
-,p_media_source_type=>'BLOB'
-,p_media_blob_column_name=>'IMAGEM'
-,p_media_display_position=>'FIRST'
-,p_media_sizing=>'COVER'
-,p_pk1_column_name=>'ID_COMUNICADO'
-,p_mime_type_column_name=>'MIME_TYPE'
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(38252920576320217)
-,p_plug_name=>unistr('In\00EDcio')
-,p_static_id=>'home_hero'
-,p_region_template_options=>'#DEFAULT#'
-,p_plug_template=>4502917002193490937
-,p_plug_display_sequence=>10
-,p_plug_item_display_point=>'ABOVE'
-,p_location=>null
-,p_function_body_language=>'PLSQL'
-,p_plug_source=>'return pkg_home_ui.render_hero;'
-,p_lazy_loading=>false
-,p_plug_source_type=>'NATIVE_DYNAMIC_CONTENT'
-);
-wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(38253818387320226)
-,p_plug_name=>'Meu gestor'
-,p_static_id=>'home_meu_gestor'
-,p_parent_plug_id=>wwv_flow_imp.id(38252671095320214)
-,p_region_css_classes=>'cx-home-card'
-,p_region_template_options=>'#DEFAULT#:t-Region--noPadding:t-Region--scrollBody'
-,p_plug_template=>4073835273271169698
-,p_plug_display_sequence=>10
-,p_plug_display_point=>'SUB_REGIONS'
-,p_plug_item_display_point=>'ABOVE'
-,p_location=>null
-,p_function_body_language=>'PLSQL'
-,p_plug_source=>'return pkg_home_ui.render_meu_gestor;'
-,p_lazy_loading=>false
-,p_plug_source_type=>'NATIVE_DYNAMIC_CONTENT'
-);
-wwv_flow_imp_page.create_page_button(
- p_id=>wwv_flow_imp.id(38253382924320221)
-,p_button_sequence=>20
-,p_button_plug_id=>wwv_flow_imp.id(38253014308320218)
-,p_button_name=>'NOVO_COMUNICADO'
-,p_static_id=>'novo-comunicado'
-,p_show_as_disabled=>false
-,p_button_action=>'REDIRECT_PAGE'
-,p_button_template_options=>'#DEFAULT#:t-Button--iconLeft'
-,p_button_template_id=>2084305881903810008
-,p_button_is_hot=>'Y'
-,p_button_image_alt=>'Novo comunicado'
-,p_button_position=>'EDIT'
-,p_button_redirect_url=>'f?p=&APP_ID.:17:&SESSION.::&DEBUG.:17::'
-,p_warn_on_unsaved_changes=>null
-,p_icon_css_classes=>'fa-plus'
-,p_security_scheme=>wwv_flow_imp.id(10412382793426827)
-);
-wwv_flow_imp_page.create_page_button(
- p_id=>wwv_flow_imp.id(38253250391320220)
-,p_button_sequence=>10
-,p_button_plug_id=>wwv_flow_imp.id(38253014308320218)
-,p_button_name=>'VER_TODOS'
-,p_static_id=>'ver-todos'
-,p_show_as_disabled=>false
-,p_button_action=>'REDIRECT_PAGE'
-,p_button_template_options=>'#DEFAULT#:t-Button--noUI:t-Button--iconRight'
-,p_button_template_id=>2084305881903810008
-,p_button_image_alt=>'Ver todos'
-,p_button_position=>'COPY'
-,p_button_redirect_url=>'f?p=&APP_ID.:11:&SESSION.::&DEBUG.:::'
-,p_warn_on_unsaved_changes=>null
-,p_icon_css_classes=>'fa-arrow-right'
-);
-wwv_flow_imp_page.create_page_item(
- p_id=>wwv_flow_imp.id(38252772502320215)
-,p_name=>'P9_MES_ATUAL'
-,p_item_sequence=>100
-,p_item_plug_id=>wwv_flow_imp.id(38252671095320214)
-,p_source_type=>'ALWAYS_NULL'
-,p_display_as=>'NATIVE_HIDDEN'
-,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
-  'value_protected', 'Y')).to_clob
-);
-wwv_flow_imp_page.create_page_computation(
- p_id=>wwv_flow_imp.id(38252883077320216)
-,p_computation_sequence=>10
-,p_computation_item=>'P9_MES_ATUAL'
-,p_static_id=>'p9-mes-atual'
-,p_computation_point=>'BEFORE_HEADER'
-,p_computation_type=>'EXPRESSION'
-,p_computation_language=>'PLSQL'
-,p_computation=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'pkg_home_ui.mes_atual',
-''))
-);
-wwv_flow_imp_page.create_page_da_event(
- p_id=>wwv_flow_imp.id(38253562056320223)
-,p_name=>'Atualizar comunicados'
-,p_static_id=>'atualizar-comunicados'
-,p_event_sequence=>10
-,p_triggering_element_type=>'BUTTON'
-,p_triggering_button_id=>wwv_flow_imp.id(38253382924320221)
-,p_bind_type=>'bind'
-,p_execution_type=>'IMMEDIATE'
-,p_bind_event_type=>'apexafterclosedialog'
-);
-wwv_flow_imp_page.create_page_da_action(
- p_id=>wwv_flow_imp.id(38253671131320224)
-,p_event_id=>wwv_flow_imp.id(38253562056320223)
-,p_event_result=>'TRUE'
-,p_action_sequence=>10
-,p_execute_on_page_init=>'N'
-,p_name=>'Atualizar comunicados'
-,p_static_id=>'atualizar-comunicados'
-,p_action=>'NATIVE_REFRESH'
-,p_affected_elements_type=>'REGION'
-,p_affected_region_id=>wwv_flow_imp.id(38253014308320218)
-,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
-  'maintain_pagination', 'N')).to_clob
 );
 end;
 /
@@ -69338,4 +68769,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:7+vjYhVUYTeCnjpobvpvHmmDQoo84qGyZzSdfezX54k=
+-- Application Checksum SH256:kKSfOvK+/QZd3T5tJPIbjS9uIlAvob6b0SnsSyqQWGs=

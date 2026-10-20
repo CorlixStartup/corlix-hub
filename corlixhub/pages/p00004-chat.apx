@@ -110,24 +110,72 @@ page 4 (
                 overflow-y: auto;
             }
             
+            /* cabeçalho do departamento: botão que abre/fecha o grupo */
             .ch-dept {
                 position: sticky;
                 top: 0;
                 z-index: 1;
                 flex: 0 0 auto;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                width: 100%;
                 padding: 10px 16px;
+                border: none;
+                border-top: 1px solid var(--ch-border);
+                border-bottom: 1px solid var(--ch-border);
+                background: var(--ch-surface);
+                font: inherit;
                 font-size: 11px;
                 font-weight: 600;
                 letter-spacing: .04em;
                 text-transform: uppercase;
+                text-align: left;
                 color: var(--ch-text-dim);
-                background: var(--ch-surface);
-                border-top: 1px solid var(--ch-border);
-                border-bottom: 1px solid var(--ch-border);
+                cursor: pointer;
             }
             
             .ch-dept:first-child {
                 border-top: none;
+            }
+            
+            .ch-dept:hover {
+                color: var(--ch-text);
+            }
+            
+            .ch-dept:focus-visible {
+                outline: 2px solid var(--ch-blue);
+                outline-offset: -2px;
+            }
+            
+            .ch-dept-ico {
+                font-size: 10px;
+                transition: transform .15s ease;
+            }
+            
+            .ch-dept[aria-expanded="true"] .ch-dept-ico {
+                transform: rotate(90deg);
+            }
+            
+            .ch-dept-nome {
+                flex: 1 1 auto;
+                min-width: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .ch-dept-qtd {
+                flex: 0 0 auto;
+                font-weight: 500;
+                letter-spacing: 0;
+                color: var(--ch-text-faint);
+            }
+            
+            /* departamentos começam colapsados; a DA "Abrir/fechar
+               marca os contatos do grupo aberto com .is-visivel */
+            .ch-contacts .ch-contact:not(.is-visivel) {
+                display: none;
             }
             
             .ch-contact {
@@ -388,7 +436,7 @@ page 4 (
                 flex: 0 0 auto;
                 align-items: flex-end;
                 gap: 10px;
-                padding: 12px 24px 20px; /* folga extra embaixo, longe da borda da página */
+                padding: 12px 24px 30px; /* folga extra embaixo, longe da borda da página */
                 border-top: 1px solid var(--ch-border);
                 background: #fff;
             }
@@ -519,11 +567,15 @@ page 4 (
                          else 'offline'
                        end                              as presenca,
                        case when row_number() over (
-                                   partition by d.nome
-                                   order by c.nome_completo
-                                 ) = 1
-                            then '<div class="ch-dept">' || d.nome || '</div>'
-                       end                              as cab_dept
+                            partition by d.nome
+                            order by c.nome_completo
+                          ) = 1
+                        then '<button type="button" class="ch-dept" aria-expanded="false">' ||
+                            '<span class="fa fa-chevron-right ch-dept-ico" aria-hidden="true"></span>' ||
+                            '<span class="ch-dept-nome">' || apex_escape.html(d.nome) || '</span>' ||
+                            '<span class="ch-dept-qtd">' || count(*) over (partition by d.nome) || '</span>' ||
+                          '</button>'
+                        end                              as cab_dept
                 from   colaborador  c
                 join   departamento d  on d.id_departamento = c.id_departamento
                 left   join cargo   cg on cg.id_cargo       = c.id_cargo
@@ -862,6 +914,39 @@ page 4 (
             sequence: 40
             slot: body
         }
+    )
+
+    dynamicAction abrir-fechar-departamento (
+        name: Abrir/fechar departamento
+        execution {
+            sequence: 50
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: .ch-dept
+        }
+
+        action alternar-departamento (
+            name: Alternar departamento
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    const cab   = this.triggeringElement;
+                    const abrir = cab.getAttribute("aria-expanded") !== "true";
+                    cab.setAttribute("aria-expanded", abrir);
+                    
+                    // contatos do grupo = irmãos até o próximo cabeçalho
+                    $(cab).nextUntil(".ch-dept", ".ch-contact").toggleClass("is-visivel", abrir);
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
     )
 
     dynamicAction enter-envia-mensagem (

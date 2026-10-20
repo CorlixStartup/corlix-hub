@@ -1,7 +1,7 @@
-page 9 (
-    name: Home Teste
-    alias: HOME-TESTE
-    title: Home Teste
+page 1 (
+    name: Início
+    alias: INÍCIO
+    title: Início
     appearance {
         pageTemplate: @corlix-standard-page
         templateOptions: #DEFAULT#
@@ -173,7 +173,7 @@ page 9 (
         }
     )
 
-    pageItem P9_MES_ATUAL (
+    pageItem P1_MES_ATUAL (
         type: hidden
         layout {
             sequence: 100
@@ -263,7 +263,7 @@ page 9 (
     )
 
     computation p9-mes-atual (
-        itemName: P9_MES_ATUAL
+        itemName: P1_MES_ATUAL
         execution {
             sequence: 10
             point: beforeHeader
