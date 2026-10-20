@@ -1493,6 +1493,11 @@ file historico-carreira.min.css (
     charSet: utf-8
 )
 
+file home-hero.jpg (
+    mimeType: image/jpeg
+    charSet: utf-8
+)
+
 file "icons/app-icon-144-rounded.png" (
     mimeType: image/png
     charSet: utf-8

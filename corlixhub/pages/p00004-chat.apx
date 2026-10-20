@@ -26,7 +26,6 @@ page 4 (
                 --ch-bubble-in: var(--cx-tag);
             
                 --ch-border: var(--cx-borda);
-                --ch-border-soft: var(--cx-borda);
                 --ch-surface: var(--cx-superficie-2);
             
                 --ch-text: var(--cx-texto);
@@ -66,14 +65,15 @@ page 4 (
             .ch-shell {
                 display: grid;
                 grid-template-columns: var(--ch-list-w) 1fr;
-                grid-template-rows: minmax(0, 1fr);
-                /* impede a linha de crescer */
+                grid-template-rows: minmax(0, 1fr); /* impede a linha de crescer */
                 height: calc(100vh - var(--ch-topbar-h));
                 overflow: hidden;
                 background: #fff;
             }
             
-            /* wrappers do APEX somem do layout; .ch-list e .ch-chat viram grid items */
+            /* wrappers do APEX (.container/.row, inclusive os internos) somem do layout:
+               .ch-list e .ch-chat viram itens do grid, e as colunas internas viram
+               itens flex direto da região Conversa */
             .ch-shell>div,
             .ch-shell .container,
             .ch-shell .row {
@@ -93,7 +93,7 @@ page 4 (
                 overflow: hidden;
             }
             
-            /* repassa a altura: .js-apex-region → #report_catch */
+            /* repassa a altura: região → #report_catch */
             .ch-list>div,
             .ch-list>div>div {
                 display: flex;
@@ -111,6 +111,10 @@ page 4 (
             }
             
             .ch-dept {
+                position: sticky;
+                top: 0;
+                z-index: 1;
+                flex: 0 0 auto;
                 padding: 10px 16px;
                 font-size: 11px;
                 font-weight: 600;
@@ -118,12 +122,8 @@ page 4 (
                 text-transform: uppercase;
                 color: var(--ch-text-dim);
                 background: var(--ch-surface);
-                border-top: 1px solid var(--ch-border-soft);
-                border-bottom: 1px solid var(--ch-border-soft);
-                position: sticky;
-                top: 0;
-                z-index: 1;
-                flex: 0 0 auto;
+                border-top: 1px solid var(--ch-border);
+                border-bottom: 1px solid var(--ch-border);
             }
             
             .ch-dept:first-child {
@@ -132,6 +132,7 @@ page 4 (
             
             .ch-contact {
                 display: flex;
+                flex: 0 0 auto;
                 align-items: center;
                 gap: 10px;
                 padding: 10px 16px;
@@ -139,11 +140,15 @@ page 4 (
                 color: inherit;
                 border-left: 3px solid transparent;
                 transition: background .12s ease;
-                flex: 0 0 auto;
             }
             
             .ch-contact:hover {
                 background: var(--ch-surface);
+            }
+            
+            .ch-contact:focus-visible {
+                outline: 2px solid var(--ch-blue);
+                outline-offset: -2px;
             }
             
             .ch-contact.is-active {
@@ -151,34 +156,35 @@ page 4 (
                 border-left-color: var(--ch-blue);
             }
             
+            /* ---- avatar + status (lista e cabeçalho da conversa) ---- */
             .ch-avatar-wrap {
                 position: relative;
                 flex: 0 0 var(--ch-avatar-size);
             }
             
             .ch-avatar {
+                position: relative;
                 width: var(--ch-avatar-size);
                 height: var(--ch-avatar-size);
                 border-radius: 50%;
-                background: var(--ch-avatar-bg);
-                color: var(--ch-avatar-fg);
+                overflow: hidden;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-size: 12px;
                 font-weight: 600;
-                position: relative;
-                overflow: hidden;
+                background: var(--ch-avatar-bg);
+                color: var(--ch-avatar-fg);
             }
             
-            /* Foto por cima das iniciais; se falhar, o onerror remove a <img> */
+            /* foto por cima das iniciais; se falhar, o onerror remove a <img> */
             .ch-avatar img {
                 position: absolute;
                 inset: 0;
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
-                border-radius: 9999px;
+                border-radius: 50%;
             }
             
             .ch-dot {
@@ -191,22 +197,22 @@ page 4 (
                 border: 2px solid #fff;
             }
             
-            .ch-dot--online {
-                background: var(--ch-online);
-            }
+            .ch-dot--online  { background: var(--ch-online); }
+            .ch-dot--ausente { background: var(--ch-ausente); }
+            .ch-dot--offline { background: var(--ch-offline); }
             
-            .ch-dot--ausente {
-                background: var(--ch-ausente);
-            }
-            
-            .ch-dot--offline {
-                background: var(--ch-offline);
-            }
-            
+            /* nome e cargo cortam com reticências em vez de quebrar a linha */
             .ch-contact-txt {
                 display: flex;
                 flex-direction: column;
                 min-width: 0;
+            }
+            
+            .ch-contact-txt b,
+            .ch-contact-txt small {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
             .ch-contact-txt b {
@@ -225,22 +231,30 @@ page 4 (
                ============================================ */
             
             .ch-chat {
-                background: #fff;
                 display: flex;
                 flex-direction: column;
                 min-height: 0;
                 overflow: hidden;
+                background: #fff;
             }
             
-            /* repassa a altura pela cadeia de wrappers até .ch-msgs */
+            /* repassa a altura pela cadeia de wrappers até .ch-msgs.
+               O :not(.ch-composer) impede que o composer vire coluna e cresça. */
             .ch-chat>div,
             .ch-chat .col,
             .ch-chat .col>div,
-            .ch-chat .col>div>div {
+            .ch-chat .col>div>div:not(.ch-composer) {
                 display: flex;
                 flex-direction: column;
                 flex: 1 1 auto;
                 min-height: 0;
+            }
+            
+            /* coluna do composer: altura do conteúdo, sempre no rodapé.
+               :has() funciona com a classe ch-composer-col na linha ou na coluna. */
+            .ch-chat .col:has(.ch-composer) {
+                flex: 0 0 auto;
+                margin-top: auto;
             }
             
             /* ---- estado vazio (nenhum contato selecionado) ---- */
@@ -255,27 +269,57 @@ page 4 (
                 text-align: center;
                 color: var(--ch-text-dim);
             }
-            .ch-vazio .fa { font-size: 40px; color: var(--ch-text-faint); margin-bottom: 6px; }
-            .ch-vazio b { font-size: 14px; font-weight: 600; color: var(--ch-text); }
-            .ch-vazio small { font-size: 12px; }
+            
+            .ch-vazio .fa {
+                font-size: 40px;
+                color: var(--ch-text-faint);
+                margin-bottom: 6px;
+            }
+            
+            .ch-vazio b {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--ch-text);
+            }
+            
+            .ch-vazio small {
+                font-size: 12px;
+            }
             
             /* ---- cabeçalho da conversa (contato aberto) ---- */
             .ch-head {
                 display: flex;
+                flex: 0 0 auto;
                 align-items: center;
                 gap: 10px;
                 padding: 10px 24px;
                 border-bottom: 1px solid var(--ch-border);
                 background: #fff;
-                flex: 0 0 auto;
             }
             
-            /* sem contato: mostra só o estado vazio; com contato: cabeçalho + mensagens */
+            /* sem contato: só o estado vazio; com contato: cabeçalho + mensagens + composer */
             .ch-chat:not(.is-aberto) .ch-head,
-            .ch-chat:not(.is-aberto) .container { display: none !important; }
-            .ch-chat.is-aberto .ch-vazio { display: none; }
+            .ch-chat:not(.is-aberto) .container {
+                display: none !important;
+            }
             
-            /* mensagem "nenhuma mensagem" do relatório */
+            .ch-chat.is-aberto .ch-vazio {
+                display: none;
+            }
+            
+            /* ---- mensagens ---- */
+            .ch-msgs {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 18px;
+                padding: 24px;
+                background: #fff;
+            }
+            
+            /* "nenhuma mensagem" do relatório */
             .ch-chat .nodatafound {
                 padding: 24px;
                 text-align: center;
@@ -283,28 +327,17 @@ page 4 (
                 color: var(--ch-text-faint);
             }
             
-            .ch-msgs {
-                flex: 1 1 auto;
-                min-height: 0;
-                overflow-y: auto;
-                padding: 24px;
-                display: flex;
-                flex-direction: column;
-                gap: 18px;
-                background: #fff;
-            }
-            
             .ch-sep {
-                text-align: center;
-                margin: 6px 0;
                 flex: 0 0 auto;
+                margin: 6px 0;
+                text-align: center;
             }
             
             .ch-sep span {
                 font-size: 11px;
                 font-weight: 600;
-                color: var(--ch-text-faint);
                 letter-spacing: .04em;
+                color: var(--ch-text-faint);
             }
             
             .ch-msg {
@@ -322,7 +355,7 @@ page 4 (
                 border-radius: var(--ch-radius);
                 font-size: 13px;
                 line-height: 1.45;
-                word-break: break-word;
+                overflow-wrap: anywhere;
             }
             
             .ch-msg--in .ch-bubble {
@@ -350,18 +383,19 @@ page 4 (
             }
             
             /* ---- campo de envio (rodapé da conversa) ---- */
-            .ch-chat .col.ch-composer-col { flex: 0 0 auto; }
-            
             .ch-composer {
                 display: flex;
+                flex: 0 0 auto;
                 align-items: flex-end;
                 gap: 10px;
-                padding: 12px 24px;
+                padding: 12px 24px 20px; /* folga extra embaixo, longe da borda da página */
                 border-top: 1px solid var(--ch-border);
                 background: #fff;
             }
+            
             .ch-composer textarea {
                 flex: 1 1 auto;
+                min-width: 0;
                 min-height: 40px;
                 max-height: 140px;
                 padding: 9px 12px;
@@ -373,9 +407,17 @@ page 4 (
                 color: var(--ch-text);
                 resize: none;
             }
-            .ch-composer textarea:focus { outline: none; border-color: var(--ch-blue); }
+            
+            .ch-composer textarea:focus {
+                outline: none;
+                border-color: var(--ch-blue);
+            }
+            
             .ch-enviar {
                 flex: 0 0 auto;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
                 height: 40px;
                 padding: 0 16px;
                 border: none;
@@ -385,11 +427,17 @@ page 4 (
                 font-size: 13px;
                 font-weight: 600;
                 cursor: pointer;
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
             }
-            .ch-enviar:disabled { opacity: .6; cursor: default; }
+            
+            .ch-enviar:focus-visible {
+                outline: 2px solid var(--ch-blue);
+                outline-offset: 2px;
+            }
+            
+            .ch-enviar:disabled {
+                opacity: .6;
+                cursor: default;
+            }
             ```
     }
     security {

@@ -105,19 +105,6 @@ breadcrumb breadcrumb (
         }
     )
 
-    entry home (
-        name: Home
-        pageNumber: 1
-        execution {
-            sequence: 10
-        }
-        link {
-            target: {
-                page: 1
-            }
-        }
-    )
-
     entry meu-perfil (
         name: Meu Perfil
         pageNumber: 2
