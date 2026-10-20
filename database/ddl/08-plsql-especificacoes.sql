@@ -322,6 +322,29 @@ end pkg_historico_carreira;
 end pkg_historico_carreira_ui;
 /
 
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_HOME_UI" authid definer as
+
+  function mes_atual return varchar2;
+
+  function render_hero (
+    p_login in varchar2 default v('APP_USER')
+  ) return clob;
+
+  function render_meu_gestor (
+    p_login      in varchar2 default v('APP_USER'),
+    p_id_empresa in number   default to_number(v('G_ID_EMPRESA') default null on conversion error)
+  ) return clob;
+
+  -- p_limite nulo = todos do mês. p_ver_todos = 'S' mostra o rodapé "Ver todos".
+  function render_aniversariantes (
+    p_id_empresa in number      default to_number(v('G_ID_EMPRESA') default null on conversion error),
+    p_limite     in pls_integer default 3,
+    p_ver_todos  in varchar2    default 'S'
+  ) return clob;
+
+end pkg_home_ui;
+/
+
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_LOGS" as
 
 end "PKG_LOGS";
