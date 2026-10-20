@@ -9,6 +9,7 @@
 |---|---|---|---|
 | `modulos/organograma/` | versionada (commit `bac2d69`), **com mudanças não commitadas** (+774/−80 linhas: drawer de detalhes) | p. 3 `Organograma` (`corlixhub/pages/p00003-organograma.apx`) | **Não.** A página só tem a região Breadcrumb |
 | `modulos/historico-carreira/` | versionado | p. 13 `Histórico de carreira` (`p00013-historico-de-carreira.apx`) + páginas 18–23 | **Sim** (revalidado em 19/10/2026). Guia e checklist: `Etapas-historico-carreira.md` §1–§9 |
+| `modulos/home/` | branch `feature/redesign-home` (19/10/2026) | p. 28 `Início` (nova; a p. 1 `Home` é mantida) | **Não** ainda: montar pelo `Etapas-home.md` |
 | `modulos/tema/` | **untracked** | todas (tema global) | documentado em `04-tema-e-estilos.md` |
 | `modulos/perfis-acesso/` | versionado | p. 14 `Cadastro de Usuários` | **Sim** na app (papéis `colaborador`/`gestor`/`admin-rh`, authorization `ADMIN_RH`, processo e LOV de gestor na P14); SQL instalado no banco em 06/10/2026, com papéis vinculados à mão aos cargos antigos. Guia: `Etapas-perfis-acesso.md`; histórico: `Registro-implantacao.md` |
 
@@ -278,6 +279,22 @@ Feito (no módulo): DDL, seed, views, package de regras, package de UI, triggers
 - Formações não usam Interactive Grid: no 26.1.5 não há onde ligar a edição de uma região existente, e o IG não tinha upload. Por isso lista (19) + formulário em modal (21).
 - Instalação manual (sem `instalar.sql`): rode `04_pkg_historico_carreira.pks` **antes** do `.pkb` e os dois antes do `08_pkg_historico_carreira_ui.sql`. Rodar fora de ordem gera `PLS-00201`/`PLS-00304` (ver 08 §3, "SQL e PL/SQL").
 - Salvar e efetivar na mesma submissão: se a efetivação falha, o rascunho também é desfeito (sem commit no package).
+
+---
+
+## 2A. Home (`modulos/home/`)
+
+Nova Home conforme `pen_dev/Início.png`, montada na página nova 28 ("Início") sem apagar a página 1; o Home URL, o menu e o breadcrumb só passam para a 28 no §5 do guia, no mesmo padrão "Dynamic Content renderizado por PL/SQL", sem tabelas novas.
+
+| Arquivo | Conteúdo |
+|---|---|
+| `pkg_home_ui.pks` / `.pkb` | `mes_atual`, `render_hero` ("Olá, <primeiro nome>", data por extenso no fuso `America/Sao_Paulo`, 3 links rápidos), `render_meu_gestor` (gestor com Chat → p4 via `apex_page.get_url` e E-mail `mailto:`; dois estados vazios: sem vínculo com a empresa × sem gestor), `render_aniversariantes(p_id_empresa, p_limite default 3, p_ver_todos default 'S')` (mês inteiro, `status = true`, próximos primeiro, selo "Hoje") |
+| `instalar.sql` | instala o package pelo SQLcl |
+| `home-pagina.js` | bloco 1 `cxHomeCarregarFotos` (fotos via `data-cx-foto` + `apex.env.APP_FILES`, mesmo padrão do organograma); bloco 2: "Ver todos" → `apex.theme.openRegion('aniversariantes_todos')` e aviso nos atalhos sem destino |
+| `home-hero.jpg` | arte do hero (recorte do protótipo); também em `corlixhub/shared-components/static-files/` |
+| `Etapas-home.md` | passo a passo no Builder 26.1.5 |
+
+Os comunicados ficam numa região **Cards** nativa (precisam da imagem BLOB), com SQL filtrada por `:G_ID_EMPRESA`; CSS em `custom.css` §12 (ver `04` §5.2.1). Links rápidos ainda sem destino: dependem da tabela `LINK_RAPIDO` sugerida em `07` §5.
 
 ---
 

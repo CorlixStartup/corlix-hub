@@ -185,6 +185,7 @@ Prefixos e onde vivem:
 | Prefixo | Arquivo | Escopo / página |
 |---|---|---|
 | `cx-` | `corlix-tema.css` (badge/etiqueta) e `custom.css` §11 (layout) | design system, reutilizável. Usado em p1, p4 (só tokens), p14, p16 |
+| `cx-home-*`, `cx-avatar` | `custom.css` §12 | p28 Início, a nova Home (HTML do `pkg_home_ui`, ver `modulos/home/Etapas-home.md`) |
 | `corlix-header__` | `custom.css` §2 | p0 Global Page (cabeçalho) |
 | `card-*`, `link-item`, `links-rapidos-card`, `cmt-*`, `figma-*`, `popup-todos-aniversariantes`, `lista-de-comunicados`, `emitir-comunicado`, `imagem-capa-comunicado`, `titulo-lista-de-comunicados`, `botao-emitir-comunicado` | `custom.css` §3–§10 | p1 Home (legado da Home; `emitir-comunicado` também aparece em p17) |
 | `log-*` (`log-detalhe`, `log-descricao`, `log-tag`) | `custom.css` (após §8) | p7 Monitor de logs. Atenção: `log-size600x400`, `log-autoheight`, `log-cancel`, `log-closed` encontrados por grep são falsos positivos (substrings de `dialog-*`) |
@@ -250,6 +251,17 @@ Uso: p1 Home (`cx-badge--info` no mês dos aniversariantes; `cx-etiqueta` no dep
   </a>
 </div>
 ```
+
+### 5.2.1 Home redesenhada (`custom.css` §12)
+
+| Classe | O que faz |
+|---|---|
+| `.cx-home-hero` (`__conteudo`, `__titulo` 32px, `__data`, `__arte`) | card do hero em grid `1fr 340px`; a arte é `background: url("home-hero.jpg")` (arquivo na raiz dos Static Application Files, caminho relativo ao CSS) e some abaixo de 992px |
+| `.cx-home-atalhos` / `.cx-home-atalho` (`__icone` 32px azul-claro, `__texto`, `__seta`) | links rápidos do hero; `aria-disabled="true"` enquanto não têm destino (o JS da página avisa no clique) |
+| `.cx-home-card` (+ `__subtitulo`, `__rodape`) | regiões *Standard* com *No Padding*: cabeçalho 16×24px, título 18px, subtítulo dentro do título, rodapé com divisória para o "Ver todos" |
+| `.cx-avatar` (40px, iniciais com `<img>` por cima) / `--vazio` | avatar da Home; a `<img data-cx-foto>` recebe o `src` do JS (`apex.env.APP_FILES`) e some no `onerror` |
+| `.cx-home-gestor`, `.cx-home-lista` (`__item`), `.cx-home-vazio` (`__titulo`, `__texto`) | Meu gestor, lista de aniversariantes e estado vazio; reaproveitam `.cx-pessoa`, `.cx-acoes-card` e `.cx-badge--info` ("Hoje") |
+| `.cx-home-comunicados` (+ `.cx-home-comunicado__meta`, `__titulo`) | Cards de comunicados: 1º item com imagem 16:9 (300px) à esquerda, demais em lista sem imagem; neutraliza as regras globais `.a-CardView-*` da §3 |
 
 ### 5.3 Cabeçalho (`custom.css` §2, p0 Global Page)
 
@@ -336,7 +348,7 @@ O tema vale para o app inteiro assim que o CSS carrega — não há "ligar por p
 | Página | Ação | Estado no working tree |
 |---|---|---|
 | 0 Global | nada (classes `corlix-header__*`) | ok |
-| 1 Home | 9 itens (aniversariantes, meu gestor, comunicados com `cx-etiqueta`, remover style do link, `B_VER_TODOS`, "Novo comunicado", SVG `currentColor`, CSS de apoio, cores) | **aplicado** (HTML com `cx-*`, `B_VER_TODOS` com text-with-icon + `figma-footer-link`, botão "Novo comunicado", `currentColor`; `.dept-*`/`.cmt-badge` já removidos do CSS). Resta: coluna `CLASSE_DEPTO` ainda na query (linha ~350), sem uso |
+| 1 Home | **Redesign** pelo guia `modulos/home/Etapas-home.md`, montado na página nova 28; a página 1 fica como está. Antes: 9 itens (aniversariantes, meu gestor, comunicados com `cx-etiqueta`, remover style do link, `B_VER_TODOS`, "Novo comunicado", SVG `currentColor`, CSS de apoio, cores) | **aplicado** (HTML com `cx-*`, `B_VER_TODOS` com text-with-icon + `figma-footer-link`, botão "Novo comunicado", `currentColor`; `.dept-*`/`.cmt-badge` já removidos do CSS). Resta: coluna `CLASSE_DEPTO` ainda na query (linha ~350), sem uso |
 | 2, 5, 6, 8, 11, 12 | só barra de título; aplicar 1.1 se o protótipo tiver descrição | — |
 | 3 Organograma | seguir `modulos/organograma/Etapas-organograma.md` + 1.1 (busca no slot Next) | CSS do módulo fora do app |
 | 4 Chat | mapear `--ch-*` → `--cx-*` no `:root` inline; manter `--ch-online/ausente/offline` e medidas | **aplicado** |
