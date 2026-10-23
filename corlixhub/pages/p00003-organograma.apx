@@ -24,11 +24,23 @@ page 3 (
               return Number.isFinite(id) && id > 0 ? id : null;
             }
             
+            /* Função atualizada com tratamento seguro para a região */
             function orgIrPara(valor) {
               const id = orgId(valor);
               if (!id) return;
+            
+              // 1. Atualiza o valor do item no APEX
               apex.item(ORG_ITEM_FOCO).setValue(String(id));
-              apex.region(ORG_REGIAO).refresh();
+            
+              // 2. Tenta atualizar pela API nativa de região ou aplica o refresh no container HTML
+              const reg = apex.region(ORG_REGIAO);
+              if (reg) {
+                reg.refresh();
+              } else {
+                // Fallback para regiões Dynamic Content sem chave registrada
+                $("#" + ORG_REGIAO).trigger("apexrefresh");
+                $(".org").trigger("apexrefresh");
+              }
             }
             
             function orgObterDrawer() {
@@ -86,21 +98,18 @@ page 3 (
                 painel.innerHTML = html;
                 orgCarregarFotos(painel);
             
-                const titulo =
-                  painel.querySelector("#org-drawer-nome");
-            
+                const titulo = painel.querySelector("#org-drawer-nome");
                 if (titulo) titulo.focus();
               })
               .fail(function () {
                 if (pedido !== orgPedido) return;
             
-                painel.innerHTML =
-                  orgEstado(
-                    "<p>Não foi possível carregar os detalhes.</p>" +
-                    '<button type="button" class="org-btn org-btn--auto" data-acao="detalhe" data-id="' + id + '">' +
-                    "Tentar novamente</button>" +
-                    '<button type="button" class="org-link" data-acao="fechar">Fechar</button>'
-                  );
+                painel.innerHTML = orgEstado(
+                  "<p>Não foi possível carregar os detalhes.</p>" +
+                  '<button type="button" class="org-btn org-btn--auto" data-acao="detalhe" data-id="' + id + '">' +
+                  "Tentar novamente</button>" +
+                  '<button type="button" class="org-link" data-acao="fechar">Fechar</button>'
+                );
               })
               .always(function () {
                 if (pedido === orgPedido) {
@@ -112,41 +121,24 @@ page 3 (
             function orgCopiar(botao) {
               if (!navigator.clipboard) return;
             
-              const aviso =
-                botao.parentElement.querySelector(".org-sr");
+              const aviso = botao.parentElement.querySelector(".org-sr");
             
-              navigator.clipboard.writeText(
-                botao.dataset.valor
-              ).then(function () {
-            
+              navigator.clipboard.writeText(botao.dataset.valor).then(function () {
                 botao.classList.add("is-copiado");
-                botao.setAttribute(
-                  "aria-label",
-                  "E-mail copiado"
-                );
+                botao.setAttribute("aria-label", "E-mail copiado");
             
                 if (aviso) {
-                  aviso.textContent =
-                    "E-mail copiado.";
+                  aviso.textContent = "E-mail copiado.";
                 }
             
                 setTimeout(function () {
-            
-                  botao.classList.remove(
-                    "is-copiado"
-                  );
-            
-                  botao.setAttribute(
-                    "aria-label",
-                    "Copiar e-mail"
-                  );
+                  botao.classList.remove("is-copiado");
+                  botao.setAttribute("aria-label", "Copiar e-mail");
             
                   if (aviso) {
                     aviso.textContent = "";
                   }
-            
                 }, 2000);
-            
               });
             }
             
@@ -158,28 +150,21 @@ page 3 (
                 return;
               }
             
-              const alvo =
-                ev.target.closest("[data-acao]");
-            
+              const alvo = ev.target.closest("[data-acao]");
               if (!alvo) return;
             
               switch (alvo.dataset.acao) {
-            
                 case "fechar":
                   drawer.close();
                   break;
             
                 case "detalhe":
-                  orgAbrirDetalhes(
-                    alvo.dataset.id
-                  );
+                  orgAbrirDetalhes(alvo.dataset.id);
                   break;
             
                 case "equipe":
                   drawer.close();
-                  orgIrPara(
-                    alvo.dataset.id
-                  );
+                  orgIrPara(alvo.dataset.id);
                   break;
             
                 case "copiar":
@@ -192,54 +177,26 @@ page 3 (
             ```javascript-browser
             orgCarregarFotos(document);
             
-            $("#" + ORG_REGIAO)
-                .on(
-                    "click",
-                    "[data-acao]",
-                    function () {
+            // Delegado no document para garantir a captura dos cliques dentro do container .org
+            $(document).on("click", ".org [data-acao]", function () {
+                if (this.dataset.acao === "foco") {
+                    orgIrPara(this.dataset.id);
+                } else if (this.dataset.acao === "detalhe") {
+                    orgAbrirDetalhes(this.dataset.id);
+                }
+            });
             
-                        if (
-                            this.dataset.acao === "foco"
-                        ) {
+            // Captura a atualização da região para recarregar fotos e ajustar o foco de acessibilidade
+            $(document).on("apexafterrefresh", ".org", function () {
+                orgCarregarFotos(this);
             
-                            orgIrPara(
-                                this.dataset.id
-                            );
-            
-                        } else if (
-                            this.dataset.acao ===
-                            "detalhe"
-                        ) {
-            
-                            orgAbrirDetalhes(
-                                this.dataset.id
-                            );
-            
-                        }
-            
-                    }
-                );
-            
-            $("#" + ORG_REGIAO)
-                .on(
-                    "apexafterrefresh",
-                    function () {
-            
-                        orgCarregarFotos(this);
-            
-                        const titulo =
-                            document.getElementById(
-                                "org-foco-nome"
-                            );
-            
-                        if (titulo) {
-                            titulo.focus({
-                                preventScroll: true
-                            });
-                        }
-            
-                    }
-                );
+                const titulo = document.getElementById("org-foco-nome");
+                if (titulo) {
+                    titulo.focus({
+                        preventScroll: true
+                    });
+                }
+            });
             ```
     }
     css {

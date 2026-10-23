@@ -9,6 +9,81 @@ page 2 (
     navigation {
         cursorFocus: doNotFocusCursor
     }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            const PERFIL_ITEM_ID = "P2_ID_COLABORADOR";
+            const PERFIL_AJAX_DRAWER = "PERFIL_DRAWER_FOTO";
+            
+            let perfilFotoDrawer = null;
+            
+            function obterFotoDrawer() {
+              if (perfilFotoDrawer) return perfilFotoDrawer;
+              perfilFotoDrawer = document.createElement("dialog");
+              perfilFotoDrawer.className = "org-drawer";
+              perfilFotoDrawer.innerHTML = '<div class="org-drawer__painel"></div>';
+              document.body.appendChild(perfilFotoDrawer);
+              return perfilFotoDrawer;
+            }
+            
+            function abrirDrawerFoto(id) {
+              const drawer = obterFotoDrawer();
+              const painel = drawer.firstElementChild;
+              
+              painel.innerHTML = '<div class="org-drawer__estado"><span class="org-spinner"></span><p>Carregando...</p></div>';
+              drawer.showModal();
+            
+              apex.server.process(PERFIL_AJAX_DRAWER, { x01: id }, { dataType: "text" })
+                .done(function (html) {
+                  painel.innerHTML = html;
+                  if (typeof carregarFotosPerfil === "function") {
+                    carregarFotosPerfil(painel);
+                  }
+                });
+            }
+            ```
+        executeWhenPageLoads:
+            ```javascript-browser
+            // Função nativa do perfil para resolver os arquivos estáticos do APEX
+            function carregarFotosPerfil(container) {
+              const base = (apex.env && apex.env.APP_FILES) ? apex.env.APP_FILES : "";
+              const el = container || document;
+            
+              el.querySelectorAll("img[data-perfil-foto]").forEach(img => {
+                const nome = img.getAttribute("data-perfil-foto");
+                if (nome) {
+                  img.src = base + "Fotos Colaboradores/" + encodeURIComponent(nome);
+                  img.removeAttribute("data-perfil-foto");
+                }
+              });
+            }
+            
+            // Carrega as fotos ao abrir a página
+            carregarFotosPerfil(document);
+            
+            // Alternância entre as abas Trajetória e Dados Pessoais
+            $(document).on("click", ".perfil-tab-btn", function () {
+              $(".perfil-tab-btn").removeClass("is-active");
+              $(".perfil-tab-conteudo").removeClass("is-active");
+            
+              $(this).addClass("is-active");
+              $("#tab-" + $(this).data("tab")).addClass("is-active");
+            });
+            
+            // Abertura do Modal de Foto
+            $(document).on("click", "[data-acao='abrir-foto-drawer']", function () {
+              const id = $v(PERFIL_ITEM_ID) || 0;
+              abrirDrawerFoto(id);
+            });
+            
+            $(document).on("click", "[data-acao='fechar-foto']", function () {
+              if (perfilFotoDrawer) perfilFotoDrawer.close();
+            });
+            ```
+    }
+    css {
+        fileUrls: #APP_FILES#Meu Perfil#MIN#.css
+    }
     security {
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
@@ -34,6 +109,55 @@ page 2 (
         componentAppearance {
             breadcrumbTemplate: @/breadcrumb
             templateOptions: #DEFAULT#
+        }
+    )
+
+    region perfil-do-colaborador (
+        name: Perfil do Colaborador
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_perfil.render(to_number(:P2_ID_COLABORADOR default null on conversion error));
+            pageItemsToSubmit: P2_ID_COLABORADOR
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P2_ID_COLABORADOR (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+    )
+
+    process perfil-drawer-foto (
+        name: PERFIL_DRAWER_FOTO
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                apex_util.prn(
+                  p_clob   => pkg_perfil.render_drawer_foto(
+                                to_number(apex_application.g_x01 default null on conversion error)),
+                  p_escape => false);
+                ```
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 39812565727690203
         }
     )
 
