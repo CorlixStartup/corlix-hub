@@ -55,6 +55,29 @@ end fn_carreira_ve_salario;
 end;
 /
 
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_BUSCA_UI" authid definer as
+
+  -- Página de resultados e item que recebe o termo pela URL
+  c_pagina constant pls_integer := 29;
+
+  function render_campo return clob;
+
+  function render_cabecalho (
+    p_termo      in varchar2,
+    p_id_empresa in number default to_number(v('G_ID_EMPRESA') default null on conversion error)
+  ) return clob;
+
+  function render_resultados (
+    p_termo      in varchar2,
+    p_id_empresa in number default to_number(v('G_ID_EMPRESA') default null on conversion error),
+    p_login      in varchar2 default v('APP_USER')
+  ) return clob;
+
+  function render_ajuda return clob;
+
+end pkg_busca_ui;
+/
+
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_COMUNICADO" AS
 
     -- Cria um comunicado. ID_DEPARTAMENTO NULL = empresa toda.

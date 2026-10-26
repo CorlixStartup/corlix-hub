@@ -263,10 +263,24 @@ Uso: p1 Home (`cx-badge--info` no mês dos aniversariantes; `cx-etiqueta` no dep
 | `.cx-home-gestor`, `.cx-home-lista` (`__item`), `.cx-home-vazio` (`__titulo`, `__texto`) | Meu gestor, lista de aniversariantes e estado vazio; reaproveitam `.cx-pessoa`, `.cx-acoes-card` e `.cx-badge--info` ("Hoje") |
 | `.cx-home-comunicados` (+ `.cx-home-comunicado__meta`, `__titulo`) | Cards de comunicados: 1º item com imagem 16:9 (300px) à esquerda e título 22px, demais em lista sem imagem e título 16px, todos em negrito; neutraliza as regras globais `.a-CardView-*` da §3 |
 
+### 5.2.2 Busca na intranet (`custom.css` §13)
+
+HTML do `pkg_busca_ui` (`modulos/busca`). `.corlix-header__search-input` ganha `appearance: none` e esconde o `::-webkit-search-cancel-button` (o campo virou `type="search"`).
+
+| Classe | Uso |
+|---|---|
+| `.cx-busca-cabecalho` (`__titulo` 32px/700, `__resumo` 15px) | cabeçalho da p29 na Breadcrumb Bar (dentro de `.t-Body-title`), padding 24×32px |
+| `.cx-busca-card` (`__titulo` 18px/700 com ícone, `__qtd` pílula cinza, `__rodape`) | cards Pessoas e Comunicados; borda 1px, raio `--cx-raio-card`, sem sombra |
+| `.cx-busca-lista` (`__item`), `.cx-busca__link` (15px/600, `--cx-primaria`) | linhas dos cards; pessoas reaproveitam `.cx-avatar`, `.cx-pessoa` e o botão `t-Button` |
+| `.cx-busca-comunicado` (`__meta`, `__titulo`, `__resumo`) | linha de comunicado: etiqueta `.cx-etiqueta` + data, título e resumo |
+| `.cx-busca-ajuda` (`__lista`, `__nota`) | card "O que a busca encontra" |
+
+O estado vazio reaproveita `.cx-home-vazio` e `.cx-avatar--vazio` (§12).
+
 ### 5.3 Cabeçalho (`custom.css` §2, p0 Global Page)
 
-`.corlix-header__search` (360px, max 40vw, margin-left 24px; some < 768px) › `__search-icon` (absoluto, centralizado, `--cx-texto-3`) + `__search-input` (36px, padding-left 36px, fundo `--cx-tag`, raio `--cx-raio`; foco: fundo branco + outline 2px primária) — região no slot *After Logo*.
-`.corlix-header__actions` (flex, gap 8) › `__icon-btn` (36×36, transparente, hover `rgba(22,21,19,.06)`) e `__user` (borda esquerda) › `__user-info` (`__user-name` 14px/600, `__user-role` 12px) + `__avatar` (32px redondo) — slot *After Navigation Bar*. `.t-Header-navBar--end` vira flex.
+`.corlix-header__search` (360px, max 40vw, margin-left 24px; some < 768px) › `__search-icon` (absoluto a 14px, centralizado, `--cx-texto-2`; seletor com `.corlix-header__search` na frente porque o Core do UT tem `.apex-icons-fontapex .fa { position: relative }`) + `__search-input` (36px, padding-left 38px, fundo `--cx-tag`, raio `--cx-raio`; foco: fundo branco + outline 2px primária) — região no slot *After Logo*.
+`.corlix-header__actions` (flex, gap 8) › `__icon-btn` (36×36, transparente, hover `rgba(22,21,19,.06)`) `__divisor` (1×24px) e o botão `__user` (avatar `__avatar` 32px + `__user-name` 14px/600 + `__user-seta` ▾; hover `rgba(22,21,19,.06)`, também enquanto o menu está aberto) — slot *After Navigation Bar*. O botão abre o menu do usuário `.cx-menu-usuario` (atributo HTML `popover`, sem JS): `__cabecalho` (`__nome` 14px/700, `__info` 12px com `__login` em minúsculas), `__separador`, `__item` (ícone 16px + texto, hover `--cx-tag`). HTML em `modulos/tema/Etapas-header-e-menu.md` §4. `.t-Header-navBar--end` vira flex.
 
 ### 5.4 Ajustes globais / Home legados (`custom.css` §1, §3–§10)
 

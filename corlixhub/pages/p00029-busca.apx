@@ -1,0 +1,95 @@
+page 29 (
+    name: Busca
+    alias: BUSCA
+    title: Busca
+    appearance {
+        pageTemplate: @corlix-standard-page
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            // O pkg_busca_ui manda as fotos como data-cx-foto="Fotos Colaboradores/x.jpg".
+            // Aqui o caminho vira URL da pasta de arquivos do app (#APP_FILES#).
+            function cxBuscaCarregarFotos(raiz) {
+              (raiz || document).querySelectorAll("img[data-cx-foto]").forEach(function (img) {
+                const caminho = img.dataset.cxFoto.split("/").map(encodeURIComponent).join("/");
+                img.removeAttribute("data-cx-foto");
+                img.src = apex.env.APP_FILES + caminho;
+              });
+            }
+            ```
+        executeWhenPageLoads: cxBuscaCarregarFotos();
+    }
+    security {
+        formAutoComplete: false
+    }
+
+    region ajuda (
+        name: Ajuda
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_busca_ui.render_ajuda;
+        }
+        layout {
+            sequence: 20
+            slot: body
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region cabeçalho (
+        name: Cabeçalho
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_busca_ui.render_cabecalho(:P29_TERMO);
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region resultados (
+        name: Resultados
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_busca_ui.render_resultados(:P29_TERMO);
+        }
+        layout {
+            sequence: 10
+            slot: body
+            columnSpan: 8
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P29_TERMO (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 10
+            region: @cabeçalho
+            slot: regionBody
+        }
+    )
+
+)
+

@@ -6,16 +6,9 @@ page 0 (
 
     region novo (
         name: Barra de Busca
-        type: staticContent
+        type: dynamicContent
         source {
-            htmlCode:
-                ```html
-                <div class="corlix-header__search">
-                  <span class="fa fa-search corlix-header__search-icon" aria-hidden="true"></span>
-                  <input type="text" id="P0_SEARCH_GLOBAL" class="corlix-header__search-input"
-                         placeholder="Buscar na intranet..." autocomplete="off" />
-                </div>
-                ```
+            plsqlFunctionBody: return pkg_busca_ui.render_campo;
         }
         layout {
             sequence: 10
@@ -39,23 +32,35 @@ page 0 (
             htmlCode:
                 ```html
                 <div class="corlix-header__actions">
-                    <a href="r/corlixhub/&APP_ALIAS./notificacoes?session=&SESSION." class="corlix-header__icon-btn"
-                        id="corlix-btn-notif" aria-label="Notificações">
-                        <span class="fa fa-bell-o" aria-hidden="true"></span>
-                    </a>
-                    <a href="r/corlixhub/&APP_ALIAS./configuracoes?session=&SESSION." class="corlix-header__icon-btn"
-                        id="corlix-btn-settings" aria-label="Configurações">
-                        <span class="fa fa-cog" aria-hidden="true"></span>
-                    </a>
-                    <div class="corlix-header__user">
-                        <div class="corlix-header__user-info">
-                            <span class="corlix-header__user-name">&G_NOME_USUARIO.</span>
-                            <span class="corlix-header__user-role">&APP_USER_CARGO.</span>
-                        </div>
-                        <img src="#APP_FILES#&APP_USER_FOTO." alt="Foto do usuário" class="corlix-header__avatar" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';" />
-                        <span class="corlix-header__avatar cx-avatar-iniciais" aria-hidden="true" style="display:none">&APP_USER_INICIAIS.</span>
+                  <a href="f?p=&APP_ID.:NOTIFICACOES:&SESSION." class="corlix-header__icon-btn"
+                     aria-label="Notificações" title="Notificações">
+                    <span class="fa fa-bell-o" aria-hidden="true"></span>
+                  </a>
+                  <span class="corlix-header__divisor" aria-hidden="true"></span>
+                  <button type="button" class="corlix-header__user" popovertarget="cx-menu-usuario"
+                          aria-haspopup="menu" aria-label="Menu do usuário">
+                    <img src="#APP_FILES#&APP_USER_FOTO." alt="" class="corlix-header__avatar"
+                         onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';" />
+                    <span class="corlix-header__avatar cx-avatar-iniciais" aria-hidden="true" style="display:none">&APP_USER_INICIAIS.</span>
+                    <span class="corlix-header__user-name">&G_NOME_USUARIO.</span>
+                    <span class="fa fa-chevron-down corlix-header__user-seta" aria-hidden="true"></span>
+                  </button>
+                  <div id="cx-menu-usuario" class="cx-menu-usuario" popover>
+                    <div class="cx-menu-usuario__cabecalho">
+                      <span class="cx-menu-usuario__nome">&G_NOME_USUARIO.</span>
+                      <span class="cx-menu-usuario__info"><span class="cx-menu-usuario__login">&APP_USER.</span> · &G_NOME_EMPRESA.</span>
                     </div>
+                    <hr class="cx-menu-usuario__separador">
+                    <a class="cx-menu-usuario__item" href="f?p=&APP_ID.:MEU-PERFIL:&SESSION.">
+                      <span class="fa fa-user-o" aria-hidden="true"></span>Meu perfil
+                    </a>
+                    <hr class="cx-menu-usuario__separador">
+                    <a class="cx-menu-usuario__item" href="&LOGOUT_URL.">
+                      <span class="fa fa-sign-out" aria-hidden="true"></span>Sair
+                    </a>
+                  </div>
                 </div>
+                
                 ```
         }
         layout {
