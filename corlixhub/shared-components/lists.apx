@@ -42,13 +42,21 @@ list emitir-comunicado (
 list navigation-menu (
     name: Navigation Menu
 
-    entry cadastros (
-        label: Cadastro de Usuários
+    entry administração (
+        label: Administração
         icon {
-            imageIconCssClasses: fa-user-plus
+            imageIconCssClasses: fa-shield
         }
         layout {
-            sequence: 70
+            sequence: 60
+        }
+    )
+
+    entry cadastros (
+        label: Cadastro de usuários
+        layout {
+            sequence: 62
+            parentEntry: @administração
         }
         isCurrent {
             type: pages
@@ -65,12 +73,10 @@ list navigation-menu (
     )
 
     entry central-de-equipes (
-        label: Central de Equipes
-        icon {
-            imageIconCssClasses: fa-table
-        }
+        label: Central de equipes
         layout {
-            sequence: 160
+            sequence: 64
+            parentEntry: @administração
         }
         isCurrent {
             type: pages
@@ -92,7 +98,7 @@ list navigation-menu (
             imageIconCssClasses: fa-comments-o
         }
         layout {
-            sequence: 170
+            sequence: 30
         }
         isCurrent {
             type: pages
@@ -107,15 +113,9 @@ list navigation-menu (
 
     entry colaboradores (
         label: Colaboradores
-        icon {
-            imageIconCssClasses: fa-users-alt
-        }
         layout {
-            sequence: 50
-        }
-        isCurrent {
-            type: pages
-            pages: 12
+            sequence: 41
+            parentEntry: @pessoas
         }
         link {
             target: {
@@ -127,10 +127,10 @@ list navigation-menu (
     entry comunicação (
         label: Comunicados
         icon {
-            imageIconCssClasses: fa-commenting-o
+            imageIconCssClasses: fa-bullhorn
         }
         layout {
-            sequence: 40
+            sequence: 20
         }
         isCurrent {
             type: pages
@@ -143,13 +143,24 @@ list navigation-menu (
         }
     )
 
+    entry configurações (
+        label: Configurações
+        layout {
+            sequence: 66
+            parentEntry: @administração
+        }
+        link {
+            target: {
+                page: 6
+            }
+        }
+    )
+
     entry dashboard-rh (
         label: Dashboard RH
-        icon {
-            imageIconCssClasses: fa-bar-chart
-        }
         layout {
-            sequence: 210
+            sequence: 63
+            parentEntry: @administração
         }
         isCurrent {
             type: pages
@@ -166,12 +177,10 @@ list navigation-menu (
     )
 
     entry empresas-cadastradas (
-        label: Empresas Cadastradas
-        icon {
-            imageIconCssClasses: fa-building-o
-        }
+        label: Empresas
         layout {
-            sequence: 110
+            sequence: 61
+            parentEntry: @administração
         }
         isCurrent {
             type: pages
@@ -192,20 +201,13 @@ list navigation-menu (
 
     entry histórico-de-carreira (
         label: Histórico de carreira
-        icon {
-            imageIconCssClasses: fa-workflow
-        }
         layout {
-            sequence: 60
-        }
-        isCurrent {
-            type: pages
-            pages: 13
+            sequence: 52
+            parentEntry: @minha-carreira
         }
         link {
             target: {
                 page: 13
-                clearCache: 13
             }
         }
         security {
@@ -213,17 +215,11 @@ list navigation-menu (
         }
     )
 
-    entry holerite-digital (
-        label: Holerite Digital
-        icon {
-            imageIconCssClasses: fa-file-o
-        }
+    entry holerite (
+        label: Holerite
         layout {
-            sequence: 240
-        }
-        isCurrent {
-            type: pages
-            pages: 9
+            sequence: 53
+            parentEntry: @minha-carreira
         }
         link {
             target: {
@@ -252,16 +248,10 @@ list navigation-menu (
     )
 
     entry meu-perfil (
-        label: Meu Perfil
-        icon {
-            imageIconCssClasses: fa-user
-        }
+        label: Meu perfil
         layout {
-            sequence: 20
-        }
-        isCurrent {
-            type: pages
-            pages: 2
+            sequence: 51
+            parentEntry: @minha-carreira
         }
         link {
             target: {
@@ -270,17 +260,21 @@ list navigation-menu (
         }
     )
 
-    entry organograma (
-        label: Organograma
+    entry minha-carreira (
+        label: Minha carreira
         icon {
-            imageIconCssClasses: fa-tree-org
+            imageIconCssClasses: fa-briefcase
         }
         layout {
-            sequence: 30
+            sequence: 50
         }
-        isCurrent {
-            type: pages
-            pages: 3
+    )
+
+    entry organograma (
+        label: Organograma
+        layout {
+            sequence: 42
+            parentEntry: @pessoas
         }
         link {
             target: {
@@ -289,51 +283,21 @@ list navigation-menu (
         }
     )
 
-    entry sair (
-        label: Sair
+    entry pessoas (
+        label: Pessoas
         icon {
-            imageIconCssClasses: fa-box-arrow-out-east
+            imageIconCssClasses: fa-users
         }
         layout {
-            sequence: 10000
-        }
-        link {
-            target: {
-                type: url
-                url: &LOGOUT_URL.
-            }
-        }
-    )
-
-    entry solicitar-correção (
-        label: Solicitar correção
-        icon {
-            imageIconCssClasses: fa-comment-o
-        }
-        layout {
-            sequence: 230
-        }
-        isCurrent {
-            type: pages
-            pages: 22
-        }
-        link {
-            target: {
-                page: 22
-            }
-        }
-        security {
-            authorizationScheme: @colaborador
+            sequence: 40
         }
     )
 
     entry terminal (
-        label: Monitor de Logs
-        icon {
-            imageIconCssClasses: fa-terminal
-        }
+        label: Monitor de logs
         layout {
-            sequence: 190
+            sequence: 65
+            parentEntry: @administração
         }
         isCurrent {
             type: pages

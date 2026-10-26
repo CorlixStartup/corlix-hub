@@ -15,8 +15,6 @@ app CORLIXHUB (
     navigationMenu {
         listTemplate: @/side-navigation-menu
         templateOptions: [
-            #DEFAULT#
-            js-defaultCollapsed
             js-navCollapsed--default
             t-TreeNav--styleA
         ]

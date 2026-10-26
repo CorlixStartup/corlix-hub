@@ -76,11 +76,12 @@ appProcess g-nome-empresa (
                WHERE UPPER(TRIM(C.login_apex)) = UPPER(TRIM(:APP_USER));
             EXCEPTION
               WHEN NO_DATA_FOUND THEN
-                :G_NOME_EMPRESA := 'SEM VINCULO - usuario: ' || :APP_USER;
+                :G_NOME_EMPRESA := 'sem empresa vinculada';
               WHEN TOO_MANY_ROWS THEN
-                :G_NOME_EMPRESA := 'MULTIPLOS VINCULOS - usuario: ' || :APP_USER;
+                :G_NOME_EMPRESA := 'mais de uma empresa vinculada';
               WHEN OTHERS THEN
-                :G_NOME_EMPRESA := 'ERRO: ' || SQLERRM;
+                :G_NOME_EMPRESA := 'empresa indisponível';
+                log_pkg.erro(SQLERRM, 'G_NOME_EMPRESA');
             END;
             ```
     }
