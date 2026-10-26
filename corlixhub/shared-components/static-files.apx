@@ -1458,6 +1458,16 @@ file "Fotos Colaboradores/vinicius_soares.jpg" (
     charSet: utf-8
 )
 
+file "Meu Perfil.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file "Meu Perfil.min.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
 file corlix-tema.css (
     mimeType: text/css
     charSet: utf-8
@@ -1495,6 +1505,11 @@ file historico-carreira.css (
 
 file historico-carreira.min.css (
     mimeType: text/css
+    charSet: utf-8
+)
+
+file home-hero.jpg (
+    mimeType: image/jpeg
     charSet: utf-8
 )
 

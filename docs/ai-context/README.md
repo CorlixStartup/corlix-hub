@@ -25,6 +25,7 @@
 | 07 | [Design (pen.dev)](./07-design-pen-dev.md) | Descrição detalhada de cada tela-alvo e mapeamento para componentes APEX; features sem backend |
 | 08 | [Convenções e pegadinhas](./08-convencoes-e-pegadinhas.md) | **Leia antes de editar qualquer coisa.** Regras de trabalho, lacunas, bugs conhecidos, checklist |
 | 09 | [Erros e soluções](./09-erros-e-solucoes.md) | Erros de SQL, PL/SQL e APEX já vistos: como ler a mensagem, causa, correção, prevenção e checklist |
+| — | [**Base Oracle APEX 26.1**](../apex-26.1/README.md) | Referência do APEX tirada da documentação oficial (conceitos, páginas, relatórios, segurança, APIs PL/SQL/JS, APEXlang, workflows, REST, admin, novidades). Use para dúvidas sobre o APEX em si |
 | 10 | [Cookies e sessão (OCI)](./10-erro-400-cookies.md) | `400 Request Header Or Cookie Too Large` e sessão do Builder caindo/pedindo workspace: causa, diagnóstico, correção |
 
 ### Guia por tipo de tarefa
@@ -32,7 +33,8 @@
 - **Criar uma página ou tela do pen.dev:** 07 (tela) → 02 §1 (sintaxe) → 04 §8 (aplicar tema) → 08.
 - **Mexer no banco ou criar tabela:** 05 → 06 §4 (padrão de módulo) → 08.
 - **Integrar organograma ou histórico de carreira:** 06 → 05 → 02 (páginas 3/13).
-- **Apareceu um erro (ORA-, PLS-, Access denied):** 09.
+- **Apareceu um erro (ORA-, PLS-, Access denied):** primeiro `python3 scripts/busca-casos/casos.py buscar "<mensagem ou sintoma>"` (busca de casos com Elasticsearch, cobre o 09, o 10 e as tabelas "Se não funcionar" dos módulos; ver 01 §8.2); depois 09.
+- **Dúvida sobre um recurso ou API do APEX:** [`../apex-26.1/`](../apex-26.1/README.md) e `casos.py buscar "…" --fonte apex` (documentação oficial indexada).
 - **Ambiente, deploy ou CI:** 01.
 - **Erro 400 "Request Header Or Cookie Too Large" ou sessão do Builder caindo:** 10.
 

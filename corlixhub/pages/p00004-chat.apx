@@ -26,7 +26,6 @@ page 4 (
                 --ch-bubble-in: var(--cx-tag);
             
                 --ch-border: var(--cx-borda);
-                --ch-border-soft: var(--cx-borda);
                 --ch-surface: var(--cx-superficie-2);
             
                 --ch-text: var(--cx-texto);
@@ -66,14 +65,15 @@ page 4 (
             .ch-shell {
                 display: grid;
                 grid-template-columns: var(--ch-list-w) 1fr;
-                grid-template-rows: minmax(0, 1fr);
-                /* impede a linha de crescer */
+                grid-template-rows: minmax(0, 1fr); /* impede a linha de crescer */
                 height: calc(100vh - var(--ch-topbar-h));
                 overflow: hidden;
                 background: #fff;
             }
             
-            /* wrappers do APEX somem do layout; .ch-list e .ch-chat viram grid items */
+            /* wrappers do APEX (.container/.row, inclusive os internos) somem do layout:
+               .ch-list e .ch-chat viram itens do grid, e as colunas internas viram
+               itens flex direto da região Conversa */
             .ch-shell>div,
             .ch-shell .container,
             .ch-shell .row {
@@ -93,7 +93,7 @@ page 4 (
                 overflow: hidden;
             }
             
-            /* repassa a altura: .js-apex-region → #report_catch */
+            /* repassa a altura: região → #report_catch */
             .ch-list>div,
             .ch-list>div>div {
                 display: flex;
@@ -110,28 +110,77 @@ page 4 (
                 overflow-y: auto;
             }
             
+            /* cabeçalho do departamento: botão que abre/fecha o grupo */
             .ch-dept {
-                padding: 10px 16px;
-                font-size: 11px;
-                font-weight: 600;
-                letter-spacing: .04em;
-                text-transform: uppercase;
-                color: var(--ch-text-dim);
-                background: var(--ch-surface);
-                border-top: 1px solid var(--ch-border-soft);
-                border-bottom: 1px solid var(--ch-border-soft);
                 position: sticky;
                 top: 0;
                 z-index: 1;
                 flex: 0 0 auto;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                width: 100%;
+                padding: 10px 16px;
+                border: none;
+                border-top: 1px solid var(--ch-border);
+                border-bottom: 1px solid var(--ch-border);
+                background: var(--ch-surface);
+                font: inherit;
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+                text-align: left;
+                color: var(--ch-text-dim);
+                cursor: pointer;
             }
             
             .ch-dept:first-child {
                 border-top: none;
             }
             
+            .ch-dept:hover {
+                color: var(--ch-text);
+            }
+            
+            .ch-dept:focus-visible {
+                outline: 2px solid var(--ch-blue);
+                outline-offset: -2px;
+            }
+            
+            .ch-dept-ico {
+                font-size: 10px;
+                transition: transform .15s ease;
+            }
+            
+            .ch-dept[aria-expanded="true"] .ch-dept-ico {
+                transform: rotate(90deg);
+            }
+            
+            .ch-dept-nome {
+                flex: 1 1 auto;
+                min-width: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .ch-dept-qtd {
+                flex: 0 0 auto;
+                font-weight: 500;
+                letter-spacing: 0;
+                color: var(--ch-text-faint);
+            }
+            
+            /* departamentos começam colapsados; a DA "Abrir/fechar
+               marca os contatos do grupo aberto com .is-visivel */
+            .ch-contacts .ch-contact:not(.is-visivel) {
+                display: none;
+            }
+            
             .ch-contact {
                 display: flex;
+                flex: 0 0 auto;
                 align-items: center;
                 gap: 10px;
                 padding: 10px 16px;
@@ -139,11 +188,15 @@ page 4 (
                 color: inherit;
                 border-left: 3px solid transparent;
                 transition: background .12s ease;
-                flex: 0 0 auto;
             }
             
             .ch-contact:hover {
                 background: var(--ch-surface);
+            }
+            
+            .ch-contact:focus-visible {
+                outline: 2px solid var(--ch-blue);
+                outline-offset: -2px;
             }
             
             .ch-contact.is-active {
@@ -151,34 +204,35 @@ page 4 (
                 border-left-color: var(--ch-blue);
             }
             
+            /* ---- avatar + status (lista e cabeçalho da conversa) ---- */
             .ch-avatar-wrap {
                 position: relative;
                 flex: 0 0 var(--ch-avatar-size);
             }
             
             .ch-avatar {
+                position: relative;
                 width: var(--ch-avatar-size);
                 height: var(--ch-avatar-size);
                 border-radius: 50%;
-                background: var(--ch-avatar-bg);
-                color: var(--ch-avatar-fg);
+                overflow: hidden;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-size: 12px;
                 font-weight: 600;
-                position: relative;
-                overflow: hidden;
+                background: var(--ch-avatar-bg);
+                color: var(--ch-avatar-fg);
             }
             
-            /* Foto por cima das iniciais; se falhar, o onerror remove a <img> */
+            /* foto por cima das iniciais; se falhar, o onerror remove a <img> */
             .ch-avatar img {
                 position: absolute;
                 inset: 0;
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
-                border-radius: 9999px;
+                border-radius: 50%;
             }
             
             .ch-dot {
@@ -191,22 +245,22 @@ page 4 (
                 border: 2px solid #fff;
             }
             
-            .ch-dot--online {
-                background: var(--ch-online);
-            }
+            .ch-dot--online  { background: var(--ch-online); }
+            .ch-dot--ausente { background: var(--ch-ausente); }
+            .ch-dot--offline { background: var(--ch-offline); }
             
-            .ch-dot--ausente {
-                background: var(--ch-ausente);
-            }
-            
-            .ch-dot--offline {
-                background: var(--ch-offline);
-            }
-            
+            /* nome e cargo cortam com reticências em vez de quebrar a linha */
             .ch-contact-txt {
                 display: flex;
                 flex-direction: column;
                 min-width: 0;
+            }
+            
+            .ch-contact-txt b,
+            .ch-contact-txt small {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
             .ch-contact-txt b {
@@ -225,22 +279,30 @@ page 4 (
                ============================================ */
             
             .ch-chat {
-                background: #fff;
                 display: flex;
                 flex-direction: column;
                 min-height: 0;
                 overflow: hidden;
+                background: #fff;
             }
             
-            /* repassa a altura pela cadeia de wrappers até .ch-msgs */
+            /* repassa a altura pela cadeia de wrappers até .ch-msgs.
+               O :not(.ch-composer) impede que o composer vire coluna e cresça. */
             .ch-chat>div,
             .ch-chat .col,
             .ch-chat .col>div,
-            .ch-chat .col>div>div {
+            .ch-chat .col>div>div:not(.ch-composer) {
                 display: flex;
                 flex-direction: column;
                 flex: 1 1 auto;
                 min-height: 0;
+            }
+            
+            /* coluna do composer: altura do conteúdo, sempre no rodapé.
+               :has() funciona com a classe ch-composer-col na linha ou na coluna. */
+            .ch-chat .col:has(.ch-composer) {
+                flex: 0 0 auto;
+                margin-top: auto;
             }
             
             /* ---- estado vazio (nenhum contato selecionado) ---- */
@@ -255,27 +317,57 @@ page 4 (
                 text-align: center;
                 color: var(--ch-text-dim);
             }
-            .ch-vazio .fa { font-size: 40px; color: var(--ch-text-faint); margin-bottom: 6px; }
-            .ch-vazio b { font-size: 14px; font-weight: 600; color: var(--ch-text); }
-            .ch-vazio small { font-size: 12px; }
+            
+            .ch-vazio .fa {
+                font-size: 40px;
+                color: var(--ch-text-faint);
+                margin-bottom: 6px;
+            }
+            
+            .ch-vazio b {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--ch-text);
+            }
+            
+            .ch-vazio small {
+                font-size: 12px;
+            }
             
             /* ---- cabeçalho da conversa (contato aberto) ---- */
             .ch-head {
                 display: flex;
+                flex: 0 0 auto;
                 align-items: center;
                 gap: 10px;
                 padding: 10px 24px;
                 border-bottom: 1px solid var(--ch-border);
                 background: #fff;
-                flex: 0 0 auto;
             }
             
-            /* sem contato: mostra só o estado vazio; com contato: cabeçalho + mensagens */
+            /* sem contato: só o estado vazio; com contato: cabeçalho + mensagens + composer */
             .ch-chat:not(.is-aberto) .ch-head,
-            .ch-chat:not(.is-aberto) .container { display: none !important; }
-            .ch-chat.is-aberto .ch-vazio { display: none; }
+            .ch-chat:not(.is-aberto) .container {
+                display: none !important;
+            }
             
-            /* mensagem "nenhuma mensagem" do relatório */
+            .ch-chat.is-aberto .ch-vazio {
+                display: none;
+            }
+            
+            /* ---- mensagens ---- */
+            .ch-msgs {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 18px;
+                padding: 24px;
+                background: #fff;
+            }
+            
+            /* "nenhuma mensagem" do relatório */
             .ch-chat .nodatafound {
                 padding: 24px;
                 text-align: center;
@@ -283,28 +375,17 @@ page 4 (
                 color: var(--ch-text-faint);
             }
             
-            .ch-msgs {
-                flex: 1 1 auto;
-                min-height: 0;
-                overflow-y: auto;
-                padding: 24px;
-                display: flex;
-                flex-direction: column;
-                gap: 18px;
-                background: #fff;
-            }
-            
             .ch-sep {
-                text-align: center;
-                margin: 6px 0;
                 flex: 0 0 auto;
+                margin: 6px 0;
+                text-align: center;
             }
             
             .ch-sep span {
                 font-size: 11px;
                 font-weight: 600;
-                color: var(--ch-text-faint);
                 letter-spacing: .04em;
+                color: var(--ch-text-faint);
             }
             
             .ch-msg {
@@ -322,7 +403,7 @@ page 4 (
                 border-radius: var(--ch-radius);
                 font-size: 13px;
                 line-height: 1.45;
-                word-break: break-word;
+                overflow-wrap: anywhere;
             }
             
             .ch-msg--in .ch-bubble {
@@ -350,18 +431,19 @@ page 4 (
             }
             
             /* ---- campo de envio (rodapé da conversa) ---- */
-            .ch-chat .col.ch-composer-col { flex: 0 0 auto; }
-            
             .ch-composer {
                 display: flex;
+                flex: 0 0 auto;
                 align-items: flex-end;
                 gap: 10px;
-                padding: 12px 24px;
+                padding: 12px 24px 30px; /* folga extra embaixo, longe da borda da página */
                 border-top: 1px solid var(--ch-border);
                 background: #fff;
             }
+            
             .ch-composer textarea {
                 flex: 1 1 auto;
+                min-width: 0;
                 min-height: 40px;
                 max-height: 140px;
                 padding: 9px 12px;
@@ -373,9 +455,17 @@ page 4 (
                 color: var(--ch-text);
                 resize: none;
             }
-            .ch-composer textarea:focus { outline: none; border-color: var(--ch-blue); }
+            
+            .ch-composer textarea:focus {
+                outline: none;
+                border-color: var(--ch-blue);
+            }
+            
             .ch-enviar {
                 flex: 0 0 auto;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
                 height: 40px;
                 padding: 0 16px;
                 border: none;
@@ -385,11 +475,17 @@ page 4 (
                 font-size: 13px;
                 font-weight: 600;
                 cursor: pointer;
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
             }
-            .ch-enviar:disabled { opacity: .6; cursor: default; }
+            
+            .ch-enviar:focus-visible {
+                outline: 2px solid var(--ch-blue);
+                outline-offset: 2px;
+            }
+            
+            .ch-enviar:disabled {
+                opacity: .6;
+                cursor: default;
+            }
             ```
     }
     security {
@@ -471,11 +567,15 @@ page 4 (
                          else 'offline'
                        end                              as presenca,
                        case when row_number() over (
-                                   partition by d.nome
-                                   order by c.nome_completo
-                                 ) = 1
-                            then '<div class="ch-dept">' || d.nome || '</div>'
-                       end                              as cab_dept
+                            partition by d.nome
+                            order by c.nome_completo
+                          ) = 1
+                        then '<button type="button" class="ch-dept" aria-expanded="false">' ||
+                            '<span class="fa fa-chevron-right ch-dept-ico" aria-hidden="true"></span>' ||
+                            '<span class="ch-dept-nome">' || apex_escape.html(d.nome) || '</span>' ||
+                            '<span class="ch-dept-qtd">' || count(*) over (partition by d.nome) || '</span>' ||
+                          '</button>'
+                        end                              as cab_dept
                 from   colaborador  c
                 join   departamento d  on d.id_departamento = c.id_departamento
                 left   join cargo   cg on cg.id_cargo       = c.id_cargo
@@ -814,6 +914,39 @@ page 4 (
             sequence: 40
             slot: body
         }
+    )
+
+    dynamicAction abrir-fechar-departamento (
+        name: Abrir/fechar departamento
+        execution {
+            sequence: 50
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: .ch-dept
+        }
+
+        action alternar-departamento (
+            name: Alternar departamento
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    const cab   = this.triggeringElement;
+                    const abrir = cab.getAttribute("aria-expanded") !== "true";
+                    cab.setAttribute("aria-expanded", abrir);
+                    
+                    // contatos do grupo = irmãos até o próximo cabeçalho
+                    $(cab).nextUntil(".ch-dept", ".ch-contact").toggleClass("is-visivel", abrir);
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
     )
 
     dynamicAction enter-envia-mensagem (

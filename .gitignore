@@ -52,3 +52,10 @@ Desktop.ini
 
 ## Configurações locais de ferramentas de IDE/CLI (específicas da máquina/usuário)
 .claude/settings.local.json
+/.serena/
+
+## Cache local da documentação oficial do APEX (scripts/busca-casos/apex_docs.py)
+/.cache/
+
+## Bytecode do Python (scripts/busca-casos)
+__pycache__/

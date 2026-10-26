@@ -87,7 +87,7 @@
 - As contas SARAHSILVA, EDUARDOMARINS e ALAIRTONROCHA são da equipe e não têm colaborador: "SEM VINCULO" na Home é esperado para elas.
 
 ### SQL e PL/SQL
-Os erros já vistos (ORA-12704, PLS-00201/00304, PLS-00231, ORA-02000, ORA-01403, Access Denied etc.), com causa, correção e prevenção, estão em [09 · Erros e soluções](./09-erros-e-solucoes.md). Consulte o checklist da §5 desse documento antes de entregar SQL ou PL/SQL.
+Os erros já vistos (ORA-12704, PLS-00201/00304, PLS-00231, ORA-02000, ORA-01403, Access Denied etc.), com causa, correção e prevenção, estão em [09 · Erros e soluções](./09-erros-e-solucoes.md). Para achar um caso pela mensagem ou pelo sintoma (inclusive nas tabelas "Se não funcionar" dos módulos), use `python3 scripts/busca-casos/casos.py buscar "<texto>"` (01 §8.2). Consulte o checklist da §5 desse documento antes de entregar SQL ou PL/SQL.
 
 Regras gerais para scripts PL/SQL:
 - Todo bloco `create or replace package|package body|procedure|function|trigger|type` e todo bloco anônimo `begin … end;` termina com `/` sozinho na linha seguinte. Sem a `/`, o SQLcl não executa o bloco e o próximo comando é anexado a ele.

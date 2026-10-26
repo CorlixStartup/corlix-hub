@@ -1,0 +1,26 @@
+# Elasticsearch local para a busca de casos dos agentes de IA.
+# Uso (na raiz do repo):  docker compose -f scripts/busca-casos/docker-compose.yml up -d
+# Nó único, sem segurança e ouvindo só em 127.0.0.1. Não exponha em rede.
+name: corlix-busca-casos
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    container_name: corlix-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.ml.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - es_dados:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      retries: 12
+    restart: unless-stopped
+
+volumes:
+  es_dados:

@@ -2,6 +2,7 @@
 
 > Referência de diagnóstico. Cada entrada traz o **sintoma** (a mensagem como aparece), a **causa**, a **correção** e a **prevenção**.
 > Origem: instalação e integração do módulo de histórico de carreira (página 13), em 09/10/2026.
+> Busca: `python3 scripts/busca-casos/casos.py buscar "<mensagem>"` acha a entrada certa por código, sintoma ou descrição (01 §8.2). Mantenha o formato `### N.M` + **Sintoma:**/**Causa:**/**Correção:**/**Prevenção:** para que a entrada seja indexada como caso, e rode `casos.py indexar` depois de editar.
 > Antes de escrever SQL ou PL/SQL, leia a [§5 (checklist)](#5-checklist-antes-de-entregar-sqlplsql). Antes de configurar uma página, leia a [§4](#4-apex-configuração-de-páginas).
 
 ## 1. Como ler uma mensagem de erro

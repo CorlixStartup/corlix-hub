@@ -165,29 +165,6 @@ list navigation-menu (
         }
     )
 
-    entry emitir-comunicado (
-        label: Emitir Comunicado
-        icon {
-            imageIconCssClasses: fa-magic
-        }
-        layout {
-            sequence: 80
-            parentEntry: @home
-        }
-        isCurrent {
-            type: pages
-            pages: 17
-        }
-        link {
-            target: {
-                page: 17
-            }
-        }
-        security {
-            authorizationScheme: @publicador-de-conteudo
-        }
-    )
-
     entry empresas-cadastradas (
         label: Empresas Cadastradas
         icon {
@@ -236,13 +213,36 @@ list navigation-menu (
         }
     )
 
-    entry home (
-        label: Home
+    entry holerite-digital (
+        label: Holerite Digital
+        icon {
+            imageIconCssClasses: fa-file-o
+        }
+        layout {
+            sequence: 240
+        }
+        isCurrent {
+            type: pages
+            pages: 9
+        }
+        link {
+            target: {
+                page: 9
+            }
+        }
+    )
+
+    entry início (
+        label: Início
         icon {
             imageIconCssClasses: fa-home
         }
         layout {
             sequence: 10
+        }
+        isCurrent {
+            type: pages
+            pages: 1
         }
         link {
             target: {

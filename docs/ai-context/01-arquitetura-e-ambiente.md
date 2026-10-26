@@ -55,7 +55,8 @@ CorlixHub/
 │   ├── apex-sessao-timeouts.sql      # lê/ajusta timeouts de sessão do workspace (ver 10 §8)
 │   ├── extensao-cookies-apex/ # extensão local do Chrome contra o 400 de cookies (ver 10 §9)
 │   ├── apex-limpar-sql-scripts.sql  # apaga SQL Scripts do workspace (dry-run por padrão)
-│   └── backup/                # pipeline de backup (SQLcl + Jenkins): app, DDL e dados
+│   ├── backup/                # pipeline de backup (SQLcl + Jenkins): app, DDL e dados
+│   └── busca-casos/           # busca de casos/erros e da doc oficial do APEX para agentes de IA (Elasticsearch, ver §8.2)
 └── .github/workflows/ci.yml   # CI: valida docker-compose, gitleaks, bloqueia pastas proibidas
 ```
 
@@ -149,6 +150,14 @@ Job Jenkins diário (02h, America/Sao_Paulo) que conecta no Autonomous Database 
 - um CSV por tabela, com BLOBs em base64.
 
 Os backups ficam como artefatos do Jenkins (30 dias) e nunca vão para o Git (`/backups/` no `.gitignore`), porque contêm dados pessoais. O `backup.sh` também roda local, e `scripts/backup/jenkins/` tem um `docker-compose.yml` que sobe um Jenkins local para testar o pipeline, copia cada `.tar.gz` para `backups/<ambiente>/` do projeto e, com `scripts/backup/extrair-no-projeto.sh`, atualiza `corlixhub/`, `database/f100.sql` e `database/ddl/` (pulando destinos com alterações não commitadas) e põe os CSVs em `database/dados/backup/` (ignorado pelo Git) (o compose fica fora da raiz, então o job `validate` do CI não o valida). Com o parâmetro `PUBLICAR_GIT` (padrão), o stage *Publicar no Git* roda `scripts/backup/publicar-no-git.sh`: clona a `DEV`, extrai o backup de `PRD` nela, commita só `corlixhub/`, `database/f100.sql` e `database/ddl/` com a mensagem `chore(backup): Backup - Corlix Hub - dd/MM/yyyy as HH:mm` (horário de Brasília; commit vazio se nada mudou), faz push e abre PR `DEV` → `PROD` se não houver um aberto; nesse modo a extração na pasta local do projeto é pulada. Usa a credencial `corlixhub-github` (usuário + token do GitHub). Referência (conteúdo, variáveis, restauração) em [`scripts/backup/README.md`](../../scripts/backup/README.md); passo a passo da configuração, com erros comuns, em [`scripts/backup/Etapas-backup.md`](../../scripts/backup/Etapas-backup.md).
+
+## 8.2 Busca de casos para agentes de IA (`scripts/busca-casos/`)
+Índice Elasticsearch (`corlix-casos`) com os casos já ocorridos: entradas Sintoma/Causa/Correção do 09, seções do 10 e cada linha das tabelas "Se não funcionar"/"Problemas comuns" dos `modulos/*/Etapas-*.md`, além das demais seções da documentação (tipo `doc`, peso menor). Analisador pt-BR (sem acento, radical, stopwords sem o "não"), sinônimos, tolerância a erros de digitação e peso extra para códigos (`ORA-01403`, `-20012`) e identificadores (`P13_…`, `PKG_…`).
+- Subir: `docker compose -f scripts/busca-casos/docker-compose.yml up -d` (Elasticsearch 8.15.3, nó único, sem segurança, só em `127.0.0.1:9200`; fora da raiz, então o job `validate` do CI não o valida).
+- Indexar: `python3 scripts/busca-casos/casos.py indexar` (recria o índice; rode de novo quando um `.md` mudar).
+- Buscar: `python3 scripts/busca-casos/casos.py buscar "<texto>" [-n 5] [--tipo caso|doc] [--modulo …] [--json]`. Sem Elasticsearch, cai num modo offline menos preciso e avisa.
+- Documentação oficial do APEX 26.1: `apex_docs.py baixar` (zip oficial, ~325 MB) → `extrair` (3.340 páginas em Markdown em `.cache/apex-docs/md/`, fora do Git) → `indexar` (índice `apex-docs`, analisador inglês, ~7.300 trechos com o link oficial). Buscar com `casos.py buscar "…" --fonte apex|todas`. A síntese em pt-BR fica em `docs/apex-26.1/` e entra no índice `corlix-casos` (`--modulo apex-26.1`).
+Detalhes em [`scripts/busca-casos/README.md`](../../scripts/busca-casos/README.md).
 
 ## 9. Estado do working tree no momento desta documentação
 Modificados (não commitados): `application.apx`, páginas 1, 4, 14, 16, 27, `static-files.apx`, `custom.css/.min.css`, `database/f100.sql`, arquivos de `modulos/organograma/`.
