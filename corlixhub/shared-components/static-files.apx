@@ -1493,6 +1493,11 @@ file default-user.jpeg (
     charSet: utf-8
 )
 
+file home-hero.jpg (
+    mimeType: image/jpeg
+    charSet: utf-8
+)
+
 file historico-carreira.css (
     mimeType: text/css
     charSet: utf-8

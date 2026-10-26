@@ -10,7 +10,7 @@
 - **App:** ID `100`, alias `CORLIXHUB`, workspace/schema `WKSP_CORLIXHUB`, autenticação por contas APEX, idioma da UI pt-BR (idioma primário técnico `en`).
 - **Fonte da app:** `corlixhub/` em formato **APEXlang** (`.apx`). `database/f100.sql` é o mesmo app num export SQL de 12 MB: use só para consultar, nunca edite.
 - **Banco:** o DDL das tabelas base (`COLABORADOR`, `CARGO`, `DEPARTAMENTO`, `EMPRESA`, `COMUNICADO`, `EQUIPE`, chat, logs…) está em `database/corlix-hub.sql`. É um snapshot só de estrutura, **sem dados**, e não serve como instalador. O módulo de histórico de carreira tem DDL próprio em `modulos/historico-carreira/`. Dados exportados ficam em `database/dados/` (hoje só `departamento.xlsx`: 6 departamentos da empresa 1).
-- **Em andamento:** redesign visual (tokens `--cx-*` em `corlix-tema.css`), módulo de Organograma (`modulos/organograma`, página 3), Histórico de carreira integrado nas páginas 13 e 18–23 (guia `modulos/historico-carreira/Etapas-historico-carreira.md`) e ~28 telas-alvo em `pen_dev/`.
+- **Em andamento:** redesign visual (tokens `--cx-*` em `corlix-tema.css`), módulo de Organograma (`modulos/organograma`, página 3), Histórico de carreira integrado nas páginas 13 e 18–23 (guia `modulos/historico-carreira/Etapas-historico-carreira.md`), redesign da Home numa página nova, a 28, sem apagar a 1 (`modulos/home`, guia `Etapas-home.md`, branch `feature/redesign-home`) e ~28 telas-alvo em `pen_dev/`.
 
 ## Documentos
 
@@ -43,7 +43,7 @@
 | Nº | Página | Status |
 |---|---|---|
 | 0 | Global Page (header: busca, sino, config, usuário) | Implementada |
-| 1 | Home (dashboard) | Implementada |
+| 1 | Home (dashboard) | Implementada; mantida durante o redesign |
 | 2 | Meu Perfil | Placeholder |
 | 3 | Organograma | Placeholder; o módulo existe em `modulos/organograma` |
 | 4 | Chat | Parcial (leitura, sem envio) |
@@ -62,6 +62,7 @@
 | 15 / 16 | Empresas (lista / modal de cadastro com ViaCEP) | Implementada |
 | 17 | Emitir Comunicado (modal wizard) | Implementada, com bugs |
 | 26 / 27 | Central de Equipes / Nova Equipe (modal) | Implementada |
+| 28 | Início (nova Home) | Em montagem pelo `modulos/home/Etapas-home.md`; vira a Home no §5 do guia |
 | 9999 | Login | Implementada |
 
 ## Regras de ouro (resumo do 08)
