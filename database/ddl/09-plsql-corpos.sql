@@ -156,12 +156,13 @@ end;
     return substr(trim(regexp_replace(p_termo, '\s+', ' ')), 1, 100);
   end termo_limpo;
 
+  -- Vazio vale: a busca vazia lista todas as pessoas e todos os comunicados
   function termo_valido (p_termo in varchar2) return boolean is
   begin
-    return length(termo_limpo(p_termo)) >= c_min_letras;
+    return termo_limpo(p_termo) is null or length(termo_limpo(p_termo)) >= c_min_letras;
   end termo_valido;
 
-  -- '%termo%' sem acento, com % e _ do termo escapados (escape '\')
+  -- '%termo%' sem acento, com % e _ do termo escapados (escape '\'); termo vazio vira '%%'
   function padrao (p_termo in varchar2) return varchar2 is
     l_termo varchar2(1000 char) := translate(lower(termo_limpo(p_termo)), c_com_acento, c_sem_acento);
   begin
@@ -265,7 +266,8 @@ end;
   ------------------------------------------------------------------------------
   function render_campo return clob is
     l_termo varchar2(400 char);
-    l_url   varchar2(4000) := apex_page.get_url(p_page => c_pagina);
+    -- clear_cache: sem isso, a busca vazia herdaria o termo anterior da sessão
+    l_url   varchar2(4000) := apex_page.get_url(p_page => c_pagina, p_clear_cache => c_pagina);
   begin
     -- Na própria página de resultados, o campo volta preenchido com o termo
     if v('APP_PAGE_ID') = to_char(c_pagina) then
@@ -275,16 +277,17 @@ end;
     inicia;
     p('<div class="corlix-header__search" role="search">');
     p('<span class="fa fa-search corlix-header__search-icon" aria-hidden="true"></span>');
-    -- Enter leva à página 29 com o termo na URL; preventDefault impede o submit da página atual
+    -- Enter leva à página 29 com o termo na URL (vazio: lista tudo); preventDefault impede o
+    -- submit da página atual
     p('<input type="search" id="cx-busca-global" class="corlix-header__search-input"'
       || ' placeholder="Buscar na intranet..." aria-label="Buscar na intranet"'
       || ' autocomplete="off" enterkeyhint="search" maxlength="100"'
       || ' value="' || a(l_termo) || '"'
       || ' data-url="' || a(l_url) || '"'
       || ' onkeydown="if (event.key === ''Enter'') { event.preventDefault();'
-      || ' var t = this.value.trim(); if (t) { location.href = this.dataset.url'
-      || ' + (this.dataset.url.indexOf(''?'') < 0 ? ''?'' : ''&amp;'')'
-      || ' + ''' || c_item_termo || '='' + encodeURIComponent(t); } }">');
+      || ' var t = this.value.trim(); location.href = this.dataset.url'
+      || ' + (t ? (this.dataset.url.indexOf(''?'') < 0 ? ''?'' : ''&amp;'')'
+      || ' + ''' || c_item_termo || '='' + encodeURIComponent(t) : ''''); }">');
     p('</div>');
     return g_html;
   end render_campo;
@@ -301,7 +304,16 @@ end;
 
     if l_termo is null then
       p('<h1 class="cx-busca-cabecalho__titulo">Buscar na intranet</h1>');
-      p('<p class="cx-busca-cabecalho__resumo">Digite no campo de busca, no topo da p&aacute;gina, e aperte Enter.</p>');
+      if p_id_empresa is null then
+        p('<p class="cx-busca-cabecalho__resumo">Nenhum resultado em Pessoas e Comunicados</p>');
+      else
+        l_qt := qtd_pessoas(padrao(null), p_id_empresa) + qtd_comunicados(padrao(null), p_id_empresa);
+        p('<p class="cx-busca-cabecalho__resumo">'
+          || case l_qt when 0 then 'Nenhuma pessoa ou comunicado na sua empresa'
+                       when 1 then '1 resultado em Pessoas e Comunicados'
+                       else l_qt || ' resultados em Pessoas e Comunicados' end
+          || '. Digite um termo no campo de busca para filtrar.</p>');
+      end if;
     else
       p('<h1 class="cx-busca-cabecalho__titulo">Resultados para &ldquo;' || e(l_termo) || '&rdquo;</h1>');
       if not termo_valido(l_termo) then
@@ -335,8 +347,8 @@ end;
   begin
     inicia;
 
-    -- Sem termo (ou curto demais): o cabeçalho já orienta
-    if l_termo is null or not termo_valido(l_termo) then
+    -- Termo curto demais: o cabeçalho já orienta. Termo vazio lista tudo.
+    if not termo_valido(l_termo) then
       return g_html;
     end if;
 
@@ -351,7 +363,11 @@ end;
     l_qt_p   := qtd_pessoas(l_padrao, p_id_empresa);
     l_qt_c   := qtd_comunicados(l_padrao, p_id_empresa);
 
-    if l_qt_p + l_qt_c = 0 then
+    if l_qt_p + l_qt_c = 0 and l_termo is null then
+      estado_vazio('fa-search', 'Nenhuma pessoa ou comunicado na sua empresa',
+        'Quando houver colaboradores ativos ou comunicados publicados, eles aparecem aqui.');
+      return g_html;
+    elsif l_qt_p + l_qt_c = 0 then
       estado_vazio('fa-search', 'Nenhum resultado para &ldquo;' || e(l_termo) || '&rdquo;',
         'Confira a grafia ou tente outro termo: nome, cargo ou departamento de uma pessoa, '
         || 'ou parte do t&iacute;tulo de um comunicado.');

@@ -1493,6 +1493,16 @@ file default-user.jpeg (
     charSet: utf-8
 )
 
+file figtree-latin-ext.woff2 (
+    mimeType: font/woff2
+    charSet: utf-8
+)
+
+file figtree-latin.woff2 (
+    mimeType: font/woff2
+    charSet: utf-8
+)
+
 file historico-carreira.css (
     mimeType: text/css
     charSet: utf-8
@@ -1530,6 +1540,11 @@ file "icons/app-icon-32.png" (
 
 file "icons/app-icon-512.png" (
     mimeType: image/png
+    charSet: utf-8
+)
+
+file lucide.woff2 (
+    mimeType: font/woff2
     charSet: utf-8
 )
 
