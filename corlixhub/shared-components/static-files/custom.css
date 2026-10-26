@@ -1686,12 +1686,12 @@
     column-gap: 48px;
 }
 
-.cx-form-secao .t-Region-body > * {
+.cx-form-secao .t-Region-body>* {
     grid-column: 2;
 }
 
 /* Linha 1: com "span" o grid cria linhas vazias que alongam o card */
-.cx-form-secao .t-Region-body > .cx-form-secao__info {
+.cx-form-secao .t-Region-body>.cx-form-secao__info {
     grid-column: 1;
     grid-row: 1;
     align-self: start;
@@ -1800,8 +1800,8 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .cx-form-secao .t-Region-body > *,
-    .cx-form-secao .t-Region-body > .cx-form-secao__info {
+    .cx-form-secao .t-Region-body>*,
+    .cx-form-secao .t-Region-body>.cx-form-secao__info {
         grid-column: 1;
         grid-row: auto;
     }

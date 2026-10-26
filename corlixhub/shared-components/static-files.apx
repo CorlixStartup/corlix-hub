@@ -1478,21 +1478,6 @@ file corlix-tema.min.css (
     charSet: utf-8
 )
 
-file figtree-latin-ext.woff2 (
-    mimeType: font/woff2
-    charSet: utf-8
-)
-
-file figtree-latin.woff2 (
-    mimeType: font/woff2
-    charSet: utf-8
-)
-
-file lucide.woff2 (
-    mimeType: font/woff2
-    charSet: utf-8
-)
-
 file custom.css (
     mimeType: text/css
     charSet: utf-8
