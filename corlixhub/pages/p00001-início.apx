@@ -84,7 +84,7 @@ page 1 (
 
     region home_aniversariantes (
         name: Aniversariantes
-        title: <span class="fa fa-birthday-cake" aria-hidden="true"></span>Aniversariantes de &P28_MES_ATUAL.
+        title: <span class="fa fa-birthday-cake" aria-hidden="true"></span>Aniversariantes de &P1_MES_ATUAL.
         type: dynamicContent
         source {
             plsqlFunctionBody: return pkg_home_ui.render_aniversariantes;
