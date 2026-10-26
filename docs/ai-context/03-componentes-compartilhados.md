@@ -136,6 +136,8 @@ Pegadinhas:
 ## 4. Lists (`lists.apx`)
 
 ### 4.1 `navigation-menu` ("Navigation Menu") — menu lateral, em ordem de `sequence`
+> Estado de hoje. A estrutura do protótipo (grupos Pessoas, Minha carreira e Administração; sem "Sair" e "Solicitar correção"; `ADMIN_RH` no Monitor de logs; menu aberto por padrão) está em `modulos/tema/Etapas-header-e-menu.md` §2–3. Atualize esta tabela pelo próximo backup depois de aplicar.
+
 | Seq | Static ID | Label | Ícone | Destino | Current em páginas | Authorization |
 |---|---|---|---|---|---|---|
 | 10 | `home` | Home | `fa-home` | p1 | (padrão: p1) | — |

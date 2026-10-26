@@ -29,7 +29,7 @@
 | 16 | `Configurações (equipe de produto).png` | Configurações | p00006-configuracoes | Média |
 | 17 | `Monitor de logs.png` | Monitor de logs | p00007-monitor-logs | Média |
 | 18 | `Monitor de logs · detalhe em Drawer.png` | Drawer "Detalhe do registro #N" | não implementada (nova modal drawer) | Média |
-| 19 | `Busca (resultados).png` | Resultados da busca global | não implementada (p00000 tem só "Barra de Busca") | Média |
+| 19 | `Busca (resultados).png` | Resultados da busca global | p00029 (em montagem: `modulos/busca`) | Média |
 | 20 | `Minha equipe (gestores).png` | Minha equipe (visão do gestor) | não implementada (≠ p00026 Central de equipes, que é admin) | Média |
 | 21 | `Minhas aprovações (Unified Task List).png` | Minhas aprovações | não implementada | Baixa/Média (depende de PDI) |
 | 22 | `PDI · aprovação pela gestão (detalhe da tarefa).png` | Detalhe da tarefa de aprovação de PDI | não implementada | Baixa/Média |
@@ -256,7 +256,7 @@ Cabeçalho "Monitor de logs" / "Erros e eventos registrados pela aplicação. Ac
 - Rodapé: botão secundário "☰ **Ver em Erros de página**".
 **APEX**: Modal Dialog Drawer recebendo o ID do log; itens Display Only; botão Copiar = DA `navigator.clipboard`.
 
-### 4.17 Busca (resultados) — `Busca (resultados).png` → não implementada
+### 4.17 Busca (resultados) — `Busca (resultados).png` → página 29 (`modulos/busca/Etapas-busca.md`)
 Campo de busca do header preenchido ("vendas", foco azul). Cabeçalho: "Resultados para "vendas"" / "3 resultados em Pessoas e Comunicados".
 - Coluna principal: card "**Pessoas** (2)" — linhas com avatar, nome em link azul ("Camila Rocha"), "Gerente comercial · Vendas", botão secundário "💬 **Conversar**" à direita; card "**Comunicados** (1)" — etiqueta "Para: Vendas" + "7 de janeiro", título em link "Primeiro comunicado", resumo.
 - Coluna direita: card "**O que a busca encontra**": 👥 "Pessoas ativas, por nome, cargo ou departamento"; 📣 "Comunicados que você pode ver, por título ou texto"; ▦ "Páginas do menu às quais você tem acesso"; nota "Contas inativas e conteúdos sem permissão não aparecem nos resultados."

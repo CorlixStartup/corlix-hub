@@ -61,7 +61,7 @@
   - Os botões Chat/E-mail do gestor têm `href="#"`.
   - Em `columnCssClasses` há um `.` sobrando.
   - A coluna `CLASSE_DEPTO` não é usada.
-- **p0 Global**: a busca global do cabeçalho não tem comportamento. Os links usam o caminho fixo `r/corlixhub/...`.
+- **p0 Global**: a busca global do cabeçalho não tem comportamento até aplicar `modulos/busca/Etapas-busca.md` (região "Barra de Busca" vira Dynamic Content do `pkg_busca_ui`). Os links do header usam o caminho fixo `r/corlixhub/...` até aplicar `modulos/tema/Etapas-header-e-menu.md` §4.
 - **Gráficos (JET) com mais de uma série**: o APEX junta os rótulos de todas as séries e os ordena **como texto**, ignorando o `order by` da query. Rótulo de mês em `mm/yyyy` sai fora de ordem ("01/2026" antes de "11/2025"). Use um rótulo que ordene certo como texto, como `to_char(mes, 'yyyy/mm')` (ex.: turnover da p20, `Etapas-historico-carreira.md` §5.2).
 
 ### Arquivos e tema

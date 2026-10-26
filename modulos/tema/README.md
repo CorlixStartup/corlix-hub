@@ -94,7 +94,7 @@ O seletor do item atual no menu lateral é o ponto mais sensível. Se a barra az
 
 ## Decisões da prancha que não são de tema
 
-A seção "Estrutura da aplicação" da prancha traz mudanças de navegação. Elas pedem alterações em listas, templates e páginas, não em CSS, e ficaram fora deste arquivo:
+A seção "Estrutura da aplicação" da prancha traz mudanças de navegação. Elas pedem alterações em listas, templates e páginas, não em CSS. O passo a passo do header e do menu lateral (grupos do menu, menu do usuário com Meu perfil e Sair, menu aberto por padrão) está em [`Etapas-header-e-menu.md`](Etapas-header-e-menu.md); "Preferências", "Minha equipe" e "Minhas aprovações" esperam as páginas existirem:
 
 - **"Emitir comunicado":** deixa de ser filho de Início e vira o botão "Novo comunicado" na região Comunicados.
 - **"Sair":** sai do rodapé do menu lateral e vai para o menu do usuário, junto com "Meu perfil" e "Preferências". Hoje o `custom.css` ainda estiliza o último item do menu como botão de rodapé; isso sai junto.
