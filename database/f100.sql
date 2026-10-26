@@ -117,7 +117,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461336194005
-,p_version_scn=>'47049589775871'
+,p_version_scn=>'47049591332768'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -60038,7 +60038,8 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(38254039309320228)
 ,p_plug_name=>'Aniversariantes'
 ,p_static_id=>'aniversariantes_todos'
-,p_title=>'Aniversariantes de &P28_MES_ATUAL.'
+,p_title=>'Aniversariantes de &P1_MES_ATUAL.'
+,p_region_name=>'aniversariantes_todos'
 ,p_region_template_options=>'#DEFAULT#:js-dialog-autoheight:js-dialog-size480x320'
 ,p_plug_template=>2674150083631647148
 ,p_plug_display_sequence=>40
@@ -60615,6 +60616,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(31837999345958904)
 ,p_plug_name=>'Organograma Principal'
 ,p_static_id=>'organograma'
+,p_region_name=>'organograma'
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>4502917002193490937
 ,p_plug_display_sequence=>10
@@ -63014,6 +63016,7 @@ wwv_flow_imp_page.create_page_plug(
 ,p_plug_name=>unistr('Hist\00F3rico de carreira')
 ,p_static_id=>'historico_carreira'
 ,p_title=>unistr('Hist\00F3rico de carreira')
+,p_region_name=>'historico_carreira'
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>4502917002193490937
 ,p_plug_display_sequence=>20
@@ -69258,4 +69261,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:yrzBW6hF8oTWMXvy1OGtGPzBzrso/pEVLGHBrX6FRS0=
+-- Application Checksum SH256:+oVdmOsuY8xvQQo8QK46cNFvWsBKv8+JpMCVGukmjGU=
