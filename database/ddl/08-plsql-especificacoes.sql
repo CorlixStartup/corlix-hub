@@ -322,6 +322,15 @@ end pkg_historico_carreira;
 end pkg_historico_carreira_ui;
 /
 
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_HOLERITE" AS
+    -- Processa o cálculo mensal para colaboradores ativos com admissão a partir de 01/06/2026
+    PROCEDURE gerar_folha_mensal(p_mes IN NUMBER, p_ano IN NUMBER);
+
+    -- Função que gera o código HTML estruturado para renderização direta na Página 9
+    FUNCTION render(p_mes IN NUMBER, p_ano IN NUMBER) RETURN CLOB;
+END pkg_holerite;
+/
+
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_HOME_UI" authid definer as
 
   function mes_atual return varchar2;

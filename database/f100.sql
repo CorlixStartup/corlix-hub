@@ -36,14 +36,14 @@ prompt APPLICATION 100 - Corlix Hub
 --   Exported By:     WKSP_CORLIXHUB
 --   Flashback:       0
 --   Export Type:     Application Export
---     Pages:                     25
---       Items:                  105
+--     Pages:                     26
+--       Items:                  107
 --       Computations:             1
 --       Validations:             11
 --       Processes:               42
---       Regions:                 64
+--       Regions:                 67
 --       Buttons:                 35
---       Dynamic Actions:         21
+--       Dynamic Actions:         22
 --     Shared Components:
 --       Logic:
 --         Items:                  7
@@ -52,7 +52,7 @@ prompt APPLICATION 100 - Corlix Hub
 --       Navigation:
 --         Lists:                  2
 --         Breadcrumbs:            1
---           Entries:             12
+--           Entries:             13
 --       Security:
 --         Authentication:         1
 --         Authorization:          6
@@ -117,7 +117,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461336194005
-,p_version_scn=>'47049304422425'
+,p_version_scn=>'47049404291458'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -302,7 +302,7 @@ wwv_flow_imp_shared.create_list(
  p_id=>wwv_flow_imp.id(10016114704229685)
 ,p_name=>'Navigation Menu'
 ,p_static_id=>'navigation-menu'
-,p_version_scn=>'SH256:XD5W5PhCPGsOZl9FNRzssl7SFiFL07uvzGdk-mzpVS8'
+,p_version_scn=>'SH256:uO7qifpGdjAggNY6kOTabxW3OmOJqauGfpSffDERMNo'
 );
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(10300139268463692)
@@ -387,6 +387,16 @@ wwv_flow_imp_shared.create_list_item(
 ,p_security_scheme=>wwv_flow_imp.id(30607785537919512)
 ,p_list_item_current_type=>'COLON_DELIMITED_PAGE_LIST'
 ,p_list_item_current_for_pages=>'13'
+);
+wwv_flow_imp_shared.create_list_item(
+ p_id=>wwv_flow_imp.id(40408911492887526)
+,p_list_item_display_sequence=>240
+,p_list_item_link_text=>'Holerite Digital'
+,p_static_id=>'holerite-digital'
+,p_list_item_link_target=>'f?p=&APP_ID.:9:&APP_SESSION.::&DEBUG.:::'
+,p_list_item_icon=>'fa-file-o'
+,p_list_item_current_type=>'COLON_DELIMITED_PAGE_LIST'
+,p_list_item_current_for_pages=>'9'
 );
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(39075568069437456)
@@ -59214,6 +59224,13 @@ wwv_flow_imp_shared.create_menu_option(
 ,p_page_id=>13
 );
 wwv_flow_imp_shared.create_menu_option(
+ p_id=>wwv_flow_imp.id(40409990583887561)
+,p_short_name=>'Holerite Digital'
+,p_static_id=>'holerite-digital'
+,p_link=>'f?p=&APP_ID.:9:&APP_SESSION.::&DEBUG.:::'
+,p_page_id=>9
+);
+wwv_flow_imp_shared.create_menu_option(
  p_id=>wwv_flow_imp.id(10218370292385180)
 ,p_short_name=>'Meu Perfil'
 ,p_static_id=>'meu-perfil'
@@ -62577,6 +62594,175 @@ wwv_flow_imp_page.create_page(
 ,p_page_template_options=>'#DEFAULT#'
 ,p_protection_level=>'C'
 ,p_page_component_map=>'11'
+);
+end;
+/
+prompt --application/pages/page_00009
+begin
+wwv_flow_imp_page.create_page(
+ p_id=>9
+,p_name=>'Holerite Digital'
+,p_alias=>'HOLERITE-DIGITAL'
+,p_step_title=>'Holerite Digital'
+,p_autocomplete_on_off=>'OFF'
+,p_inline_css=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'.holerite-card {',
+'    max-width: 850px;',
+'    margin: 15px auto;',
+'    background: #ffffff;',
+'    border: 1px solid #dcdcdc;',
+'    border-radius: 8px;',
+'    padding: 20px;',
+'    box-shadow: 0 4px 10px rgba(0,0,0,0.05);',
+'    font-family: Arial, sans-serif;',
+'}',
+'.holerite-header {',
+'    display: flex;',
+'    justify-content: space-between;',
+'    border-bottom: 2px solid #0056b3;',
+'    padding-bottom: 10px;',
+'    margin-bottom: 15px;',
+'}',
+'.holerite-header h2 { margin: 0; font-size: 18px; color: #0056b3; }',
+'.holerite-info { width: 100%; margin-bottom: 15px; font-size: 14px; }',
+'.holerite-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }',
+'.holerite-table th, .holerite-table td { border: 1px solid #e0e0e0; padding: 8px 12px; font-size: 13px; }',
+'.holerite-table th { background-color: #f4f6f9; text-align: left; }',
+'.holerite-totals { display: flex; justify-content: space-between; background: #f8f9fa; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 14px; }',
+'.net-salary { color: #28a745; font-size: 15px; }',
+'',
+'#P9_MES, #P9_ANO {',
+'    font-weight: bold;',
+'}',
+'',
+'#P9_MES_LABEL, #P9_ANO_LABEL {',
+'    font-weight: bold;',
+'}'))
+,p_step_template=>wwv_flow_imp.id(19815602566775266)
+,p_page_template_options=>'#DEFAULT#'
+,p_protection_level=>'C'
+,p_page_component_map=>'25'
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(39812668986690204)
+,p_plug_name=>unistr('Filtro de Per\00EDodo')
+,p_static_id=>unistr('filtro-de-per\00EDodo')
+,p_region_template_options=>'#DEFAULT#'
+,p_plug_template=>4502917002193490937
+,p_plug_display_sequence=>10
+,p_plug_item_display_point=>'ABOVE'
+,p_location=>null
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'expand_shortcuts', 'N',
+  'output_as', 'HTML')).to_clob
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(40409342283887551)
+,p_plug_name=>unistr('Navega\00E7\00E3o Estrutural')
+,p_static_id=>unistr('navega\00E7\00E3o-estrutural')
+,p_region_template_options=>'#DEFAULT#:t-BreadcrumbRegion--useBreadcrumbTitle'
+,p_component_template_options=>'#DEFAULT#'
+,p_plug_template=>2532939663579242476
+,p_plug_display_sequence=>10
+,p_plug_display_point=>'REGION_POSITION_01'
+,p_plug_item_display_point=>'ABOVE'
+,p_menu_id=>wwv_flow_imp.id(10015682119229680)
+,p_plug_source_type=>'NATIVE_BREADCRUMB'
+,p_menu_template_id=>4073839682315169711
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(36608482442951805)
+,p_plug_name=>unistr('Visualiza\00E7\00E3o do Holerite')
+,p_static_id=>unistr('visualiza\00E7\00E3o-do-holerite')
+,p_region_template_options=>'#DEFAULT#:t-Region--removeHeader js-removeLandmark:t-Region--scrollBody'
+,p_plug_template=>4073835273271169698
+,p_plug_display_sequence=>30
+,p_plug_item_display_point=>'ABOVE'
+,p_location=>null
+,p_function_body_language=>'PLSQL'
+,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'DECLARE',
+'    v_mes NUMBER;',
+'    v_ano NUMBER;',
+'BEGIN',
+unistr('    -- Convers\00E3o protegida: se o filtro estiver vazio ou inv\00E1lido, assume o padr\00E3o seguro'),
+'    BEGIN',
+'        v_mes := TO_NUMBER(:P9_MES);',
+'    EXCEPTION',
+'        WHEN OTHERS THEN v_mes := 10;',
+'    END;',
+'    ',
+'    BEGIN',
+'        v_ano := TO_NUMBER(:P9_ANO);',
+'    EXCEPTION',
+'        WHEN OTHERS THEN v_ano := 2026;',
+'    END;',
+'',
+unistr('    -- Chama a fun\00E7\00E3o com os n\00FAmeros validados'),
+'    RETURN pkg_holerite.render(p_mes => v_mes, p_ano => v_ano);',
+'END;'))
+,p_lazy_loading=>false
+,p_plug_source_type=>'NATIVE_DYNAMIC_CONTENT'
+,p_ajax_items_to_submit=>'P9_MES,P9_ANO'
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(39813213637690210)
+,p_name=>'P9_ANO'
+,p_item_sequence=>20
+,p_item_plug_id=>wwv_flow_imp.id(39812668986690204)
+,p_item_default=>'2026'
+,p_prompt=>'Ano'
+,p_source_type=>'ALWAYS_NULL'
+,p_display_as=>'NATIVE_SELECT_LIST'
+,p_lov=>'STATIC:2026;2026,2027;2027'
+,p_cHeight=>1
+,p_begin_on_new_line=>'N'
+,p_colspan=>5
+,p_field_template=>1610598304472262251
+,p_item_template_options=>'#DEFAULT#'
+,p_lov_display_extra=>'NO'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'page_action_on_selection', 'NONE')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(39812793427690205)
+,p_name=>'P9_MES'
+,p_item_sequence=>10
+,p_item_plug_id=>wwv_flow_imp.id(39812668986690204)
+,p_prompt=>unistr('M\00EAs')
+,p_source_type=>'ALWAYS_NULL'
+,p_display_as=>'NATIVE_SELECT_LIST'
+,p_lov=>unistr('STATIC2:Janeiro;1,Fevereiro;2,Mar\00E7o;3,Abril;4,Maio;5,Junho;6,Julho;7,Agosto;8,Setembro;9,Outubro;10,Novembro;11,Dezembro;12')
+,p_cHeight=>1
+,p_begin_on_new_line=>'N'
+,p_colspan=>5
+,p_field_template=>1610598304472262251
+,p_item_template_options=>'#DEFAULT#'
+,p_lov_display_extra=>'NO'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'page_action_on_selection', 'NONE')).to_clob
+);
+wwv_flow_imp_page.create_page_da_event(
+ p_id=>wwv_flow_imp.id(39813386518690211)
+,p_name=>'Recarregar Holerite'
+,p_static_id=>'recarregar-holerite'
+,p_event_sequence=>10
+,p_triggering_element_type=>'ITEM'
+,p_triggering_element=>'P9_MES,P9_ANO'
+,p_bind_type=>'bind'
+,p_execution_type=>'IMMEDIATE'
+,p_bind_event_type=>'change'
+);
+wwv_flow_imp_page.create_page_da_action(
+ p_id=>wwv_flow_imp.id(39813442210690212)
+,p_event_id=>wwv_flow_imp.id(39813386518690211)
+,p_event_result=>'TRUE'
+,p_action_sequence=>10
+,p_execute_on_page_init=>'N'
+,p_static_id=>'native-submit-page'
+,p_action=>'NATIVE_SUBMIT_PAGE'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'show_processing', 'Y')).to_clob
 );
 end;
 /
@@ -69033,4 +69219,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:YQR932/iVoldAODtgnAr+JmrBczXgJN5d//GxoENQsU=
+-- Application Checksum SH256:a9+aLaJ+EeGB3LFLjc5v5EwbG7WJQspghpGQxeF8kEc=
