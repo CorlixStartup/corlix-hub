@@ -17,7 +17,8 @@
   (`--ut-*`, `--a-*`, `--u-color-*`) a partir de tokens próprios `--cx-*`, mais alguns ajustes de componente.
   Regra da prancha do pen.dev: *"use componentes nativos, Template Options e Theme Roller correspondentes;
   CSS próprio só onde o nativo não chega"*.
-- Fonte: **Oracle Sans** (a do Redwood, via `--a-base-font-family`). O pen.dev usa Figtree só como substituta — **não** importe Figtree.
+- Fonte: **Figtree**, como no protótipo (decisão de 26/10/2026; antes era a Oracle Sans do Redwood). Os `.woff2` ficam na raiz de `static-files/` (ao lado do CSS) e entram trocando `--a-base-font-family` na última seção do `corlix-tema.css`.
+- Ícones: **Lucide** (`lucide-static@0.460.0`, fonte reduzida em `lucide.woff2`). O app segue usando classes Font APEX; o `corlix-tema.css` troca o glifo de cada `fa-*` mapeada. Guia: `modulos/tema/Etapas-fonte-e-icones.md`.
 - **Dark mode: não existe.** Nenhum arquivo tem `prefers-color-scheme` nem variante escura; a prancha só tem versão clara (README: "fora do escopo").
 
 ---
@@ -106,7 +107,7 @@ Cores fixas fora de token (não viraram `--cx-*`): `#D2CDC7` (active do botão),
 
 | Token / var | Valor | Uso |
 |---|---|---|
-| `--cx-fonte` | `var(--a-base-font-family)` (Oracle Sans) | referência; o CSS usa `font-family: inherit` |
+| `--cx-fonte` | `var(--a-base-font-family)` (Figtree) | referência; o CSS usa `font-family: inherit` |
 | `--cx-raio` | `.375rem` (6px) | busca do header, menus, chips, componentes UT, botão "Sair" |
 | `--cx-raio-card` | `.5rem` (8px) | regiões e cards |
 | Espaçamentos | não há tokens `--cx-*` de espaço; ficam nas vars do UT (§4): conteúdo 32px (2rem), região 20×16px, breadcrumb 32×24px, nav 240px, header 56px |
@@ -138,6 +139,7 @@ Todas em `:root` de `corlix-tema.css`. Nomes extraídos do CSS do UT 26.1.5; se 
 | Menu lateral | `--ut-nav-width` | `15rem` (240px) |
 | | `--ut-body-nav-background-color` / `-border-color` / `-text-color` | `--cx-superficie` / `--cx-borda` / `--cx-texto` |
 | | `--a-treeview-node-font-size` / `-line-height` / `-padding-y` | `.875rem` / `1.25rem` / `.625rem` |
+| | `--ut-treeview-toplevel-node-font-size` / `--a-treeview-node-font-weight` | `.875rem` / `400` (o Redwood põe `1rem` e `600`; só o item atual fica em negrito) |
 | | `--a-treeview-node-text-color` | `--cx-texto` |
 | | `--a-treeview-node-hover-background-color` | `rgba(22,21,19,.04)` |
 | | `--a-treeview-node-selected-background-color` / `-selected-text-color` | `--cx-selecionado` / `--cx-texto` |
@@ -168,7 +170,7 @@ O botão **Hot** não é redefinido: o escuro `#312D2A` já é o do Redwood.
 | `.t-TreeNav .a-TreeView-node.is-current > .a-TreeView-row`, `.is-current--top > .a-TreeView-row`, `.a-TreeView-row.is-selected` | fundo `--cx-selecionado` + `box-shadow: inset 3px 0 0 var(--cx-primaria)` (barra azul de 3px) |
 | `.t-TreeNav .is-current, .is-current--top` | `--a-treeview-node-font-weight: 700` |
 | `.t-TreeNav .a-TreeView-node .a-Icon/.fa` | ícones do menu em `--cx-texto-2` |
-| `.t-Body-title` / `::after` | borda 1px; remove faixa de textura do Redwood (`content: none`) |
+| `.t-Body-title` / `::after` | borda 1px; fundo `--cx-superficie` e borda `--cx-borda` redefinidos aqui, porque o Redwood os redefine em `body:not([class*="rw-pillar--"])` (fundo `#F5F4F2`, borda `#7A736E`), o que vence o `:root`; remove a faixa de textura do Redwood (`content: none`) |
 | `.t-Body-title .t-BreadcrumbRegion` (+ `.t-PageBody--showLeft`) | `--ut-breadcrumb-padding-x: 2rem; -y: 1.5rem` |
 | `.t-BreadcrumbRegion-titleText` | bold |
 | `.t-Region-title` | 700, `text-transform: none` |
@@ -337,7 +339,7 @@ O estado vazio reaproveita `.cx-home-vazio` e `.cx-avatar--vazio` (§12).
 
 Prancha (pen.dev) — conteúdo: Botões (Primária, Secundária, Terciária, Somente ícone, Hover, Foco teclado com anel azul, Desabilitado, Carregando "Salvando..."); Campos (Vazio, Preenchido, Foco com borda/label azul, Erro em vermelho com mensagem abaixo, Desabilitado, Switch, Checkbox); Status e etiquetas (Ativa verde, Inativa cinza, Erro vermelho, Aviso laranja, Informação azul; etiquetas Operações/Diretoria/Vendas); Feedback (alertas sucesso verde, aviso bege, erro rosa, info azul, com título + próxima ação e botão fechar); Navegação lateral (Padrão, Hover com fundo cinza, Ativo = fundo + barra azul + negrito, Grupo + subitem); Estados de região; Estrutura da aplicação (header com ☰ CorlixHub, busca "Buscar na intranet...", sino, avatar "SS Sarah Silva ▾"; menu do usuário com Meu perfil / Preferências / Sair; menu: Início, Comunicados, Chat, Pessoas › Colaboradores, Organograma, Minha equipe, Minhas aprovações [contador]; Minha carreira › Meu perfil, Avaliações, Resultados 360, Plano de desenvolvimento, Feedbacks; Administração › Empresas, Central de equipes, Monitor de logs, Configurações).
 
-Ícones do Navigation Menu propostos: Início `fa-home`, Comunicados `fa-bullhorn`, Chat `fa-comments-o`, Pessoas `fa-users`, Organograma `fa-sitemap`, Minha carreira `fa-briefcase`, Histórico de carreira `fa-history`, Administração `fa-shield`.
+Ícones do Navigation Menu (classes Font APEX; o `corlix-tema.css` desenha cada uma com o glifo Lucide do protótipo — house, megaphone, messages-square, users, network, briefcase, history, shield-check): Início `fa-home`, Comunicados `fa-bullhorn`, Chat `fa-comments-o`, Pessoas `fa-users`, Organograma `fa-sitemap`, Minha carreira `fa-briefcase`, Histórico de carreira `fa-history`, Administração `fa-shield`.
 
 ---
 

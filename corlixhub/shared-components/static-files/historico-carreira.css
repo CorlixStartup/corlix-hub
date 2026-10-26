@@ -31,7 +31,7 @@
 
     color: var(--hc-texto);
     font-family: inherit;
-    /* fonte do tema (Oracle Sans, Redwood) */
+    /* fonte do tema (Figtree, corlix-tema.css) */
     background: var(--hc-fundo);
 }
 
