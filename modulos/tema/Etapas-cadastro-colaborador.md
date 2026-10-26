@@ -45,7 +45,7 @@ Suba em *Shared Components › Static Application Files* os dois arquivos, subst
 
 O que entrou (seção 14 do `custom.css`):
 - `.cx-cabecalho-pagina` (com `__trilha`, `__titulo`, `__descricao`): cabeçalho de página com trilha. Serve para outras páginas com o mesmo cabeçalho.
-- `.cx-form-secao` (com `__info`, `__titulo`, `__descricao`): card de seção com descrição à esquerda e campos à direita. Abaixo de 768px vira uma coluna só.
+- `.cx-form-secao` (com `__info`, `__titulo`, `__descricao`): card de seção com descrição à esquerda e campos à direita. Abaixo de 768px vira uma coluna só. Dentro dele, os obrigatórios ganham o `*` vermelho no rótulo (no lugar do "Required" do Redwood), e o switch ganha o texto "Ativa"/"Inativa", com a ajuda embaixo.
 - `.cx-form-rodape` (com `__nota`): rodapé do formulário preso no fim da tela.
 
 ## 2. Cabeçalho da página
@@ -146,7 +146,7 @@ A região **STATUS DO REGISTRO** é apagada no passo 5.4, depois que o switch sa
 
 Para cada item, ajuste *Layout › Region*, *Layout › Sequence*, *Layout › Start New Row*, *Layout › Column Span* e *Label › Label*. Em todos os itens visíveis:
 - *Appearance › Width*: apague o `30`.
-- *Appearance › Template Options*: marque **Stretch Form Item** (confirmar no 26.1.5).
+- *Appearance › Template Options*: não precisa mudar. Conferido no 26.1.5: sem o *Width*, os campos com rótulo flutuante já ocupam a coluna toda.
 
 | Região | Seq | Item | Label | Start New Row | Column Span |
 |---|---|---|---|---|---|
@@ -194,11 +194,37 @@ O `P14_GESTOR` continua **Popup LOV** (no protótipo ele tem a lupa).
 | `P14_CONFIRMAR_SENHA` | Required - Floating | **On** | |
 | `P14_STATUS` | Optional - Above (confirmar no 26.1.5) | Off | Contas inativas não conseguem entrar no sistema. |
 
-O *Required - Floating* só desenha o `*`; quem barra o campo vazio é o *Value Required*.
+O *Required - Floating* só marca o campo; quem barra o campo vazio é o *Value Required*. No 26.1.5 o Redwood marca o obrigatório com o texto "Required" embaixo do campo e um triângulo vermelho no canto. Dentro de `.cx-form-secao`, o `custom.css` troca os dois pelo `*` vermelho do protótipo, depois do rótulo.
 
 ### 5.4 Apagar a região de status
 
 Com o `P14_STATUS` já em **Acesso ao sistema**, clique com o botão direito em **STATUS DO REGISTRO** › **Delete**. Ela ficou vazia.
+
+### 5.5 Senhas sem preenchimento automático do navegador
+
+Sem esta etapa, o Chrome trata o formulário como uma tela de login. Ele preenche o **E-mail corporativo** com o usuário de quem está cadastrando e a **Senha** com a senha salva dessa pessoa, e o rótulo fica por cima do valor.
+
+Em `P14_SENHA` e `P14_CONFIRMAR_SENHA`, preencha *Advanced › Custom Attributes* (confirmar no 26.1.5) com:
+
+```
+autocomplete="new-password"
+```
+
+Com `new-password`, o navegador entende que é uma senha nova e não oferece a senha salva.
+
+**Confira:** abra a página com uma senha do CorlixHub salva no Chrome. E-mail e Senha devem abrir vazios.
+
+### 5.6 Novas contas nascem ativas
+
+Hoje o switch abre desligado e a coluna `STATUS` não tem `DEFAULT`, então quem não ligar o switch cadastra uma conta inativa.
+
+No `P14_STATUS`:
+- *Default › Type*: **Static**
+- *Default › Static Value*: `TRUE`
+
+`TRUE` é o valor que o switch envia quando está ligado: no HTML da página, o `<input>` do `P14_STATUS` traz `value="TRUE"` e `data-off-value="FALSE"`.
+
+**Confira:** a página abre com o switch ligado e com "Ativa" ao lado.
 
 ## 6. Rodapé com os botões
 
@@ -246,7 +272,10 @@ Recarregue a página com **Ctrl+Shift+R** (Cmd+Shift+R no Mac) e confira:
 | Título da seção aparece duas vezes | A região ficou com o header visível | Passo 4: *Header: Hidden* |
 | Descrição na coluna da direita, acima dos campos | O APEX embrulhou o HTML da região num elemento a mais, e o `.cx-form-secao__info` não é filho direto do `.t-Region-body` | Inspecione no DevTools e mande o HTML gerado; o seletor do CSS precisa seguir a estrutura real |
 | Cards colados, sem fundo cinza entre eles, ou um card branco em volta dos três | O form **Cadastrar Colaborador** ainda tem a decoração do Standard | Passo 3: *Remove UI Decoration* |
-| Campos estreitos | *Width* ainda com `30` ou *Stretch Form Item* desmarcado | Passo 5.1 |
+| Campos estreitos | *Width* ainda com `30` | Passo 5.1 |
+| Data de nascimento ocupa a linha inteira | *Column Span* vazio (automático) | Passo 5.1: *Column Span* = 6 |
+| "Required" em inglês embaixo dos campos e triângulo vermelho no canto | `custom.css` antigo | Passo 1 e Ctrl+Shift+R |
+| E-mail e Senha abrem preenchidos com o usuário e a senha de quem está cadastrando | Preenchimento automático do navegador | Passo 5.5 |
 | Rodapé não fica preso ao rolar | Algum contêiner acima tem `overflow` diferente de `visible` | Inspecione no DevTools e registre aqui o elemento |
 | Botões continuam no card | Slot ou região do botão não mudou | Passo 6.2 |
 | `ORA-` ao salvar sem senha | *Value Required* desligado na senha | Passo 5.3 |

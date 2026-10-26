@@ -286,7 +286,7 @@ Guia: `modulos/tema/Etapas-cadastro-colaborador.md` (p14, protótipo `Novo colab
 | Classe | Uso |
 |---|---|
 | `.cx-cabecalho-pagina` (`__trilha` 14px com link `--cx-primaria` e `fa-chevron-right`, `__titulo` 32px/700, `__descricao` 15px) | cabeçalho de página com trilha, numa região da Breadcrumb Bar com template Blank with Attributes (No Grid); padding 24×32px. Genérico: serve para outras páginas com trilha |
-| `.cx-form-secao` (`__info`, `__titulo` 18px/700, `__descricao` 14px) | CSS Class de região Standard com header escondido: grid 1/3 (título e descrição em `.cx-form-secao__info`, no HTML da região) + 2/3 (campos). Padding 2rem; uma coluna abaixo de 768px |
+| `.cx-form-secao` (`__info`, `__titulo` 18px/700, `__descricao` 14px) | CSS Class de região Standard com header escondido: grid 1/3 (título e descrição em `.cx-form-secao__info`, no HTML da região) + 2/3 (campos). Padding 2rem; uma coluna abaixo de 768px. Dentro dele: obrigatório com `*` vermelho no rótulo (`--cx-alerta`), escondendo `.t-Form-itemRequired` e `-marker` do Redwood; switch (`.apex-item-wrapper--yes-no`) com "Ativa"/"Inativa" via `:has(input:checked)` e ajuda embaixo |
 | `.cx-form-rodape` (`__nota`) | CSS Class de região Buttons Container: rodapé `position: sticky` no fim da tela, fundo branco e borda superior; o título da região fica só para leitores de tela |
 
 ### 5.3 Cabeçalho (`custom.css` §2, p0 Global Page)

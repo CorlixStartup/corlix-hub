@@ -1690,9 +1690,10 @@
     grid-column: 2;
 }
 
+/* Linha 1: com "span" o grid cria linhas vazias que alongam o card */
 .cx-form-secao .t-Region-body > .cx-form-secao__info {
     grid-column: 1;
-    grid-row: 1 / span 9;
+    grid-row: 1;
     align-self: start;
 }
 
@@ -1709,6 +1710,44 @@
     font-size: 14px;
     line-height: 1.5;
     color: var(--cx-texto-2);
+}
+
+/* Obrigatório: "*" vermelho no rótulo, como no protótipo, no lugar do texto
+   "Required" e do triângulo no canto do campo do Redwood. O Redwood esconde
+   o ::after do rótulo flutuante com um seletor de 5 classes; aqui são 6. */
+.cx-form-secao .t-Form-itemRequired,
+.cx-form-secao .t-Form-itemRequired-marker {
+    display: none;
+}
+
+.cx-form-secao.t-Region .t-Form-fieldContainer.t-Form-fieldContainer--floatingLabel.is-required .t-Form-label::after {
+    display: inline;
+    margin-inline-start: .25rem;
+    content: "*";
+    color: var(--cx-alerta);
+    font-family: inherit !important;
+}
+
+/* Switch (Situação da conta): texto "Ativa"/"Inativa" ao lado e ajuda embaixo */
+.cx-form-secao .apex-item-wrapper--yes-no .t-Form-inputContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.cx-form-secao .apex-item-wrapper--yes-no .a-Switch {
+    align-items: center;
+    gap: 8px;
+}
+
+.cx-form-secao .apex-item-wrapper--yes-no .a-Switch::after {
+    content: "Inativa";
+    font-size: 14px;
+    color: var(--cx-texto);
+}
+
+.cx-form-secao .apex-item-wrapper--yes-no .a-Switch:has(input:checked)::after {
+    content: "Ativa";
 }
 
 /* Rodapé do formulário: nota à esquerda e botões à direita, preso no fim da
