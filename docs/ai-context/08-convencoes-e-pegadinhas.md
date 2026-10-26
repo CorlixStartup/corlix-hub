@@ -69,6 +69,7 @@
 - `custom.css` tem regras globais (`.a-CardView-*` com sombra e raio 14px, `.ui-dialog-titlebar`) que contrariam a política "sem sombra" do tema.
 - `organograma.css` e `historico-carreira.css` ainda não estão em `static-files/`.
 - Static IDs e aliases com acento (`publicador-de-conteúdo`, `histórico-de-carreira`, `NOTIFICAÇÕES`) são frágeis em URLs e scripts.
+- **Static ID ≠ id do HTML (26.1):** o nome depois de `region` no `.apx` (Static ID) só identifica o componente no export. O `id` do elemento vem de **Advanced › HTML DOM ID** (`advanced { htmlDomId: … }`); sem ele, o APEX gera `R<número>`. Todo JS que busca uma região pelo id (`apex.theme.openRegion`, `apex.region(...)`, `$("#...")`) precisa do HTML DOM ID preenchido. Nenhuma região do app tem `htmlDomId` hoje; o diálogo de aniversariantes da Início caiu nisso (`Region does not support being opened and closed`, `modulos/home/Etapas-home.md` §3.7), e o organograma (p3, `organograma`) e o histórico (p13, `historico_carreira`) dependem do mesmo id.
 
 ### Módulos
 - O guia do organograma usa a página 10 (`P10_ID_FOCO`), mas a página real é a **3**.
