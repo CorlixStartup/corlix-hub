@@ -322,6 +322,15 @@ end pkg_historico_carreira;
 end pkg_historico_carreira_ui;
 /
 
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_HOLERITE" AS
+    -- Processa o cálculo mensal para colaboradores ativos com admissão a partir de 01/06/2026
+    PROCEDURE gerar_folha_mensal(p_mes IN NUMBER, p_ano IN NUMBER);
+
+    -- Função que gera o código HTML estruturado para renderização direta na Página 9
+    FUNCTION render(p_mes IN NUMBER, p_ano IN NUMBER) RETURN CLOB;
+END pkg_holerite;
+/
+
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_HOME_UI" authid definer as
 
   function mes_atual return varchar2;
@@ -352,28 +361,57 @@ end "PKG_LOGS";
 
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_ORGANOGRAMA" as
 
+  c_pagina_chat   constant pls_integer   := 4;
+  c_item_chat     constant varchar2(30)  := 'P4_ID_COLABORADOR';
+  c_pagina_perfil constant pls_integer   := 2;
+  c_item_perfil   constant varchar2(30)  := 'P2_ID_COLABORADOR';
   c_nome_empresa  constant varchar2(100) := 'Corlix';
+  c_max_equipe    constant pls_integer   := 4;
 
-  c_pagina_perfil constant pls_integer := 2;
-  c_item_perfil   constant varchar2(30) := null;
+  -- Torna as funções utilitárias públicas para o PKG_PERFIL
+  function avatar (
+    p_id         in number,
+    p_nome       in varchar2,
+    p_foto_url   in varchar2,
+    p_tem_imagem in varchar2,
+    p_tamanho    in varchar2
+  ) return varchar2;
 
-  c_pagina_chat   constant pls_integer := 4;
-  c_item_chat     constant varchar2(30) := 'P4_CONTATO_ID';
+  function tempo_de_casa (
+    p_data in date
+  ) return varchar2;
 
-  c_max_equipe constant pls_integer := 8;
+  function aniversario (
+    p_data in date
+  ) return varchar2;
 
-  function id_raiz return number;
-
+  -- Funções principais do Organograma
   function render (
-    p_id_foco in number,
+    p_id_foco      in number,
     p_nome_empresa in varchar2 default c_nome_empresa
   ) return clob;
 
   function render_detalhes (
-    p_id in number,
+    p_id           in number,
     p_nome_empresa in varchar2 default c_nome_empresa
   ) return clob;
+
 end pkg_organograma;
+/
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_PERFIL" as
+
+  -- Renderiza o conteúdo completo do Perfil
+  function render (
+    p_id_colaborador in number default null
+  ) return clob;
+
+  -- Renderiza a modal/drawer de alteração de foto
+  function render_drawer_foto (
+    p_id_colaborador in number
+  ) return clob;
+
+end pkg_perfil;
 /
 
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_PERFIS_ACESSO" authid definer as

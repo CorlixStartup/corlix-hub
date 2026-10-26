@@ -213,6 +213,25 @@ list navigation-menu (
         }
     )
 
+    entry holerite-digital (
+        label: Holerite Digital
+        icon {
+            imageIconCssClasses: fa-file-o
+        }
+        layout {
+            sequence: 240
+        }
+        isCurrent {
+            type: pages
+            pages: 9
+        }
+        link {
+            target: {
+                page: 9
+            }
+        }
+    )
+
     entry início (
         label: Início
         icon {

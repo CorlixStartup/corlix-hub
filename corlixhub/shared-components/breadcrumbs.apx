@@ -105,6 +105,19 @@ breadcrumb breadcrumb (
         }
     )
 
+    entry holerite-digital (
+        name: Holerite Digital
+        pageNumber: 9
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 9
+            }
+        }
+    )
+
     entry meu-perfil (
         name: Meu Perfil
         pageNumber: 2

@@ -2294,6 +2294,176 @@ end pkg_historico_carreira;
 end pkg_historico_carreira_ui;
 /
 
+  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_HOLERITE" AS
+
+    PROCEDURE gerar_folha_mensal(p_mes IN NUMBER, p_ano IN NUMBER) IS
+        v_salario_base NUMBER(10,2);
+        v_inss         NUMBER(10,2);
+        v_irrf         NUMBER(10,2);
+        v_vt           NUMBER(10,2);
+        v_tot_desc     NUMBER(10,2);
+        v_liquido      NUMBER(10,2);
+        v_id_holerite  NUMBER;
+    BEGIN
+        FOR c IN (
+            SELECT col.id_colaborador, col.nome_completo,
+                   NVL(car.salario_base, 0) AS salario_base
+            FROM colaborador col
+            JOIN cargo car ON col.id_cargo = car.id_cargo
+            WHERE col.data_admissao >= TO_DATE('01/06/2026', 'DD/MM/YYYY')
+        ) LOOP
+            v_salario_base := c.salario_base;
+
+            IF v_salario_base > 0 THEN
+                IF v_salario_base <= 1412 THEN v_inss := v_salario_base * 0.075;
+                ELSIF v_salario_base <= 2666.68 THEN v_inss := (1412 * 0.075) + ((v_salario_base - 1412) * 0.09);
+                ELSIF v_salario_base <= 4000.03 THEN v_inss := (1412 * 0.075) + ((2666.68 - 1412) * 0.09) + ((v_salario_base - 2666.68) * 0.12);
+                ELSE v_inss := 908.85;
+                END IF;
+
+                v_vt := v_salario_base * 0.06;
+
+                DECLARE
+                    v_base_irrf NUMBER := v_salario_base - v_inss;
+                BEGIN
+                    IF v_base_irrf <= 2259.20 THEN v_irrf := 0;
+                    ELSIF v_base_irrf <= 2826.65 THEN v_irrf := (v_base_irrf * 0.075) - 169.44;
+                    ELSIF v_base_irrf <= 3751.05 THEN v_irrf := (v_base_irrf * 0.15) - 381.44;
+                    ELSIF v_base_irrf <= 4664.68 THEN v_irrf := (v_base_irrf * 0.225) - 662.77;
+                    ELSE v_irrf := (v_base_irrf * 0.275) - 896.00;
+                    END IF;
+                END;
+
+                IF v_irrf < 0 THEN v_irrf := 0; END IF;
+
+                v_tot_desc := ROUND(v_inss + v_irrf + v_vt, 2);
+                v_liquido  := ROUND(v_salario_base - v_tot_desc, 2);
+
+                DELETE FROM colaborador_holerite
+                 WHERE id_colaborador = c.id_colaborador
+                   AND mes_referencia = p_mes
+                   AND ano_referencia = p_ano;
+
+                INSERT INTO colaborador_holerite (id_colaborador, mes_referencia, ano_referencia, data_pagamento, salario_base, total_proventos, total_descontos, valor_liquido)
+                VALUES (c.id_colaborador, p_mes, p_ano, LAST_DAY(TO_DATE('01/' || p_mes || '/' || p_ano, 'DD/MM/YYYY')), v_salario_base, v_salario_base, v_tot_desc, v_liquido)
+                RETURNING id_holerite INTO v_id_holerite;
+
+                INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
+                VALUES (v_id_holerite, 'P', 'Salário Base', '30 dias', v_salario_base);
+
+                INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
+                VALUES (v_id_holerite, 'D', 'INSS', 'Tabela Oficial', v_inss);
+
+                IF v_irrf > 0 THEN
+                    INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
+                    VALUES (v_id_holerite, 'D', 'IRRF', 'Tabela Oficial', v_irrf);
+                END IF;
+
+                INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
+                VALUES (v_id_holerite, 'D', 'Vale Transporte', '6,00%', v_vt);
+            END IF;
+        END LOOP;
+        COMMIT;
+    END gerar_folha_mensal;
+
+    FUNCTION render(p_mes IN NUMBER, p_ano IN NUMBER) RETURN CLOB IS
+        v_html  CLOB;
+        v_chunk VARCHAR2(32767);
+        v_count NUMBER := 0;
+    BEGIN
+        DBMS_LOB.CREATETEMPORARY(v_html, TRUE);
+
+        DECLARE
+            v_m NUMBER := NVL(p_mes, 10);
+            v_a NUMBER := NVL(p_ano, 2026);
+        BEGIN
+            SELECT COUNT(*) INTO v_count
+              FROM colaborador_holerite
+             WHERE mes_referencia = v_m AND ano_referencia = v_a;
+
+            IF v_count = 0 THEN
+                gerar_folha_mensal(v_m, v_a);
+            END IF;
+
+            -- FILTRAGEM ATUALIZADA USANDO LOGIN_APEX E EMAIL
+            FOR h IN (
+                SELECT ch.id_holerite, col.nome_completo, car.nome, ch.total_proventos, ch.total_descontos, ch.valor_liquido
+                  FROM colaborador_holerite ch
+                  JOIN colaborador col ON ch.id_colaborador = col.id_colaborador
+                  JOIN cargo car ON col.id_cargo = car.id_cargo
+                 WHERE ch.mes_referencia = v_m
+                   AND ch.ano_referencia = v_a
+                   AND (
+                        UPPER(col.login_apex) = UPPER(V('APP_USER'))
+                        OR UPPER(col.email) = UPPER(V('APP_USER'))
+                   )
+                 ORDER BY col.nome_completo
+            ) LOOP
+                v_chunk := '
+                <div class="holerite-card">
+                    <div class="holerite-header">
+                        <div>
+                            <h2>CORLIXHUB - TECNOLOGIA E SERVICOS</h2>
+                            <p><strong>Demonstrativo de Pagamento de Salário</strong></p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p><strong>Referência:</strong> ' || LPAD(v_m, 2, '0') || '/' || v_a || '</p>
+                        </div>
+                    </div>
+                    <table class="holerite-info">
+                        <tr>
+                            <td><strong>Colaborador:</strong> ' || h.nome_completo || '</td>
+                            <td><strong>Cargo:</strong> ' || h.nome || '</td>
+                        </tr>
+                    </table>
+                    <table class="holerite-table">
+                        <thead>
+                            <tr>
+                                <th>Descrição</th>
+                                <th>Referência</th>
+                                <th style="text-align: right;">Proventos (R$)</th>
+                                <th style="text-align: right;">Descontos (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody>';
+
+                DBMS_LOB.APPEND(v_html, TO_CLOB(v_chunk));
+
+                FOR i IN (
+                    SELECT tipo, descricao, referencia, valor
+                      FROM holerite_itens
+                     WHERE id_holerite = h.id_holerite
+                     ORDER BY tipo DESC, id_item ASC
+                ) LOOP
+                    v_chunk := '
+                    <tr>
+                        <td>' || i.descricao || '</td>
+                        <td>' || NVL(i.referencia, '-') || '</td>
+                        <td style="text-align: right;">' || CASE WHEN i.tipo = 'P' THEN TO_CHAR(i.valor, 'FM999G990D00') ELSE '' END || '</td>
+                        <td style="text-align: right;">' || CASE WHEN i.tipo = 'D' THEN TO_CHAR(i.valor, 'FM999G990D00') ELSE '' END || '</td>
+                    </tr>';
+                    DBMS_LOB.APPEND(v_html, TO_CLOB(v_chunk));
+                END LOOP;
+
+                v_chunk := '
+                        </tbody>
+                    </table>
+                    <div class="holerite-totals">
+                        <div><span>Total Bruto:</span> R$ ' || TO_CHAR(h.total_proventos, 'FM999G990D00') || '</div>
+                        <div><span>Total Descontos:</span> R$ ' || TO_CHAR(h.total_descontos, 'FM999G990D00') || '</div>
+                        <div class="net-salary"><span>LÍQUIDO A RECEBER:</span> R$ ' || TO_CHAR(h.valor_liquido, 'FM999G990D00') || '</div>
+                    </div>
+                </div><br/>';
+                DBMS_LOB.APPEND(v_html, TO_CLOB(v_chunk));
+            END LOOP;
+        END;
+
+        RETURN v_html;
+    END render;
+
+END pkg_holerite;
+/
+
   CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_HOME_UI" as
 
   c_nls_data    constant varchar2(60) := 'NLS_DATE_LANGUAGE=''BRAZILIAN PORTUGUESE''';
@@ -2580,8 +2750,6 @@ end pkg_home_ui;
 
   CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_ORGANOGRAMA" as
 
-  c_ponto constant varchar2(10) := unistr(' \00B7 ');   -- " · " (texto que será escapado)
-
   -- Ícones Lucide (stroke), herdam a cor do texto via currentColor
   c_svg constant varchar2(200) :=
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
@@ -2616,6 +2784,9 @@ end pkg_home_ui;
   ------------------------------------------------------------------------------
   procedure inicia is
   begin
+    if g_html is not null then
+      dbms_lob.freetemporary(g_html);
+    end if;
     dbms_lob.createtemporary(g_html, true, dbms_lob.call);
   end inicia;
 
@@ -2644,7 +2815,6 @@ end pkg_home_ui;
     elsif instr(l_nome, ' ') = 0 then
       return upper(substr(l_nome, 1, 2));
     end if;
-    -- primeira letra do primeiro nome + primeira letra do último sobrenome
     return upper(substr(l_nome, 1, 1) || substr(l_nome, instr(l_nome, ' ', -1) + 1, 1));
   end iniciais;
 
@@ -2660,7 +2830,7 @@ end pkg_home_ui;
 
   function eh_usuario_atual (p_login in varchar2) return boolean is
   begin
-    return upper(p_login) = upper(v('APP_USER'));
+    return upper(trim(p_login)) = upper(trim(v('APP_USER')));
   end eh_usuario_atual;
 
   function mes_por_extenso (p_data in date) return varchar2 is
@@ -2668,7 +2838,6 @@ end pkg_home_ui;
     return to_char(p_data, 'fmmonth', c_nls_data);
   end mes_por_extenso;
 
-  -- "fevereiro de 2026 · 7 meses"
   function tempo_de_casa (p_data in date) return varchar2 is
     l_meses   pls_integer;
     l_anos    pls_integer;
@@ -2696,7 +2865,6 @@ end pkg_home_ui;
     return mes_por_extenso(p_data) || ' de ' || to_char(p_data, 'yyyy') || ' &middot; ' || l_duracao;
   end tempo_de_casa;
 
-  -- Só dia e mês: o ano de nascimento não é exibido
   function aniversario (p_data in date) return varchar2 is
   begin
     if p_data is null then
@@ -2705,16 +2873,12 @@ end pkg_home_ui;
     return to_char(p_data, 'fmdd') || ' de ' || mes_por_extenso(p_data);
   end aniversario;
 
-  -- Foto (FOTO_URL ou BLOB) por cima das iniciais. FOTO_URL guarda só o nome do
-  -- arquivo em "Fotos Colaboradores/" (Static Application Files); o JS da página
-  -- completa o src com apex.env.APP_FILES (orgCarregarFotos). URL absoluta vai direto.
-  -- Se a imagem falhar, o onerror remove a <img> e as iniciais ficam visíveis.
   function avatar (
     p_id         in number,
     p_nome       in varchar2,
     p_foto_url   in varchar2,
     p_tem_imagem in varchar2,
-    p_tamanho    in varchar2   -- lg | md | row | sm
+    p_tamanho    in varchar2
   ) return varchar2 is
     c_pasta_fotos constant varchar2(30) := 'Fotos Colaboradores/';
     l_foto varchar2(4000) := trim(p_foto_url);
@@ -2748,7 +2912,6 @@ end pkg_home_ui;
         || '</span>';
   end avatar;
 
-  -- Linha clicável das listas do drawer (gestor / equipe direta)
   function linha_pessoa (
     p_id         in number,
     p_nome       in varchar2,
@@ -2770,9 +2933,6 @@ end pkg_home_ui;
     return '<div><dt>' || p_rotulo || '</dt><dd>' || nvl(p_valor_html, '&mdash;') || '</dd></div>';
   end dado;
 
-  ------------------------------------------------------------------------------
-  -- Topo da hierarquia
-  ------------------------------------------------------------------------------
   function id_raiz return number is
     l_id number;
   begin
@@ -2783,9 +2943,6 @@ end pkg_home_ui;
     return l_id;
   end id_raiz;
 
-  ------------------------------------------------------------------------------
-  -- ORGANOGRAMA · caminho: Empresa > ... > Pessoa em foco
-  ------------------------------------------------------------------------------
   procedure render_caminho (p_id_foco in number, p_nome_empresa in varchar2) is
     l_primeiro boolean := true;
   begin
@@ -2798,7 +2955,6 @@ end pkg_home_ui;
                order by level desc)
     loop
       if l_primeiro then
-        -- o nome da empresa leva ao topo da cadeia
         p('<li><button type="button" class="org-link" data-acao="foco" data-id="' || r.id_colaborador || '">'
           || e(p_nome_empresa) || '</button></li>');
         l_primeiro := false;
@@ -2817,13 +2973,9 @@ end pkg_home_ui;
     p('</ol></nav>');
   end render_caminho;
 
-  ------------------------------------------------------------------------------
-  -- ORGANOGRAMA · card da pessoa em foco
-  ------------------------------------------------------------------------------
   procedure render_foco (p_foco in vw_org_colaborador%rowtype, p_diretos in pls_integer) is
     l_estrutura pls_integer;
   begin
-    -- todos os descendentes ativos (exclui a própria pessoa)
     select count(*) - 1
       into l_estrutura
       from vw_org_colaborador
@@ -2847,7 +2999,6 @@ end pkg_home_ui;
       || plural(l_estrutura, 'pessoa na estrutura', 'pessoas na estrutura') || '</p>');
 
     p('<div class="org-foco__acoes">');
-    -- "Ver perfil" abre o drawer; o perfil completo fica no rodapé dele
     p('<button type="button" class="org-btn" data-acao="detalhe" data-id="' || p_foco.id_colaborador || '">'
       || c_ico_perfil || '<span>Ver perfil</span></button>');
     if not eh_usuario_atual(p_foco.login_apex) then
@@ -2857,9 +3008,6 @@ end pkg_home_ui;
     p('</div></section>');
   end render_foco;
 
-  ------------------------------------------------------------------------------
-  -- ORGANOGRAMA · subordinados diretos (cards com prévia da equipe)
-  ------------------------------------------------------------------------------
   procedure render_filhos (p_foco in vw_org_colaborador%rowtype, p_diretos in pls_integer) is
     type t_textos is table of varchar2(4000) index by pls_integer;
     l_nomes    t_textos;
@@ -2882,7 +3030,6 @@ end pkg_home_ui;
                order by v.nome_completo)
     loop
       p('<li class="org-card">');
-      -- o botão do nome se estende sobre o card inteiro (clique abre o drawer)
       p('<div class="org-card__id">'
         || avatar(f.id_colaborador, f.nome_completo, f.foto_url, f.tem_imagem, 'md')
         || '<div class="org-card__texto">'
@@ -2939,9 +3086,6 @@ end pkg_home_ui;
     p('</ul>');
   end render_filhos;
 
-  ------------------------------------------------------------------------------
-  -- ORGANOGRAMA · entrada principal
-  ------------------------------------------------------------------------------
   function render (
     p_id_foco      in number,
     p_nome_empresa in varchar2 default c_nome_empresa
@@ -2952,7 +3096,6 @@ end pkg_home_ui;
   begin
     inicia;
 
-    -- foco inválido, inativo ou nulo => topo da hierarquia
     begin
       select * into l_foco from vw_org_colaborador where id_colaborador = p_id_foco;
     exception
@@ -2962,7 +3105,7 @@ end pkg_home_ui;
           select * into l_foco from vw_org_colaborador where id_colaborador = l_id;
         exception
           when no_data_found then
-            p('<div class="org"><p class="org-vazio">Nenhum colaborador ativo encontrado.</p></div>');
+            p('<div class="org" id="organograma"><p class="org-vazio">Nenhum colaborador ativo encontrado.</p></div>');
             return g_html;
         end;
     end;
@@ -2972,7 +3115,7 @@ end pkg_home_ui;
       from vw_org_colaborador
      where id_gestor = l_foco.id_colaborador;
 
-    p('<div class="org">');
+    p('<div class="org" id="organograma">');
     render_caminho(l_foco.id_colaborador, p_nome_empresa);
     p('<div class="org-arvore">');
     render_foco(l_foco, l_diretos);
@@ -2985,9 +3128,6 @@ end pkg_home_ui;
     return g_html;
   end render;
 
-  ------------------------------------------------------------------------------
-  -- DRAWER · detalhes da pessoa
-  ------------------------------------------------------------------------------
   function render_detalhes (
     p_id           in number,
     p_nome_empresa in varchar2 default c_nome_empresa
@@ -3008,7 +3148,7 @@ end pkg_home_ui;
         return g_html;
     end;
 
-    -- Cabeçalho -------------------------------------------------------------
+    -- Cabeçalho
     p('<header class="org-drawer__cab">'
       || avatar(l_p.id_colaborador, l_p.nome_completo, l_p.foto_url, l_p.tem_imagem, 'lg')
       || '<div class="org-drawer__ident">'
@@ -3021,7 +3161,7 @@ end pkg_home_ui;
 
     p('<div class="org-drawer__corpo">');
 
-    -- Contato ---------------------------------------------------------------
+    -- Contato
     if l_p.email is not null then
       p('<section class="org-secao" aria-labelledby="org-sec-contato">'
         || '<h3 id="org-sec-contato" class="org-secao__titulo">Contato</h3>'
@@ -3036,7 +3176,7 @@ end pkg_home_ui;
         || '</div></section>');
     end if;
 
-    -- Na estrutura ----------------------------------------------------------
+    -- Na estrutura
     p('<section class="org-secao" aria-labelledby="org-sec-estrutura">'
       || '<h3 id="org-sec-estrutura" class="org-secao__titulo">Na estrutura</h3>');
 
@@ -3048,7 +3188,7 @@ end pkg_home_ui;
         select * into l_gestor from vw_org_colaborador where id_colaborador = l_p.id_gestor;
         p('<ul class="org-lista">'
           || linha_pessoa(l_gestor.id_colaborador, l_gestor.nome_completo,
-                          l_gestor.cargo || c_ponto || l_gestor.departamento,
+                          l_gestor.cargo || unistr(' \00B7 ') || l_gestor.departamento,
                           l_gestor.foto_url, l_gestor.tem_imagem)
           || '</ul>');
       exception
@@ -3088,7 +3228,7 @@ end pkg_home_ui;
     end if;
     p('</div></section>');
 
-    -- Sobre -----------------------------------------------------------------
+    -- Sobre
     p('<section class="org-secao" aria-labelledby="org-sec-sobre">'
       || '<h3 id="org-sec-sobre" class="org-secao__titulo">Sobre</h3>'
       || '<dl class="org-dados">'
@@ -3102,9 +3242,9 @@ end pkg_home_ui;
       || '<span>Voc&ecirc; v&ecirc; s&oacute; os dados vis&iacute;veis para todos os colegas. Os demais ficam '
       || 'com a pessoa, a linha de gest&atilde;o e a administra&ccedil;&atilde;o.</span></p>');
 
-    p('</div>');   -- corpo
+    p('</div>');
 
-    -- Rodapé ----------------------------------------------------------------
+    -- Rodapé
     p('<footer class="org-drawer__rodape">');
     if not eh_usuario_atual(l_p.login_apex) then
       p('<a class="org-btn org-btn--auto" href="' || url(c_pagina_chat, c_item_chat, l_p.id_colaborador) || '">'
@@ -3118,6 +3258,263 @@ end pkg_home_ui;
   end render_detalhes;
 
 end pkg_organograma;
+/
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_PERFIL" as
+
+  g_html clob;
+
+  procedure inicia is
+  begin
+    if g_html is not null then
+      dbms_lob.freetemporary(g_html);
+    end if;
+    dbms_lob.createtemporary(g_html, true, dbms_lob.call);
+  end inicia;
+
+  procedure p (p_txt in varchar2) is
+  begin
+    if p_txt is not null then
+      dbms_lob.writeappend(g_html, length(p_txt), p_txt);
+    end if;
+  end p;
+
+  function e (p_txt in varchar2) return varchar2 is
+  begin
+    return apex_escape.html(p_txt);
+  end e;
+
+  -- Gera o avatar sem nenhuma dependência do PKG_ORGANOGRAMA
+  function avatar_perfil (
+    p_nome     in varchar2,
+    p_foto_url in varchar2,
+    p_tamanho  in varchar2 default 'lg'
+  ) return varchar2 is
+    l_iniciais varchar2(10);
+    l_nome_foto varchar2(255);
+  begin
+    -- Extrai iniciais (Ex: Amanda Nunes -> AN)
+    l_iniciais := upper(substr(p_nome, 1, 1) ||
+                  case when instr(p_nome, ' ') > 0 then
+                    substr(p_nome, instr(p_nome, ' ', -1) + 1, 1)
+                  end);
+
+    l_nome_foto := trim(p_foto_url);
+    if l_nome_foto like 'Fotos Colaboradores/%' then
+      l_nome_foto := substr(l_nome_foto, 21);
+    end if;
+
+    return '<span class="perfil-avatar perfil-avatar--' || p_tamanho || '">'
+        || '  <span class="perfil-avatar__iniciais">' || e(l_iniciais) || '</span>'
+        || case when l_nome_foto is not null then
+             '  <img data-perfil-foto="' || e(l_nome_foto) || '" alt="" loading="lazy" onerror="this.remove()">'
+           end
+        || '</span>';
+  end avatar_perfil;
+
+  function render (
+    p_id_colaborador in number default null
+  ) return clob is
+    l_id         number := p_id_colaborador;
+    l_c          vw_org_colaborador%rowtype;
+    l_gestor     vw_org_colaborador%rowtype;
+    l_tem_gestor boolean := false;
+  begin
+    inicia;
+
+    if l_id is null then
+      begin
+        select id_colaborador into l_id
+          from vw_org_colaborador
+         where upper(trim(login_apex)) = upper(trim(v('APP_USER')));
+      exception
+        when no_data_found then l_id := null;
+      end;
+    end if;
+
+    begin
+      select * into l_c from vw_org_colaborador where id_colaborador = l_id;
+    exception
+      when no_data_found then
+        p('<div class="perfil-vazio"><p>Colaborador não encontrado.</p></div>');
+        return g_html;
+    end;
+
+    if l_c.id_gestor is not null then
+      begin
+        select * into l_gestor from vw_org_colaborador where id_colaborador = l_c.id_gestor;
+        l_tem_gestor := true;
+      exception
+        when no_data_found then l_tem_gestor := false;
+      end;
+    end if;
+
+    p('<div class="perfil-layout">');
+
+    -- HEADER SUPERIOR
+    p('<header class="perfil-header">');
+    p('  <div class="perfil-header__avatar">');
+    p(avatar_perfil(l_c.nome_completo, l_c.foto_url, 'lg'));
+    p('    <button type="button" class="perfil-header__cam" data-acao="abrir-foto-drawer" title="Alterar foto">');
+    p('      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>');
+    p('    </button>');
+    p('  </div>');
+
+    p('  <div class="perfil-header__info">');
+    p('    <h1>' || e(l_c.nome_completo) || '</h1>');
+    p('    <p class="perfil-header__cargo">' || e(l_c.cargo) || ' &middot; ' || e(l_c.departamento) || '</p>');
+    p('    <div class="perfil-header__metas">');
+    p('      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Na Corlix desde ' || pkg_organograma.tempo_de_casa(l_c.data_admissao) || '</span>');
+    p('      <a href="mailto:' || e(l_c.email) || '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> ' || e(l_c.email) || '</a>');
+    p('    </div>');
+    p('  </div>');
+
+    p('  <button type="button" class="perfil-btn-alterar-foto" data-acao="abrir-foto-drawer">');
+    p('    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> Alterar foto');
+    p('  </button>');
+    p('</header>');
+
+    -- DASHBOARD PRINCIPAL
+    p('<div class="perfil-grid-principal">');
+
+    -- COLUNA ESQUERDA
+    p('  <div class="perfil-coluna-esquerda">');
+    p('    <div class="perfil-tabs">');
+    p('      <button type="button" class="perfil-tab-btn is-active" data-tab="trajetoria">Trajetória</button>');
+    p('      <button type="button" class="perfil-tab-btn" data-tab="dados-pessoais">Dados pessoais</button>');
+    p('    </div>');
+
+    -- ABA 1: TRAJETÓRIA
+    p('    <div class="perfil-tab-conteudo is-active" id="tab-trajetoria">');
+    p('      <ul class="perfil-timeline">');
+
+    for t in (select * from colaborador_trajetoria
+               where id_colaborador = l_c.id_colaborador
+               order by data_inicio desc)
+    loop
+      p('        <li class="perfil-timeline__item">');
+      p('          <div class="perfil-timeline__ponto ' || case when t.status_atual = 'S' then 'is-atual' end || '"></div>');
+      p('          <div class="perfil-timeline__corpo">');
+      p('            <div class="perfil-timeline__cab">');
+      p('              <strong class="perfil-timeline__titulo">' || e(t.titulo_evento) || '</strong>');
+      if t.status_atual = 'S' then
+        p('              <span class="perfil-tag perfil-tag--atual">Atual</span>');
+      end if;
+      p('            </div>');
+      p('            <p class="perfil-timeline__sub">' || e(t.departamento) || ' &middot; ' || to_char(t.data_inicio, 'mm/yyyy') || case when t.data_fim is not null then ' - ' || to_char(t.data_fim, 'mm/yyyy') else ' - atual' end || '</p>');
+      if t.descricao is not null then
+        p('            <p class="perfil-timeline__desc">' || e(t.descricao) || '</p>');
+      end if;
+      p('          </div>');
+      p('        </li>');
+    end loop;
+
+    p('        <li class="perfil-timeline__item">');
+    p('          <div class="perfil-timeline__ponto"></div>');
+    p('          <div class="perfil-timeline__corpo">');
+    p('            <strong class="perfil-timeline__titulo">Entrada na Corlix</strong>');
+    p('            <p class="perfil-timeline__sub">' || to_char(l_c.data_admissao, 'dd "de" fmmonth "de" yyyy', 'NLS_DATE_LANGUAGE=''BRAZILIAN PORTUGUESE''') || '</p>');
+    p('            <p class="perfil-timeline__desc">Início como ' || e(l_c.cargo) || '.</p>');
+    p('          </div>');
+    p('        </li>');
+
+    p('      </ul>');
+    p('    </div>');
+
+    -- ABA 2: DADOS PESSOAIS
+    p('    <div class="perfil-tab-conteudo" id="tab-dados-pessoais">');
+    p('      <div class="perfil-dados-grid">');
+    p('        <div class="perfil-dado-item"><span class="perfil-dado-label">Nome completo</span><span class="perfil-dado-valor">' || e(l_c.nome_completo) || '</span></div>');
+    p('        <div class="perfil-dado-item"><span class="perfil-dado-label">E-mail corporativo</span><span class="perfil-dado-valor">' || e(l_c.email) || '</span></div>');
+    p('        <div class="perfil-dado-item"><span class="perfil-dado-label">Data de nascimento</span><span class="perfil-dado-valor">' || nvl(to_char(l_c.data_de_nascimento, 'dd/mm/yyyy'), '&mdash;') || '</span></div>');
+    p('        <div class="perfil-dado-item"><span class="perfil-dado-label">Login</span><span class="perfil-dado-valor">' || e(l_c.login_apex) || '</span></div>');
+    p('        <div class="perfil-dado-item"><span class="perfil-dado-label">Empresa</span><span class="perfil-dado-valor">Corlix</span></div>');
+    p('        <div class="perfil-dado-item"><span class="perfil-dado-label">Departamento</span><span class="perfil-dado-valor">' || e(l_c.departamento) || '</span></div>');
+    p('        <div class="perfil-dado-item"><span class="perfil-dado-label">Cargo</span><span class="perfil-dado-valor">' || e(l_c.cargo) || '</span></div>');
+    p('        <div class="perfil-dado-item"><span class="perfil-dado-label">Gestor direto</span><span class="perfil-dado-valor">' || case when l_tem_gestor then e(l_gestor.nome_completo) else 'Topo da hierarquia' end || '</span></div>');
+    p('        <div class="perfil-dado-item"><span class="perfil-dado-label">Data de admissão</span><span class="perfil-dado-valor">' || nvl(to_char(l_c.data_admissao, 'dd/mm/yyyy'), '&mdash;') || '</span></div>');
+    p('      </div>');
+    p('    </div>');
+
+    p('  </div>');
+
+    -- COLUNA DIREITA
+    p('  <aside class="perfil-coluna-direita">');
+
+    p('    <div class="perfil-card-sidebar">');
+    p('      <h3 class="perfil-card-sidebar__titulo">Gestor direto</h3>');
+    if l_tem_gestor then
+      p('      <div class="perfil-pessoa-row">');
+      p(avatar_perfil(l_gestor.nome_completo, l_gestor.foto_url, 'md'));
+      p('        <div class="perfil-pessoa-row__info">');
+      p('          <strong>' || e(l_gestor.nome_completo) || '</strong>');
+      p('          <span>' || e(l_gestor.cargo) || '</span>');
+      p('        </div>');
+      p('      </div>');
+    else
+      p('      <p class="perfil-vazio-texto">Esta pessoa ocupa o topo da hierarquia.</p>');
+    end if;
+    p('    </div>');
+
+    p('    <div class="perfil-card-sidebar">');
+    p('      <h3 class="perfil-card-sidebar__titulo">Colegas de equipe</h3>');
+    if l_c.id_gestor is not null then
+      for col in (select * from vw_org_colaborador
+                   where id_gestor = l_c.id_gestor
+                     and id_colaborador <> l_c.id_colaborador
+                   order by nome_completo)
+      loop
+        p('      <div class="perfil-pessoa-row">');
+        p(avatar_perfil(col.nome_completo, col.foto_url, 'md'));
+        p('        <div class="perfil-pessoa-row__info">');
+        p('          <strong>' || e(col.nome_completo) || '</strong>');
+        p('          <span>' || e(col.cargo) || '</span>');
+        p('        </div>');
+        p('      </div>');
+      end loop;
+    else
+      p('      <p class="perfil-vazio-texto">Sem colegas no mesmo nível.</p>');
+    end if;
+    p('    </div>');
+
+    p('  </aside>');
+    p('</div>');
+    p('</div>');
+
+    return g_html;
+  end render;
+
+  function render_drawer_foto (p_id_colaborador in number) return clob is
+    l_c vw_org_colaborador%rowtype;
+  begin
+    inicia;
+    select * into l_c from vw_org_colaborador where id_colaborador = p_id_colaborador;
+
+    p('<div class="perfil-modal-inner">');
+    p('  <header class="perfil-modal-cab">');
+    p('    <h2>Foto de perfil</h2>');
+    p('    <button type="button" class="perfil-modal-fechar" data-acao="fechar-foto">&times;</button>');
+    p('  </header>');
+
+    p('  <div class="perfil-modal-corpo">');
+    p('    <div class="perfil-modal-avatar">');
+    p(avatar_perfil(l_c.nome_completo, l_c.foto_url, 'lg'));
+    p('    </div>');
+    p('    <p class="perfil-modal-instrucoes">JPG ou PNG, até 5 MB. A foto aparecerá no seu perfil e no organograma.</p>');
+    p('    <label for="input-foto-upload" class="perfil-btn-upload">Escolher foto</label>');
+    p('    <input type="file" id="input-foto-upload" accept="image/png, image/jpeg" style="display:none;">');
+    p('  </div>');
+
+    p('  <footer class="perfil-modal-rodape">');
+    p('    <button type="button" class="perfil-btn-secundario" data-acao="fechar-foto">Cancelar</button>');
+    p('    <button type="button" class="perfil-btn-primario">Salvar foto</button>');
+    p('  </footer>');
+    p('</div>');
+
+    return g_html;
+  end render_drawer_foto;
+
+end pkg_perfil;
 /
 
   CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_PERFIS_ACESSO" as
