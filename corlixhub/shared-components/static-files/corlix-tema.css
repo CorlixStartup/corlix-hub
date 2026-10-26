@@ -7,8 +7,8 @@
    Como funciona
    - O design system do Figma é o próprio Redwood Light (neutros #F1EFED,
      #E4E1DD...) com a primária azul-petróleo (sky-120, #00688C) no lugar do
-     verde da marca Oracle e o fundo um tom mais escuro. A fonte continua a
-     Oracle Sans do Redwood: o Figma usa Figtree só como substituta.
+     verde da marca Oracle e o fundo um tom mais escuro. Fonte (Figtree) e
+     ícones (Lucide) seguem o protótipo: ver a última seção do arquivo.
    - Regra do design system: usar componentes nativos, Template Options e
      variáveis do tema; CSS próprio só onde o nativo não chega.
    - Por isso o tema só redefine variáveis (--ut-*, --a-*) do Universal Theme,
@@ -25,7 +25,7 @@
 :root {
     /* --- Tokens Corlix ----------------------------------------------------- */
     --cx-fonte: var(--a-base-font-family);
-    /* Oracle Sans (Redwood) */
+    /* Figtree (fim do arquivo) */
 
     --cx-primaria: var(--rw-palette-sky-120, #00688C);
     --cx-primaria-hover: var(--rw-palette-sky-130, #025E7E);
@@ -57,7 +57,7 @@
     --cx-raio-card: .5rem;
     /* 8px: regiões e cards */
 
-    /* --- Tipografia (fonte: a do Redwood) ---------------------------------- */
+    /* --- Tipografia ---------------------------------------------------------- */
     --ut-breadcrumb-title-font-size: 1.625rem;
     /* 26px, título da página */
     --ut-breadcrumb-title-line-height: 2rem;
@@ -102,6 +102,10 @@
 
     /* --- Menu lateral ------------------------------------------------------ */
     --a-treeview-node-font-size: .875rem;
+    /* O Redwood põe 1rem no primeiro nível e 600 em todos os itens; no protótipo
+       os itens são 14px normais e só o atual fica em negrito (.is-current, abaixo) */
+    --ut-treeview-toplevel-node-font-size: .875rem;
+    --a-treeview-node-font-weight: 400;
     --a-treeview-node-line-height: 1.25rem;
     --a-treeview-node-padding-y: .625rem;
     /* itens de 40px */
@@ -197,6 +201,10 @@
    de textura em :after; o protótipo usa só a linha fina. */
 .t-Body-title {
     --ut-body-title-border-width: 1px;
+    /* O Redwood redefine fundo (#F5F4F2) e borda (#7A736E) em
+       body:not([class*="rw-pillar--"]), que vence o :root; aqui volta ao protótipo */
+    --ut-body-title-background-color: var(--cx-superficie);
+    --ut-body-title-border-color: var(--cx-borda);
 }
 
 .t-Body-title::after {
@@ -304,4 +312,473 @@
     line-height: 1rem;
     color: var(--cx-texto-2);
     white-space: nowrap;
+}
+
+/* ==========================================================================
+   Fonte e ícones do protótipo
+   - Fonte: Figtree (variável, pesos 300 a 900), servida dos Static
+     Application Files (figtree-latin*.woff2). Licença SIL OFL 1.1.
+   - Ícones: Lucide 0.460.0 (licença ISC), numa fonte reduzida só com os
+     glifos abaixo (lucide.woff2). O app continua usando as classes
+     Font APEX (fa-home, fa-users...): cada uma é trocada aqui pelo glifo
+     Lucide equivalente, então nada muda no Builder. Ícone fora da lista
+     continua Font APEX.
+   - Para trocar mais um ícone: inclua a classe na lista do font-family e uma
+     regra de content com o código do glifo (tabela em lucide-static
+     0.460.0/font/lucide.css) e gere a fonte de novo com pyftsubset
+     (passo a passo em modulos/tema/Etapas-fonte-e-icones.md).
+   ========================================================================== */
+@font-face {
+    font-family: "Figtree";
+    font-style: normal;
+    font-weight: 300 900;
+    font-display: swap;
+    src: url("figtree-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Figtree";
+    font-style: normal;
+    font-weight: 300 900;
+    font-display: swap;
+    src: url("figtree-latin-ext.woff2") format("woff2");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: "Corlix Lucide";
+    font-style: normal;
+    font-weight: normal;
+    font-display: block;
+    src: url("lucide.woff2") format("woff2");
+}
+
+/* O Redwood define a fonte em :root (--a-base-font-family); este arquivo
+   carrega depois, então a Figtree vence em todos os componentes. */
+:root {
+    --a-base-font-family: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+
+/* O Font APEX aplica a fonte no ::before com !important
+   (.fa.fa-lg::before); o prefixo .apex-icons-fontapex ganha em
+   especificidade. */
+.apex-icons-fontapex .fa:is(.fa-home,
+    .fa-bullhorn,
+    .fa-comments-o,
+    .fa-comments,
+    .fa-comment-o,
+    .fa-comment,
+    .fa-commenting-o,
+    .fa-users,
+    .fa-user,
+    .fa-user-o,
+    .fa-user-times,
+    .fa-user-plus,
+    .fa-briefcase,
+    .fa-shield,
+    .fa-search,
+    .fa-bell-o,
+    .fa-bell,
+    .fa-sign-out,
+    .fa-sign-in,
+    .fa-plus,
+    .fa-edit,
+    .fa-pencil,
+    .fa-info-circle,
+    .fa-chevron-right,
+    .fa-chevron-down,
+    .fa-chevron-left,
+    .fa-chevron-up,
+    .fa-arrow-right,
+    .fa-arrow-circle-up,
+    .fa-birthday-cake,
+    .fa-file-text-o,
+    .fa-file-text,
+    .fa-envelope-o,
+    .fa-envelope,
+    .fa-clock-o,
+    .fa-bar-chart,
+    .fa-undo,
+    .fa-repeat,
+    .fa-sitemap,
+    .fa-paper-plane,
+    .fa-money,
+    .fa-medkit,
+    .fa-language,
+    .fa-key,
+    .fa-history,
+    .fa-headphones,
+    .fa-graduation-cap,
+    .fa-exchange,
+    .fa-certificate,
+    .fa-building-o,
+    .fa-building,
+    .fa-book,
+    .fa-gear,
+    .fa-cog,
+    .fa-calendar,
+    .fa-calendar-o,
+    .fa-lock,
+    .fa-check,
+    .fa-check-circle,
+    .fa-times,
+    .fa-close,
+    .fa-bars,
+    .fa-trash-o,
+    .fa-trash,
+    .fa-download,
+    .fa-upload,
+    .fa-filter,
+    .fa-eye,
+    .fa-camera,
+    .fa-exclamation-triangle,
+    .fa-warning,
+    .fa-exclamation-circle,
+    .fa-phone,
+    .fa-map-marker,
+    .fa-globe,
+    .fa-id-card-o,
+    .fa-print,
+    .fa-lightbulb-o,
+    .fa-bullseye,
+    .fa-heart,
+    .fa-link,
+    .fa-paperclip,
+    .fa-refresh)::before {
+    font-family: "Corlix Lucide" !important;
+    font-weight: normal;
+    -webkit-font-smoothing: antialiased;
+}
+
+.apex-icons-fontapex .fa.fa-home::before {
+    content: "\e0f8";
+}
+
+.apex-icons-fontapex .fa.fa-bullhorn::before {
+    content: "\e235";
+}
+
+.apex-icons-fontapex .fa.fa-comments-o::before {
+    content: "\e412";
+}
+
+.apex-icons-fontapex .fa.fa-comments::before {
+    content: "\e412";
+}
+
+.apex-icons-fontapex .fa.fa-comment-o::before {
+    content: "\e11a";
+}
+
+.apex-icons-fontapex .fa.fa-comment::before {
+    content: "\e11a";
+}
+
+.apex-icons-fontapex .fa.fa-commenting-o::before {
+    content: "\e57a";
+}
+
+.apex-icons-fontapex .fa.fa-users::before {
+    content: "\e1a4";
+}
+
+.apex-icons-fontapex .fa.fa-user::before {
+    content: "\e46d";
+}
+
+.apex-icons-fontapex .fa.fa-user-o::before {
+    content: "\e46d";
+}
+
+.apex-icons-fontapex .fa.fa-user-times::before {
+    content: "\e472";
+}
+
+.apex-icons-fontapex .fa.fa-user-plus::before {
+    content: "\e1a2";
+}
+
+.apex-icons-fontapex .fa.fa-briefcase::before {
+    content: "\e066";
+}
+
+.apex-icons-fontapex .fa.fa-shield::before {
+    content: "\e1ff";
+}
+
+.apex-icons-fontapex .fa.fa-search::before {
+    content: "\e155";
+}
+
+.apex-icons-fontapex .fa.fa-bell-o::before {
+    content: "\e05d";
+}
+
+.apex-icons-fontapex .fa.fa-bell::before {
+    content: "\e05d";
+}
+
+.apex-icons-fontapex .fa.fa-sign-out::before {
+    content: "\e112";
+}
+
+.apex-icons-fontapex .fa.fa-sign-in::before {
+    content: "\e111";
+}
+
+.apex-icons-fontapex .fa.fa-plus::before {
+    content: "\e141";
+}
+
+.apex-icons-fontapex .fa.fa-edit::before {
+    content: "\e1f9";
+}
+
+.apex-icons-fontapex .fa.fa-pencil::before {
+    content: "\e1f9";
+}
+
+.apex-icons-fontapex .fa.fa-info-circle::before {
+    content: "\e0fe";
+}
+
+.apex-icons-fontapex .fa.fa-chevron-right::before {
+    content: "\e073";
+}
+
+.apex-icons-fontapex .fa.fa-chevron-down::before {
+    content: "\e071";
+}
+
+.apex-icons-fontapex .fa.fa-chevron-left::before {
+    content: "\e072";
+}
+
+.apex-icons-fontapex .fa.fa-chevron-up::before {
+    content: "\e074";
+}
+
+.apex-icons-fontapex .fa.fa-arrow-right::before {
+    content: "\e04d";
+}
+
+.apex-icons-fontapex .fa.fa-arrow-circle-up::before {
+    content: "\e07f";
+}
+
+.apex-icons-fontapex .fa.fa-birthday-cake::before {
+    content: "\e348";
+}
+
+.apex-icons-fontapex .fa.fa-file-text-o::before {
+    content: "\e0d0";
+}
+
+.apex-icons-fontapex .fa.fa-file-text::before {
+    content: "\e0d0";
+}
+
+.apex-icons-fontapex .fa.fa-envelope-o::before {
+    content: "\e113";
+}
+
+.apex-icons-fontapex .fa.fa-envelope::before {
+    content: "\e113";
+}
+
+.apex-icons-fontapex .fa.fa-clock-o::before {
+    content: "\e250";
+}
+
+.apex-icons-fontapex .fa.fa-bar-chart::before {
+    content: "\e2a3";
+}
+
+.apex-icons-fontapex .fa.fa-undo::before {
+    content: "\e2a1";
+}
+
+.apex-icons-fontapex .fa.fa-repeat::before {
+    content: "\e149";
+}
+
+.apex-icons-fontapex .fa.fa-sitemap::before {
+    content: "\e129";
+}
+
+.apex-icons-fontapex .fa.fa-paper-plane::before {
+    content: "\e156";
+}
+
+.apex-icons-fontapex .fa.fa-money::before {
+    content: "\e056";
+}
+
+.apex-icons-fontapex .fa.fa-medkit::before {
+    content: "\e5db";
+}
+
+.apex-icons-fontapex .fa.fa-language::before {
+    content: "\e103";
+}
+
+.apex-icons-fontapex .fa.fa-key::before {
+    content: "\e4a8";
+}
+
+.apex-icons-fontapex .fa.fa-history::before {
+    content: "\e1f5";
+}
+
+.apex-icons-fontapex .fa.fa-headphones::before {
+    content: "\e5c2";
+}
+
+.apex-icons-fontapex .fa.fa-graduation-cap::before {
+    content: "\e234";
+}
+
+.apex-icons-fontapex .fa.fa-exchange::before {
+    content: "\e24a";
+}
+
+.apex-icons-fontapex .fa.fa-certificate::before {
+    content: "\e053";
+}
+
+.apex-icons-fontapex .fa.fa-building-o::before {
+    content: "\e290";
+}
+
+.apex-icons-fontapex .fa.fa-building::before {
+    content: "\e290";
+}
+
+.apex-icons-fontapex .fa.fa-book::before {
+    content: "\e063";
+}
+
+.apex-icons-fontapex .fa.fa-gear::before {
+    content: "\e158";
+}
+
+.apex-icons-fontapex .fa.fa-cog::before {
+    content: "\e158";
+}
+
+.apex-icons-fontapex .fa.fa-calendar::before {
+    content: "\e067";
+}
+
+.apex-icons-fontapex .fa.fa-calendar-o::before {
+    content: "\e067";
+}
+
+.apex-icons-fontapex .fa.fa-lock::before {
+    content: "\e10f";
+}
+
+.apex-icons-fontapex .fa.fa-check::before {
+    content: "\e070";
+}
+
+.apex-icons-fontapex .fa.fa-check-circle::before {
+    content: "\e226";
+}
+
+.apex-icons-fontapex .fa.fa-times::before {
+    content: "\e1b2";
+}
+
+.apex-icons-fontapex .fa.fa-close::before {
+    content: "\e1b2";
+}
+
+.apex-icons-fontapex .fa.fa-bars::before {
+    content: "\e119";
+}
+
+.apex-icons-fontapex .fa.fa-trash-o::before {
+    content: "\e18e";
+}
+
+.apex-icons-fontapex .fa.fa-trash::before {
+    content: "\e18e";
+}
+
+.apex-icons-fontapex .fa.fa-download::before {
+    content: "\e0b6";
+}
+
+.apex-icons-fontapex .fa.fa-upload::before {
+    content: "\e19e";
+}
+
+.apex-icons-fontapex .fa.fa-filter::before {
+    content: "\e0d5";
+}
+
+.apex-icons-fontapex .fa.fa-eye::before {
+    content: "\e0be";
+}
+
+.apex-icons-fontapex .fa.fa-camera::before {
+    content: "\e068";
+}
+
+.apex-icons-fontapex .fa.fa-exclamation-triangle::before {
+    content: "\e193";
+}
+
+.apex-icons-fontapex .fa.fa-warning::before {
+    content: "\e193";
+}
+
+.apex-icons-fontapex .fa.fa-exclamation-circle::before {
+    content: "\e07b";
+}
+
+.apex-icons-fontapex .fa.fa-phone::before {
+    content: "\e137";
+}
+
+.apex-icons-fontapex .fa.fa-map-marker::before {
+    content: "\e115";
+}
+
+.apex-icons-fontapex .fa.fa-globe::before {
+    content: "\e0eb";
+}
+
+.apex-icons-fontapex .fa.fa-id-card-o::before {
+    content: "\e61c";
+}
+
+.apex-icons-fontapex .fa.fa-print::before {
+    content: "\e145";
+}
+
+.apex-icons-fontapex .fa.fa-lightbulb-o::before {
+    content: "\e1c2";
+}
+
+.apex-icons-fontapex .fa.fa-bullseye::before {
+    content: "\e184";
+}
+
+.apex-icons-fontapex .fa.fa-heart::before {
+    content: "\e0f5";
+}
+
+.apex-icons-fontapex .fa.fa-link::before {
+    content: "\e108";
+}
+
+.apex-icons-fontapex .fa.fa-paperclip::before {
+    content: "\e131";
+}
+
+.apex-icons-fontapex .fa.fa-refresh::before {
+    content: "\e149";
 }
