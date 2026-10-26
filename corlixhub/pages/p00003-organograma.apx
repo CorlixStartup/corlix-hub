@@ -267,6 +267,9 @@ page 3 (
             template: @/blank-with-attributes
             templateOptions: #DEFAULT#
         }
+        advanced {
+            htmlDomId: organograma
+        }
     )
 
     pageItem P3_BUSCA (

@@ -278,7 +278,7 @@ Botão direito em **Dialogs, Drawers and Popups** › **Create Region** (confirm
 | Source | PL/SQL Function Body returning a CLOB | `return pkg_home_ui.render_aniversariantes(p_limite => null, p_ver_todos => 'N');` |
 | Appearance | Template | **Inline Dialog** |
 | Appearance | Template Options | Auto Height · Size: **480x320** (confirmar no 26.1.5) |
-| Advanced | Static ID | `aniversariantes_todos` (o JS usa esse ID) |
+| Advanced | HTML DOM ID | `aniversariantes_todos` (o JS usa esse ID). No 26.1 o **Static ID** só identifica a região no export; o `id` do HTML vem do **HTML DOM ID**. Sem ele, o APEX gera `R<número>` e o "Ver todos →" dá `Region does not support being opened and closed` |
 
 ### 3.8 JavaScript da página
 
@@ -342,7 +342,7 @@ region home_comunicados (
         layout: horizontal
     }
 ```
-e `region home_hero ( type: dynamicContent ... template: @/blank-with-attributes )`, `region aniversariantes_todos ( ... slot: dialogsDrawersAndPopups ... template: @/inline-dialog )`. O identificador depois de `region` é o Static ID. O arquivo esperado é `corlixhub/pages/p00028-inicio.apx` (nome a conferir no próximo backup), e `p00001-home.apx` não deve mudar.
+e `region home_hero ( type: dynamicContent ... template: @/blank-with-attributes )`, `region aniversariantes_todos ( ... slot: dialogsDrawersAndPopups ... template: @/inline-dialog ... advanced { htmlDomId: aniversariantes_todos } )`. O identificador depois de `region` é o Static ID, que **não** vira o `id` do HTML; para o JS achar o diálogo, o export precisa ter o `htmlDomId`. O arquivo esperado é `corlixhub/pages/p00028-inicio.apx` (nome a conferir no próximo backup), e `p00001-home.apx` não deve mudar.
 
 ---
 
@@ -369,6 +369,7 @@ Teste: saia e entre de novo; o login deve cair na 28, e o logo e o item "Home" d
 | `ORA-06550` / `PLS-00201: identifier 'PKG_HOME_UI' must be declared` | Package não instalado | Seção 1 |
 | Hero sem a arte (fundo cinza à direita) | `home-hero.jpg` não foi enviado, ou foi para uma pasta | Seção 2: na raiz dos Static Application Files, com esse nome exato |
 | Tudo sem estilo (cards sem borda, atalhos como links azuis) | `custom.min.css` antigo no app ou em cache | Suba `.css` e `.min.css` de novo e recarregue com Ctrl+Shift+R |
+| "Ver todos →" não abre o diálogo; no console: `Error: Region does not support being opened and closed` | A região do diálogo está sem **HTML DOM ID**, e o `id` no HTML é `R<número>` (confira com `document.querySelector('.js-regionDialog').id`) | Passo 3.7: Advanced › HTML DOM ID = `aniversariantes_todos` |
 | "Aniversariantes de " sem o mês | Computação ausente ou com Point diferente de Before Header | Passo 3.2 |
 | Comunicados e aniversariantes vazios para todo mundo | `G_ID_EMPRESA` vazio na sessão (só é preenchido no login) | Saia e entre de novo (`docs/ai-context/08` §3, Módulos) |
 | Fotos não aparecem, só iniciais | BLOCO 1/2 do JS não está na página 28, ou o arquivo não existe em `Fotos Colaboradores/` | Passo 3.8; confira o arquivo em Static Application Files |

@@ -169,6 +169,9 @@ page 13 (
             template: @/blank-with-attributes
             templateOptions: #DEFAULT#
         }
+        advanced {
+            htmlDomId: historico_carreira
+        }
     )
 
     region lançamentos-rh (

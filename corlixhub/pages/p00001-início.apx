@@ -45,7 +45,7 @@ page 1 (
 
     region aniversariantes_todos (
         name: Aniversariantes
-        title: Aniversariantes de &P28_MES_ATUAL.
+        title: Aniversariantes de &P1_MES_ATUAL.
         type: dynamicContent
         source {
             plsqlFunctionBody: return pkg_home_ui.render_aniversariantes(p_limite => null, p_ver_todos => 'N');
@@ -61,6 +61,9 @@ page 1 (
                 js-dialog-autoheight
                 js-dialog-size480x320
             ]
+        }
+        advanced {
+            htmlDomId: aniversariantes_todos
         }
     )
 
