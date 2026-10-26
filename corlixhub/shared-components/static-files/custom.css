@@ -1120,6 +1120,12 @@
     padding: 16px 24px;
 }
 
+/* O UT põe padding nos itens do cabeçalho; somado ao de cima, o título ficava
+   20px mais recuado que o conteúdo e o cabeçalho, mais alto que o protótipo */
+.cx-home-card .t-Region-headerItems {
+    padding: 0;
+}
+
 .cx-home-card .t-Region-title {
     font-size: 1.125rem;
     line-height: 1.5rem;
@@ -1347,6 +1353,9 @@
 
 .cx-home-comunicado__titulo {
     display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.5rem;
 }
 
 .cx-home-comunicados .a-CardView-mainContent,

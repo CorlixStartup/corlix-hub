@@ -294,7 +294,7 @@ Nova Home conforme `pen_dev/Início.png`, montada na página nova 28 ("Início")
 | `home-hero.jpg` | arte do hero (recorte do protótipo); também em `corlixhub/shared-components/static-files/` |
 | `Etapas-home.md` | passo a passo no Builder 26.1.5 |
 
-Os comunicados ficam numa região **Cards** nativa (precisam da imagem BLOB), com SQL filtrada por `:G_ID_EMPRESA`; CSS em `custom.css` §12 (ver `04` §5.2.1). Links rápidos ainda sem destino: dependem da tabela `LINK_RAPIDO` sugerida em `07` §5.
+Os comunicados ficam numa região **Cards** nativa (precisam da imagem BLOB), com SQL filtrada por `:G_ID_EMPRESA`; CSS em `custom.css` §12 (ver `04` §5.2.1). Links rápidos: o destino de cada um é o `p_pagina` da chamada a `atalho` no `render_hero` (link com `apex_page.get_url`). Holerite digital → página 9; Ponto eletrônico e Suporte TI seguem sem destino (`aria-disabled`) até as páginas existirem. Para torná-los configuráveis por empresa, ver a tabela `LINK_RAPIDO` sugerida em `07` §5.
 
 ---
 
