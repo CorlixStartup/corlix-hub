@@ -226,7 +226,7 @@ Uso: p1 Home (`cx-badge--info` no mês dos aniversariantes; `cx-etiqueta` no dep
 | `.figma-badge-mes` | `text-transform: capitalize`; **hook do JS** que preenche o mês | p1 |
 | `.cx-acoes-card` (+ `.t-Button { flex:1 }`) | botões secundários lado a lado, padding 0 16px | p1 `card_meu_gestor` (footer) |
 | `.cx-pessoa`, `__foto` (52px redonda), `__nome` (14px), `__detalhe` (12px `--cx-texto-3`) | foto + nome + cargo | p1 `card_meu_gestor` (HTML Expression) |
-| `.cx-titulo` (26px/32px bold) / `.cx-descricao` (14px `--cx-texto-2`) | título + descrição de página montados em região | p14 região `cadastrar-colaborador-header` |
+| `.cx-titulo` (26px/32px bold) / `.cx-descricao` (14px `--cx-texto-2`) | título + descrição de página montados em região | p16; na p14 sai com o guia `Etapas-cadastro-colaborador.md` (vira `.cx-cabecalho-pagina`) |
 | `.cx-titulo-secao` (16px bold, margin-bottom 12px) | título de seção em formulário | p16 `headerText` das 3 regiões |
 | `.cx-avatar-iniciais` (fundo `--cx-primaria-suave`, texto `--cx-primaria`, 18px/600; 12px com `.corlix-header__avatar`) | avatar de iniciais para quem não tem foto. Vai num `<span style="display:none">` logo após a `<img>`, junto da classe de tamanho do avatar (`figma-avatar-img`, `corlix-header__avatar`, `cx-pessoa__foto`); o `onerror` da `<img>` esconde a imagem e limpa o `display` do span (por isso a classe não usa `display` com `!important`). A SQL deve devolver foto **nula** quando não há foto (o `src` vazio dispara o `onerror`). | header (p0), Home: gestor e aniversariantes |
 
@@ -278,6 +278,16 @@ HTML do `pkg_busca_ui` (`modulos/busca`). `.corlix-header__search-input` ganha `
 | `.cx-busca-ajuda` (`__lista`, `__nota`) | card "O que a busca encontra" |
 
 O estado vazio reaproveita `.cx-home-vazio` e `.cx-avatar--vazio` (§12).
+
+### 5.2.3 Cadastro de colaborador (`custom.css` §14)
+
+Guia: `modulos/tema/Etapas-cadastro-colaborador.md` (p14, protótipo `Novo colaborador.png`).
+
+| Classe | Uso |
+|---|---|
+| `.cx-cabecalho-pagina` (`__trilha` 14px com link `--cx-primaria` e `fa-chevron-right`, `__titulo` 32px/700, `__descricao` 15px) | cabeçalho de página com trilha, numa região da Breadcrumb Bar com template Blank with Attributes (No Grid); padding 24×32px. Genérico: serve para outras páginas com trilha |
+| `.cx-form-secao` (`__info`, `__titulo` 18px/700, `__descricao` 14px) | CSS Class de região Standard com header escondido: grid 1/3 (título e descrição em `.cx-form-secao__info`, no HTML da região) + 2/3 (campos). Padding 2rem; uma coluna abaixo de 768px. Dentro dele: obrigatório com `*` vermelho no rótulo (`--cx-alerta`), escondendo `.t-Form-itemRequired` e `-marker` do Redwood; switch (`.apex-item-wrapper--yes-no`) com "Ativa"/"Inativa" via `:has(input:checked)` e ajuda embaixo |
+| `.cx-form-rodape` (`__nota`) | CSS Class de região Buttons Container: rodapé `position: sticky` no fim da tela, fundo branco e borda superior; o título da região fica só para leitores de tela |
 
 ### 5.3 Cabeçalho (`custom.css` §2, p0 Global Page)
 
@@ -370,7 +380,7 @@ O tema vale para o app inteiro assim que o CSS carrega — não há "ligar por p
 | 4 Chat | mapear `--ch-*` → `--cx-*` no `:root` inline; manter `--ch-online/ausente/offline` e medidas | **aplicado** |
 | 7 Monitor de logs | nada | ok |
 | 13 Histórico | seguir `modulos/historico-carreira/Etapas-historico-carreira.md` item 2 | CSS do módulo fora do app |
-| 14 Cadastro de usuários | guia manda 1.1 + Required - Floating em `P14_NOME_COMPLETO/EMAIL/EMPRESA/DEPARTAMENTO/CARGO` | **divergente**: em vez de Hero, a região `cadastrar-colaborador-header` (body, Standard, removeHeader) usa `<h1 class="cx-titulo">` + `<p class="cx-descricao">` |
+| 14 Cadastro de usuários | **Redesign** pelo guia `modulos/tema/Etapas-cadastro-colaborador.md`: cabeçalho `.cx-cabecalho-pagina` na Breadcrumb Bar, seções `.cx-form-secao` (Dados pessoais, Vínculo profissional, Acesso ao sistema), rodapé `.cx-form-rodape` | CSS na `DEV`; página aguardando o Builder (o `.apx` ainda tem `cadastrar-colaborador-header` com `cx-titulo`/`cx-descricao`) |
 | 15 Empresas | nada | ok |
 | 16 Cadastro de empresas | guia manda apagar Header Text; `delete` = Danger sem Hot | **divergente**: Header Text virou `<h2 class="cx-titulo-secao">` (sem style inline) |
 | 17 Emitir comunicado | opcional renomear para "Novo comunicado" | — |

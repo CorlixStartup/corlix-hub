@@ -247,6 +247,7 @@ Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colabo
 ### Página 14 — Cadastro de Usuários (`p00014-cadastros-de-usuarios.apx`)
 - **Propósito**: cadastrar colaborador (insert em COLABORADOR) e criar o usuário de login no APEX.
 - **Regiões**: `cadastrar-colaborador-header` (staticContent seq 10, `<h1 class="cx-titulo">Cadastro de usuários</h1><p class="cx-descricao">...`); `novo` "Cadastrar Colaborador" (**form** sobre tabela `COLABORADOR`, seq 20, @/standard sem header, `t-Region--stacked`), com sub-regiões (`t-Region--noUI`): `new` "INFORMAÇÕES DE LOGIN" (seq 20), `dados-do-colaborador` "DADOS DO COLABORADOR" (seq 30), `status-do-registro` "STATUS DO REGISTRO" (seq 50, texto "Contas inativas não terão acesso ao sistema."). Sem breadcrumb.
+- **Redesign pendente no Builder** (`modulos/tema/Etapas-cadastro-colaborador.md`, protótipo `Novo colaborador.png`): cabeçalho Dynamic Content na Breadcrumb Bar (trilha para a p12 via `apex_page.get_url`); seções Dados pessoais / Vínculo profissional (nova) / Acesso ao sistema com `cx-form-secao`; `status-do-registro` apagada (switch vai para Acesso); Departamento e Cargo viram Select List; Primeiro nome, Sobrenome, datas e senhas passam a *Value Required*; botões numa região Buttons Container `cx-form-rodape` (slot Next), "Salvar colaborador". Quando o backup trouxer a página, atualize esta seção.
 - **Itens** (form region `@novo`, largura 30):
   | Item | Tipo | Coluna | Região | Obrig. | LOV / obs |
   |---|---|---|---|---|---|
