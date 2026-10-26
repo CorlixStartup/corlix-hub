@@ -241,6 +241,7 @@ Recarregue a página com **Ctrl+Shift+R** (Cmd+Shift+R no Mac) e confira:
 
 | Sintoma | Causa provável | Correção |
 |---|---|---|
+| "Component P14_… cannot be rendered as the grid settings for this component are invalid. It is set to be displayed at Column 13…" (`WWV_FLOW_GRID_LAYOUT.MORE_THAN_SUPPORTED_COLUMNS`) | O item está com *Start New Row* = Não depois de uma linha já cheia (ex.: `P14_DATA_NASCIMENTO` depois de Primeiro nome 6 + Sobrenome 6) | Passo 5.1: *Layout › Start New Row* = Sim no item citado. Confira a coluna "Start New Row" da tabela em todos os itens |
 | Descrição e campos um embaixo do outro em tela larga | `custom.css` antigo, ou a região sem a classe `cx-form-secao` | Passo 1 e Ctrl+Shift+R; passo 4, *CSS Classes* |
 | Título da seção aparece duas vezes | A região ficou com o header visível | Passo 4: *Header: Hidden* |
 | Descrição na coluna da direita, acima dos campos | O APEX embrulhou o HTML da região num elemento a mais, e o `.cx-form-secao__info` não é filho direto do `.t-Region-body` | Inspecione no DevTools e mande o HTML gerado; o seletor do CSS precisa seguir a estrutura real |
