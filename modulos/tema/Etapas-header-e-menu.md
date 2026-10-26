@@ -170,6 +170,7 @@ Saia e entre de novo (os itens de aplicação são preenchidos no login), recarr
 |---|---|---|
 | Menu continua abrindo recolhido | Preferência salva no navegador, ou `js-defaultCollapsed` ainda marcado | Clique no ☰ uma vez; confira o passo 2 |
 | "Collapsed by Default" marcado e sem como desmarcar | É opção padrão do template e fica travada enquanto **Use Template Defaults** estiver ligado | Passo 2: desligue os padrões primeiro |
+| Itens do menu em negrito e com 16px; faixa do título das páginas cinza com borda escura | `corlix-tema.css` antigo: o Redwood redefinia essas variáveis no `body` e no primeiro nível do menu | Suba `corlix-tema.css` e `corlix-tema.min.css` atuais |
 | O último item do menu aparece como botão cinza no rodapé | `custom.css` antigo no app ou em cache | Passo 1 e Ctrl+Shift+R |
 | Clicar no nome não abre nada | Faltou `popovertarget="cx-menu-usuario"` no botão, ou o `id` do menu está diferente | Copie o HTML do passo 4 de novo |
 | Menu do usuário abre colado no topo, por cima do header, ou com fundo transparente | CSS do passo 1 não carregou | Passo 1 e Ctrl+Shift+R |

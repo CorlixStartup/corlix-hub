@@ -15,66 +15,61 @@ page 14 (
         formAutoComplete: false
     }
 
-    region cadastrar-colaborador-header (
-        name: Cadastrar Colaborador - Header
+    region cabeçalho (
+        name: Cabeçalho
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                return '<div class="cx-cabecalho-pagina">'
+                    || '<nav class="cx-cabecalho-pagina__trilha" aria-label="Trilha de navegação">'
+                    || '<a href="' || apex_escape.html_attribute(apex_page.get_url(p_page => 12)) || '">Colaboradores</a>'
+                    || '<span class="fa fa-chevron-right" aria-hidden="true"></span>'
+                    || '<span aria-current="page">Novo colaborador</span>'
+                    || '</nav>'
+                    || '<h1 class="cx-cabecalho-pagina__titulo">Novo colaborador</h1>'
+                    || '<p class="cx-cabecalho-pagina__descricao">Preencha os dados pessoais, o vínculo profissional e o acesso ao CorlixHub.</p>'
+                    || '</div>';
+                
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region dados-do-colaborador (
+        name: Dados pessoais
+        title: Dados pessoais
         type: staticContent
         source {
             htmlCode:
                 ```html
-                <h1 class="cx-titulo">Cadastro de usuários</h1>
-                <p class="cx-descricao">Preencha as informações para registrar um novo colaborador no sistema.</p>
+                <div class="cx-form-secao__info">
+                  <h2 class="cx-form-secao__titulo">Dados pessoais</h2>
+                  <p class="cx-form-secao__descricao">Identificação da pessoa em todo o CorlixHub.</p>
+                </div>
+                
                 ```
         }
         layout {
             sequence: 10
-            slot: body
-            startNewRow: false
-            newColumn: false
+            parentRegion: @novo
+            slot: regionBody
         }
         appearance {
             template: @/standard
             templateOptions: [
                 #DEFAULT#
                 t-Region--removeHeader js-removeLandmark
-                t-Region--stacked
                 t-Region--scrollBody
             ]
-        }
-    )
-
-    region dados-do-colaborador (
-        name: DADOS DO COLABORADOR
-        type: staticContent
-        layout {
-            sequence: 30
-            parentRegion: @novo
-            slot: regionBody
-        }
-        appearance {
-            template: @/standard
-            templateOptions: [
-                #DEFAULT#
-                t-Region--noUI
-                t-Region--scrollBody
-            ]
-        }
-    )
-
-    region new (
-        name: INFORMAÇÕES DE LOGIN
-        type: staticContent
-        layout {
-            sequence: 20
-            parentRegion: @novo
-            slot: regionBody
-        }
-        appearance {
-            template: @/standard
-            templateOptions: [
-                #DEFAULT#
-                t-Region--noUI
-                t-Region--scrollBody
-            ]
+            cssClasses: cx-form-secao
         }
     )
 
@@ -97,20 +92,46 @@ page 14 (
             templateOptions: [
                 #DEFAULT#
                 t-Region--removeHeader js-removeLandmark
-                t-Region--stacked
+                t-Region--noUI
                 t-Region--scrollBody
             ]
         }
     )
 
-    region status-do-registro (
-        name: STATUS DO REGISTRO
+    region rodapé (
+        name: Rodapé
+        title: Ações do formulário
         type: staticContent
         source {
-            htmlCode: <span>Contas inativas não terão acesso ao sistema.</span>
+            htmlCode: <p class="cx-form-rodape__nota">Campos com * são obrigatórios.</p>
         }
         layout {
-            sequence: 50
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+            cssClasses: cx-form-rodape
+        }
+    )
+
+    region status-do-registro (
+        name: Acesso ao sistema
+        title: Acesso ao sistema
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="cx-form-secao__info">
+                  <h2 class="cx-form-secao__titulo">Acesso ao sistema</h2>
+                  <p class="cx-form-secao__descricao">Credenciais usadas para entrar no CorlixHub.</p>
+                </div>
+                
+                ```
+        }
+        layout {
+            sequence: 30
             parentRegion: @novo
             slot: regionBody
         }
@@ -118,14 +139,45 @@ page 14 (
             template: @/standard
             templateOptions: [
                 #DEFAULT#
-                t-Region--noUI
+                t-Region--removeHeader js-removeLandmark
                 t-Region--scrollBody
             ]
+            cssClasses: cx-form-secao
+        }
+    )
+
+    region vínculo-profissional (
+        name: Vínculo profissional
+        title: Vínculo profissional
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="cx-form-secao__info">
+                  <h2 class="cx-form-secao__titulo">Vínculo profissional</h2>
+                  <p class="cx-form-secao__descricao">Empresa, área e liderança da pessoa. Departamento, cargo e gestor são carregados depois que a empresa é selecionada.</p>
+                </div>
+                
+                ```
+        }
+        layout {
+            sequence: 20
+            parentRegion: @novo
+            slot: regionBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+            ]
+            cssClasses: cx-form-secao
         }
     )
 
     pageItem P14_CARGO (
-        type: popupLov
+        type: selectList
         label {
             label: Cargo
             alignment: left
@@ -154,14 +206,16 @@ page 14 (
         }
         layout {
             sequence: 80
-            region: @dados-do-colaborador
+            region: @vínculo-profissional
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 6
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 30
+            height: 1
         }
         validation {
             valueRequired: true
@@ -171,32 +225,41 @@ page 14 (
             column: ID_CARGO
             dataType: number
         }
+        help {
+            inlineHelpText: Disponível após selecionar a empresa.
+        }
     )
 
     pageItem P14_CONFIRMAR_SENHA (
         type: password
         label {
-            label: Confirmar Senha
+            label: Confirmar senha
             alignment: left
         }
         layout {
             sequence: 40
-            region: @new
+            region: @status-do-registro
             slot: regionBody
             alignment: left
             startNewRow: false
+            columnSpan: 6
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 30
+        }
+        validation {
+            valueRequired: true
+        }
+        advanced {
+            customAttributes: autocomplete="new-password"
         }
     )
 
     pageItem P14_DATA_ADMISSAO (
         type: datePicker
         label {
-            label: Data de Admissão
+            label: Data de admissão
             alignment: left
         }
         settings {
@@ -204,15 +267,19 @@ page 14 (
         }
         layout {
             sequence: 40
-            region: @dados-do-colaborador
+            region: @vínculo-profissional
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 6
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
             formatMask: YYYY-MM-DD
-            width: 30
+        }
+        validation {
+            valueRequired: true
         }
         source {
             formRegion: @novo
@@ -224,7 +291,7 @@ page 14 (
     pageItem P14_DATA_NASCIMENTO (
         type: datePicker
         label {
-            label: Data de Nascimento
+            label: Data de nascimento
             alignment: left
         }
         settings {
@@ -235,23 +302,28 @@ page 14 (
             region: @dados-do-colaborador
             slot: regionBody
             alignment: left
-            startNewRow: false
+            columnSpan: 6
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
             formatMask: YYYY-MM-DD
-            width: 30
+        }
+        validation {
+            valueRequired: true
         }
         source {
             formRegion: @novo
             column: DATA_DE_NASCIMENTO
             dataType: date
         }
+        help {
+            inlineHelpText: Usada na lista de aniversariantes.
+        }
     )
 
     pageItem P14_DEPARTAMENTO (
-        type: popupLov
+        type: selectList
         label {
             label: Departamento
             alignment: left
@@ -273,15 +345,15 @@ page 14 (
         }
         layout {
             sequence: 70
-            region: @dados-do-colaborador
+            region: @vínculo-profissional
             slot: regionBody
             alignment: left
-            startNewRow: false
+            columnSpan: 6
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 30
+            height: 1
         }
         validation {
             valueRequired: true
@@ -291,28 +363,31 @@ page 14 (
             column: ID_DEPARTAMENTO
             dataType: number
         }
+        help {
+            inlineHelpText: Disponível após selecionar a empresa.
+        }
     )
 
     pageItem P14_EMAIL (
         type: textField
         label {
-            label: E-mail Coporativo
+            label: E-mail corporativo
             alignment: left
         }
         settings {
             subtype: email
         }
         layout {
-            sequence: 20
-            region: @new
+            sequence: 10
+            region: @status-do-registro
             slot: regionBody
             alignment: left
             startNewRow: false
+            columnSpan: 6
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 30
         }
         validation {
             valueRequired: true
@@ -342,15 +417,15 @@ page 14 (
                 ```
         }
         layout {
-            sequence: 60
-            region: @dados-do-colaborador
+            sequence: 10
+            region: @vínculo-profissional
             slot: regionBody
             alignment: left
+            columnSpan: 6
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 30
         }
         validation {
             valueRequired: true
@@ -395,20 +470,22 @@ page 14 (
         }
         layout {
             sequence: 90
-            region: @dados-do-colaborador
+            region: @vínculo-profissional
             slot: regionBody
             alignment: left
-            startNewRow: false
+            columnSpan: 6
         }
         appearance {
             template: @/optional-floating
             templateOptions: #DEFAULT#
-            width: 30
         }
         source {
             formRegion: @novo
             column: ID_GESTOR
             dataType: number
+        }
+        help {
+            inlineHelpText: Busque pelo nome. Deixe em branco para quem está no topo da hierarquia (ex.: CEO).
         }
     )
 
@@ -434,19 +511,20 @@ page 14 (
     pageItem P14_LOGIN (
         type: textField
         label {
-            label: Login Corporativo
+            label: Login corporativo
             alignment: left
         }
         layout {
-            sequence: 10
-            region: @new
+            sequence: 20
+            region: @status-do-registro
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 6
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 30
         }
         validation {
             valueRequired: true
@@ -462,7 +540,7 @@ page 14 (
     pageItem P14_NOME_COMPLETO (
         type: textField
         label {
-            label: Nome Completo
+            label: Nome completo
             alignment: left
         }
         layout {
@@ -470,11 +548,11 @@ page 14 (
             region: @dados-do-colaborador
             slot: regionBody
             alignment: left
+            columnSpan: 12
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 30
         }
         validation {
             valueRequired: true
@@ -490,7 +568,7 @@ page 14 (
     pageItem P14_PRIMEIRO_NOME (
         type: textField
         label {
-            label: Primeiro Nome
+            label: Primeiro nome
             alignment: left
         }
         layout {
@@ -498,13 +576,14 @@ page 14 (
             region: @dados-do-colaborador
             slot: regionBody
             alignment: left
+            columnSpan: 6
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 30
         }
         validation {
+            valueRequired: true
             maxLength: 30
         }
         source {
@@ -522,31 +601,37 @@ page 14 (
         }
         layout {
             sequence: 30
-            region: @new
+            region: @status-do-registro
             slot: regionBody
             alignment: left
+            columnSpan: 6
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 30
+        }
+        validation {
+            valueRequired: true
+        }
+        advanced {
+            customAttributes: autocomplete="new-password"
         }
     )
 
     pageItem P14_STATUS (
         type: switch
         label {
-            label: Status
+            label: Situação da conta
             alignment: left
         }
         layout {
-            sequence: 10
+            sequence: 50
             region: @status-do-registro
             slot: regionBody
             alignment: left
         }
         appearance {
-            template: @/optional-floating
+            template: @/optional-above
             templateOptions: #DEFAULT#
         }
         source {
@@ -554,16 +639,23 @@ page 14 (
             column: STATUS
             dataType: boolean
         }
+        default {
+            type: static
+            staticValue: TRUE
+        }
         sessionState {
             dataType: boolean
             storage: session
+        }
+        help {
+            inlineHelpText: Contas inativas não conseguem entrar no sistema.
         }
     )
 
     pageItem P14_ULTIMO_NOME (
         type: textField
         label {
-            label: Último Nome
+            label: Sobrenome
             alignment: left
         }
         layout {
@@ -572,13 +664,14 @@ page 14 (
             slot: regionBody
             alignment: left
             startNewRow: false
+            columnSpan: 6
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 30
         }
         validation {
+            valueRequired: true
             maxLength: 30
         }
         source {
@@ -592,9 +685,9 @@ page 14 (
         buttonName: CANCELAR
         label: Cancelar
         layout {
-            sequence: 120
-            region: @novo
-            slot: delete
+            sequence: 10
+            region: @rodapé
+            slot: next
         }
         appearance {
             buttonTemplate: @/text
@@ -640,11 +733,11 @@ page 14 (
 
     button salvar-usuario (
         buttonName: SALVAR_USUARIO
-        label: Salvar Usuario
+        label: Salvar colaborador
         layout {
-            sequence: 120
-            region: @novo
-            slot: create
+            sequence: 20
+            region: @rodapé
+            slot: next
         }
         appearance {
             buttonTemplate: @/text

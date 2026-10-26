@@ -18,6 +18,7 @@
      11. Classes do design system (Home e cadastros)
      12. Home (redesign · pen_dev/Início.png)
      13. Busca na intranet (pen_dev/Busca (resultados).png)
+     14. Cadastro de colaborador (pen_dev/Novo colaborador.png)
    ============================================================ */
 
 
@@ -1002,7 +1003,8 @@
     color: var(--cx-texto-3);
 }
 
-/* Título e descrição de página montados em região (ex.: Cadastro de usuários) */
+/* Título e descrição de página montados em região. Para página com trilha,
+   use .cx-cabecalho-pagina (seção 14) */
 .cx-titulo {
     margin: 0 0 4px;
     font-size: 1.625rem;
@@ -1614,5 +1616,197 @@
 
     .cx-busca-lista__item {
         flex-wrap: wrap;
+    }
+}
+
+
+/* ============================================================
+   14. CADASTRO DE COLABORADOR (pen_dev/Novo colaborador.png)
+   Guia: modulos/tema/Etapas-cadastro-colaborador.md
+   ============================================================ */
+
+/* Cabeçalho de página com trilha, título e descrição. Região no slot
+   Breadcrumb Bar com template Blank with Attributes (No Grid). */
+.cx-cabecalho-pagina {
+    padding: 24px 32px;
+}
+
+.cx-cabecalho-pagina__trilha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+.cx-cabecalho-pagina__trilha a {
+    font-weight: 500;
+    color: var(--cx-primaria);
+    text-decoration: none;
+}
+
+.cx-cabecalho-pagina__trilha a:hover {
+    text-decoration: underline;
+}
+
+.cx-cabecalho-pagina__trilha .fa {
+    font-size: 14px;
+    color: var(--cx-texto-3);
+}
+
+.cx-cabecalho-pagina__titulo {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 2.5rem;
+    color: var(--cx-texto);
+}
+
+.cx-cabecalho-pagina__descricao {
+    margin: 4px 0 0;
+    font-size: 15px;
+    color: var(--cx-texto-2);
+}
+
+/* Seção de formulário: card com título e descrição à esquerda (1/3) e campos
+   à direita (2/3). A região tem o header escondido; o título vem no HTML
+   (.cx-form-secao__info). Tudo que não é a descrição vai para a coluna dos
+   campos, seja qual for a ordem em que o APEX gera o corpo. */
+.cx-form-secao {
+    --ut-region-body-padding-x: 2rem;
+    --ut-region-body-padding-y: 2rem;
+    margin-bottom: 24px;
+}
+
+.cx-form-secao .t-Region-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    column-gap: 48px;
+}
+
+.cx-form-secao .t-Region-body>* {
+    grid-column: 2;
+}
+
+/* Linha 1: com "span" o grid cria linhas vazias que alongam o card */
+.cx-form-secao .t-Region-body>.cx-form-secao__info {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+}
+
+.cx-form-secao__titulo {
+    margin: 0 0 8px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.5rem;
+    color: var(--cx-texto);
+}
+
+.cx-form-secao__descricao {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--cx-texto-2);
+}
+
+/* Obrigatório: "*" vermelho no rótulo, como no protótipo, no lugar do texto
+   "Required" e do triângulo no canto do campo do Redwood. O Redwood esconde
+   o ::after do rótulo flutuante com um seletor de 5 classes; aqui são 6. */
+.cx-form-secao .t-Form-itemRequired,
+.cx-form-secao .t-Form-itemRequired-marker {
+    display: none;
+}
+
+.cx-form-secao.t-Region .t-Form-fieldContainer.t-Form-fieldContainer--floatingLabel.is-required .t-Form-label::after {
+    display: inline;
+    margin-inline-start: .25rem;
+    content: "*";
+    color: var(--cx-alerta);
+    font-family: inherit !important;
+}
+
+/* Switch (Situação da conta): texto "Ativa"/"Inativa" ao lado e ajuda embaixo */
+.cx-form-secao .apex-item-wrapper--yes-no .t-Form-inputContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.cx-form-secao .apex-item-wrapper--yes-no .a-Switch {
+    align-items: center;
+    gap: 8px;
+}
+
+.cx-form-secao .apex-item-wrapper--yes-no .a-Switch::after {
+    content: "Inativa";
+    font-size: 14px;
+    color: var(--cx-texto);
+}
+
+.cx-form-secao .apex-item-wrapper--yes-no .a-Switch:has(input:checked)::after {
+    content: "Ativa";
+}
+
+/* Rodapé do formulário: nota à esquerda e botões à direita, preso no fim da
+   tela enquanto a página rola. Região Buttons Container com a classe. */
+.cx-form-rodape.t-ButtonRegion {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin: 0;
+    padding: 16px 0;
+    background: var(--cx-superficie);
+    border: 0;
+    border-top: 1px solid var(--cx-borda);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.cx-form-rodape .t-ButtonRegion-wrap {
+    align-items: center;
+}
+
+/* O título da região fica só para leitores de tela */
+.cx-form-rodape .t-ButtonRegion-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.cx-form-rodape__nota {
+    margin: 0;
+    padding-left: 16px;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+@media (max-width: 768px) {
+    .cx-cabecalho-pagina {
+        padding: 20px 16px;
+    }
+
+    .cx-form-secao {
+        --ut-region-body-padding-x: 1.25rem;
+        --ut-region-body-padding-y: 1.25rem;
+    }
+
+    .cx-form-secao .t-Region-body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cx-form-secao .t-Region-body>*,
+    .cx-form-secao .t-Region-body>.cx-form-secao__info {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .cx-form-secao__info {
+        margin-bottom: 16px;
     }
 }

@@ -308,6 +308,9 @@ list navigation-menu (
                 page: 7
             }
         }
+        security {
+            authorizationScheme: @admin-rh
+        }
     )
 
 )
