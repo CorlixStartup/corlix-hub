@@ -17,6 +17,7 @@
      9–10. Popup Todos os aniversariantes
      11. Classes do design system (Home e cadastros)
      12. Home (redesign · pen_dev/Início.png)
+     13. Busca na intranet (pen_dev/Busca (resultados).png)
    ============================================================ */
 
 
@@ -36,53 +37,8 @@
     margin-bottom: 0 !important;
 }
 
-/* Menu lateral: empurra o último item (ex.: botão de ação) para o rodapé do menu */
-#t_TreeNav>ul[role="group"] {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child {
-    margin-top: auto;
-    padding: 16px;
-    /* Espaço entre a linha divisória e as bordas do botão */
-    border-top: 1px solid var(--cx-borda);
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child>.a-TreeView-row {
-    /* Remove o efeito de hover/seleção padrão do tema */
-    display: none;
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child>.a-TreeView-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background-color: var(--cx-btn);
-    border-radius: var(--cx-raio);
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child>.a-TreeView-content:hover {
-    background-color: var(--cx-btn-hover);
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child .a-TreeView-label {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--cx-texto);
-    text-decoration: none;
-    margin: 0;
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child .fa {
-    font-size: 16px;
-    color: var(--cx-texto);
-}
+/* O "Sair" saiu do menu lateral e foi para o menu do usuário (§2); o menu não
+   tem mais item fixo no rodapé. */
 
 
 /* ============================================================
@@ -108,10 +64,12 @@
     margin-left: 24px;
 }
 
-.corlix-header__search-icon {
+/* Dois seletores: o Core do UT tem .apex-icons-fontapex .fa { position: relative },
+   que vencia a classe sozinha e deixava a lupa no fluxo, empurrando o campo 14px */
+.corlix-header__search .corlix-header__search-icon {
     position: absolute;
-    left: 12px;
-    color: var(--cx-texto-3);
+    left: 14px;
+    color: var(--cx-texto-2);
     font-size: 14px;
     pointer-events: none;
 }
@@ -119,7 +77,7 @@
 .corlix-header__search-input {
     width: 100%;
     height: 36px;
-    padding: 0 12px 0 36px;
+    padding: 0 12px 0 38px;
     border: 1px solid var(--cx-borda);
     border-radius: var(--cx-raio);
     background: var(--cx-tag);
@@ -167,21 +125,37 @@
     background: rgba(22, 21, 19, .06);
 }
 
+/* Divisor entre o sino e o usuário */
+.corlix-header__divisor {
+    width: 1px;
+    height: 24px;
+    margin: 0 4px;
+    background: var(--cx-borda);
+}
+
+/* Botão do usuário: avatar + nome + seta; abre o menu do usuário (popover) */
 .corlix-header__user {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-left: 8px;
-    padding: 4px 8px 4px 12px;
-    border-left: 1px solid var(--cx-borda);
+    height: 40px;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: var(--cx-raio);
+    background: transparent;
+    color: var(--cx-texto);
+    font: inherit;
     cursor: pointer;
 }
 
-.corlix-header__user-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    line-height: 1.2;
+.corlix-header__user:hover,
+.corlix-header__user:has(+ .cx-menu-usuario:popover-open) {
+    background: rgba(22, 21, 19, .06);
+}
+
+.corlix-header__user:focus-visible {
+    outline: 2px solid var(--cx-primaria);
+    outline-offset: 2px;
 }
 
 .corlix-header__user-name {
@@ -190,9 +164,9 @@
     color: var(--cx-texto);
 }
 
-.corlix-header__user-role {
+.corlix-header__user-seta {
     font-size: 12px;
-    color: var(--cx-texto-3);
+    color: var(--cx-texto-2);
 }
 
 .corlix-header__avatar {
@@ -200,6 +174,76 @@
     height: 32px;
     border-radius: 50%;
     object-fit: cover;
+}
+
+/* --- Menu do usuário (atributo popover: abre/fecha sem JS, fecha com Esc ou clique fora) --- */
+
+.cx-menu-usuario {
+    position: fixed;
+    inset: auto;
+    top: calc(var(--ut-header-height, 3.5rem) - 4px);
+    right: 16px;
+    min-width: 240px;
+    margin: 0;
+    padding: 8px 0;
+    background: var(--cx-superficie);
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio);
+    box-shadow: 0 8px 24px rgba(22, 21, 19, .08);
+    color: var(--cx-texto);
+}
+
+.cx-menu-usuario__cabecalho {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 16px 12px;
+}
+
+.cx-menu-usuario__nome {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.cx-menu-usuario__info {
+    font-size: 12px;
+    color: var(--cx-texto-2);
+}
+
+/* O APEX guarda o login em maiúsculas; o protótipo mostra em minúsculas */
+.cx-menu-usuario__login {
+    text-transform: lowercase;
+}
+
+.cx-menu-usuario__separador {
+    height: 1px;
+    margin: 4px 0;
+    border: 0;
+    background: var(--cx-borda);
+}
+
+.cx-menu-usuario__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    font-size: 14px;
+    color: var(--cx-texto);
+    text-decoration: none;
+}
+
+.cx-menu-usuario__item:hover,
+.cx-menu-usuario__item:focus-visible {
+    background: var(--cx-tag);
+    color: var(--cx-texto);
+    text-decoration: none;
+    outline: none;
+}
+
+.cx-menu-usuario__item .fa {
+    width: 16px;
+    color: var(--cx-texto-2);
+    text-align: center;
 }
 
 /* --- Ajuste fino do container nativo do tema --- */
@@ -1374,5 +1418,201 @@
 
     .cx-home-comunicados .a-CardView-media {
         grid-row: auto;
+    }
+}
+
+
+/* ============================================================
+   13. BUSCA NA INTRANET (pen_dev/Busca (resultados).png)
+   ============================================================
+   HTML gerado pelo pkg_busca_ui (modulos/busca): campo do header
+   (Global Page) e página 29. Cabeçalho na Breadcrumb Bar (dentro de
+   .t-Body-title); cards e ajuda em regiões Blank with Attributes.
+   ============================================================ */
+
+/* type="search": tira o arredondamento nativo do Safari e o "×" do Chrome,
+   que o protótipo não tem (Esc já limpa o campo) */
+.corlix-header__search-input {
+    appearance: none;
+}
+
+.corlix-header__search-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.cx-busca-cabecalho {
+    padding: 24px 32px;
+}
+
+.cx-busca-cabecalho__titulo {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 2.5rem;
+    color: var(--cx-texto);
+}
+
+.cx-busca-cabecalho__resumo {
+    margin: 4px 0 0;
+    font-size: 15px;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-card {
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    background: var(--cx-superficie);
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+}
+
+.cx-busca-card__titulo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--cx-borda);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.5rem;
+    color: var(--cx-texto);
+}
+
+.cx-busca-card__titulo .fa {
+    color: var(--cx-texto-2);
+}
+
+/* Contagem do grupo: pílula cinza ao lado do título */
+.cx-busca-card__qtd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 12px;
+    background: var(--cx-tag);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-card__rodape {
+    margin: 0;
+    padding: 12px 24px;
+    border-top: 1px solid var(--cx-borda);
+    font-size: 13px;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-lista {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cx-busca-lista__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--cx-borda);
+}
+
+.cx-busca-lista__item:last-child {
+    border-bottom: 0;
+}
+
+.cx-busca__link {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cx-primaria);
+    text-decoration: none;
+}
+
+.cx-busca__link:hover {
+    text-decoration: underline;
+}
+
+.cx-busca-lista .cx-pessoa__detalhe {
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-comunicado {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.cx-busca-comunicado__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-comunicado__titulo {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.cx-busca-comunicado__resumo {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--cx-texto-2);
+}
+
+/* Card "O que a busca encontra" (coluna da direita) */
+.cx-busca-ajuda {
+    padding: 20px 24px;
+}
+
+.cx-busca-ajuda .cx-busca-card__titulo {
+    padding: 0 0 12px;
+    border-bottom: 0;
+}
+
+.cx-busca-ajuda__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-ajuda__lista li {
+    display: flex;
+    gap: 12px;
+}
+
+.cx-busca-ajuda__lista .fa {
+    width: 16px;
+    margin-top: 3px;
+    text-align: center;
+}
+
+.cx-busca-ajuda__nota {
+    margin: 16px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cx-texto-3);
+}
+
+@media (max-width: 640px) {
+    .cx-busca-cabecalho {
+        padding: 20px 16px;
+    }
+
+    .cx-busca-lista__item {
+        flex-wrap: wrap;
     }
 }

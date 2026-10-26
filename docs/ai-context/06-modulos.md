@@ -296,6 +296,18 @@ Nova Home conforme `pen_dev/Início.png`, montada na página nova 28 ("Início")
 
 Os comunicados ficam numa região **Cards** nativa (precisam da imagem BLOB), com SQL filtrada por `:G_ID_EMPRESA`; CSS em `custom.css` §12 (ver `04` §5.2.1). Links rápidos: o destino de cada um é o `p_pagina` da chamada a `atalho` no `render_hero` (link com `apex_page.get_url`). Holerite digital → página 9; Ponto eletrônico e Suporte TI seguem sem destino (`aria-disabled`) até as páginas existirem. Para torná-los configuráveis por empresa, ver a tabela `LINK_RAPIDO` sugerida em `07` §5.
 
+## 2B. Busca na intranet (`modulos/busca/`)
+
+Guia: `modulos/busca/Etapas-busca.md`. Protótipo `pen_dev/Busca (resultados).png` (`07` §4.17).
+
+| Arquivo | Conteúdo |
+|---|---|
+| `pkg_busca_ui.pks` / `.pkb` | `c_pagina` (29); `render_campo` (campo do header na Global Page, com `data-url` de `apex_page.get_url(29, p_clear_cache => 29)`; Enter → `&p29_termo=` + `encodeURIComponent`, ou sem termo na busca vazia, que lista tudo); `render_cabecalho(p_termo)` ("Resultados para “…”" + contagem); `render_resultados(p_termo, p_id_empresa, p_login)` (cards Pessoas e Comunicados, até 20 por grupo); `render_ajuda` |
+| `busca-pagina.js` | `cxBuscaCarregarFotos` (mesmo padrão da Home) |
+| `instalar.sql` | instala o package |
+
+Pessoas: `colaborador` ativo (`status = true`) da empresa, por nome, cargo ou departamento; nome → p3 com `P3_ID_FOCO` (checksum via `apex_page.get_url`), "Conversar" → p4 (o chat não abre conversa por parâmetro). Comunicados: da empresa, por título ou pelos primeiros 2.000 caracteres do conteúdo; título → p11. Busca sem diferença de maiúsculas e acentos (`translate(lower(...))` com constantes do package) e com `%`/`_` do termo escapados. A p29 é *Unrestricted* e o `P29_TERMO` sem Value Protected, porque o termo chega pela URL. Fica para depois o grupo "Páginas do menu" do protótipo.
+
 ---
 
 ## 3. `modulos/tema/`

@@ -63,6 +63,7 @@
 | 17 | Emitir Comunicado (modal wizard) | Implementada, com bugs |
 | 26 / 27 | Central de Equipes / Nova Equipe (modal) | Implementada |
 | 28 | Início (nova Home) | Em montagem pelo `modulos/home/Etapas-home.md`; vira a Home no §5 do guia |
+| 29 | Busca (resultados da busca do header) | Em montagem pelo `modulos/busca/Etapas-busca.md` |
 | 9999 | Login | Implementada |
 
 ## Regras de ouro (resumo do 08)
