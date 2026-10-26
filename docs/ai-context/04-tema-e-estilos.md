@@ -258,10 +258,10 @@ Uso: p1 Home (`cx-badge--info` no mês dos aniversariantes; `cx-etiqueta` no dep
 |---|---|
 | `.cx-home-hero` (`__conteudo`, `__titulo` 32px, `__data`, `__arte`) | card do hero em grid `1fr 340px`; a arte é `background: url("home-hero.jpg")` (arquivo na raiz dos Static Application Files, caminho relativo ao CSS) e some abaixo de 992px |
 | `.cx-home-atalhos` / `.cx-home-atalho` (`__icone` 32px azul-claro, `__texto`, `__seta`) | links rápidos do hero; `aria-disabled="true"` enquanto não têm destino (o JS da página avisa no clique) |
-| `.cx-home-card` (+ `__subtitulo`, `__rodape`) | regiões *Standard* com *No Padding*: cabeçalho 16×24px, título 18px, subtítulo dentro do título, rodapé com divisória para o "Ver todos" |
+| `.cx-home-card` (+ `__subtitulo`, `__rodape`) | regiões *Standard* com *No Padding*: cabeçalho 16×24px (zera o padding que o UT põe em `.t-Region-headerItems`, para o título alinhar com o conteúdo), título 18px, subtítulo dentro do título, rodapé com divisória para o "Ver todos" |
 | `.cx-avatar` (40px, iniciais com `<img>` por cima) / `--vazio` | avatar da Home; a `<img data-cx-foto>` recebe o `src` do JS (`apex.env.APP_FILES`) e some no `onerror` |
 | `.cx-home-gestor`, `.cx-home-lista` (`__item`), `.cx-home-vazio` (`__titulo`, `__texto`) | Meu gestor, lista de aniversariantes e estado vazio; reaproveitam `.cx-pessoa`, `.cx-acoes-card` e `.cx-badge--info` ("Hoje") |
-| `.cx-home-comunicados` (+ `.cx-home-comunicado__meta`, `__titulo`) | Cards de comunicados: 1º item com imagem 16:9 (300px) à esquerda, demais em lista sem imagem; neutraliza as regras globais `.a-CardView-*` da §3 |
+| `.cx-home-comunicados` (+ `.cx-home-comunicado__meta`, `__titulo`) | Cards de comunicados: 1º item com imagem 16:9 (300px) à esquerda e título 22px, demais em lista sem imagem e título 16px, todos em negrito; neutraliza as regras globais `.a-CardView-*` da §3 |
 
 ### 5.3 Cabeçalho (`custom.css` §2, p0 Global Page)
 

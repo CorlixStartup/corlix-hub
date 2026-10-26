@@ -112,10 +112,16 @@ create or replace package body pkg_home_ui as
         || '<p class="cx-home-vazio__texto">' || p_texto || '</p></div></div>';
   end estado_vazio;
 
-  -- Link rápido do hero. Sem destino configurado ainda: o JS da página avisa no clique.
-  function atalho (p_icone in varchar2, p_texto in varchar2) return varchar2 is
+  -- Link rápido do hero. Sem página (p_pagina nula): o JS da página avisa no clique.
+  function atalho (p_icone in varchar2, p_texto in varchar2, p_pagina in number default null) return varchar2 is
   begin
-    return '<li><a class="cx-home-atalho" href="#" aria-disabled="true" title="Dispon&iacute;vel em breve">'
+    return '<li><a class="cx-home-atalho" '
+        || case when p_pagina is not null then
+             'href="' || a(apex_page.get_url(p_page => p_pagina)) || '"'
+           else
+             'href="#" aria-disabled="true" title="Dispon&iacute;vel em breve"'
+           end
+        || '>'
         || '<span class="cx-home-atalho__icone" aria-hidden="true"><span class="fa ' || p_icone || '"></span></span>'
         || '<span class="cx-home-atalho__texto">' || p_texto || '</span>'
         || '<span class="cx-home-atalho__seta fa fa-chevron-right" aria-hidden="true"></span>'
@@ -155,9 +161,10 @@ create or replace package body pkg_home_ui as
     p('<h1 id="cx-home-saudacao" class="cx-home-hero__titulo">Ol&aacute;, ' || e(l_nome) || '</h1>');
     p('<p class="cx-home-hero__data">' || e(data_por_extenso(hoje)) || '</p>');
     p('<ul class="cx-home-atalhos" aria-label="Links r&aacute;pidos">');
-    p(atalho('fa-file-text-o', 'Holerite digital'));
-    p(atalho('fa-clock-o', 'Ponto eletr&ocirc;nico'));
-    p(atalho('fa-headphones', 'Suporte TI'));
+    -- Página de destino de cada link; nula enquanto a página não existir
+    p(atalho('fa-file-text-o', 'Holerite digital',      p_pagina => 9));
+    p(atalho('fa-clock-o',     'Ponto eletr&ocirc;nico', p_pagina => null));
+    p(atalho('fa-headphones',  'Suporte TI',            p_pagina => null));
     p('</ul></div>');
     p('<div class="cx-home-hero__arte" aria-hidden="true"></div>');
     p('</section>');
