@@ -41,7 +41,7 @@ prompt APPLICATION 100 - Corlix Hub
 --       Computations:             1
 --       Validations:             11
 --       Processes:               42
---       Regions:                 67
+--       Regions:                 68
 --       Buttons:                 35
 --       Dynamic Actions:         22
 --     Shared Components:
@@ -117,7 +117,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461336194005
-,p_version_scn=>'47049404291458'
+,p_version_scn=>'47049589775871'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -60006,10 +60006,49 @@ wwv_flow_imp_page.create_page(
 ,p_alias=>unistr('IN\00CDCIO')
 ,p_step_title=>unistr('In\00EDcio')
 ,p_autocomplete_on_off=>'OFF'
+,p_javascript_code=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'// O pkg_home_ui manda as fotos como data-cx-foto="Fotos Colaboradores/x.jpg".',
+'// Aqui o caminho vira URL da pasta de arquivos do app (#APP_FILES#).',
+'function cxHomeCarregarFotos(raiz) {',
+'  (raiz || document).querySelectorAll("img[data-cx-foto]").forEach(function (img) {',
+'    const caminho = img.dataset.cxFoto.split("/").map(encodeURIComponent).join("/");',
+'    img.removeAttribute("data-cx-foto");',
+'    img.src = apex.env.APP_FILES + caminho;',
+'  });',
+'}'))
+,p_javascript_code_onload=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'cxHomeCarregarFotos();',
+'',
+unistr('// "Ver todos" dos aniversariantes abre o di\00E1logo com o m\00EAs inteiro'),
+'$(document).on("click", "[data-cx-acao=''aniversariantes'']", function () {',
+'  apex.theme.openRegion("aniversariantes_todos");',
+'});',
+'',
+unistr('// Links r\00E1pidos ainda sem destino (Holerite digital, Ponto eletr\00F4nico, Suporte TI)'),
+'$(document).on("click", ".cx-home-atalho[aria-disabled=''true'']", function (evento) {',
+'  evento.preventDefault();',
+unistr('  apex.message.alert("Este atalho ainda n\00E3o tem destino configurado.");'),
+'});'))
 ,p_step_template=>wwv_flow_imp.id(19815602566775266)
 ,p_page_template_options=>'#DEFAULT#'
 ,p_protection_level=>'C'
 ,p_page_component_map=>'13'
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(38254039309320228)
+,p_plug_name=>'Aniversariantes'
+,p_static_id=>'aniversariantes_todos'
+,p_title=>'Aniversariantes de &P28_MES_ATUAL.'
+,p_region_template_options=>'#DEFAULT#:js-dialog-autoheight:js-dialog-size480x320'
+,p_plug_template=>2674150083631647148
+,p_plug_display_sequence=>40
+,p_plug_display_point=>'REGION_POSITION_04'
+,p_plug_item_display_point=>'ABOVE'
+,p_location=>null
+,p_function_body_language=>'PLSQL'
+,p_plug_source=>'return pkg_home_ui.render_aniversariantes(p_limite => null, p_ver_todos => ''N'');'
+,p_lazy_loading=>false
+,p_plug_source_type=>'NATIVE_DYNAMIC_CONTENT'
 );
 wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(77327930780757662)
@@ -69219,4 +69258,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:a9+aLaJ+EeGB3LFLjc5v5EwbG7WJQspghpGQxeF8kEc=
+-- Application Checksum SH256:yrzBW6hF8oTWMXvy1OGtGPzBzrso/pEVLGHBrX6FRS0=

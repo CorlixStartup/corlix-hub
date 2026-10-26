@@ -9,10 +9,60 @@ page 1 (
     navigation {
         cursorFocus: doNotFocusCursor
     }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            // O pkg_home_ui manda as fotos como data-cx-foto="Fotos Colaboradores/x.jpg".
+            // Aqui o caminho vira URL da pasta de arquivos do app (#APP_FILES#).
+            function cxHomeCarregarFotos(raiz) {
+              (raiz || document).querySelectorAll("img[data-cx-foto]").forEach(function (img) {
+                const caminho = img.dataset.cxFoto.split("/").map(encodeURIComponent).join("/");
+                img.removeAttribute("data-cx-foto");
+                img.src = apex.env.APP_FILES + caminho;
+              });
+            }
+            ```
+        executeWhenPageLoads:
+            ```javascript-browser
+            cxHomeCarregarFotos();
+            
+            // "Ver todos" dos aniversariantes abre o diálogo com o mês inteiro
+            $(document).on("click", "[data-cx-acao='aniversariantes']", function () {
+              apex.theme.openRegion("aniversariantes_todos");
+            });
+            
+            // Links rápidos ainda sem destino (Holerite digital, Ponto eletrônico, Suporte TI)
+            $(document).on("click", ".cx-home-atalho[aria-disabled='true']", function (evento) {
+              evento.preventDefault();
+              apex.message.alert("Este atalho ainda não tem destino configurado.");
+            });
+            ```
+    }
     security {
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
+
+    region aniversariantes_todos (
+        name: Aniversariantes
+        title: Aniversariantes de &P28_MES_ATUAL.
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_home_ui.render_aniversariantes(p_limite => null, p_ver_todos => 'N');
+        }
+        layout {
+            sequence: 40
+            slot: dialogsDrawersAndPopups
+        }
+        appearance {
+            template: @/inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-size480x320
+            ]
+        }
+    )
 
     region coluna-lateral (
         name: Coluna lateral
