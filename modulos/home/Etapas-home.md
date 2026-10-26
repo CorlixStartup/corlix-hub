@@ -313,7 +313,7 @@ Page 28: Início
 
 Abra a página 28 pelo botão **Run** do Page Designer (ou `f?p=100:28`). A página 1 continua sendo a Home, então o menu e o logo ainda levam para ela. Recarregue com **Ctrl+Shift+R** (Cmd+Shift+R no Mac) para não ver CSS antigo em cache.
 
-1. **Hero:** "Olá, <primeiro nome>", a data de hoje por extenso ("Segunda-feira, 19 de outubro de 2026"), os 3 atalhos com ícone em quadrado azul-claro e a arte à direita. Clique num atalho: aparece "Este atalho ainda não tem destino configurado.". Estreite a janela: a arte some e os atalhos quebram linha.
+1. **Hero:** "Olá, <primeiro nome>", a data de hoje por extenso ("Segunda-feira, 19 de outubro de 2026"), os 3 atalhos com ícone em quadrado azul-claro e a arte à direita. Clique em **Holerite digital**: abre a página 9. Clique em **Ponto eletrônico** ou **Suporte TI**: aparece "Este atalho ainda não tem destino configurado." (essas páginas ainda não existem; o destino de cada link é o `p_pagina` do `atalho` no `render_hero`). Estreite a janela: a arte some e os atalhos quebram linha.
 2. **Comunicados:** título + subtítulo; "Ver todos →" e "+ Novo comunicado" à direita. O 1º comunicado tem imagem à esquerda e título maior; os outros dois vêm em lista, cada um com "Para: <departamento>" e a data ("28 de julho").
 3. Entre com um usuário **sem** o papel *Publicador de Conteúdo*: o botão "Novo comunicado" some.
 4. **Meu gestor:** com um colaborador que tem gestor, aparecem foto (ou iniciais), nome, "Cargo · Departamento", **Chat** (abre a página 4) e **E-mail** (abre o cliente de e-mail). Com as contas da equipe (SARAHSILVA, EDUARDOMARINS, ALAIRTONROCHA, sem colaborador) aparece o estado vazio "Nenhum gestor vinculado".
