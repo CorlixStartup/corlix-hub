@@ -178,6 +178,7 @@ Mesma estrutura do 4.5, com diferenças:
 - Cabeçalho "Empresas" / "Consulte e mantenha as empresas cadastradas no CorlixHub." + botão "**+ Nova empresa**" (abre p00016 modal).
 - Card com **Interactive Report** padrão: barra de pesquisa (lupa ▾, "Pesquisar", botão "Ir", menu "Ações ▾"); coluna de ícone lápis (link de edição); colunas **Nome fantasia ↑** (link azul), **Razão social**, **CNPJ**, **Cidade/UF**, **E-mail corporativo**, **Telefone**, **Status** (badge "Ativa"). Linha exemplo: Corlix · Empresa Piloto Corlix · 00.000.000/0001-00 · São Paulo – SP · financeiro@corlix.com.br · (11) 98765-1234 · Ativa.
 - Rodapé do IR: "Endereço completo, CEP e data de abertura: Ações › Colunas" (colunas ocultas por padrão) | "1 – 1 de 1".
+**Guia**: `modulos/tema/Etapas-empresas.md` (CSS `custom.css` §15). Fica de fora: o idioma da barra do IR ("Ir"/"Ações") e a máscara do CNPJ, que é do cadastro (p16).
 
 ### 4.8 Organograma (navegação por níveis) — `Organograma.png` e `modulos/organograma/Organograma — redesign (navegação por níveis).png` → p00003-organograma
 As duas imagens são praticamente iguais; difere apenas o texto de ajuda inferior (a versão em `modulos/` é a mais recente e menciona o drawer).

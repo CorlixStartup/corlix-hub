@@ -1810,3 +1810,101 @@
         margin-bottom: 16px;
     }
 }
+
+/* ============================================================
+   15. LISTA DE EMPRESAS (pen_dev/Empresas.png)
+   Guia: modulos/tema/Etapas-empresas.md
+   ============================================================ */
+
+/* Cabeçalho com ações à direita: o texto fica num __texto e os botões num
+   __acoes. Mesmo .cx-cabecalho-pagina da seção 14, com ou sem trilha. */
+.cx-cabecalho-pagina--acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px 24px;
+}
+
+.cx-cabecalho-pagina__acoes {
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+.cx-cabecalho-pagina__acoes .t-Button {
+    margin: 0;
+}
+
+/* Interactive Report em card: CSS Class cx-relatorio na região (template
+   Interactive Report). Barra de pesquisa e cabeçalho da tabela separados por
+   borda, cabeçalho em --cx-superficie-2 e primeira coluna de link em negrito. */
+.cx-relatorio.t-IRR-region {
+    overflow: hidden;
+    background: var(--cx-superficie);
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+    box-shadow: none;
+}
+
+.cx-relatorio .a-IRR {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.cx-relatorio .a-IRR-toolbar {
+    padding: 16px 20px;
+    background: var(--cx-superficie);
+    border-bottom: 1px solid var(--cx-borda);
+}
+
+.cx-relatorio .a-IRR-header {
+    background: var(--cx-superficie-2);
+}
+
+.cx-relatorio .a-IRR-headerLink,
+.cx-relatorio .a-IRR-headerLabel {
+    font-weight: 600;
+    color: var(--cx-texto);
+}
+
+.cx-relatorio .a-IRR-table td {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    vertical-align: middle;
+}
+
+.cx-relatorio .a-IRR-table td a {
+    font-weight: 600;
+    color: var(--cx-primaria);
+    text-decoration: none;
+}
+
+.cx-relatorio .a-IRR-table td a:hover {
+    text-decoration: underline;
+}
+
+.cx-relatorio .a-IRR-paginationWrap {
+    padding: 12px 20px;
+    color: var(--cx-texto-2);
+}
+
+/* Nota do rodapé ("Endereço completo...: Ações › Colunas"), no Footer Text */
+.cx-relatorio__nota {
+    margin: 0;
+    padding: 12px 20px;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+    border-top: 1px solid var(--cx-borda);
+}
+
+@media (max-width: 768px) {
+    .cx-cabecalho-pagina__acoes {
+        width: 100%;
+    }
+
+    .cx-relatorio .a-IRR-toolbar {
+        padding: 12px;
+    }
+}
