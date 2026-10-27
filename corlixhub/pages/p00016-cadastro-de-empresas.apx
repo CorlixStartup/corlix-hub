@@ -1,17 +1,26 @@
 page 16 (
     name: Cadastro de Empresas
     alias: CADASTRO-DE-EMPRESAS
-    title: Cadastro de Empresas
+    title: &P16_TITULO.
     appearance {
         pageMode: modalDialog
         dialogTemplate: @/modal-dialog
         templateOptions: #DEFAULT#
     }
     dialog {
+        width: 1000
         chained: false
     }
     navigation {
         cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        executeWhenPageLoads:
+            ```javascript-browser
+            apex.util.getTopApex()
+                .jQuery(".ui-dialog-content")
+                .dialog("option", "title", apex.item("P16_TITULO").getValue());
+            ```
     }
     security {
         authorizationScheme: @administration-rights
@@ -21,7 +30,11 @@ page 16 (
 
     region buttons (
         name: Buttons
+        title: Ações do formulário
         type: staticContent
+        source {
+            htmlCode: <p class="cx-form-modal-rodape__nota">Campos marcados com * são obrigatórios.</p>
+        }
         layout {
             sequence: 20
             slot: dialogFooter
@@ -29,6 +42,7 @@ page 16 (
         appearance {
             template: @/buttons-container
             templateOptions: #DEFAULT#
+            cssClasses: cx-form-modal-rodape
         }
     )
 
@@ -46,6 +60,7 @@ page 16 (
         appearance {
             template: @/blank-with-attributes
             templateOptions: #DEFAULT#
+            cssClasses: cx-form-modal
         }
         edit {
             enabled: true
@@ -58,7 +73,8 @@ page 16 (
     )
 
     region configurações (
-        name: Configurações
+        name: Logotipo e situação
+        title: Logotipo e situação
         type: staticContent
         layout {
             sequence: 50
@@ -71,16 +87,17 @@ page 16 (
                 #DEFAULT#
                 t-Region--removeHeader js-removeLandmark
                 t-Region--noUI
-                t-Region--scrollBody
+                t-Region--hiddenOverflow
             ]
         }
         headerAndFooter {
-            headerText: <h2 class="cx-titulo-secao">Configurações</h2>
+            headerText: <h2 class="cx-titulo-secao">Logotipo e situação</h2>
         }
     )
 
     region contato-e-endereço (
-        name: Contato e Endereço
+        name: Contato e endereço
+        title: Contato e endereço
         type: staticContent
         layout {
             sequence: 40
@@ -93,7 +110,7 @@ page 16 (
                 #DEFAULT#
                 t-Region--removeHeader js-removeLandmark
                 t-Region--noUI
-                t-Region--scrollBody
+                t-Region--hiddenOverflow
             ]
         }
         headerAndFooter {
@@ -102,7 +119,8 @@ page 16 (
     )
 
     region new (
-        name: Informações Principais
+        name: Identificação
+        title: Identificação
         type: staticContent
         layout {
             sequence: 10
@@ -115,11 +133,11 @@ page 16 (
                 #DEFAULT#
                 t-Region--removeHeader js-removeLandmark
                 t-Region--noUI
-                t-Region--scrollBody
+                t-Region--hiddenOverflow
             ]
         }
         headerAndFooter {
-            headerText: <h2 class="cx-titulo-secao">Informações principais</h2>
+            headerText: <h2 class="cx-titulo-secao">Identificação</h2>
         }
     )
 
@@ -135,11 +153,11 @@ page 16 (
             slot: regionBody
             alignment: left
             startNewRow: false
+            columnSpan: 6
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
         }
         validation {
             valueRequired: true
@@ -163,20 +181,23 @@ page 16 (
             region: @contato-e-endereço
             slot: regionBody
             alignment: left
+            columnSpan: 3
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
         }
         validation {
             valueRequired: true
-            maxLength: 8
+            maxLength: 9
         }
         source {
             formRegion: @cadastro-de-empresas
             column: CEP
             dataType: varchar2
+        }
+        help {
+            inlineHelpText: Preenche o endereço.
         }
     )
 
@@ -191,12 +212,11 @@ page 16 (
             region: @contato-e-endereço
             slot: regionBody
             alignment: left
-            startNewRow: false
+            columnSpan: 10
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
         }
         validation {
             valueRequired: true
@@ -216,15 +236,16 @@ page 16 (
             alignment: left
         }
         layout {
-            sequence: 40
+            sequence: 20
             region: @new
             slot: regionBody
             alignment: left
+            columnSpan: 5
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
+            valuePlaceholder: 00.000.000/0000-00
         }
         validation {
             valueRequired: true
@@ -235,12 +256,15 @@ page 16 (
             column: CNPJ
             dataType: varchar2
         }
+        help {
+            inlineHelpText: Preenche os dados pela Receita Federal.
+        }
     )
 
     pageItem P16_COMPLEMENTO (
         type: textField
         label {
-            label: Complemento
+            label: Complemento (opcional)
             alignment: left
         }
         layout {
@@ -248,14 +272,14 @@ page 16 (
             region: @contato-e-endereço
             slot: regionBody
             alignment: left
+            columnSpan: 6
         }
         appearance {
             template: @/optional-floating
             templateOptions: #DEFAULT#
-            width: 32
         }
         validation {
-            maxLength: 30
+            maxLength: 100
         }
         source {
             formRegion: @cadastro-de-empresas
@@ -267,28 +291,21 @@ page 16 (
     pageItem P16_DATA_CRIACAO (
         type: datePicker
         label {
-            label: Data de Criação
+            label: Data de abertura (opcional)
             alignment: left
         }
-        settings {
-            displayAs: nativeHtml
-        }
         layout {
-            sequence: 50
+            sequence: 30
             region: @new
             slot: regionBody
             alignment: left
             startNewRow: false
+            columnSpan: 7
         }
         appearance {
             template: @/optional-floating
             templateOptions: #DEFAULT#
-            formatMask: YYYY-MM-DD
-            width: 32
-        }
-        validation {
-            valueRequired: true
-            maxLength: 255
+            formatMask: DD/MM/YYYY
         }
         source {
             formRegion: @cadastro-de-empresas
@@ -300,7 +317,7 @@ page 16 (
     pageItem P16_EMAIL_CORPORATIVO (
         type: textField
         label {
-            label: E-mail Corporativo
+            label: E-mail corporativo
             alignment: left
         }
         settings {
@@ -312,11 +329,11 @@ page 16 (
             region: @contato-e-endereço
             slot: regionBody
             alignment: left
+            columnSpan: 8
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
         }
         validation {
             valueRequired: true
@@ -351,23 +368,28 @@ page 16 (
     pageItem P16_LOGOTIPO_EMPRESA (
         type: imageUpload
         label {
-            label: Logotipo da Empresa
+            label: Logotipo (opcional)
             alignment: left
         }
-        storage {
-            type: appTempFiles
+        display {
+            displayAs: inlineDropzone
+            dropzoneTitle: Arraste o logotipo ou clique para selecionar
+            dropzoneDesc: PNG, JPG ou SVG, até 2 MB. Prefira fundo transparente.
+        }
+        resizeTo {
+            maxFileSize: 2048
         }
         layout {
-            sequence: 20
+            sequence: 10
             region: @configurações
             slot: regionBody
             alignment: left
             startNewRow: false
+            columnSpan: 8
         }
         appearance {
-            template: @/optional-floating
+            template: @/optional-above
             templateOptions: #DEFAULT#
-            width: 30
         }
         source {
             formRegion: @cadastro-de-empresas
@@ -388,11 +410,11 @@ page 16 (
             slot: regionBody
             alignment: left
             startNewRow: false
+            columnSpan: 7
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
         }
         validation {
             valueRequired: true
@@ -408,19 +430,19 @@ page 16 (
     pageItem P16_NOME (
         type: textField
         label {
-            label: Razão Social
+            label: Razão social
             alignment: left
         }
         layout {
-            sequence: 20
+            sequence: 40
             region: @new
             slot: regionBody
             alignment: left
+            columnSpan: 12
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
         }
         validation {
             valueRequired: true
@@ -436,19 +458,19 @@ page 16 (
     pageItem P16_NOME_FANTASIA (
         type: textField
         label {
-            label: Nome Fantasia
+            label: Nome fantasia
             alignment: left
         }
         layout {
-            sequence: 30
+            sequence: 50
             region: @new
             slot: regionBody
             alignment: left
+            columnSpan: 12
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
         }
         validation {
             valueRequired: true
@@ -473,11 +495,11 @@ page 16 (
             slot: regionBody
             alignment: left
             startNewRow: false
+            columnSpan: 2
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
         }
         validation {
             valueRequired: true
@@ -493,29 +515,35 @@ page 16 (
     pageItem P16_STATUS (
         type: switch
         label {
-            label: Status da Empresa
+            label: Situação
             alignment: left
         }
         layout {
-            sequence: 10
+            sequence: 20
             region: @configurações
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 4
         }
         appearance {
-            template: @/required-floating
+            template: @/optional-above
             templateOptions: #DEFAULT#
-        }
-        validation {
-            valueRequired: true
         }
         source {
             formRegion: @cadastro-de-empresas
             column: STATUS
             dataType: boolean
         }
+        default {
+            type: static
+            staticValue: TRUE
+        }
         sessionState {
             dataType: boolean
+        }
+        help {
+            inlineHelpText: Novas empresas nascem ativas.
         }
     )
 
@@ -535,15 +563,15 @@ page 16 (
             slot: regionBody
             alignment: left
             startNewRow: false
+            columnSpan: 4
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
         }
         validation {
             valueRequired: true
-            maxLength: 12
+            maxLength: 15
         }
         source {
             formRegion: @cadastro-de-empresas
@@ -552,11 +580,25 @@ page 16 (
         }
     )
 
+    pageItem P16_TITULO (
+        type: hidden
+        layout {
+            sequence: 70
+            region: @new
+            slot: regionBody
+        }
+    )
+
     pageItem P16_UF (
-        type: textField
+        type: selectList
         label {
             label: UF
             alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:AC;AC,AL;AL,AP;AP,AM;AM,BA;BA,CE;CE,DF;DF,ES;ES,GO;GO,MA;MA,MT;MT,MG;MG,MS;MS,PA;PA,PB;PB,PR;PR,PE;PE,PI;PI,RJ;RJ,RN;RN,RS;RS,RO;RO,RR;RR,SC;SC,SP;SP,SE;SE,TO;TO
+            displayExtraValues: false
         }
         layout {
             sequence: 90
@@ -564,15 +606,15 @@ page 16 (
             slot: regionBody
             alignment: left
             startNewRow: false
+            columnSpan: 2
         }
         appearance {
             template: @/required-floating
             templateOptions: #DEFAULT#
-            width: 32
+            height: 1
         }
         validation {
             valueRequired: true
-            maxLength: 2
         }
         source {
             formRegion: @cadastro-de-empresas
@@ -587,7 +629,7 @@ page 16 (
         layout {
             sequence: 10
             region: @buttons
-            slot: close
+            slot: next
         }
         appearance {
             buttonTemplate: @/text
@@ -608,7 +650,7 @@ page 16 (
 
     button create (
         buttonName: CREATE
-        label: Criar
+        label: Criar empresa
         layout {
             sequence: 40
             region: @buttons
@@ -639,7 +681,10 @@ page 16 (
         }
         appearance {
             buttonTemplate: @/text
-            templateOptions: #DEFAULT#
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+            ]
         }
         behavior {
             executeValidations: false
@@ -648,7 +693,7 @@ page 16 (
             requiresConfirmation: true
         }
         confirmation {
-            message: &APP_TEXT$DELETE_MSG!RAW.
+            message: Remover esta empresa? Esta ação não pode ser desfeita.
             style: danger
         }
         serverSideCondition {
@@ -659,7 +704,7 @@ page 16 (
 
     button save (
         buttonName: SAVE
-        label: Salvar
+        label: Salvar alterações
         layout {
             sequence: 30
             region: @buttons
@@ -680,59 +725,73 @@ page 16 (
         }
     )
 
-    dynamicAction desabilitar-campos-de-endereço (
-        name: Desabilitar campos de endereço
+    dynamicAction dados-por-cnpj (
+        name: Dados por CNPJ
         execution {
-            sequence: 20
+            sequence: 30
         }
         when {
             selectionType: items
-            items: P16_CEP
-        }
-        clientSideCondition {
-            type: itemIsNotNull
-            item: P16_CEP
+            items: P16_CNPJ
         }
 
-        action campos-que-serão-desabilitados (
-            name: Campos que serão desabilitados
-            action: disable
-            affectedElements {
-                selectionType: items
-                items: [
-                    P16_LOGRADOURO
-                    P16_BAIRRO
-                    P16_CIDADE
-                    P16_UF
-                    P16_NUMERO
-                    P16_COMPLEMENTO
-                ]
+        action dados-por-cnpj (
+            name: Dados por CNPJ
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    var cnpj = this.triggeringElement.value.replace(/\D/g, '');
+                    // Só em empresa nova: na edição, não sobrescreve o que já está cadastrado
+                    if (cnpj.length !== 14 || apex.item("P16_ID_EMPRESA").getValue()) {
+                      return;
+                    }
+                    
+                    var preencher = function (item, valor) {
+                      if (valor) {
+                        apex.item(item).setValue(valor);
+                      }
+                    };
+                    
+                    fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`)
+                      .then(response => {
+                        if (!response.ok) {
+                          throw new Error(response.status);
+                        }
+                        return response.json();
+                      })
+                      .then(d => {
+                        apex.message.clearErrors();
+                        preencher("P16_NOME", d.razao_social);
+                        preencher("P16_NOME_FANTASIA", d.nome_fantasia);
+                        if (d.data_inicio_atividade) {
+                          var [ano, mes, dia] = d.data_inicio_atividade.split("-");
+                          preencher("P16_DATA_CRIACAO", `${dia}/${mes}/${ano}`);
+                        }
+                        preencher("P16_EMAIL_CORPORATIVO", (d.email || "").toLowerCase());
+                        preencher("P16_TELEFONE", d.ddd_telefone_1);
+                        preencher("P16_CEP", d.cep);
+                        preencher("P16_LOGRADOURO", [d.descricao_tipo_de_logradouro, d.logradouro].filter(Boolean).join(" "));
+                        preencher("P16_NUMERO", d.numero);
+                        preencher("P16_COMPLEMENTO", d.complemento);
+                        preencher("P16_BAIRRO", d.bairro);
+                        preencher("P16_CIDADE", d.municipio);
+                        preencher("P16_UF", d.uf);
+                      })
+                      .catch(() => {
+                        apex.message.showErrors([{
+                          type: "error",
+                          location: "inline",
+                          pageItem: "P16_CNPJ",
+                          message: "Não encontramos este CNPJ na Receita Federal. Confira o número ou preencha os dados à mão.",
+                          unsafe: false
+                        }]);
+                      });
+                    ```
             }
             execution {
                 sequence: 10
-                fireWhenEventResultIs: false
-            }
-        )
-
-        action campos-que-vão-estar-habilitados (
-            name: Campos que vão estar habilitados
-            action: enable
-            affectedElements {
-                selectionType: items
-                items: [
-                    P16_NOME_FANTASIA
-                    P16_NOME
-                    P16_CNPJ
-                    P16_DATA_CRIACAO
-                    P16_EMAIL_CORPORATIVO
-                    P16_TELEFONE
-                    P16_CEP
-                    P16_STATUS
-                    P16_LOGOTIPO_EMPRESA
-                ]
-            }
-            execution {
-                sequence: 10
+                fireOnInit: false
             }
         )
 
@@ -756,35 +815,40 @@ page 16 (
                 jsCode:
                     ```javascript-browser
                     var cep = this.triggeringElement.value.replace(/\D/g, '');
-                    if (cep.length === 8) {
-                      fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                        .then(response => response.json())
-                        .then(data => {
-                          if (!data.erro) {
-                            apex.item("P16_LOGRADOURO").setValue(data.logradouro);
-                            apex.item("P16_BAIRRO").setValue(data.bairro);
-                            apex.item("P16_CIDADE").setValue(data.localidade);
-                            apex.item("P16_UF").setValue(data.uf);
-                    
-                            // Habilita número e complemento após o preenchimento
-                            apex.item("P16_NUMERO").enable();
-                            apex.item("P16_COMPLEMENTO").enable();
-                            apex.item("P16_NUMERO").node.focus();
-                          } else {
-                            apex.message.showErrors([{
-                              type: "error",
-                              location: "page",
-                              message: "CEP não encontrado.",
-                              unsafe: false
-                            }]);
-                    
-                            // opcional: mantém desabilitado se o CEP for inválido
-                            apex.item("P16_NUMERO").disable();
-                            apex.item("P16_COMPLEMENTO").disable();
-                          }
-                        })
-                        .catch(err => console.error("Erro ao consultar CEP:", err));
+                    if (cep.length !== 8) {
+                      return;
                     }
+                    
+                    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                      .then(response => response.json())
+                      .then(data => {
+                        apex.message.clearErrors();
+                        if (data.erro) {
+                          apex.message.showErrors([{
+                            type: "error",
+                            location: "inline",
+                            pageItem: "P16_CEP",
+                            message: "CEP não encontrado. Confira o número ou preencha o endereço à mão.",
+                            unsafe: false
+                          }]);
+                          return;
+                        }
+                        apex.item("P16_LOGRADOURO").setValue(data.logradouro);
+                        apex.item("P16_BAIRRO").setValue(data.bairro);
+                        apex.item("P16_CIDADE").setValue(data.localidade);
+                        apex.item("P16_UF").setValue(data.uf);
+                        apex.item(data.logradouro ? "P16_NUMERO" : "P16_LOGRADOURO").setFocus();
+                      })
+                      .catch(() => {
+                        apex.message.showErrors([{
+                          type: "error",
+                          location: "inline",
+                          pageItem: "P16_CEP",
+                          message: "Não foi possível consultar o CEP agora. Preencha o endereço à mão.",
+                          unsafe: false
+                        }]);
+                      });
+                    
                     ```
             }
             execution {
@@ -793,6 +857,162 @@ page 16 (
             }
         )
 
+    )
+
+    validation cep-com-8-dígitos (
+        name: CEP com 8 dígitos
+        execution {
+            sequence: 20
+        }
+        validation {
+            plsqlExpression: "regexp_like(:P16_CEP, '^[0-9]{8}$')"
+        }
+        error {
+            errorMessage: Informe o CEP com 8 dígitos.
+            associatedItem: @P16_CEP
+        }
+    )
+
+    validation cnpj-com-14-dígitos (
+        name: CNPJ com 14 dígitos
+        execution {
+            sequence: 10
+        }
+        validation {
+            plsqlExpression: "length(regexp_replace(:P16_CNPJ, '[^0-9]')) = 14"
+        }
+        error {
+            errorMessage: Informe os 14 dígitos do CNPJ.
+            associatedItem: @P16_CNPJ
+        }
+    )
+
+    validation cnpj-não-cadastrado (
+        name: CNPJ não cadastrado
+        execution {
+            sequence: 15
+        }
+        validation {
+            type: functionBodyReturningBoolean
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_existe number;
+                begin
+                    -- Compara só os dígitos: o CNPJ é gravado com a máscara que foi digitada
+                    select count(*)
+                      into l_existe
+                      from empresa
+                     where regexp_replace(cnpj, '[^0-9]') = regexp_replace(:P16_CNPJ, '[^0-9]')
+                       and (:P16_ID_EMPRESA is null or id_empresa <> to_number(:P16_ID_EMPRESA))
+                       and rownum = 1;
+                    return l_existe = 0;
+                end;
+                ```
+        }
+        error {
+            errorMessage: Já existe uma empresa cadastrada com este CNPJ.
+            displayLocation: inlineWithField
+            associatedItem: @P16_CNPJ
+        }
+    )
+
+    validation empresa-sem-vínculos (
+        name: Empresa sem vínculos
+        execution {
+            sequence: 40
+        }
+        validation {
+            type: functionBodyReturningBoolean
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                    l_existe number;
+                begin
+                    -- Percorre as FKs para EMPRESA pelo dicionário: tabela nova com FK entra sozinha
+                    for fk in (
+                        select c.table_name, cc.column_name
+                          from user_constraints c
+                          join user_constraints p
+                            on p.constraint_name = c.r_constraint_name
+                          join user_cons_columns cc
+                            on cc.constraint_name = c.constraint_name
+                         where c.constraint_type = 'R'
+                           and c.delete_rule = 'NO ACTION'
+                           and p.table_name = 'EMPRESA'
+                    ) loop
+                        execute immediate
+                            'select count(*) from ' || dbms_assert.enquote_name(fk.table_name)
+                            || ' where ' || dbms_assert.enquote_name(fk.column_name) || ' = :id'
+                            || ' and rownum = 1'
+                            into l_existe
+                            using to_number(:P16_ID_EMPRESA);
+                        if l_existe > 0 then
+                            return false;
+                        end if;
+                    end loop;
+                    return true;
+                end;
+                ```
+            alwaysExecute: true
+        }
+        error {
+            errorMessage: Esta empresa tem colaboradores, departamentos ou outros cadastros vinculados e não pode ser removida. Para tirá-la de uso, desligue a Situação.
+            displayLocation: inlineInNotification
+        }
+        serverSideCondition {
+            whenButtonPressed: @delete
+        }
+    )
+
+    validation telefone-com-ddd (
+        name: Telefone com DDD
+        execution {
+            sequence: 30
+        }
+        validation {
+            plsqlExpression: "regexp_like(:P16_TELEFONE, '^[0-9]{10,11}$')"
+        }
+        error {
+            errorMessage: Informe o telefone com DDD (10 ou 11 dígitos).
+            associatedItem: @P16_TELEFONE
+        }
+    )
+
+    computation p16-cep (
+        itemName: P16_CEP
+        execution {
+            sequence: 10
+            point: afterSubmit
+        }
+        computation {
+            type: expression
+            plsqlExpression: "regexp_replace(:P16_CEP, '[^0-9]')"
+        }
+    )
+
+    computation p16-telefone (
+        itemName: P16_TELEFONE
+        execution {
+            sequence: 20
+            point: afterSubmit
+        }
+        computation {
+            type: expression
+            plsqlExpression: "regexp_replace(:P16_TELEFONE, '[^0-9]')"
+        }
+    )
+
+    computation p16-titulo (
+        itemName: P16_TITULO
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        computation {
+            type: expression
+            plsqlExpression: case when :P16_ID_EMPRESA is null then 'Nova empresa' else 'Editar empresa' end
+        }
     )
 
     process close-dialog (
