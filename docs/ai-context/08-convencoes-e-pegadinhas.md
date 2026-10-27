@@ -36,17 +36,14 @@
 ### Segurança / multi-tenant
 - **Nenhuma página tem authorization própria**: as 3 authorizations (`administration-rights`, `publicador-de-conteudo`, `somente-diretoria`) só escondem entradas do menu. Pela URL, qualquer usuário logado abre p7 (logs), p16 (modal de empresas; o guia `modulos/tema/Etapas-empresas.md` §2 manda proteger, falta conferir) e p17 (emitir comunicado). A p15 (lista de empresas) exige `administration-rights` desde 26/10/2026. A p14 (cria usuários APEX via `apex_util.create_user`) e o menu dela exigem `ADMIN_RH` desde 18/10/2026.
 - Menus sem a autorização da página: "Dashboard RH" (p20 exige `ADMIN_RH`) e "Solicitar correção" (p22 exige `COLABORADOR`). Quem não tem o papel vê o item e recebe "acesso negado".
-- As queries de comunicados, aniversariantes, chat, organograma, LOVs e equipes **não filtram por `id_empresa`**.
+- As queries de comunicados, aniversariantes, organograma, LOVs e equipes **não filtram por `id_empresa`**.
 - Os app processes (4, `BEFORE_HEADER`, sem condição) rodam em todas as páginas, inclusive no login. Eles ligam o usuário ao colaborador por `COLABORADOR.login_apex = :APP_USER`; algumas comparações usam `UPPER` e outras não.
 
 ### Páginas
 - **Edição de regiões no 26.1.5**: Form e Interactive Grid só são editáveis com o bloco `edit { enabled: true ... }`, que nos exports só aparece em regiões criadas pelo assistente de criação de página; o painel de propriedades não oferece onde ligar. Para cadastros, prefira lista (Interactive Report) + formulário em modal criado pelo assistente (padrão p15/p16). Ver `09` §4.8.
 - **Placeholders** (só breadcrumb): p2 Meu perfil, p3 Organograma, p5 Notificações, p6 Configurações, p11 Comunicados, p12 Colaboradores, p13 Histórico de carreira. A p8 `NOTIFICAÇÕES` está vazia e duplica a p5.
 - **p4 Chat**:
-  - A região de mensagens tem a condição de servidor `P4_CANAL_ID is not null`, então ela não existe no DOM ao carregar e o refresh da DA não funciona.
-  - Em `contatos` aparece `templateOptions: "[object Object]"`, um valor corrompido (linha ~330).
-  - A coluna `CAB_DEPT` exige `administration-rights`.
-  - O envio de mensagens ainda não foi implementado.
+  - O envio funciona, mas não há atualização automática: mensagens recebidas só aparecem ao clicar de novo no contato.
 - **p17 Comunicado** (modal wizard):
   - O default é `plsqlExpression: SYSDATE;`, com um `;` a mais.
   - Não há processo *Close Dialog*.

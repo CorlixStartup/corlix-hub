@@ -74,7 +74,6 @@ Atribuição: na P14, o processo "Atribuir papéis do cargo" chama `pkg_perfis_a
 | Menu "Solicitar correção" (p22) | **nenhuma** (a página exige `@colaborador`) |
 | Menu "Emitir Comunicado" (p17) | `@publicador-de-conteudo` |
 | Menu "Empresas Cadastradas" (p15/16) | `@administration-rights` |
-| Coluna `CAB_DEPT` do relatório de contatos do Chat (p4) | `@administration-rights` (cabeçalho de departamento só aparece para a equipe Corlix — provavelmente acidental) |
 
 **Pegadinha de segurança:** nenhuma página tem `authorizationScheme` em nível de página. As authorizations só **escondem itens do menu**; qualquer usuário autenticado acessa p14, p15, p16, p17 e **p7 (Monitor de Logs, sem nenhuma authorization)** digitando a URL. Para proteger de verdade, colocar `security { authorizationScheme: @... }` no `page`.
 O módulo `modulos/historico-carreira/` usa as authorizations `ADMIN_RH` (papel), `GESTOR` e `COLABORADOR` (PL/SQL) e o app item `G_ID_EMPRESA`, todos já em `shared-components/`. `ADMIN_RH` protege as páginas 14, 18, 19, 20, 21 e 23 e as regiões e botões de RH da 13; `COLABORADOR` protege a 13 e a 22.
@@ -241,7 +240,7 @@ A query deve devolver **exatamente** as colunas citadas (nomes em maiúsculas co
   <span class="ch-contact-txt"><b>#NOME_COMPLETO#</b><small>#CARGO#</small></span>
 </a>
 ```
-Colunas: `CAB_DEPT` (HTML `<div class="ch-dept">Depto</div>` só na 1ª linha de cada departamento, via `row_number() over (partition by d.nome ...)`), `ID_COLABORADOR` (lido por JS via `data-id`), `FOTO_URL` (caminho relativo a `#APP_FILES#`; sem foto, nulo → a `<img>` falha, é removida e ficam as iniciais), `INICIAIS`, `PRESENCA` ∈ `online|ausente|offline` (classes `.ch-dot--online/ausente/offline`; calculada de `presenca_colaborador.data_ultimo_ping` 5/30 min), `NOME_COMPLETO`, `CARGO`. O JS marca o selecionado com `.ch-contact.is-active`.
+Colunas: `CAB_DEPT` (HTML `<button class="ch-dept" aria-expanded="false">` com chevron, nome e quantidade, só na 1ª linha de cada departamento, via `row_number() over (partition by d.nome ...)`; abre/fecha o grupo pela DA `abrir-fechar-departamento` da p4), `ID_COLABORADOR` (lido por JS via `data-id`), `FOTO_URL` (caminho relativo a `#APP_FILES#`; sem foto, nulo → a `<img>` falha, é removida e ficam as iniciais), `INICIAIS`, `PRESENCA` ∈ `online|ausente|offline` (classes `.ch-dot--online/ausente/offline`; calculada de `presenca_colaborador.data_ultimo_ping` 5/30 min), `NOME_COMPLETO`, `CARGO`. O JS marca o selecionado com `.ch-contact.is-active`.
 
 **`chat-mensagens`** — wrapper `<div class="ch-msgs"> ... </div>`; linha:
 ```html
