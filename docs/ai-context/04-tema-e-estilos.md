@@ -289,6 +289,15 @@ Guia: `modulos/tema/Etapas-cadastro-colaborador.md` (p14, protótipo `Novo colab
 | `.cx-form-secao` (`__info`, `__titulo` 18px/700, `__descricao` 14px) | CSS Class de região Standard com header escondido: grid 1/3 (título e descrição em `.cx-form-secao__info`, no HTML da região) + 2/3 (campos). Padding 2rem; uma coluna abaixo de 768px. Dentro dele: obrigatório com `*` vermelho no rótulo (`--cx-alerta`), escondendo `.t-Form-itemRequired` e `-marker` do Redwood; switch (`.apex-item-wrapper--yes-no`) com "Ativa"/"Inativa" via `:has(input:checked)` e ajuda embaixo |
 | `.cx-form-rodape` (`__nota`) | CSS Class de região Buttons Container: rodapé `position: sticky` no fim da tela, fundo branco e borda superior; o título da região fica só para leitores de tela |
 
+### 5.2.4 Lista de empresas (`custom.css` §15)
+
+Guia: `modulos/tema/Etapas-empresas.md` (p15, protótipo `Empresas.png`).
+
+| Classe | Uso |
+|---|---|
+| `.cx-cabecalho-pagina--acoes` (`__texto`, `__acoes`) | cabeçalho com botões à direita (flex, quebra abaixo de 768px). O botão é um `<a class="t-Button t-Button--hot">` com `apex_page.get_url` no HTML da região (p15, guia `Etapas-empresas.md`) |
+| `.cx-relatorio` (`__nota`) | CSS Class de região Interactive Report; card com borda e raio `--cx-raio-card`, barra de pesquisa e cabeçalho da tabela separados por borda, cabeçalho em `--cx-superficie-2`, links da linha em negrito `--cx-primaria`; `__nota` vai no Footer Text da região |
+
 ### 5.3 Cabeçalho (`custom.css` §2, p0 Global Page)
 
 `.corlix-header__search` (360px, max 40vw, margin-left 24px; some < 768px) › `__search-icon` (absoluto a 14px, centralizado, `--cx-texto-2`; seletor com `.corlix-header__search` na frente porque o Core do UT tem `.apex-icons-fontapex .fa { position: relative }`) + `__search-input` (36px, padding-left 38px, fundo `--cx-tag`, raio `--cx-raio`; foco: fundo branco + outline 2px primária) — região no slot *After Logo*.
@@ -381,7 +390,7 @@ O tema vale para o app inteiro assim que o CSS carrega — não há "ligar por p
 | 7 Monitor de logs | nada | ok |
 | 13 Histórico | seguir `modulos/historico-carreira/Etapas-historico-carreira.md` item 2 | CSS do módulo fora do app |
 | 14 Cadastro de usuários | **Redesign** pelo guia `modulos/tema/Etapas-cadastro-colaborador.md`: cabeçalho `.cx-cabecalho-pagina` na Breadcrumb Bar, seções `.cx-form-secao` (Dados pessoais, Vínculo profissional, Acesso ao sistema), rodapé `.cx-form-rodape` | CSS na `DEV`; página aguardando o Builder (o `.apx` ainda tem `cadastrar-colaborador-header` com `cx-titulo`/`cx-descricao`) |
-| 15 Empresas | nada | ok |
+| 15 Empresas | **Redesign** pelo guia `modulos/tema/Etapas-empresas.md`: cabeçalho `.cx-cabecalho-pagina--acoes` com "+ Nova empresa", IR em SQL com sete colunas, badge de status e `.cx-relatorio`, autorização na página | **aplicado** (26/10/2026) |
 | 16 Cadastro de empresas | guia manda apagar Header Text; `delete` = Danger sem Hot | **divergente**: Header Text virou `<h2 class="cx-titulo-secao">` (sem style inline) |
 | 17 Emitir comunicado | opcional renomear para "Novo comunicado" | — |
 | 26 Central de equipes | nada | ok |

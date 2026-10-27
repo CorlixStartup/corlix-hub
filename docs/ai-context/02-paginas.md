@@ -291,12 +291,13 @@ Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colabo
   - Mudança não commitada: CARGO, DEPARTAMENTO, EMAIL, EMPRESA e NOME_COMPLETO passaram de `@/optional-floating` para `@/required-floating`; header trocou estilo inline por classes `cx-titulo`/`cx-descricao`.
 
 ### Página 15 — Empresas Cadastradas (`p00015-empresas-cadastradas.apx`)
-- **Propósito**: listar empresas (tenants) e abrir o modal de cadastro/edição.
-- **Regiões**: `breadcrumb`; `empresas-cadastradas` (IR sobre a **tabela** `EMPRESA`, link de linha com ícone `fa-edit` → página 16 com `P16_ID_EMPRESA = #ID_EMPRESA#`, `resetPagination`). Colunas: ID_EMPRESA (hidden, PK), NOME ("Razão Social"), CNPJ, DATA_CRIACAO, NOME_FANTASIA, EMAIL_CORPORATIVO, TELEFONE, CEP, LOGRADOURO, NUMERO, COMPLEMENTO, BAIRRO, CIDADE, UF, STATUS (LOV `@boolean`). Mensagens "no data" em inglês. LOGOTIPO_EMPRESA não exibido.
-- **Botão**: `create` ("Cadastrar", hot, slot `rightOfInteractiveReportSearchBar`) → página 16 `clearCache: 16`.
-- **DA**: `edit-report-dialog-closed` (`apexafterclosedialog` na região) → refresh do IR.
+- **Propósito**: listar empresas (tenants) e abrir o modal de cadastro/edição. Visual do protótipo `Empresas.png` (guia `modulos/tema/Etapas-empresas.md`, aplicado em 26/10/2026).
+- **Página**: título "Empresas"; `authorizationScheme: @administration-rights` (EQUIPE_CORLIX_HUB, a mesma do menu).
+- **Regiões**: `cabeçalho` (Dynamic Content, slot `breadcrumbBar`, `@/blank-with-attributes-no-grid`): HTML `cx-cabecalho-pagina cx-cabecalho-pagina--acoes` com título, descrição e o link hot "+ Nova empresa" (`apex_page.get_url(p_page => 16, p_clear_cache => '16')`, abre o modal). `empresas-cadastradas` (IR em **SQL** sobre `EMPRESA`, CSS Class `cx-relatorio`, Footer Text `<p class="cx-relatorio__nota">`, paginação `rowRangesXToYOfZ`, mensagens em pt-BR; link de linha `fa-pencil` → p16 com `P16_ID_EMPRESA = #ID_EMPRESA#`).
+- **Colunas**: ID_EMPRESA (hidden, PK), NOME_FANTASIA (link → p16), NOME ("Razão social"), CNPJ, CIDADE_UF (`cidade || ' – ' || uf`), EMAIL_CORPORATIVO, TELEFONE (máscara `(11) 98765-1234` na query para 10/11 dígitos), SITUACAO ("Status", HTML Expression `cx-badge cx-badge--#SITUACAO_CLASSE#`), SITUACAO_CLASSE (hidden, `sucesso`/`neutro`), CEP, LOGRADOURO, NUMERO, COMPLEMENTO, BAIRRO, DATA_CRIACAO ("Data de abertura", `DD/MM/YYYY`). O *Primary* mostra só as sete primeiras visíveis, ordenado por NOME_FANTASIA; endereço, CEP e data ficam em *Ações › Colunas*. `STATUS` é BOOLEAN: a query usa `case when e.status`.
+- **DA**: `edit-report-dialog-closed` (`apexafterclosedialog` em `document`, porque o botão fica fora do IR) → refresh do IR.
 - **Banco**: EMPRESA.
-- **Pegadinhas**: sem autorização na página (menu exige `administration-rights`). Lista todas as empresas (é tela de administrador da plataforma).
+- **Pegadinhas**: lista todas as empresas (é tela de administrador da plataforma). A barra do IR sai em inglês (idioma do app `en`), mas a nota do rodapé fica "Ações › Colunas" (decisão: produto para o mercado nacional; bate quando o app for traduzido). `pageHeader` "Empresas" é só o cabeçalho do download em PDF.
 
 ### Página 16 — Cadastro de Empresas (`p00016-cadastro-de-empresas.apx`)
 - **Propósito**: modal de CRUD da tabela EMPRESA, com autopreenchimento de endereço via ViaCEP.

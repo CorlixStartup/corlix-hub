@@ -34,7 +34,7 @@
 ## 3. Pegadinhas por área
 
 ### Segurança / multi-tenant
-- **Nenhuma página tem authorization própria**: as 3 authorizations (`administration-rights`, `publicador-de-conteudo`, `somente-diretoria`) só escondem entradas do menu. Pela URL, qualquer usuário logado abre p7 (logs), p15/p16 (empresas) e p17 (emitir comunicado). A p14 (cria usuários APEX via `apex_util.create_user`) e o menu dela exigem `ADMIN_RH` desde 18/10/2026.
+- **Nenhuma página tem authorization própria**: as 3 authorizations (`administration-rights`, `publicador-de-conteudo`, `somente-diretoria`) só escondem entradas do menu. Pela URL, qualquer usuário logado abre p7 (logs), p16 (modal de empresas; o guia `modulos/tema/Etapas-empresas.md` §2 manda proteger, falta conferir) e p17 (emitir comunicado). A p15 (lista de empresas) exige `administration-rights` desde 26/10/2026. A p14 (cria usuários APEX via `apex_util.create_user`) e o menu dela exigem `ADMIN_RH` desde 18/10/2026.
 - Menus sem a autorização da página: "Dashboard RH" (p20 exige `ADMIN_RH`) e "Solicitar correção" (p22 exige `COLABORADOR`). Quem não tem o papel vê o item e recebe "acesso negado".
 - As queries de comunicados, aniversariantes, organograma, LOVs e equipes **não filtram por `id_empresa`**.
 - Os app processes (4, `BEFORE_HEADER`, sem condição) rodam em todas as páginas, inclusive no login. Eles ligam o usuário ao colaborador por `COLABORADOR.login_apex = :APP_USER`; algumas comparações usam `UPPER` e outras não.
