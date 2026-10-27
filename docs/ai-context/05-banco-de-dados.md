@@ -194,14 +194,14 @@ Tenant. Sem FKs de saída. Sem unique em `CNPJ`.
 | `ID_EMPRESA` | NUMBER identity, PK | não | P15, P16, todas as FKs |
 | `NOME` | VARCHAR2(200) | não | P16, P15, LOV `EMPRESA.NOME`, proc. `G_NOME_EMPRESA` |
 | `CNPJ` | VARCHAR2(20) | não | P16 |
-| `DATA_CRIACAO` | DATE default `SYSDATE` | não (passa a **sim** com `modulos/empresas/01_data_criacao_opcional.sql`: "Data de abertura (opcional)" do protótipo da p16) | P16, P15 |
+| `DATA_CRIACAO` | DATE default `SYSDATE` | sim (era NOT NULL; `modulos/empresas/01_data_criacao_opcional.sql`, confirmado no DDL do backup de 27/10/2026: "Data de abertura (opcional)" do protótipo da p16) | P16, P15 |
 | `NOME_FANTASIA` | VARCHAR2(255) | não | P16, `pkg_historico_carreira_ui.render` |
 | `EMAIL_CORPORATIVO` | VARCHAR2(255) | não | P16 |
 | `TELEFONE` | VARCHAR2(12) | não | P16 |
 | `CEP` | VARCHAR2(8) | não | P16 (DA "endereço por CEP") |
 | `LOGRADOURO` | VARCHAR2(100) | não | P16 |
 | `NUMERO` | VARCHAR2(4) | não | P16 |
-| `COMPLEMENTO` | VARCHAR2(100) (era 30; `modulos/empresas/02` rodado em 27/10/2026) | sim | P16 |
+| `COMPLEMENTO` | VARCHAR2(100) (era 30; `modulos/empresas/02`, confirmado no DDL do backup de 27/10/2026) | sim | P16 |
 | `BAIRRO` | VARCHAR2(50) | não | P16 |
 | `CIDADE` | VARCHAR2(100) | não | P16 |
 | `UF` | VARCHAR2(2) | não | P16 |
