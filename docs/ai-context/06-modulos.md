@@ -12,6 +12,7 @@
 | `modulos/home/` | branch `feature/redesign-home` (19/10/2026) | p. 28 `Início` (nova; a p. 1 `Home` é mantida) | **Não** ainda: montar pelo `Etapas-home.md` |
 | `modulos/tema/` | **untracked** | todas (tema global) | documentado em `04-tema-e-estilos.md` |
 | `modulos/perfis-acesso/` | versionado | p. 14 `Cadastro de Usuários` | **Sim** na app (papéis `colaborador`/`gestor`/`admin-rh`, authorization `ADMIN_RH`, processo e LOV de gestor na P14); SQL instalado no banco em 06/10/2026, com papéis vinculados à mão aos cargos antigos. Guia: `Etapas-perfis-acesso.md`; histórico: `Registro-implantacao.md` |
+| `modulos/empresas/` | versionado | p. 16 `Cadastro de Empresas` | **Não** (aguarda o guia `modulos/tema/Etapas-cadastro-empresa.md`, passo 0) | `01_data_criacao_opcional.sql`: `EMPRESA.DATA_CRIACAO` passa a aceitar NULL (idempotente). Sem package nem página própria |
 
 O histórico de carreira já está integrado: `G_ID_EMPRESA`, as authorizations `GESTOR` e `COLABORADOR`, as LOVs, os static files e as páginas 13 e 18–23 estão em `corlixhub/` e no `database/f100.sql`. O papel `Admin RH` e a authorization `ADMIN_RH` foram criados pelo módulo `perfis-acesso`.
 

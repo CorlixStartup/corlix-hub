@@ -216,9 +216,7 @@ Siga [`Etapas-empresas.md`](Etapas-empresas.md): ele refaz a página como o prot
 
 ### Página 16 · Cadastro de empresas (modal)
 
-1. **Títulos das regiões:** nas regiões `Configurações`, `Contato e Endereço` e `Informações Principais`, apague o *Header Text* (`<span style="font-size:20px;...">`). Deixe só o *Title* da região, e confira em *Template Options* que o cabeçalho está visível. O título passa a ter o tamanho e a cor do tema.
-2. **Botão `delete`:** *Template Options > Type: Danger*, sem Hot.
-3. **Botões `create` e `save`:** continuam Hot. Eles nunca aparecem juntos, então a tela tem uma ação principal por vez.
+Siga [`Etapas-cadastro-empresa.md`](Etapas-cadastro-empresa.md): ele refaz o modal como o protótipo `Nova empresa (modal).png` (seções Identificação / Contato e endereço / Logotipo e situação, CNPJ que preenche pela Receita Federal, UF em lista, logotipo em dropzone, rodapé com o aviso de obrigatórios) e corrige o endereço do ViaCEP, a máscara de CEP/telefone, o logotipo e a situação inicial. Substitui os passos que ficavam aqui.
 
 ---
 
