@@ -16,39 +16,39 @@ page 4 (
             /* ============================================
                CHAT — Página 4
                ============================================ */
-
+            
             :root {
                 --ch-topbar-h: 40px;
                 --ch-list-w: 260px;
-
+            
                 --ch-blue: var(--cx-primaria);
                 --ch-blue-soft: var(--cx-primaria-suave);
                 --ch-bubble-in: var(--cx-tag);
-
+            
                 --ch-border: var(--cx-borda);
                 --ch-surface: var(--cx-superficie-2);
-
+            
                 --ch-text: var(--cx-texto);
                 --ch-text-dim: var(--cx-texto-2);
                 --ch-text-faint: var(--cx-texto-3);
-
+            
                 --ch-avatar-bg: var(--cx-primaria-suave);
                 --ch-avatar-fg: var(--cx-primaria);
-
+            
                 --ch-online: #22C55E;
                 --ch-ausente: #F59E0B;
                 --ch-offline: #D1D5DB;
-
+            
                 --ch-radius: var(--cx-raio-card);
                 --ch-avatar-size: 34px;
             }
-
+            
             /* ---- reset do container do Universal Theme ---- */
             html,
             body {
                 height: 100%;
             }
-
+            
             .ch-page .t-Body-content,
             .ch-page .t-Body-contentInner,
             .ch-page .t-Body-main {
@@ -56,11 +56,11 @@ page 4 (
                 margin: 0 !important;
                 max-width: none;
             }
-
+            
             .ch-page .t-Body-content {
                 overflow: hidden;
             }
-
+            
             /* ---- estrutura de duas colunas ---- */
             .ch-shell {
                 display: grid;
@@ -70,7 +70,7 @@ page 4 (
                 overflow: hidden;
                 background: #fff;
             }
-
+            
             /* wrappers do APEX (.container/.row, inclusive os internos) somem do layout:
                .ch-list e .ch-chat viram itens do grid, e as colunas internas viram
                itens flex direto da região Conversa */
@@ -79,11 +79,11 @@ page 4 (
             .ch-shell .row {
                 display: contents;
             }
-
+            
             /* ============================================
                Coluna de contatos
                ============================================ */
-
+            
             .ch-list {
                 background: #fff;
                 border-right: 1px solid var(--ch-border);
@@ -92,7 +92,7 @@ page 4 (
                 min-height: 0;
                 overflow: hidden;
             }
-
+            
             /* repassa a altura: região → #report_catch */
             .ch-list>div,
             .ch-list>div>div {
@@ -101,7 +101,7 @@ page 4 (
                 flex: 1 1 auto;
                 min-height: 0;
             }
-
+            
             .ch-contacts {
                 display: flex;
                 flex-direction: column;
@@ -109,7 +109,7 @@ page 4 (
                 min-height: 0;
                 overflow-y: auto;
             }
-
+            
             /* cabeçalho do departamento: botão que abre/fecha o grupo */
             .ch-dept {
                 position: sticky;
@@ -134,29 +134,29 @@ page 4 (
                 color: var(--ch-text-dim);
                 cursor: pointer;
             }
-
+            
             .ch-dept:first-child {
                 border-top: none;
             }
-
+            
             .ch-dept:hover {
                 color: var(--ch-text);
             }
-
+            
             .ch-dept:focus-visible {
                 outline: 2px solid var(--ch-blue);
                 outline-offset: -2px;
             }
-
+            
             .ch-dept-ico {
                 font-size: 10px;
                 transition: transform .15s ease;
             }
-
+            
             .ch-dept[aria-expanded="true"] .ch-dept-ico {
                 transform: rotate(90deg);
             }
-
+            
             .ch-dept-nome {
                 flex: 1 1 auto;
                 min-width: 0;
@@ -164,20 +164,20 @@ page 4 (
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
-
+            
             .ch-dept-qtd {
                 flex: 0 0 auto;
                 font-weight: 500;
                 letter-spacing: 0;
                 color: var(--ch-text-faint);
             }
-
-            /* departamentos começam colapsados; a DA "Abrir/fechar departamento"
+            
+            /* departamentos começam colapsados; a DA "Abrir/fechar
                marca os contatos do grupo aberto com .is-visivel */
             .ch-contacts .ch-contact:not(.is-visivel) {
                 display: none;
             }
-
+            
             .ch-contact {
                 display: flex;
                 flex: 0 0 auto;
@@ -189,27 +189,27 @@ page 4 (
                 border-left: 3px solid transparent;
                 transition: background .12s ease;
             }
-
+            
             .ch-contact:hover {
                 background: var(--ch-surface);
             }
-
+            
             .ch-contact:focus-visible {
                 outline: 2px solid var(--ch-blue);
                 outline-offset: -2px;
             }
-
+            
             .ch-contact.is-active {
                 background: var(--ch-blue-soft);
                 border-left-color: var(--ch-blue);
             }
-
+            
             /* ---- avatar + status (lista e cabeçalho da conversa) ---- */
             .ch-avatar-wrap {
                 position: relative;
                 flex: 0 0 var(--ch-avatar-size);
             }
-
+            
             .ch-avatar {
                 position: relative;
                 width: var(--ch-avatar-size);
@@ -224,7 +224,7 @@ page 4 (
                 background: var(--ch-avatar-bg);
                 color: var(--ch-avatar-fg);
             }
-
+            
             /* foto por cima das iniciais; se falhar, o onerror remove a <img> */
             .ch-avatar img {
                 position: absolute;
@@ -234,7 +234,7 @@ page 4 (
                 object-fit: cover;
                 border-radius: 50%;
             }
-
+            
             .ch-dot {
                 position: absolute;
                 right: -1px;
@@ -244,40 +244,40 @@ page 4 (
                 border-radius: 50%;
                 border: 2px solid #fff;
             }
-
+            
             .ch-dot--online  { background: var(--ch-online); }
             .ch-dot--ausente { background: var(--ch-ausente); }
             .ch-dot--offline { background: var(--ch-offline); }
-
+            
             /* nome e cargo cortam com reticências em vez de quebrar a linha */
             .ch-contact-txt {
                 display: flex;
                 flex-direction: column;
                 min-width: 0;
             }
-
+            
             .ch-contact-txt b,
             .ch-contact-txt small {
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
-
+            
             .ch-contact-txt b {
                 font-size: 13px;
                 font-weight: 600;
                 color: var(--ch-text);
             }
-
+            
             .ch-contact-txt small {
                 font-size: 11px;
                 color: var(--ch-text-dim);
             }
-
+            
             /* ============================================
                Painel de conversa
                ============================================ */
-
+            
             .ch-chat {
                 display: flex;
                 flex-direction: column;
@@ -285,7 +285,7 @@ page 4 (
                 overflow: hidden;
                 background: #fff;
             }
-
+            
             /* repassa a altura pela cadeia de wrappers até .ch-msgs.
                O :not(.ch-composer) impede que o composer vire coluna e cresça. */
             .ch-chat>div,
@@ -297,14 +297,14 @@ page 4 (
                 flex: 1 1 auto;
                 min-height: 0;
             }
-
+            
             /* coluna do composer: altura do conteúdo, sempre no rodapé.
                :has() funciona com a classe ch-composer-col na linha ou na coluna. */
             .ch-chat .col:has(.ch-composer) {
                 flex: 0 0 auto;
                 margin-top: auto;
             }
-
+            
             /* ---- estado vazio (nenhum contato selecionado) ---- */
             .ch-vazio {
                 flex: 1 1 auto;
@@ -317,23 +317,23 @@ page 4 (
                 text-align: center;
                 color: var(--ch-text-dim);
             }
-
+            
             .ch-vazio .fa {
                 font-size: 40px;
                 color: var(--ch-text-faint);
                 margin-bottom: 6px;
             }
-
+            
             .ch-vazio b {
                 font-size: 14px;
                 font-weight: 600;
                 color: var(--ch-text);
             }
-
+            
             .ch-vazio small {
                 font-size: 12px;
             }
-
+            
             /* ---- cabeçalho da conversa (contato aberto) ---- */
             .ch-head {
                 display: flex;
@@ -344,17 +344,17 @@ page 4 (
                 border-bottom: 1px solid var(--ch-border);
                 background: #fff;
             }
-
+            
             /* sem contato: só o estado vazio; com contato: cabeçalho + mensagens + composer */
             .ch-chat:not(.is-aberto) .ch-head,
             .ch-chat:not(.is-aberto) .container {
                 display: none !important;
             }
-
+            
             .ch-chat.is-aberto .ch-vazio {
                 display: none;
             }
-
+            
             /* ---- mensagens ---- */
             .ch-msgs {
                 flex: 1 1 auto;
@@ -366,7 +366,7 @@ page 4 (
                 padding: 24px;
                 background: #fff;
             }
-
+            
             /* "nenhuma mensagem" do relatório */
             .ch-chat .nodatafound {
                 padding: 24px;
@@ -374,29 +374,29 @@ page 4 (
                 font-size: 13px;
                 color: var(--ch-text-faint);
             }
-
+            
             .ch-sep {
                 flex: 0 0 auto;
                 margin: 6px 0;
                 text-align: center;
             }
-
+            
             .ch-sep span {
                 font-size: 11px;
                 font-weight: 600;
                 letter-spacing: .04em;
                 color: var(--ch-text-faint);
             }
-
+            
             .ch-msg {
                 display: flex;
                 flex: 0 0 auto;
             }
-
+            
             .ch-msg--out {
                 justify-content: flex-end;
             }
-
+            
             .ch-bubble {
                 max-width: 420px;
                 padding: 10px 13px;
@@ -405,31 +405,31 @@ page 4 (
                 line-height: 1.45;
                 overflow-wrap: anywhere;
             }
-
+            
             .ch-msg--in .ch-bubble {
                 background: var(--ch-bubble-in);
                 color: var(--ch-text);
                 border-top-left-radius: 4px;
             }
-
+            
             .ch-msg--out .ch-bubble {
                 background: var(--ch-blue);
                 color: #fff;
                 border-top-right-radius: 4px;
             }
-
+            
             .ch-txt {
                 display: block;
                 white-space: pre-wrap;
             }
-
+            
             .ch-time {
                 display: block;
                 margin-top: 5px;
                 font-size: 11px;
                 opacity: .6;
             }
-
+            
             /* ---- campo de envio (rodapé da conversa) ---- */
             .ch-composer {
                 display: flex;
@@ -440,7 +440,7 @@ page 4 (
                 border-top: 1px solid var(--ch-border);
                 background: #fff;
             }
-
+            
             .ch-composer textarea {
                 flex: 1 1 auto;
                 min-width: 0;
@@ -455,12 +455,12 @@ page 4 (
                 color: var(--ch-text);
                 resize: none;
             }
-
+            
             .ch-composer textarea:focus {
                 outline: none;
                 border-color: var(--ch-blue);
             }
-
+            
             .ch-enviar {
                 flex: 0 0 auto;
                 display: inline-flex;
@@ -476,12 +476,12 @@ page 4 (
                 font-weight: 600;
                 cursor: pointer;
             }
-
+            
             .ch-enviar:focus-visible {
                 outline: 2px solid var(--ch-blue);
                 outline-offset: 2px;
             }
-
+            
             .ch-enviar:disabled {
                 opacity: .6;
                 cursor: default;
@@ -507,6 +507,34 @@ page 4 (
         }
     )
 
+    region composer (
+        name: Composer
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="ch-composer">
+                  <textarea id="ch-texto" rows="1" maxlength="4000"
+                            placeholder="Escreva uma mensagem… (Enter envia, Shift+Enter quebra linha)"
+                            aria-label="Mensagem"></textarea>
+                  <button type="button" class="ch-enviar">
+                    <span class="fa fa-paper-plane" aria-hidden="true"></span> Enviar
+                  </button>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 20
+            parentRegion: @conversa
+            slot: subRegions
+            rowCssClasses: ch-composer-col
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
     region contatos (
         name: Lista
         type: classicReport
@@ -519,9 +547,18 @@ page 4 (
                        c.id_colaborador,
                        c.nome_completo,
                        cg.nome                         as cargo,
-                       c.foto_url,
-                       upper(substr(c.primeiro_nome,1,1) ||
-                             substr(c.ultimo_nome,1,1)) as iniciais,
+                       -- caminho relativo a #APP_FILES# (o prefixo fica no template chat-contatos);
+                       -- sem foto, nulo: a <img> falha e ficam as iniciais
+                       case
+                         when trim(c.foto_url) is null
+                              or c.foto_url = '#APP_FILES#Fotos Colaboradores/' then null
+                         else 'Fotos Colaboradores/' || c.foto_url
+                       end                              as foto_url,
+                       upper(
+                         substr(trim(nvl(c.primeiro_nome, c.nome_completo)), 1, 1) ||
+                         substr(trim(nvl(c.ultimo_nome,
+                           substr(trim(c.nome_completo), nullif(instr(trim(c.nome_completo), ' ', -1), 0) + 1))), 1, 1)
+                       )                                as iniciais,
                        case
                          when p.data_ultimo_ping > systimestamp - interval '5' minute
                               and upper(p.status_presenca) = 'ONLINE' then 'online'
@@ -530,15 +567,15 @@ page 4 (
                          else 'offline'
                        end                              as presenca,
                        case when row_number() over (
-                                   partition by d.nome
-                                   order by c.nome_completo
-                                 ) = 1
-                            then '<button type="button" class="ch-dept" aria-expanded="false">' ||
-                                   '<span class="fa fa-chevron-right ch-dept-ico" aria-hidden="true"></span>' ||
-                                   '<span class="ch-dept-nome">' || apex_escape.html(d.nome) || '</span>' ||
-                                   '<span class="ch-dept-qtd">' || count(*) over (partition by d.nome) || '</span>' ||
-                                 '</button>'
-                       end                              as cab_dept
+                            partition by d.nome
+                            order by c.nome_completo
+                          ) = 1
+                        then '<button type="button" class="ch-dept" aria-expanded="false">' ||
+                            '<span class="fa fa-chevron-right ch-dept-ico" aria-hidden="true"></span>' ||
+                            '<span class="ch-dept-nome">' || apex_escape.html(d.nome) || '</span>' ||
+                            '<span class="ch-dept-qtd">' || count(*) over (partition by d.nome) || '</span>' ||
+                          '</button>'
+                        end                              as cab_dept
                 from   colaborador  c
                 join   departamento d  on d.id_departamento = c.id_departamento
                 left   join cargo   cg on cg.id_cargo       = c.id_cargo
@@ -565,13 +602,11 @@ page 4 (
             template: @/blank-with-attributes
             templateOptions: #DEFAULT#
         }
+        reportLayout {
+            numberOfRows: 1000
+        }
         componentAppearance {
             template: @chat-contatos
-            templateOptions: #DEFAULT#
-        }
-        componentLayout {
-            numberOfRowsType: static
-            numberOfRows: 100000
         }
         breakFormatting {
             breakColumns: col1
@@ -629,7 +664,7 @@ page 4 (
                 heading: Foto Url
             }
             layout {
-                sequence: 50
+                sequence: 90
             }
             sorting {
                 sortable: false
@@ -848,45 +883,6 @@ page 4 (
 
     )
 
-    region composer (
-        name: Composer
-        type: staticContent
-        source {
-            htmlCode:
-                ```html
-                <div class="ch-composer">
-                  <textarea id="ch-texto" rows="1" maxlength="4000"
-                            placeholder="Escreva uma mensagem… (Enter envia, Shift+Enter quebra linha)"
-                            aria-label="Mensagem"></textarea>
-                  <button type="button" class="ch-enviar">
-                    <span class="fa fa-paper-plane" aria-hidden="true"></span> Enviar
-                  </button>
-                </div>
-                ```
-        }
-        layout {
-            sequence: 20
-            parentRegion: @conversa
-            slot: subRegions
-            columnCssClasses: ch-composer-col
-        }
-        appearance {
-            template: @/blank-with-attributes
-            templateOptions: #DEFAULT#
-        }
-    )
-
-    pageItem P4_MENSAGEM (
-        type: hidden
-        settings {
-            valueProtected: false
-        }
-        layout {
-            sequence: 40
-            slot: body
-        }
-    )
-
     pageItem P4_CANAL_ID (
         type: hidden
         settings {
@@ -907,6 +903,219 @@ page 4 (
             sequence: 20
             slot: body
         }
+    )
+
+    pageItem P4_MENSAGEM (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+    )
+
+    dynamicAction abrir-fechar-departamento (
+        name: Abrir/fechar departamento
+        execution {
+            sequence: 50
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: .ch-dept
+        }
+
+        action alternar-departamento (
+            name: Alternar departamento
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    const cab   = this.triggeringElement;
+                    const abrir = cab.getAttribute("aria-expanded") !== "true";
+                    cab.setAttribute("aria-expanded", abrir);
+                    
+                    // contatos do grupo = irmãos até o próximo cabeçalho
+                    $(cab).nextUntil(".ch-dept", ".ch-contact").toggleClass("is-visivel", abrir);
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction enter-envia-mensagem (
+        name: Enter envia mensagem
+        execution {
+            sequence: 30
+        }
+        when {
+            event: keydown
+            selectionType: jQuerySelector
+            jquerySelector: #ch-texto
+        }
+
+        action enviar-com-enter (
+            name: Enviar com Enter
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    const e = this.browserEvent;
+                    // Shift+Enter quebra linha; isComposing evita enviar no meio de um acento
+                    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+                        e.preventDefault();
+                        document.querySelector(".ch-enviar").click();
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction enviar-mensagem (
+        name: Enviar Mensagem
+        execution {
+            sequence: 20
+        }
+        when {
+            event: click
+            selectionType: jQuerySelector
+            jquerySelector: .ch-enviar
+        }
+
+        action atualizar-conversa (
+            name: Atualizar conversa
+            action: show
+            affectedElements {
+                selectionType: region
+                region: @msgs
+            }
+            execution {
+                sequence: 30
+            }
+        )
+
+        action gravar-mensagem (
+            name: Gravar mensagem
+            action: executeServerSideCode
+            settings {
+                plsqlCode:
+                    ```plsql
+                    declare
+                      l_eu    colaborador.id_colaborador%type;
+                      l_texto varchar2(32767) := trim(:P4_MENSAGEM);
+                    begin
+                      if l_texto is null then
+                        return;
+                      end if;
+                    
+                      begin
+                        select id_colaborador
+                        into   l_eu
+                        from   colaborador
+                        where  upper(login_apex) = upper(:APP_USER)
+                        fetch  first 1 row only;
+                      exception
+                        when no_data_found then
+                          raise_application_error(-20001,
+                            'Seu usuário não está vinculado a um colaborador.');
+                      end;
+                    
+                      -- P4_CANAL_ID vem do navegador: só grava se eu participo do canal
+                      insert into canal_mensagem (id_canal, id_colaborador, corpo)
+                      select cp.id_canal, l_eu, substrb(l_texto, 1, 4000)
+                      from   canal_participante cp
+                      where  cp.id_canal       = to_number(:P4_CANAL_ID)
+                      and    cp.id_colaborador = l_eu;
+                    
+                      if sql%rowcount = 0 then
+                        raise_application_error(-20003,
+                          'Você não participa desta conversa.');
+                      end if;
+                    
+                      :P4_MENSAGEM := null;
+                    end;
+                    ```
+                itemsToSubmit: [
+                    P4_MENSAGEM
+                    P4_CANAL_ID
+                ]
+            }
+            execution {
+                sequence: 20
+                fireOnInit: false
+            }
+        )
+
+        action preparar-envio (
+            name: Preparar envio
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    const campo = document.getElementById("ch-texto");
+                    const texto = campo.value.trim();
+                    
+                    // nada para enviar ou nenhuma conversa aberta: interrompe as próximas ações
+                    if (!texto || !apex.item("P4_CANAL_ID").getValue()) {
+                        campo.focus();
+                        apex.da.cancelEvent.call(this);
+                        return;
+                    }
+                    
+                    apex.item("P4_MENSAGEM").setValue(texto);
+                    // limpa já, para um segundo clique não reenviar a mesma mensagem
+                    campo.value = "";
+                    campo.focus();
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction rolar-para-a-última-mensagem (
+        name: Rolar para a última mensagem
+        execution {
+            sequence: 40
+        }
+        when {
+            event: apexafterrefresh
+            selectionType: region
+            region: @msgs
+        }
+
+        action rolar-para-o-fim (
+            name: Rolar para o fim
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    const lista = document.querySelector(".ch-msgs");
+                    if (lista) {
+                        lista.scrollTop = lista.scrollHeight;
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
     )
 
     dynamicAction selecionar-contato (
@@ -941,20 +1150,20 @@ page 4 (
                     ```javascript-browser
                     const contato = this.triggeringElement;
                     apex.item("P4_CONTATO_ID").setValue(contato.dataset.id);
-
+                    
                     document.querySelectorAll(".ch-contact.is-active")
                             .forEach(el => el.classList.remove("is-active"));
                     contato.classList.add("is-active");
-
+                    
                     // copia avatar, presença, nome e cargo do contato para o cabeçalho
                     const head = document.querySelector(".ch-head");
                     head.querySelector(".ch-avatar").textContent = contato.querySelector(".ch-avatar").textContent;
                     head.querySelector(".ch-dot").className      = contato.querySelector(".ch-dot").className;
                     head.querySelector("b").textContent          = contato.querySelector(".ch-contact-txt b").textContent;
                     head.querySelector("small").textContent      = contato.querySelector(".ch-contact-txt small").textContent;
-
+                    
                     document.querySelector(".ch-chat").classList.add("is-aberto");
-
+                    
                     // rascunho não passa de uma conversa para outra
                     const campo = document.getElementById("ch-texto");
                     campo.value = "";
@@ -989,7 +1198,7 @@ page 4 (
                           raise_application_error(-20001,
                             'Seu usuário não está vinculado a um colaborador.');
                       end;
-
+                    
                       -- P4_CONTATO_ID vem do navegador: só abre conversa com
                       -- colaborador ativo, da mesma empresa e diferente de mim
                       select count(*)
@@ -999,12 +1208,12 @@ page 4 (
                       and    id_empresa     = l_empresa
                       and    status         = true
                       and    id_colaborador != l_eu;
-
+                    
                       if l_valido = 0 then
                         raise_application_error(-20002,
                           'Não é possível abrir conversa com este colaborador.');
                       end if;
-
+                    
                       :P4_CANAL_ID := ch_get_canal_direto(l_eu, to_number(:P4_CONTATO_ID));
                     end;
                     ```
@@ -1013,206 +1222,6 @@ page 4 (
             }
             execution {
                 sequence: 30
-                fireOnInit: false
-            }
-        )
-
-    )
-
-    dynamicAction enviar-mensagem (
-        name: Enviar Mensagem
-        execution {
-            sequence: 20
-        }
-        when {
-            event: click
-            selectionType: jQuerySelector
-            jquerySelector: .ch-enviar
-        }
-
-        action preparar-envio (
-            name: Preparar envio
-            action: executeJsCode
-            settings {
-                jsCode:
-                    ```javascript-browser
-                    const campo = document.getElementById("ch-texto");
-                    const texto = campo.value.trim();
-                    
-                    // nada para enviar ou nenhuma conversa aberta: interrompe as próximas ações
-                    if (!texto || !apex.item("P4_CANAL_ID").getValue()) {
-                        campo.focus();
-                        apex.da.cancelEvent.call(this);
-                        return;
-                    }
-                    
-                    apex.item("P4_MENSAGEM").setValue(texto);
-                    // limpa já, para um segundo clique não reenviar a mesma mensagem
-                    campo.value = "";
-                    campo.focus();
-                    ```
-            }
-            execution {
-                sequence: 10
-                fireOnInit: false
-            }
-        )
-
-        action gravar-mensagem (
-            name: Gravar mensagem
-            action: executeServerSideCode
-            settings {
-                plsqlCode:
-                    ```plsql
-                    declare
-                      l_eu    colaborador.id_colaborador%type;
-                      l_texto varchar2(32767) := trim(:P4_MENSAGEM);
-                    begin
-                      if l_texto is null then
-                        return;
-                      end if;
-
-                      begin
-                        select id_colaborador
-                        into   l_eu
-                        from   colaborador
-                        where  upper(login_apex) = upper(:APP_USER)
-                        fetch  first 1 row only;
-                      exception
-                        when no_data_found then
-                          raise_application_error(-20001,
-                            'Seu usuário não está vinculado a um colaborador.');
-                      end;
-
-                      -- P4_CANAL_ID vem do navegador: só grava se eu participo do canal
-                      insert into canal_mensagem (id_canal, id_colaborador, corpo)
-                      select cp.id_canal, l_eu, substrb(l_texto, 1, 4000)
-                      from   canal_participante cp
-                      where  cp.id_canal       = to_number(:P4_CANAL_ID)
-                      and    cp.id_colaborador = l_eu;
-
-                      if sql%rowcount = 0 then
-                        raise_application_error(-20003,
-                          'Você não participa desta conversa.');
-                      end if;
-
-                      :P4_MENSAGEM := null;
-                    end;
-                    ```
-                itemsToSubmit: P4_MENSAGEM,P4_CANAL_ID
-            }
-            execution {
-                sequence: 20
-                fireOnInit: false
-            }
-        )
-
-        action atualizar-conversa (
-            name: Atualizar conversa
-            action: refresh
-            affectedElements {
-                selectionType: region
-                region: @msgs
-            }
-            execution {
-                sequence: 30
-                fireOnInit: false
-            }
-        )
-
-    )
-
-    dynamicAction enter-envia (
-        name: Enter envia mensagem
-        execution {
-            sequence: 30
-        }
-        when {
-            event: keydown
-            selectionType: jQuerySelector
-            jquerySelector: #ch-texto
-        }
-
-        action enviar-com-enter (
-            name: Enviar com Enter
-            action: executeJsCode
-            settings {
-                jsCode:
-                    ```javascript-browser
-                    const e = this.browserEvent;
-                    // Shift+Enter quebra linha; isComposing evita enviar no meio de um acento
-                    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
-                        e.preventDefault();
-                        document.querySelector(".ch-enviar").click();
-                    }
-                    ```
-            }
-            execution {
-                sequence: 10
-                fireOnInit: false
-            }
-        )
-
-    )
-
-    dynamicAction rolar-ultima-mensagem (
-        name: Rolar para a última mensagem
-        execution {
-            sequence: 40
-        }
-        when {
-            event: apexafterrefresh
-            selectionType: region
-            region: @msgs
-        }
-
-        action rolar-para-o-fim (
-            name: Rolar para o fim
-            action: executeJsCode
-            settings {
-                jsCode:
-                    ```javascript-browser
-                    const lista = document.querySelector(".ch-msgs");
-                    if (lista) {
-                        lista.scrollTop = lista.scrollHeight;
-                    }
-                    ```
-            }
-            execution {
-                sequence: 10
-                fireOnInit: false
-            }
-        )
-
-    )
-
-    dynamicAction abrir-fechar-departamento (
-        name: Abrir/fechar departamento
-        execution {
-            sequence: 50
-        }
-        when {
-            event: click
-            selectionType: jQuerySelector
-            jquerySelector: .ch-dept
-        }
-
-        action alternar-departamento (
-            name: Alternar departamento
-            action: executeJsCode
-            settings {
-                jsCode:
-                    ```javascript-browser
-                    const cab   = this.triggeringElement;
-                    const abrir = cab.getAttribute("aria-expanded") !== "true";
-                    cab.setAttribute("aria-expanded", abrir);
-
-                    // contatos do grupo = irmãos até o próximo cabeçalho
-                    $(cab).nextUntil(".ch-dept", ".ch-contact").toggleClass("is-visivel", abrir);
-                    ```
-            }
-            execution {
-                sequence: 10
                 fireOnInit: false
             }
         )

@@ -1,0 +1,335 @@
+page 1 (
+    name: Início
+    alias: INÍCIO
+    title: Início
+    appearance {
+        pageTemplate: @corlix-standard-page
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            // O pkg_home_ui manda as fotos como data-cx-foto="Fotos Colaboradores/x.jpg".
+            // Aqui o caminho vira URL da pasta de arquivos do app (#APP_FILES#).
+            function cxHomeCarregarFotos(raiz) {
+              (raiz || document).querySelectorAll("img[data-cx-foto]").forEach(function (img) {
+                const caminho = img.dataset.cxFoto.split("/").map(encodeURIComponent).join("/");
+                img.removeAttribute("data-cx-foto");
+                img.src = apex.env.APP_FILES + caminho;
+              });
+            }
+            ```
+        executeWhenPageLoads:
+            ```javascript-browser
+            cxHomeCarregarFotos();
+            
+            // "Ver todos" dos aniversariantes abre o diálogo com o mês inteiro
+            $(document).on("click", "[data-cx-acao='aniversariantes']", function () {
+              apex.theme.openRegion("aniversariantes_todos");
+            });
+            
+            // Links rápidos ainda sem destino (Holerite digital, Ponto eletrônico, Suporte TI)
+            $(document).on("click", ".cx-home-atalho[aria-disabled='true']", function (evento) {
+              evento.preventDefault();
+              apex.message.alert("Este atalho ainda não tem destino configurado.");
+            });
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region aniversariantes_todos (
+        name: Aniversariantes
+        title: Aniversariantes de &P1_MES_ATUAL.
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_home_ui.render_aniversariantes(p_limite => null, p_ver_todos => 'N');
+        }
+        layout {
+            sequence: 40
+            slot: dialogsDrawersAndPopups
+        }
+        appearance {
+            template: @/inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-size480x320
+            ]
+        }
+        advanced {
+            htmlDomId: aniversariantes_todos
+        }
+    )
+
+    region coluna-lateral (
+        name: Coluna lateral
+        type: staticContent
+        layout {
+            sequence: 30
+            slot: body
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region home_aniversariantes (
+        name: Aniversariantes
+        title: <span class="fa fa-birthday-cake" aria-hidden="true"></span>Aniversariantes de &P1_MES_ATUAL.
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_home_ui.render_aniversariantes;
+        }
+        layout {
+            sequence: 20
+            parentRegion: @coluna-lateral
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+            cssClasses: cx-home-card
+        }
+    )
+
+    region home_comunicados (
+        name: Comunicados
+        title: Comunicados<span class="cx-home-card__subtitulo">Publicações oficiais da empresa</span>
+        type: cards
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select c.id_comunicado,
+                       c.titulo,
+                       -- resumo em texto puro: tira as tags do editor e corta em 220 caracteres
+                       substr(trim(regexp_replace(regexp_replace(dbms_lob.substr(c.conteudo, 1000, 1),
+                                                                 '<[^>]+>', ' '),
+                                                  '\s+', ' ')), 1, 220) as resumo,
+                       c.imagem,
+                       c.mime_type,
+                       'Para: ' || nvl(d.nome, 'Todos') as publico,
+                       to_char(c.data_publicacao, 'fmdd') || ' de '
+                         || to_char(c.data_publicacao, 'fmmonth', 'NLS_DATE_LANGUAGE=''BRAZILIAN PORTUGUESE''')
+                         || case when extract(year from c.data_publicacao) <> extract(year from sysdate)
+                                 then ' de ' || to_char(c.data_publicacao, 'yyyy')
+                            end as data_publicacao_txt
+                  from comunicado c
+                  left join departamento d
+                    on d.id_departamento = c.id_departamento
+                 where c.id_empresa = :G_ID_EMPRESA
+                 order by c.data_publicacao desc, c.id_comunicado desc
+                 fetch first 3 rows only
+                
+                ```
+        }
+        layout {
+            sequence: 20
+            slot: body
+            columnSpan: 8
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+            cssClasses: [
+                cx-home-card
+                cx-home-comunicados
+            ]
+        }
+        componentAppearance {
+            layout: horizontal
+        }
+        card {
+            primaryKeyColumn1: ID_COMUNICADO
+        }
+        title {
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                <span class="cx-home-comunicado__meta">
+                  <span class="cx-etiqueta">&PUBLICO.</span>
+                  <span>&DATA_PUBLICACAO_TXT.</span>
+                </span>
+                <span class="cx-home-comunicado__titulo">&TITULO.</span>
+                ```
+        }
+        body {
+            column: RESUMO
+        }
+        media {
+            source: blobColumn
+            blobColumn: IMAGEM
+            position: first
+            sizing: cover
+        }
+        blobAttributes {
+            mimeTypeColumn: MIME_TYPE
+        }
+        messages {
+            whenNoDataFound: Nenhum comunicado publicado. Os comunicados oficiais aparecerão aqui.
+        }
+    )
+
+    region home_hero (
+        name: Início
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_home_ui.render_hero;
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region home_meu_gestor (
+        name: Meu gestor
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_home_ui.render_meu_gestor;
+        }
+        layout {
+            sequence: 10
+            parentRegion: @coluna-lateral
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+            cssClasses: cx-home-card
+        }
+    )
+
+    pageItem P1_MES_ATUAL (
+        type: hidden
+        layout {
+            sequence: 100
+            region: @coluna-lateral
+            slot: regionBody
+        }
+    )
+
+    button novo-comunicado (
+        buttonName: NOVO_COMUNICADO
+        label: Novo comunicado
+        layout {
+            sequence: 20
+            region: @home_comunicados
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-plus
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 17
+                clearCache: 17
+            }
+        }
+        security {
+            authorizationScheme: @publicador-de-conteudo
+        }
+    )
+
+    button ver-todos (
+        buttonName: VER_TODOS
+        label: Ver todos
+        layout {
+            sequence: 10
+            region: @home_comunicados
+            slot: copy
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--noUI
+                t-Button--iconRight
+            ]
+            icon: fa-arrow-right
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 11
+            }
+        }
+    )
+
+    dynamicAction atualizar-comunicados (
+        name: Atualizar comunicados
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: button
+            button: @novo-comunicado
+        }
+
+        action atualizar-comunicados (
+            name: Atualizar comunicados
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @home_comunicados
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    computation p9-mes-atual (
+        itemName: P1_MES_ATUAL
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        computation {
+            type: expression
+            plsqlExpression:
+                ```plsql
+                pkg_home_ui.mes_atual
+                
+                ```
+        }
+    )
+
+)
+

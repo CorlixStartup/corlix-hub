@@ -8,11 +8,12 @@
 | Pasta | Situação no Git | Página APEX alvo | Integrada no app? |
 |---|---|---|---|
 | `modulos/organograma/` | versionada (commit `bac2d69`), **com mudanças não commitadas** (+774/−80 linhas: drawer de detalhes) | p. 3 `Organograma` (`corlixhub/pages/p00003-organograma.apx`) | **Não.** A página só tem a região Breadcrumb |
-| `modulos/historico-carreira/` | **untracked** | p. 13 `Histórico de carreira` (`p00013-histórico-de-carreira.apx`) + páginas novas 18–23 | **Não.** A página 13 só tem a região Breadcrumb; páginas 18–23 não existem |
+| `modulos/historico-carreira/` | versionado | p. 13 `Histórico de carreira` (`p00013-historico-de-carreira.apx`) + páginas 18–23 | **Sim** (revalidado em 19/10/2026). Guia e checklist: `Etapas-historico-carreira.md` §1–§9 |
+| `modulos/home/` | branch `feature/redesign-home` (19/10/2026) | p. 28 `Início` (nova; a p. 1 `Home` é mantida) | **Não** ainda: montar pelo `Etapas-home.md` |
 | `modulos/tema/` | **untracked** | todas (tema global) | documentado em `04-tema-e-estilos.md` |
-| `modulos/perfis-acesso/` | **untracked** | p. 14 `Cadastro de Usuários` | **Sim** na app (papéis `colaborador`/`gestor`/`admin-rh`, authorization `ADMIN_RH`, processo e LOV de gestor na P14); o SQL (`instalar.sql`) precisa ser rodado no banco. Guia: `Etapas-perfis-acesso.md` |
+| `modulos/perfis-acesso/` | versionado | p. 14 `Cadastro de Usuários` | **Sim** na app (papéis `colaborador`/`gestor`/`admin-rh`, authorization `ADMIN_RH`, processo e LOV de gestor na P14); SQL instalado no banco em 06/10/2026, com papéis vinculados à mão aos cargos antigos. Guia: `Etapas-perfis-acesso.md`; histórico: `Registro-implantacao.md` |
 
-Também não há rastro dos objetos dos módulos em `database/f100.sql` (nenhuma ocorrência de `vw_org_colaborador`, `pkg_organograma`, `historico_carreira`, `tipo_movimentacao`, `G_ID_EMPRESA`), nem nos shared components (`app-items.apx` só tem `APP_USER_CARGO`, `APP_USER_FOTO`, `APP_USER_NOME`, `G_NOME_EMPRESA`, `G_NOME_USUARIO`; não existem `G_ID_EMPRESA`, `ID_COLABORADOR`, o processo `DOWNLOAD_FOTO`, nem os authorization schemes `GESTOR`/`COLABORADOR`). O papel `Admin RH` e a authorization `ADMIN_RH` foram criados pelo módulo `perfis-acesso`.
+O histórico de carreira já está integrado: `G_ID_EMPRESA`, as authorizations `GESTOR` e `COLABORADOR`, as LOVs, os static files e as páginas 13 e 18–23 estão em `corlixhub/` e no `database/f100.sql`. O papel `Admin RH` e a authorization `ADMIN_RH` foram criados pelo módulo `perfis-acesso`.
 
 ### Padrão arquitetural comum ("Dynamic Content renderizado por PL/SQL")
 
@@ -28,7 +29,7 @@ Tabelas existentes (COLABORADOR, CARGO, DEPARTAMENTO, EMPRESA, COMUNICADO)
                      apex.region(id).refresh() e apex.server.process(<Ajax Callback>)
 ```
 
-Por que: os layouts dos protótipos (Figma em `figma/`) não cabem nos templates do Universal Theme; HTML gerado no servidor evita bibliotecas externas (o organograma abandonou a OrgChart JS e sua questão de licença) e mantém regras de visibilidade no banco.
+Por que: os layouts dos protótipos (pen.dev em `pen_dev/`) não cabem nos templates do Universal Theme; HTML gerado no servidor evita bibliotecas externas (o organograma abandonou a OrgChart JS e sua questão de licença) e mantém regras de visibilidade no banco.
 
 Convenções de geração de HTML (idênticas nos dois packages): CLOB temporário global `g_html` + `inicia` / `p(texto)` (`dbms_lob.writeappend`); `e()` = `apex_escape.html`, `a()` = `apex_escape.html_attribute`; ícones Lucide inline (SVG stroke, `currentColor`, `aria-hidden`); textos com entidades HTML (`&atilde;`, `&middot;`) ou `unistr`; datas por extenso com `NLS_DATE_LANGUAGE='BRAZILIAN PORTUGUESE'`; URLs via `apex_page.get_url` (gera checksum); iniciais = 1ª letra do primeiro nome + 1ª do último sobrenome.
 
@@ -44,7 +45,7 @@ Navegação **por níveis** na hierarquia de gestão (`COLABORADOR.ID_GESTOR`): 
 - Sem foco (ou foco inválido/inativo) → abre no **topo**: `id_raiz` = `min(id_colaborador)` ativo sem gestor.
 - Card em foco: avatar, nome, "cargo · departamento", tag "Topo da hierarquia" (se sem gestor), resumo "N subordinados diretos · M pessoas na estrutura" (M = todos os descendentes ativos, `connect by`), botões "Ver perfil" (abre o drawer) e "Conversar" (oculto se a pessoa é o próprio `APP_USER`, comparando `login_apex`).
 - Cards dos filhos (ordem alfabética): prévia da equipe com até 3 avatares/nomes; acima disso "+N" e "e mais N"; "Sem equipe direta" se 0; botão "Ver equipe" desce um nível.
-- Avatar: `FOTO_URL` se houver; senão BLOB (`IMAGEM_PERFIL`) via `APPLICATION_PROCESS=DOWNLOAD_FOTO` com item `ID_COLABORADOR`; senão iniciais.
+- Avatar: sempre renderiza as iniciais e, se houver foto, uma `<img>` por cima (`onerror="this.remove()"` → volta às iniciais). `FOTO_URL` é só o nome do arquivo em `Fotos Colaboradores/`: o PL/SQL emite `data-org-foto="Fotos Colaboradores/<arquivo>"` e o JS `orgCarregarFotos(raiz)` monta o `src` com `apex.env.APP_FILES` (chamado no load, no `apexafterrefresh` da região e após preencher o drawer). URL absoluta (`http(s)://`, `//`, `/`) vai direto no `src`; prefixo `#APP_FILES#` é removido. Sem `FOTO_URL`, usa BLOB (`IMAGEM_PERFIL`) via `APPLICATION_PROCESS=DOWNLOAD_FOTO` com item `ID_COLABORADOR`.
 - Drawer: Contato (e-mail `mailto` + botão copiar com ✓ por 2 s), Na estrutura ("Reporta-se a" gestor ou "Topo da hierarquia"/"Gestor inativo ou não encontrado"; "Equipe direta" até `c_max_equipe` = 8, depois "e mais N na equipe"; "Ver equipe no organograma"), Sobre (Departamento, Empresa, "Na Corlix desde" = "fevereiro de 2026 · 7 meses" a partir de `DATA_ADMISSAO`, ou "admissão em ..." se futura; Aniversário só dia e mês), nota de privacidade, rodapé "Conversar" + "Ver perfil completo".
 - **Privacidade:** a nota diz "você vê só os dados visíveis para todos", mas hoje e-mail, admissão e aniversário aparecem para qualquer usuário logado. Sugestão do guia: flag de visibilidade no cadastro.
 
@@ -148,7 +149,7 @@ Trajetória profissional de cada colaborador (admissão, promoção, mudança de
 - Ciclo de vida: `RASCUNHO` (`registrar_movimentacao` / `atualizar_rascunho` / `excluir_rascunho`) → `EFETIVADO` (`efetivar_movimentacao`, atualiza `COLABORADOR`: cargo, departamento, gestor, status) → `ESTORNADO` (`estornar_movimentacao` cria um lançamento de estorno `EFETIVADO` com `ID_REGISTRO_ESTORNADO` e restaura a situação anterior). Só a **última** movimentação válida pode ser estornada.
 - "Movimentação válida" = efetivada, não estornada e que não é estorno (`VW_MOVIMENTACAO_VALIDA`).
 - Snapshot completo (anterior e novo, inclusive `ID_GESTOR_ANTERIOR`) gravado na efetivação.
-- Bloqueios: data retroativa à última efetivada; data além de `qt_dias_futuro` (padrão 30); antes da admissão; após desligamento; cargo de outro departamento; objetos de outra empresa. Erros `-20001..-20019` (constantes `c_err_*` na spec), traduzidos por `fn_tratar_erro`.
+- Bloqueios: data retroativa à última efetivada; data além de `qt_dias_futuro` (padrão 30); antes da admissão; após desligamento; cargo de outro departamento; objetos de outra empresa. Erros `-20001..-20020` (constantes `c_err_*` na spec), traduzidos por `fn_tratar_erro`.
 - Readmissão = `ADMISSAO` após `DESLIGAMENTO` (reativa `STATUS`, atualiza `DATA_ADMISSAO`). Desligamento grava `STATUS = false` → some do organograma.
 - "Hoje" no fuso da empresa (`fn_hoje`, `CONFIG_CARREIRA.DS_FUSO_HORARIO`, padrão `America/Sao_Paulo`) — o ADB roda em UTC.
 - Comunicado automático (admissão, readmissão, promoção, transferência) em `COMUNICADO` para o departamento destino, mesma transação; nunca menciona salário; desligável por `FL_COMUNICADO_AUTOMATICO`.
@@ -171,6 +172,8 @@ Trajetória profissional de cada colaborador (admissão, promoção, mudança de
 | 05 | `05_triggers_auditoria.sql` | `trg_*_aud` / `trg_*_log` |
 | 06 | `06_carga_inicial.sql` | admissão para colaboradores existentes (sem comunicado) |
 | 07 | `07_testes.sql` | 2 empresas, 10 colaboradores, teste por regra e isolamento; termina em rollback |
+| 09 | `09_dados_demo_dashboard.sql` | Opcional (fora do `instalar.sql`): massa `[DEMO]` na empresa `C_EMPRESA` para a p. 20, com login `DEMO.CARREIRA.*`, cargos `[DEMO] Analista I/II` nos 4 primeiros departamentos e 10 promoções (4/3/2/1). Faz DML direto (efetivado, sem comunicado), porque no SQL Workshop o package deve ver a sessão do Builder sem `G_ID_EMPRESA` e recusar com -20012 (dedução pelo código, não testada) |
+| 10 | `10_remover_dados_demo.sql` | Remove a massa do 09. Desliga `trg_historico_carreira_aud` só durante o DELETE e a religa, inclusive se der erro |
 | front | `historico-carreira.css` (p. 13), `historico-carreira-pagina.js` (p. 13), `historico-carreira.js` (modal p. 18) | |
 
 Instalação: `cd modulos/historico-carreira && sql <usuario>@<servico> @instalar.sql`.
@@ -191,7 +194,7 @@ Instalação: `cd modulos/historico-carreira && sql <usuario>@<servico> @instala
 
 ### 2.3 Passo a passo de integração (resumo fiel de `Etapas-historico-carreira.md`)
 
-Pré-requisito: `instalar.sql`. Depois de montar no Builder, exportar em APEXlang para `corlixhub/pages/`. Páginas: 13 (existe, vazia), 18 Movimentação (modal), 19 Formações, 20 Dashboard RH, 21 Anexo da formação (modal), 22 Solicitar correção (modal), 23 Responder solicitação (modal). Se o número estiver ocupado, trocar prefixos no Builder, no `historico-carreira.js` e nas constantes do `08_`.
+Pré-requisito: `instalar.sql`. Depois de montar no Builder, exportar em APEXlang para `corlixhub/pages/`. Páginas: 13 Histórico de carreira, 18 Movimentação (modal), 19 Formações, 20 Dashboard RH, 21 Formação (modal, formulário com anexo), 22 Solicitar correção (modal), 23 Responder solicitação (modal). Se o número estiver ocupado, trocar prefixos no Builder, no `historico-carreira.js` e nas constantes do `08_`.
 
 **1. Shared Components**
 - App Item `G_ID_EMPRESA` (Restricted – may not be set from browser) + App Process `SET_G_ID_EMPRESA` (*After Authentication*): `select id_empresa into :G_ID_EMPRESA from colaborador where upper(trim(login_apex)) = upper(trim(:APP_USER))` (null em no_data_found/too_many_rows). Sessões abertas precisam relogar.
@@ -205,14 +208,15 @@ Pré-requisito: `instalar.sql`. Depois de montar no Builder, exportar em APEXlan
 - CSS `#APP_FILES#historico-carreira#MIN#.css` (subir também `.min.css`) ou inline; JS `historico-carreira-pagina.js` bloco 1/bloco 2; page template Standard, *Remove Body Padding* se houver.
 - Região **Dynamic Content**, Static ID **`historico_carreira`**, *Blank with Attributes*, Source `return pkg_historico_carreira_ui.render(:P13_ID_COLABORADOR);`, Page Items to Submit `P13_ID_COLABORADOR`.
 - Região "Lançamentos (RH)": Interactive Report sobre `vw_historico_carreira` (auth `ADMIN_RH`, collapsible fechada); colunas de salário com condição `ADMIN_RH`; `ID_HISTORICO_CARREIRA` como link para p. 18 (`P18_ID_HISTORICO_CARREIRA`, `P18_ID_COLABORADOR`).
-- Buttons Container (auth `ADMIN_RH`): `NOVA_MOVIMENTACAO` → p. 18; `FORMACOES` → p. 19.
+- Região "Barra do RH" (seq. 10, auth `ADMIN_RH`, template Blank with Attributes (No Grid), CSS class `hc-barra-rh`, Static ID `hc_barra_rh`): numa linha acima do título, `P13_COLABORADOR_SELECIONADO` (10), `FORMACOES` → p. 19 (20) e `NOVA_MOVIMENTACAO` → p. 18 (30, Hot). Fica fora do protótipo e só o RH vê; o estilo está em `historico-carreira.css` (os tokens `--hc-*` valem para `.hc` e `.hc-barra-rh`) e a barra é escondida na impressão. O mesmo CSS zera o padding do corpo e pinta o fundo `--cx-fundo` só nessa página (`body:has([data-hc])`), para a P13 (e a P19, que usa o mesmo cabeçalho) ocupar a largura e a altura toda como no protótipo.
 - DA "Atualizar depois da modal": *Dialog Closed* em `document` → Refresh das duas regiões.
+- Seletor do RH: Popup LOV `P13_COLABORADOR_SELECIONADO` (auth `ADMIN_RH`, inclui inativos) → DA Change › Submit `TROCAR_COLABORADOR` → processo `:P13_ID_COLABORADOR := :P13_COLABORADOR_SELECIONADO` → branch para a 13. Recarrega a página para os processos Before Header rodarem de novo.
 
-**3. Página 18 (modal, `ADMIN_RH`)** — Form sobre `VW_HISTORICO_CARREIRA`, **sem** Automatic Row Processing. Itens: `P18_ID_HISTORICO_CARREIRA`, `P18_ID_COLABORADOR` (checksum), `P18_ST_REGISTRO` (display, default RASCUNHO), `P18_FL_ESTORNO`, `P18_CD_TIPO` (Hidden, Value Protected **No**), `P18_ID_DEPARTAMENTO_ATUAL`, `P18_ID_TIPO_MOVIMENTACAO`, `P18_DT_EFETIVA` (`DD/MM/YYYY`), `P18_NM_CARGO_ANTERIOR`, `P18_NM_DEPARTAMENTO_ANTERIOR`, `P18_ID_DEPARTAMENTO_NOVO`, `P18_ID_CARGO_NOVO` (cascading LOV pai `P18_ID_DEPARTAMENTO_NOVO`, submit `P18_ID_DEPARTAMENTO_ATUAL`, Parent Required No), `P18_ID_GESTOR_NOVO`, `P18_VL_SALARIO_ANTERIOR/NOVO` (condição `ADMIN_RH`), `P18_DS_MOTIVO`, `P18_DS_OBSERVACAO`, `P18_DS_MOTIVO_ESTORNO`. Read Only quando `ST_REGISTRO <> 'RASCUNHO'`. DA "Tipo mudou" (Change em `P18_ID_TIPO_MOVIMENTACAO`): Set Value SQL → `P18_CD_TIPO`; depois `carreira.ajustarCampos(true);`. Botões `CANCELAR`, `EXCLUIR`, `SALVAR_RASCUNHO`, `EFETIVAR` (Hot, confirmação), `ESTORNAR` (Danger). Processos: Salvar (request in `SALVAR_RASCUNHO,EFETIVAR` → `registrar_movimentacao` ou `atualizar_rascunho`), Efetivar, Estornar, Excluir rascunho, Close Dialog. Before Header com log salarial quando há ID.
+**3. Página 18 (modal, `ADMIN_RH`)** — Form sobre `VW_HISTORICO_CARREIRA`, **sem** Automatic Row Processing. Itens: `P18_ID_HISTORICO_CARREIRA`, `P18_ID_COLABORADOR` (checksum), `P18_ST_REGISTRO` (display, default RASCUNHO), `P18_FL_ESTORNO`, `P18_CD_TIPO` (Hidden, Value Protected **No**), `P18_ID_DEPARTAMENTO_ATUAL`, `P18_ID_TIPO_MOVIMENTACAO`, `P18_DT_EFETIVA` (`DD/MM/YYYY`), `P18_NM_CARGO_ANTERIOR`, `P18_NM_DEPARTAMENTO_ANTERIOR`, `P18_ID_DEPARTAMENTO_NOVO`, `P18_ID_CARGO_NOVO` (cascading LOV pai `P18_ID_DEPARTAMENTO_NOVO`, submit `P18_ID_DEPARTAMENTO_ATUAL`, Parent Required No), `P18_ID_GESTOR_NOVO`, `P18_VL_SALARIO_ANTERIOR/NOVO` (condição `ADMIN_RH`), `P18_DS_MOTIVO`, `P18_ID_APROVADOR` (LOV `LOV_COLABORADOR_ATIVO`, opcional, todos os tipos), `P18_DS_OBSERVACAO`; `P18_DS_MOTIVO_ESTORNO` fica numa região Static Content própria ("Estorno", condição EFETIVADO e não estornado), fora do Form, porque dentro dele não aceita digitação num lançamento existente (Form sem bloco `edit`; ver `09` §4.8). Read Only quando `ST_REGISTRO <> 'RASCUNHO'`. DA "Tipo mudou" (Change em `P18_ID_TIPO_MOVIMENTACAO`): Set Value SQL → `P18_CD_TIPO` (Items to Submit `P18_ID_TIPO_MOVIMENTACAO`, Wait For Result On, Fire on Initialization Off); depois `carreira.ajustarCampos(true);` (seq. maior, Fire on Initialization Off). Itens de cargo/depto/gestor/salário com Value Required Off (a obrigatoriedade é do JS + package). Botões na região `Botões` (Static Content · Buttons Container · slot Dialog Footer, como na P27), todos com `ADMIN_RH`: `CANCELAR` (Close · DA Cancel Dialog), `EXCLUIR` (Delete · confirmação · sem validações), `ESTORNAR` (Delete · Danger · confirmação · sem validações), `SALVAR_RASCUNHO` (Next), `EFETIVAR` (Next · Hot · confirmação). Salvar/Efetivar usam `nvl(:P18_ST_REGISTRO, 'RASCUNHO') = 'RASCUNHO'`. Processos: Salvar (request in `SALVAR_RASCUNHO,EFETIVAR` → `registrar_movimentacao` ou `atualizar_rascunho`), Efetivar, Estornar, Excluir rascunho, Close Dialog. Before Header com log salarial quando há ID.
 
-**4. Página 19 / 21** — IG de formações (`formacao_colaborador`, DML nativo permitido; coluna `DS_ALERTA_VALIDADE` "VENCIDA"/"A VENCER" em 60 dias, highlights salvos no relatório Primary); anexo em modal 21 (File Upload em BLOB `BL_ANEXO`, `DS_MIME_TYPE`, `DS_NOME_ARQUIVO`; validação de empresa).
+**4. Página 19 / 21** — Lista + formulário em modal, criadas juntas pelo assistente *Create Page › Interactive Report* com *Include Form Page* (só assim o Form vem com o bloco `edit`; ver `09` §4.8). P19: IR sobre `formacao_colaborador` filtrado por `P19_ID_COLABORADOR` (checksum) e `G_ID_EMPRESA`, auth `ADMIN_RH`, Before Header "Validar acesso" (preenche `P19_NM_COLABORADOR`), região Static Content "Cabeçalho" (seq. 5, No Grid) com `<div class="hc" data-hc><header class="hc-titulo">` igual ao da P13 e `historico-carreira#MIN#.css` na página (o IR fica sem Header Text e ganha margem via `.t-IRR-region`), coluna `DS_ALERTA_VALIDADE` "VENCIDA"/"A VENCER" em 60 dias para qualquer formação com `DT_VALIDADE` (mesma regra do package na linha do tempo) com highlights no relatório Primary, botões "Nova formação" (→ 21 com `P21_ID_COLABORADOR`) e "Voltar ao histórico", DA Dialog Closed › Refresh. P21: Form com DML nativo (permitido: imutabilidade é só das movimentações), File Upload em `BL_ANEXO` (`DS_MIME_TYPE`, `DS_NOME_ARQUIVO`), processo `:P21_ID_EMPRESA := :G_ID_EMPRESA`, validações que espelham as constraints e "Formação da empresa".
 
-**5. Página 20 Dashboard RH** — `P20_DT_INICIO/FIM`; gráficos: promoções por departamento, turnover admissões × desligamentos por mês, tempo médio no cargo; relatório de certificações a vencer; IR de solicitações abertas com link "Responder" (modal 23 → `responder_solicitacao`).
+**5. Página 20 Dashboard RH** — Blank Page, template Standard, auth `ADMIN_RH`, `historico-carreira#MIN#.css`, região "Cabeçalho" com `<div class="hc" data-hc>` (como P13/P19), região "Período" (Standard, header oculto) com `P20_DT_INICIO/FIM` (Date Picker `DD/MM/YYYY`, default via `fn_hoje`, fim com Minimum Date = início) e DA "Período mudou" (Change, condição JS com as duas datas preenchidas, Refresh só dos gráficos que usam o período: 5.1 e 5.2); 5.1 = Chart Bar **horizontal**, série única "Promoções" (`#00688C`, sem legenda, rótulo na ponta, eixo y inteiro a partir de 0, Page Items to Submit na série, `group by d.id_departamento, d.nome`); 5.2 = Chart Bar **vertical agrupado** (Stack Off, static ID `grafico_turnover`, seq 25), séries "Admissões" (`#00688C`) e "Desligamentos" (`#B3261E`) com a mesma query e Page Items to Submit nas duas, legenda e nome da série no tooltip; a query gera todos os meses do período (`connect by`, zero nos meses vazios) e conta só as datas exatas entre De e Até, então o primeiro e o último mês podem ser parciais; 5.3 = tempo médio no cargo, `group by s.id_departamento, s.nm_departamento`, sem Refresh (usa `fn_hoje`); relatório de formações a vencer (qualquer tipo com validade); IR de solicitações abertas com link "Responder" (modal 23 → `responder_solicitacao`).
 
 **6. Página 22** — modal "Solicitar correção" (`P22_ID_COLABORADOR` checksum, `P22_ID_HISTORICO_CARREIRA` opcional, `P22_DS_MENSAGEM`) → `solicitar_correcao`; o package confere que quem pede é o próprio.
 
@@ -260,7 +264,7 @@ CSS: tokens `--hc-*` em `.hc` lendo `--cx-*` com fallback; `.hc [hidden] { displ
 
 ### 2.6 Status
 
-Feito (no módulo): DDL, seed, views, package de regras, package de UI, triggers, carga inicial, testes, CSS/JS, README + guia detalhado. Pendente: **pasta inteira untracked** (não commitada); nada instalado no export `database/f100.sql`; nenhuma página montada (13 é placeholder; 18–23 inexistentes); faltam `G_ID_EMPRESA` + `SET_G_ID_EMPRESA`, role/authorizations, LOVs, delegação no `log_pkg.apex_error_handler`, ligação com p. 14/12/2 e menu. Sem dado no modelo: PDI/Resultados 360 (aba "Desenvolvimento" mostra só formações; acrescentar `union all` em `c_eventos` com `ds_grupo = 'DEV'`), "Aprovado por", regime CLT.
+Feito (no módulo): DDL, seed, views, package de regras, package de UI, triggers, carga inicial, testes, CSS/JS, README + guia detalhado. Pendente: **pasta inteira untracked** (não commitada); nada instalado no export `database/f100.sql`; nenhuma página montada (13 é placeholder; 18–23 inexistentes); faltam `G_ID_EMPRESA` + `SET_G_ID_EMPRESA`, role/authorizations, LOVs, delegação no `log_pkg.apex_error_handler`, ligação com p. 14/12/2 e menu. Sem dado no modelo: PDI/Resultados 360 (aba "Desenvolvimento" mostra só formações; acrescentar `union all` em `c_eventos` com `ds_grupo = 'DEV'`), regime CLT. "Aprovado por" vem de `HISTORICO_CARREIRA.ID_APROVADOR`, informado pelo RH (sem fluxo de aprovação).
 
 ### 2.7 Pegadinhas
 
@@ -271,8 +275,38 @@ Feito (no módulo): DDL, seed, views, package de regras, package de UI, triggers
 - Carga inicial: inativos pré-instalação recebem só admissão (sem desligamento) → turnover histórico incompleto.
 - Comunicados automáticos não têm imagem; o card da Home reserva 260px para capa.
 - `c_pagina_painel_rh = 20` colide com o `c_pagina_perfil = 20` do organograma (ver 1.7). `c_item_organograma = 'P3_ID_FOCO'` exige que o organograma seja montado na p. 3 com esse nome de item (o guia do organograma usa `P10_`).
-- O IG (até 24.2) não fazia upload; por isso a modal 21 — verificar se a 26.1.5 já tem coluna de upload.
+- Enquanto o organograma não estiver instalado, `c_pagina_organograma` fica `null` em `08_pkg_historico_carreira_ui.sql` (o link "Ver no organograma" some). Ao integrar o organograma na p. 3, volte para `3` e rode o arquivo de novo.
+- Formações não usam Interactive Grid: no 26.1.5 não há onde ligar a edição de uma região existente, e o IG não tinha upload. Por isso lista (19) + formulário em modal (21).
+- Instalação manual (sem `instalar.sql`): rode `04_pkg_historico_carreira.pks` **antes** do `.pkb` e os dois antes do `08_pkg_historico_carreira_ui.sql`. Rodar fora de ordem gera `PLS-00201`/`PLS-00304` (ver 08 §3, "SQL e PL/SQL").
 - Salvar e efetivar na mesma submissão: se a efetivação falha, o rascunho também é desfeito (sem commit no package).
+
+---
+
+## 2A. Home (`modulos/home/`)
+
+Nova Home conforme `pen_dev/Início.png`, montada na página nova 28 ("Início") sem apagar a página 1; o Home URL, o menu e o breadcrumb só passam para a 28 no §5 do guia, no mesmo padrão "Dynamic Content renderizado por PL/SQL", sem tabelas novas.
+
+| Arquivo | Conteúdo |
+|---|---|
+| `pkg_home_ui.pks` / `.pkb` | `mes_atual`, `render_hero` ("Olá, <primeiro nome>", data por extenso no fuso `America/Sao_Paulo`, 3 links rápidos), `render_meu_gestor` (gestor com Chat → p4 via `apex_page.get_url` e E-mail `mailto:`; dois estados vazios: sem vínculo com a empresa × sem gestor), `render_aniversariantes(p_id_empresa, p_limite default 3, p_ver_todos default 'S')` (mês inteiro, `status = true`, próximos primeiro, selo "Hoje") |
+| `instalar.sql` | instala o package pelo SQLcl |
+| `home-pagina.js` | bloco 1 `cxHomeCarregarFotos` (fotos via `data-cx-foto` + `apex.env.APP_FILES`, mesmo padrão do organograma); bloco 2: "Ver todos" → `apex.theme.openRegion('aniversariantes_todos')` e aviso nos atalhos sem destino |
+| `home-hero.jpg` | arte do hero (recorte do protótipo); também em `corlixhub/shared-components/static-files/` |
+| `Etapas-home.md` | passo a passo no Builder 26.1.5 |
+
+Os comunicados ficam numa região **Cards** nativa (precisam da imagem BLOB), com SQL filtrada por `:G_ID_EMPRESA`; CSS em `custom.css` §12 (ver `04` §5.2.1). Links rápidos: o destino de cada um é o `p_pagina` da chamada a `atalho` no `render_hero` (link com `apex_page.get_url`). Holerite digital → página 9; Ponto eletrônico e Suporte TI seguem sem destino (`aria-disabled`) até as páginas existirem. Para torná-los configuráveis por empresa, ver a tabela `LINK_RAPIDO` sugerida em `07` §5.
+
+## 2B. Busca na intranet (`modulos/busca/`)
+
+Guia: `modulos/busca/Etapas-busca.md`. Protótipo `pen_dev/Busca (resultados).png` (`07` §4.17).
+
+| Arquivo | Conteúdo |
+|---|---|
+| `pkg_busca_ui.pks` / `.pkb` | `c_pagina` (29); `render_campo` (campo do header na Global Page, com `data-url` de `apex_page.get_url(29, p_clear_cache => 29)`; Enter → `&p29_termo=` + `encodeURIComponent`, ou sem termo na busca vazia, que lista tudo); `render_cabecalho(p_termo)` ("Resultados para “…”" + contagem); `render_resultados(p_termo, p_id_empresa, p_login)` (cards Pessoas e Comunicados, até 20 por grupo); `render_ajuda` |
+| `busca-pagina.js` | `cxBuscaCarregarFotos` (mesmo padrão da Home) |
+| `instalar.sql` | instala o package |
+
+Pessoas: `colaborador` ativo (`status = true`) da empresa, por nome, cargo ou departamento; nome → p3 com `P3_ID_FOCO` (checksum via `apex_page.get_url`), "Conversar" → p4 (o chat não abre conversa por parâmetro). Comunicados: da empresa, por título ou pelos primeiros 2.000 caracteres do conteúdo; título → p11. Busca sem diferença de maiúsculas e acentos (`translate(lower(...))` com constantes do package) e com `%`/`_` do termo escapados. A p29 é *Unrestricted* e o `P29_TERMO` sem Value Protected, porque o termo chega pela URL. Fica para depois o grupo "Páginas do menu" do protótipo.
 
 ---
 

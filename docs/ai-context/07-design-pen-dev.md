@@ -1,6 +1,6 @@
-# 07 · Design (Figma) — telas-alvo do redesign CorlixHub
+# 07 · Design (pen.dev) — telas-alvo do redesign CorlixHub
 
-> Fonte: PNGs em `figma/` (28 arquivos, 27 telas distintas) e `modulos/organograma/` (2 PNGs de redesign).
+> Fonte: PNGs em `pen_dev/` (28 arquivos, 27 telas distintas) e `modulos/organograma/` (2 PNGs de redesign).
 > Objetivo deste documento: permitir que uma IA implemente cada tela no Oracle APEX 26.1 (Universal Theme, estilo Redwood Light) **sem ver a imagem**.
 > Os dados exibidos nas telas (Sarah Silva, Rafael Nunes, Ana Beatriz Souza, Fernanda Lima etc.) são dados de exemplo/mock.
 > O CSS/tokens são detalhados em outro documento; aqui há só um resumo do Design System.
@@ -9,7 +9,7 @@
 
 ## 1. Tabela-resumo
 
-| # | Arquivo (figma/) | Tela | Página APEX correspondente | Prioridade aparente |
+| # | Arquivo (pen_dev/) | Tela | Página APEX correspondente | Prioridade aparente |
 |---|---|---|---|---|
 | 1 | `Design System · Redwood Light (CorlixHub).png` | Componentes, estados e estrutura da aplicação | Global (p00000 + tema / `corlix-tema.css`) | **Alta** (base de tudo) |
 | 2 | `Início.png` | Início (home) | p00001-home | **Alta** |
@@ -29,7 +29,7 @@
 | 16 | `Configurações (equipe de produto).png` | Configurações | p00006-configuracoes | Média |
 | 17 | `Monitor de logs.png` | Monitor de logs | p00007-monitor-logs | Média |
 | 18 | `Monitor de logs · detalhe em Drawer.png` | Drawer "Detalhe do registro #N" | não implementada (nova modal drawer) | Média |
-| 19 | `Busca (resultados).png` | Resultados da busca global | não implementada (p00000 tem só "Barra de Busca") | Média |
+| 19 | `Busca (resultados).png` | Resultados da busca global | p00029 (em montagem: `modulos/busca`) | Média |
 | 20 | `Minha equipe (gestores).png` | Minha equipe (visão do gestor) | não implementada (≠ p00026 Central de equipes, que é admin) | Média |
 | 21 | `Minhas aprovações (Unified Task List).png` | Minhas aprovações | não implementada | Baixa/Média (depende de PDI) |
 | 22 | `PDI · aprovação pela gestão (detalhe da tarefa).png` | Detalhe da tarefa de aprovação de PDI | não implementada | Baixa/Média |
@@ -41,8 +41,11 @@
 | 28 | `Feedbacks.png` | Feedbacks · aba Recebidos | não implementada | Baixa |
 | 29 | `Feedbacks · aba Enviados.png` | Feedbacks · aba Enviados | não implementada | Baixa |
 | 30 | `Feedbacks · dar feedback (Drawer).png` | Drawer "Dar feedback" | não implementada | Baixa |
+| 31 | `Holerite digital.png` | Holerite digital: líquido a receber, detalhamento de proventos e descontos, bases de cálculo e FGTS, lista de holerites do ano, "Ocultar valores", "Baixar PDF" e "Solicitar correção" | p00009-holerite-digital | Média |
+| 32 | `Ponto eletrônico.png` | Ponto eletrônico: relógio com "Registrar saída", linha do tempo das marcações do dia, espelho de ponto do mês, banco de horas, pendências (justificar, assinar espelho) e dados da jornada | não implementada | Baixa/Média |
+| 33 | `Suporte TI.png` | Suporte TI: aviso de instabilidade, busca e assuntos da base de conhecimento, "Meus chamados" (abertos/resolvidos), status dos sistemas, artigos mais acessados e "Conversar com a TI" | não implementada | Baixa/Média |
 
-Páginas APEX existentes **sem tela no Figma**: p00004-chat, p00005/p00008-notificações, p00026-central-de-equipes, p00027-nova-equipe, p09999-login. Devem apenas herdar o tema/estrutura do Design System.
+Páginas APEX existentes **sem tela no pen.dev**: p00004-chat, p00005/p00008-notificações, p00026-central-de-equipes, p00027-nova-equipe, p09999-login. Devem apenas herdar o tema/estrutura do Design System.
 
 Prioridade: "Alta" = página já existe e o redesign é visual/estrutural; "Média" = página nova simples ou admin; "Baixa/Média" = depende de módulo inteiro sem backend (seção 5). Na tela de Configurações os toggles "Plano de desenvolvimento (PDI)", "Feedbacks", "Exportação em PDF", "Notificações" e "Links rápidos" aparecem **Inativos** e "Busca na intranet" e "Avaliações 360" **Ativos** — isso sugere a ordem pretendida de entrega.
 
@@ -104,7 +107,7 @@ Faixa branca abaixo do header com: breadcrumb opcional (link azul petróleo › 
 Arquivo: `Design System · Redwood Light (CorlixHub).png` — título "CorlixHub — componentes e estados (base Redwood Light)". "Os tokens aproximam o Oracle Redwood Light; no APEX, use os componentes nativos, Template Options e Theme Roller correspondentes (a fonte real do tema é a Oracle Sans)."
 
 - **Paleta**: neutros quentes (fundo da página cinza-areia, cards brancos, bordas cinza claras); **primária = quase-preto** (#2b2826 aprox.) para botões de ação principal; **acento azul petróleo** (#0f6b8f / #00688c aprox.) para links, foco, item ativo, avatar e barra de progresso (a barra usa azul mais vivo #2a72d4 sobre trilho azul-claro); status: verde (sucesso), vermelho (erro), âmbar (aviso), azul (informação). Gráfico 360: azul (Autoavaliação), laranja (Gestor), verde (Pares).
-- **Tipografia**: sans-serif geométrica (Oracle Sans no APEX); H1 ~32px bold; títulos de card ~18–20px semibold; corpo 14–16px; legendas/ajuda 12–13px cinza.
+- **Tipografia**: Figtree (também no APEX, desde 26/10/2026), ícones Lucide; H1 ~32px bold; títulos de card ~18–20px semibold; corpo 14–16px; legendas/ajuda 12–13px cinza.
 - **Botões**: Primária (escuro, "Salvar") = botão **Hot**; Secundária (cinza, "Cancelar") = botão padrão; Terciária ("Ver todos →", link azul) = Template Option *Style › Remove UI Decoration*; Somente ícone (sino); estados Hover (mais escuro), Foco (teclado: anel azul), Desabilitado (cinza claro), Carregando ("Salvando…" com spinner). Regra: "Uma única ação primária por contexto".
 - **Campos**: rótulo interno flutuante (template **"Required - Floating"** nos obrigatórios, asterisco vermelho), estados Vazio, Preenchido, Foco (borda azul), Erro (borda vermelha + mensagem inline abaixo, ex.: "As senhas não coincidem."), Desabilitado (fundo cinza + Inline Help "Disponível após selecionar a empresa."). Switch "Ativa/Inativa" e Checkbox ("Administrador", "Publicador").
 - **Status e etiquetas**: Badge de status sempre com texto (Ativa, Inativa, Erro, Aviso, Informação) — Template Component *Badge* ou classes `u-success-text / u-danger-text / u-warning-text / u-info-text`. Etiqueta de departamento é neutra (Operações, Diretoria, Vendas): cor não sugere status.
@@ -159,6 +162,7 @@ Mudança vs. atual: substituir o *wizard-modal-dialog* por um modal simples de u
 - **Card "Vínculo profissional"** — descrição: "Empresa, área e liderança da pessoa. Departamento, cargo e gestor são carregados depois que a empresa é selecionada. Quem está no topo da hierarquia não tem gestor." Campos: **Empresa *** (Select List) | **Data de admissão *** (Date Picker); **Departamento *** | **Cargo *** (Select List em cascata, desabilitados até ter empresa; ajuda "Disponível após selecionar a empresa."); **Gestor *** (Popup LOV com lupa; desabilitado; ajuda "Busque pelo nome após selecionar a empresa.") | checkbox **Topo da hierarquia** "Não se reporta a ninguém (ex.: CEO)." (marcar torna Gestor não obrigatório/oculto).
 - **Card "Acesso ao sistema"** — "Credenciais usadas para entrar no CorlixHub." Campos: **E-mail corporativo *** | **Login corporativo ***; **Senha *** | **Confirmar senha *** (Password com olho mostrar/ocultar; ajuda "Mínimo de 12 caracteres. A troca será exigida no primeiro acesso."); grupo **Perfis de acesso**: checkbox "Publicador de conteúdo — Pode publicar comunicados.", checkbox "Administrador — Acessa o grupo Administração."; ajuda "Todas as contas têm acesso de colaborador."; **Situação da conta**: Switch "Ativa" (ligado), ajuda "Novas contas nascem ativas. Contas inativas não conseguem entrar no sistema."
 - Rodapé: "Todos os campos são obrigatórios." | "Cancelar" + "**Salvar colaborador**".
+**Guia**: `modulos/tema/Etapas-cadastro-colaborador.md` (CSS `custom.css` §14). Ficam de fora, por depender de backend: perfis de acesso manuais, checkbox "Topo da hierarquia" (o Gestor fica opcional), sugestão de primeiro nome/sobrenome, senha mínima de 12 e troca no primeiro acesso.
 **APEX**: Form region dividida em 3 regiões com template "Standard"/"Blank" + coluna lateral (Region Display Selector não; usar layout de 2 colunas: Static Content de descrição col-span 4 + itens col-span 8); Cascading LOV (Parent Item = Empresa); itens floating label; validação de senha igual.
 
 ### 4.6 Editar colaborador — `Editar colaborador.png` → p00014 (modo edição)
@@ -181,7 +185,7 @@ As duas imagens são praticamente iguais; difere apenas o texto de ajuda inferio
 - **Breadcrumb de níveis** com ícone de hierarquia: "**Corlix** › Fernanda Lima" (níveis anteriores são links para voltar).
 - **Card da pessoa focada** (centralizado, borda azul petróleo 2px): avatar "FL", nome "Fernanda Lima", "CEO · Diretoria", etiqueta "Topo da hierarquia" à direita; linha "2 subordinados diretos · 5 pessoas na estrutura"; botões secundários lado a lado "👤 **Ver perfil**" e "💬 **Conversar**".
 - Conector em árvore (linha vertical + horizontal) até a fileira de **cards dos subordinados diretos** (2 lado a lado): parte superior avatar + nome em link azul + "Cargo · Departamento" (ex.: Ana Beatriz Souza — Gerente de operações · Operações; Camila Rocha — Gerente comercial · Vendas); rodapé do card separado por linha: mini-avatares sobrepostos (BC RN), "**Equipe · 2 pessoas**" / "Bruno Carvalho e Rafael Nunes", link "**Ver equipe →**" (desce um nível: a pessoa vira o card focado).
-- Ajuda (centro, cinza): "Clique em um card para ver os detalhes da pessoa ou em "Ver equipe" para descer um nível. Use o caminho acima para voltar. Contas inativas não aparecem." (versão `figma/`: "Selecione "Ver equipe" para descer um nível ou use o caminho acima para voltar. Contas inativas não aparecem.")
+- Ajuda (centro, cinza): "Clique em um card para ver os detalhes da pessoa ou em "Ver equipe" para descer um nível. Use o caminho acima para voltar. Contas inativas não aparecem." (versão `pen_dev/`: "Selecione "Ver equipe" para descer um nível ou use o caminho acima para voltar. Contas inativas não aparecem.")
 - Estados: quem não tem equipe não mostra rodapé "Ver equipe".
 **APEX**: item oculto `P3_FOCO` (id da pessoa); região Static Content/PL/SQL Dynamic Content ou **Cards** (1 para foco, 1 para filhos) com SQL `connect by`; breadcrumb dinâmico gerado por `sys_connect_by_path`; "Ver equipe" = link para a própria página com `P3_FOCO`. Já existe CSS/JS/SQL em `modulos/organograma/` (organograma.css/js/sql) e passo a passo em `Etapas-organograma.md`.
 
@@ -253,7 +257,7 @@ Cabeçalho "Monitor de logs" / "Erros e eventos registrados pela aplicação. Ac
 - Rodapé: botão secundário "☰ **Ver em Erros de página**".
 **APEX**: Modal Dialog Drawer recebendo o ID do log; itens Display Only; botão Copiar = DA `navigator.clipboard`.
 
-### 4.17 Busca (resultados) — `Busca (resultados).png` → não implementada
+### 4.17 Busca (resultados) — `Busca (resultados).png` → página 29 (`modulos/busca/Etapas-busca.md`)
 Campo de busca do header preenchido ("vendas", foco azul). Cabeçalho: "Resultados para "vendas"" / "3 resultados em Pessoas e Comunicados".
 - Coluna principal: card "**Pessoas** (2)" — linhas com avatar, nome em link azul ("Camila Rocha"), "Gerente comercial · Vendas", botão secundário "💬 **Conversar**" à direita; card "**Comunicados** (1)" — etiqueta "Para: Vendas" + "7 de janeiro", título em link "Primeiro comunicado", resumo.
 - Coluna direita: card "**O que a busca encontra**": 👥 "Pessoas ativas, por nome, cargo ou departamento"; 📣 "Comunicados que você pode ver, por título ou texto"; ▦ "Páginas do menu às quais você tem acesso"; nota "Contas inativas e conteúdos sem permissão não aparecem nos resultados."

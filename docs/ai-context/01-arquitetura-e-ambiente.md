@@ -48,11 +48,15 @@ CorlixHub/
 │   ├── organograma/           #   vw_org_colaborador, pkg_organograma, organograma.css/js, PNGs de redesign
 │   ├── historico-carreira/    #   (untracked) DDL completo + packages + views + triggers + testes + CSS/JS
 │   └── tema/                  #   (untracked) guia de aplicação do tema visual nas páginas
-├── figma/                     # (untracked) ~28 PNGs com o design-alvo das telas
+├── pen_dev/                   # (untracked) ~28 PNGs com o design-alvo das telas
 ├── scripts/
 │   ├── setup.sh / setup.ps1   # setup do ambiente Docker (macOS/Linux e Windows)
 │   ├── git-hooks/commit-msg   # valida Conventional Commits
-│   └── apex-limpar-sql-scripts.sql  # apaga SQL Scripts do workspace (dry-run por padrão)
+│   ├── apex-sessao-timeouts.sql      # lê/ajusta timeouts de sessão do workspace (ver 10 §8)
+│   ├── extensao-cookies-apex/ # extensão local do Chrome contra o 400 de cookies (ver 10 §9)
+│   ├── apex-limpar-sql-scripts.sql  # apaga SQL Scripts do workspace (dry-run por padrão)
+│   ├── backup/                # pipeline de backup (SQLcl + Jenkins): app, DDL e dados
+│   └── busca-casos/           # busca de casos/erros e da doc oficial do APEX para agentes de IA (Elasticsearch, ver §8.2)
 └── .github/workflows/ci.yml   # CI: valida docker-compose, gitleaks, bloqueia pastas proibidas
 ```
 
@@ -96,6 +100,9 @@ URLs locais: Builder `http://localhost:8081/ords`; app `http://localhost:8081/or
 
 ⚠️ **Consequências se essa deleção for commitada:** o job `validate` do CI passou a ignorar a validação quando o arquivo não existe; `scripts/setup.*` também passam a não funcionar. Pergunte ao time antes de assumir qual é o ambiente atual (possivelmente migraram para uma instância APEX hospedada/OCI ou outra forma de rodar).
 
+### 5.1.1 APEX no Autonomous (OCI)
+O desenvolvimento acontece no APEX do Autonomous Database da OCI (`https://<id>.adb.<região>.oraclecloudapps.com/ords/...`). Depois de longas sessões, o proxy da Oracle pode responder `400 Request Header Or Cookie Too Large`. Causa e solução estão em [`10-erro-400-cookies.md`](./10-erro-400-cookies.md).
+
 ### 5.2 Pastas que nunca vão para o Git
 `apex/` (distribuição Oracle ~1,1 GB), `META-INF/`, `oracle_oradata/` (datafiles), `ords_config/` (contém wallet e chave TLS), `.env*` (exceto `.env.example`), `*.log`, `.DS_Store`. O CI bloqueia `apex/`, `oracle_oradata/`, `ords_config/`, `META-INF/`.
 
@@ -110,11 +117,11 @@ Detalhes em [`05-banco-de-dados.md`](./05-banco-de-dados.md) e [`06-modulos.md`]
 | README diz | Realidade no repo |
 |---|---|
 | App exportada em `f100/application/pages/*.sql` + `f100/install.sql` | App está em `corlixhub/` (APEXlang `.apx`) e `database/f100.sql` (single file) |
-| `database/ddl/schema_corlixhub.sql` e `database/seed/seed_corlixhub.sql` | Não existem |
+| `database/ddl/schema_corlixhub.sql` e `database/seed/seed_corlixhub.sql` | Não existem. `database/ddl/` agora é gerada pelo backup (`01-tipos.sql` … `11-sinonimos.sql`, ver §8.1); não há seed |
 | "Não há packages PL/SQL próprios" | Existem `pkg_historico_carreira`, `pkg_historico_carreira_ui`, `pkg_organograma`; a app usa `log_pkg.apex_error_handler` |
 | "Não há testes" | Existe `modulos/historico-carreira/07_testes.sql` |
 | `docs/` não existe | Agora existe `docs/ai-context/` |
-| Repo sem commits/remote | Remote `https://github.com/CorlixStartup/CorlixHub.git`; branches remotas `DEV` (HEAD), `UAT`, `PROD`, `main`, `feature/cadastro-empresas`; PR #1 mergeado |
+| Repo sem commits/remote | Remote `https://github.com/CorlixStartup/corlix-hub.git`; branches remotas `DEV` (HEAD), `UAT`, `PROD`, `main`, `feature/cadastro-empresas`; PR #1 mergeado |
 | Seis entidades: Empresa, Colaborador, Cargo, Departamento, Movimentacao_Carreira, Comunicado | `MOVIMENTACAO_CARREIRA` existe no banco como tabela legada, sem uso; o módulo novo a substitui por `HISTORICO_CARREIRA` + `TIPO_MOVIMENTACAO`; há também equipes, chat, logs, presença etc. |
 
 Quando o README e o código discordarem, **confie no código** e sinalize a divergência.
@@ -135,8 +142,25 @@ Roda em PR/push para `DEV`, `UAT`, `PROD`:
 3. `forbidden-paths` — falha se `apex/`, `oracle_oradata/`, `ords_config/` ou `META-INF/` existirem.
 Não há deploy automatizado nem testes automatizados no CI.
 
+## 8.1 Backup (`scripts/backup/`)
+Job Jenkins diário (02h, America/Sao_Paulo) que conecta no Autonomous Database (OCI) pelo SQLcl, com wallet, como o dono do schema, e gera um `.tar.gz` por ambiente com:
+- a app em APEXlang e em SQL (com checksum SHA-256);
+- usuários e grupos do workspace;
+- o DDL do schema (`dbms_metadata`, sem schema/tablespace, um arquivo por tipo);
+- um CSV por tabela, com BLOBs em base64.
+
+Os backups ficam como artefatos do Jenkins (30 dias) e nunca vão para o Git (`/backups/` no `.gitignore`), porque contêm dados pessoais. O `backup.sh` também roda local, e `scripts/backup/jenkins/` tem um `docker-compose.yml` que sobe um Jenkins local para testar o pipeline, copia cada `.tar.gz` para `backups/<ambiente>/` do projeto e, com `scripts/backup/extrair-no-projeto.sh`, atualiza `corlixhub/`, `database/f100.sql` e `database/ddl/` (pulando destinos com alterações não commitadas) e põe os CSVs em `database/dados/backup/` (ignorado pelo Git) (o compose fica fora da raiz, então o job `validate` do CI não o valida). Com o parâmetro `PUBLICAR_GIT` (padrão), o stage *Publicar no Git* roda `scripts/backup/publicar-no-git.sh`: clona a `DEV`, extrai o backup de `PRD` nela, commita só `corlixhub/`, `database/f100.sql` e `database/ddl/` com a mensagem `chore(backup): Backup - Corlix Hub - dd/MM/yyyy as HH:mm` (horário de Brasília; commit vazio se nada mudou), faz push e abre PR `DEV` → `PROD` se não houver um aberto; nesse modo a extração na pasta local do projeto é pulada. Usa a credencial `corlixhub-github` (usuário + token do GitHub). Referência (conteúdo, variáveis, restauração) em [`scripts/backup/README.md`](../../scripts/backup/README.md); passo a passo da configuração, com erros comuns, em [`scripts/backup/Etapas-backup.md`](../../scripts/backup/Etapas-backup.md).
+
+## 8.2 Busca de casos para agentes de IA (`scripts/busca-casos/`)
+Índice Elasticsearch (`corlix-casos`) com os casos já ocorridos: entradas Sintoma/Causa/Correção do 09, seções do 10 e cada linha das tabelas "Se não funcionar"/"Problemas comuns" dos `modulos/*/Etapas-*.md`, além das demais seções da documentação (tipo `doc`, peso menor). Analisador pt-BR (sem acento, radical, stopwords sem o "não"), sinônimos, tolerância a erros de digitação e peso extra para códigos (`ORA-01403`, `-20012`) e identificadores (`P13_…`, `PKG_…`).
+- Subir: `docker compose -f scripts/busca-casos/docker-compose.yml up -d` (Elasticsearch 8.15.3, nó único, sem segurança, só em `127.0.0.1:9200`; fora da raiz, então o job `validate` do CI não o valida).
+- Indexar: `python3 scripts/busca-casos/casos.py indexar` (recria o índice; rode de novo quando um `.md` mudar).
+- Buscar: `python3 scripts/busca-casos/casos.py buscar "<texto>" [-n 5] [--tipo caso|doc] [--modulo …] [--json]`. Sem Elasticsearch, cai num modo offline menos preciso e avisa.
+- Documentação oficial do APEX 26.1: `apex_docs.py baixar` (zip oficial, ~325 MB) → `extrair` (3.340 páginas em Markdown em `.cache/apex-docs/md/`, fora do Git) → `indexar` (índice `apex-docs`, analisador inglês, ~7.300 trechos com o link oficial). Buscar com `casos.py buscar "…" --fonte apex|todas`. A síntese em pt-BR fica em `docs/apex-26.1/` e entra no índice `corlix-casos` (`--modulo apex-26.1`).
+Detalhes em [`scripts/busca-casos/README.md`](../../scripts/busca-casos/README.md).
+
 ## 9. Estado do working tree no momento desta documentação
 Modificados (não commitados): `application.apx`, páginas 1, 4, 14, 16, 27, `static-files.apx`, `custom.css/.min.css`, `database/f100.sql`, arquivos de `modulos/organograma/`.
-Novos (untracked): `corlix-tema.css/.min.css`, `figma/`, `modulos/historico-carreira/`, `modulos/tema/`, PNGs de redesign do organograma, `scripts/apex-limpar-sql-scripts.sql`.
+Novos (untracked): `corlix-tema.css/.min.css`, `pen_dev/`, `modulos/historico-carreira/`, `modulos/tema/`, PNGs de redesign do organograma, `scripts/apex-limpar-sql-scripts.sql`.
 Deletados: `.env.example`, `docker-compose.yml`.
 Ou seja: há um trabalho grande de **redesign visual (tema Corlix)** + **módulo de histórico de carreira** em andamento.

@@ -112,7 +112,9 @@
   line-height: 1;
   box-shadow: 0 0 0 2px var(--org-superficie);
 }
-.org-avatar img { width: 100%; height: 100%; object-fit: cover; }
+/* A foto cobre as iniciais; se falhar, o onerror remove a <img> e as iniciais aparecem */
+.org-avatar { position: relative; }
+.org-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
 .org-avatar--lg  { width: 56px; height: 56px; font-size: 18px; }
 .org-avatar--md  { width: 48px; height: 48px; font-size: 16px; }

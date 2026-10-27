@@ -1,0 +1,516 @@
+page 19 (
+    name: Formações e certificações
+    alias: FORMACOES-E-CERTIFICACOES
+    title: Formações e certificações
+    appearance {
+        pageTemplate: @corlix-standard-page
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        fileUrls: #APP_FILES#historico-carreira#MIN#.css
+    }
+    security {
+        authorizationScheme: @admin-rh
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region formações-e-certificações (
+        name: Formações e certificações
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select f.id_formacao,
+                       f.tp_formacao,
+                       f.ds_titulo,
+                       f.ds_instituicao,
+                       f.dt_inicio,
+                       f.dt_conclusao,
+                       f.dt_validade,
+                       f.nr_carga_horaria,
+                       f.ds_link,
+                       f.ds_nome_arquivo,
+                       case
+                  when f.dt_validade <  pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA)      then 'VENCIDA'
+                  when f.dt_validade <= pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA) + 60 then 'A VENCER'
+                end as ds_alerta_validade
+                  from formacao_colaborador f
+                 where f.id_colaborador = :P19_ID_COLABORADOR
+                   and f.id_empresa     = :G_ID_EMPRESA
+                 order by coalesce(f.dt_conclusao, f.dt_inicio) desc
+                
+                ```
+            pageItemsToSubmit: P19_ID_COLABORADOR
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 21
+                items: {
+                    P21_ID_FORMACAO: \#ID_FORMACAO#\
+                }
+                clearCache: 21
+                action: resetPagination
+            }
+            linkIcon: <span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: Nenhuma formação cadastrada.
+            whenMoreDataFound: O relatório passou do limite de #MAX_ROW_COUNT# linhas. Use um filtro.
+        }
+        advanced {
+            savedReportMappingIdentifier: 33886108875136748
+        }
+
+        column DS_ALERTA_VALIDADE (
+            type: plainText
+            heading {
+                heading: Situação
+            }
+            layout {
+                sequence: 114
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: O
+            }
+        )
+
+        column DS_INSTITUICAO (
+            type: plainText
+            heading {
+                heading: Instituição
+            }
+            layout {
+                sequence: 24
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column DS_LINK (
+            type: link
+            heading {
+                heading: Link
+            }
+            layout {
+                sequence: 84
+            }
+            link {
+                target: {
+                    type: url
+                    url: #DS_LINK#
+                }
+                linkText: Abrir
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: N
+            }
+        )
+
+        column DS_NOME_ARQUIVO (
+            type: plainText
+            heading {
+                heading: Anexo
+            }
+            layout {
+                sequence: 104
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        column DS_TITULO (
+            type: plainText
+            heading {
+                heading: Título
+            }
+            layout {
+                sequence: 14
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column DT_CONCLUSAO (
+            type: plainText
+            heading {
+                heading: Conclusão
+            }
+            layout {
+                sequence: 54
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column DT_INICIO (
+            type: plainText
+            heading {
+                heading: Início
+            }
+            layout {
+                sequence: 44
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column DT_VALIDADE (
+            type: plainText
+            heading {
+                heading: Validade
+            }
+            layout {
+                sequence: 64
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column ID_FORMACAO (
+            type: hidden
+            heading {
+                heading: Id Formacao
+            }
+            layout {
+                sequence: 0
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column NR_CARGA_HORARIA (
+            type: plainText
+            heading {
+                heading: Carga horária (h)
+                alignment: end
+            }
+            layout {
+                sequence: 74
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column TP_FORMACAO (
+            type: plainTextBasedOnLov
+            heading {
+                heading: Tipo
+            }
+            lov {
+                lov: @lov-tipo-formacao
+            }
+            layout {
+                sequence: 4
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn DS_ALERTA_VALIDADE (
+                sequence: 10
+            )
+
+            displayColumn DS_INSTITUICAO (
+                sequence: 2
+            )
+
+            displayColumn DS_LINK (
+                sequence: 9
+            )
+
+            displayColumn DS_NOME_ARQUIVO (
+                sequence: 8
+            )
+
+            displayColumn DS_TITULO (
+                sequence: 3
+            )
+
+            displayColumn DT_CONCLUSAO (
+                sequence: 5
+            )
+
+            displayColumn DT_INICIO (
+                sequence: 4
+            )
+
+            displayColumn DT_VALIDADE (
+                sequence: 6
+            )
+
+            displayColumn NR_CARGA_HORARIA (
+                sequence: 7
+            )
+
+            displayColumn TP_FORMACAO (
+                sequence: 1
+            )
+
+            highlight ir-condition (
+                name: A vencer
+                condition {
+                    column: DS_ALERTA_VALIDADE
+                    value: A VENCER
+                }
+                colors {
+                    background: #fff4db
+                    text: #8a5a00
+                }
+                execution {
+                    sequence: 20
+                }
+            )
+
+            highlight ir-condition-2 (
+                name: Vencida
+                condition {
+                    column: DS_ALERTA_VALIDADE
+                    value: VENCIDA
+                }
+                colors {
+                    background: #fcedec
+                    text: #b3261e
+                }
+                execution {
+                    sequence: 10
+                }
+            )
+
+        )
+
+    )
+
+    region header (
+        name: Cabeçalho
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="hc" data-hc>
+                  <header class="hc-titulo">
+                    <div>
+                      <h1>Formações e certificações</h1>
+                      <p>Cursos, idiomas e certificações de <b>&P19_NM_COLABORADOR!HTML.</b>.
+                         Formações vencidas ou que vencem nos próximos 60 dias aparecem destacadas.</p>
+                    </div>
+                  </header>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 5
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P19_ID_COLABORADOR (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: body
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P19_NM_COLABORADOR (
+        type: hidden
+        layout {
+            sequence: 40
+            slot: body
+        }
+    )
+
+    button create (
+        buttonName: NOVA_FORMACAO
+        label: Nova formação
+        layout {
+            sequence: 10
+            region: @formações-e-certificações
+            slot: rightOfInteractiveReportSearchBar
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 21
+                items: {
+                    P21_ID_COLABORADOR: &P19_ID_COLABORADOR.
+                }
+                clearCache: 21
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+        security {
+            authorizationScheme: @admin-rh
+        }
+    )
+
+    button voltar-ao-historico (
+        buttonName: VOLTAR_AO_HISTORICO
+        label: Voltar ao histórico
+        layout {
+            sequence: 20
+            region: @formações-e-certificações
+            slot: rightOfInteractiveReportSearchBar
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 13
+            }
+        }
+    )
+
+    dynamicAction edit-report-dialog-closed (
+        name: Edit Report - Dialog Closed
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @formações-e-certificações
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @formações-e-certificações
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process validar-acesso (
+        name: Validar acesso
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                if :P19_ID_COLABORADOR is null
+                   or pkg_historico_carreira.fn_pode_ver_colaborador(:P19_ID_COLABORADOR) = 'N' then
+                  raise_application_error(-20012, 'Você não tem acesso a este colaborador.');
+                end if;
+                
+                select nome_completo
+                  into :P19_NM_COLABORADOR
+                  from colaborador
+                 where id_colaborador = :P19_ID_COLABORADOR
+                   and id_empresa     = :G_ID_EMPRESA;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 33898011691350912
+        }
+    )
+
+)
+

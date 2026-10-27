@@ -158,7 +158,7 @@ A coluna `CLASSE_DEPTO` da query pode ser removida depois.
 
 ### Página 2 · Meu perfil · Página 5 · Notificações · Página 6 · Configurações · Página 8 · Notificações · Página 11 · Comunicados oficiais · Página 12 · Colaboradores
 
-Essas páginas só têm a barra de título por enquanto: **nada a ajustar**. Confira o visual e, se o protótipo dessa tela tiver descrição, aplique o passo 1.1. Quando o conteúdo for montado, siga as regras da seção 1 e a tela correspondente em `figma/`.
+Essas páginas só têm a barra de título por enquanto: **nada a ajustar**. Confira o visual e, se o protótipo dessa tela tiver descrição, aplique o passo 1.1. Quando o conteúdo for montado, siga as regras da seção 1 e a tela correspondente em `pen_dev/`.
 
 ---
 
@@ -204,18 +204,7 @@ Siga o `modulos/historico-carreira/Etapas-historico-carreira.md`, item 2. O `his
 
 ### Página 14 · Cadastro de usuários
 
-1. **Cabeçalho:** a região `cadastrar-colaborador-header` tem um `<h1>` e um `<span>` com estilo fixo. Apague essa região e aplique o passo 1.1:
-   - Title: `Cadastro de usuários`
-   - Descrição: `Preencha as informações para registrar um novo colaborador no sistema.`
-2. **Campos obrigatórios:** estes itens têm *Value Required = Yes*, mas usam o template de opcional. Troque o *Label > Template* para **Required - Floating**:
-   - `P14_NOME_COMPLETO`
-   - `P14_EMAIL`
-   - `P14_EMPRESA`
-   - `P14_DEPARTAMENTO`
-   - `P14_CARGO`
-   
-   Se login e senha também forem obrigatórios (há validação para a senha), marque *Value Required = Yes* e use o mesmo template em `P14_LOGIN`, `P14_SENHA` e `P14_CONFIRMAR_SENHA`.
-3. **Botões:** já estão certos. "Cancelar" é *Text*, e "Salvar" é *Text* com Hot.
+Siga [`Etapas-cadastro-colaborador.md`](Etapas-cadastro-colaborador.md): ele refaz a página como o protótipo `Novo colaborador.png` (cabeçalho com trilha, três seções em card, campos obrigatórios com **Required - Floating** e rodapé fixo com os botões) e substitui os passos que ficavam aqui.
 
 ---
 
@@ -237,7 +226,7 @@ Nada obrigatório: o Interactive Report e o botão "Criar" (Hot) já seguem o pa
 
 Já segue o padrão: campos com rótulo flutuante e "Próximo" Hot com ícone à direita.
 
-**Opcional:** renomeie o título da página para "Novo comunicado", para ficar igual ao botão da Home e ao protótipo `figma/Novo comunicado (diálogo).png`.
+**Opcional:** renomeie o título da página para "Novo comunicado", para ficar igual ao botão da Home e ao protótipo `pen_dev/Novo comunicado (diálogo).png`.
 
 ---
 

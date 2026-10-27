@@ -110,6 +110,7 @@ erDiagram
     CARGO |o--o{ HISTORICO_CARREIRA : "id_cargo_anterior / id_cargo_novo"
     DEPARTAMENTO |o--o{ HISTORICO_CARREIRA : "id_departamento_anterior / _novo"
     COLABORADOR |o--o{ HISTORICO_CARREIRA : "id_gestor_anterior / _novo"
+    COLABORADOR |o--o{ HISTORICO_CARREIRA : "id_aprovador"
     HISTORICO_CARREIRA |o--o| HISTORICO_CARREIRA : "id_registro_estornado (estorno)"
     COMUNICADO |o--o{ HISTORICO_CARREIRA : "id_comunicado"
     COLABORADOR ||--o{ FORMACAO_COLABORADOR : "id_colaborador"
@@ -233,8 +234,8 @@ Atenção: `07_testes.sql` insere em `EMPRESA` só `nome, nome_fantasia, cnpj, s
 | 60 | 1 | Diretoria de Tecnologia e Informação |
 
   - Os IDs foram atribuídos manualmente de 10 em 10 (a identity aceita valor explícito).
-  - O nome do id 20 é um cargo ("Diretor… (CHRO)"). `modulos/perfis-acesso/02_seed_departamentos_cargos.sql` renomeia para "Diretoria de Recursos Humanos" e acerta as identities de `DEPARTAMENTO` e `CARGO` (`start with limit value`).
-  - Os nomes do Figma ("Operações", "Vendas", "Diretoria") e os do `07_testes.sql` são exemplos e não batem com estes.
+  - O nome do id 20 é um cargo ("Diretor… (CHRO)"). `modulos/perfis-acesso/02_seed_departamentos_cargos.sql` renomeia para "Diretoria de Recursos Humanos" e acerta as identities de `DEPARTAMENTO`, `CARGO` e `COLABORADOR` (`start with limit value`). Sem isso, inserir pela P14 dá `ORA-00001` na PK, porque os dados foram carregados com IDs manuais.
+  - Os nomes do pen.dev ("Operações", "Vendas", "Diretoria") e os do `07_testes.sql` são exemplos e não batem com estes.
   - Para atualizar a lista: `select id_departamento, id_empresa, nome from departamento order by 1;` no banco.
 
 ### 3.3 `CARGO`
@@ -249,7 +250,8 @@ Atenção: `07_testes.sql` insere em `EMPRESA` só `nome, nome_fantasia, cnpj, s
 
 - `ID_DEPARTAMENTO` é obrigatório, mas não tem FK para `DEPARTAMENTO`: o banco aceita id inexistente ou de outra empresa. A regra cargo ∈ departamento só é garantida pelo `PKG_HISTORICO_CARREIRA` (-20014).
 - `NIVEL` não é usado em nenhuma página nem package do repo.
-- Regra implícita: o LOV de gestor da P14 considera gestor quem tem `CARGO.NOME = 'Gestor'` (hard-coded).
+- O LOV de gestor da P14 considera gestor quem tem o papel `gestor` no cargo (`CARGO_PAPEL`).
+- Empresa 1: os colaboradores estão nos cargos com IDs 101–604. Os IDs 605–633 foram criados pelo seed de perfis de acesso e estão vazios (na maioria, duplicatas com nomes da matriz). Detalhes em `modulos/perfis-acesso/Registro-implantacao.md`.
 - Leitura: P1, P4, P14, proc. `APP_USER_CARGO`, views, packages. Escrita: nenhuma página (só testes).
 
 ### 3.4 `COLABORADOR` (tabela central)
@@ -277,7 +279,7 @@ Atenção: `07_testes.sql` insere em `EMPRESA` só `nome, nome_fantasia, cnpj, s
 | `DESCRIPTION` | VARCHAR2(255) | sim | não usado no repo |
 
 - Sem unique em `LOGIN_APEX`: o código trata `TOO_MANY_ROWS`. Recomendado: unique em `upper(login_apex)`.
-- Inconsistência de caminho de foto: P1 usa `#APP_FILES#Fotos Colaboradores/<FOTO_URL>`; `APP_USER_FOTO` e P1 (gestor) usam `#APP_FILES#fotos/<FOTO_URL>`; o organograma usa `FOTO_URL` como URL completa.
+- Caminho de foto: `APP_USER_FOTO` e P1 usam `#APP_FILES#Fotos Colaboradores/<FOTO_URL>` (sem foto → nulo e avatar de iniciais de `PRIMEIRO_NOME`/`ULTIMO_NOME`); o organograma monta a mesma pasta no navegador (`apex.env.APP_FILES` + `Fotos Colaboradores/<FOTO_URL>`, ver 06).
 - Quem lê: praticamente tudo (procs. de app `APP_USER_CARGO`, `APP_USER_FOTO`, `G_NOME_EMPRESA`; P1, P4, P14, P17; LOVs; views; packages).
 - Quem escreve: P14 (form DML, insert) + `APEX_UTIL.CREATE_USER` (conta APEX com `P14_LOGIN`); `PKG_HISTORICO_CARREIRA.efetivar_movimentacao` / `estornar_movimentacao` (`UPDATE` de `ID_CARGO`, `ID_DEPARTAMENTO`, `ID_GESTOR`, `STATUS`, `DATA_ADMISSAO`).
 
@@ -513,14 +515,14 @@ Nenhuma das duas é usada pelas páginas versionadas (a P4 consulta `CANAL_MENSA
 | `DT_CRIACAO` | TIMESTAMP WITH TIME ZONE default `systimestamp` | não |
 | `USR_CRIACAO` | VARCHAR2(255) default usuário APEX/sessão | não |
 
-PK `(ID_CARGO, CD_PAPEL)`; índice `IDX_CARGO_PAPEL_PAPEL (CD_PAPEL)`. O papel `colaborador` não é gravado: o package dá a todos. A matriz cargo × papel da empresa 1 está em `02_seed_departamentos_cargos.sql` (30 cargos em 6 departamentos; cargos antigos chamados "Gestor" recebem `gestor`).
+PK `(ID_CARGO, CD_PAPEL)`; índice `IDX_CARGO_PAPEL_PAPEL (CD_PAPEL)`. O papel `colaborador` não é gravado: o package dá a todos. A matriz cargo × papel da empresa 1 está em `02_seed_departamentos_cargos.sql` (30 cargos em 6 departamentos; cargos antigos chamados "Gestor" recebem `gestor`). Na empresa 1, os nomes da matriz não batiam com os cargos em uso, e os papéis foram vinculados à mão aos cargos antigos (lista em `modulos/perfis-acesso/Registro-implantacao.md` §3.1).
 
 ### `PKG_PERFIS_ACESSO` (`authid definer`)
 
 | Rotina | Faz |
 |---|---|
 | `papeis_do_cargo(p_id_cargo) return apex_t_varchar2` | `colaborador` + `CD_PAPEL` do cargo |
-| `atribuir_papeis(p_login, p_id_cargo, p_application_id default APP_ID)` | Para cada papel: confere se existe em `APEX_APPL_ACL_ROLES` (-20102) e chama `apex_acl.add_user_role` se o usuário ainda não tem (`apex_acl.has_user_role`). Login vazio → -20101. Só adiciona: não remove papéis. Precisa de sessão APEX. |
+| `atribuir_papeis(p_login, p_id_cargo, p_application_id default APP_ID)` | Para cada papel: confere se existe em `APEX_APPL_ACL_ROLES` (-20102) e chama `apex_acl.add_user_role` se o usuário ainda não tem (`apex_acl.has_user_role`). Login vazio → -20101. Só adiciona: não remove papéis. Precisa de sessão da app: fora dela, `apex_acl.add_user_role` dá `ORA-01403`, e no SQL Commands não dá para criar sessão (`ORA-20987`). Use a P14, o Builder ou o SQLcl. |
 
 Usado pela P14 (processo "Atribuir papéis do cargo"). A LOV `P14_GESTOR` lista colaboradores da empresa cujo cargo tem `gestor` em `CARGO_PAPEL`.
 
@@ -585,18 +587,20 @@ Imutável após `EFETIVADO`; correção = estorno + novo lançamento. **Nunca fa
 | `ST_REGISTRO` | VARCHAR2(10) | não | `'RASCUNHO'` | `RASCUNHO` / `EFETIVADO` / `ESTORNADO` |
 | `ID_REGISTRO_ESTORNADO` | NUMBER | sim | | Só em lançamentos de estorno: aponta o original (auto-FK) |
 | `ID_COMUNICADO` | NUMBER | sim | | FK→COMUNICADO publicado na efetivação |
+| `ID_APROVADOR` | NUMBER | sim | | FK→COLABORADOR; quem aprovou ("Aprovado por" na p. 13). Informado pelo RH; mesma empresa; ≠ colaborador. Em bancos antigos é adicionada pelo bloco de migração do `01_` |
 | `DT_EFETIVACAO` | TIMESTAMP WITH TIME ZONE | sim | | Quando foi efetivado |
 | `USR_EFETIVACAO` | VARCHAR2(255) | sim | | Quem efetivou |
 | auditoria | | | | |
 
 Constraints:
-- PK `historico_carreira_pk`; 11 FKs (`_empresa_fk`, `_colab_fk`, `_tipo_fk`, `_cargo_ant_fk`, `_depto_ant_fk`, `_gestor_ant_fk`, `_cargo_novo_fk`, `_depto_novo_fk`, `_gestor_novo_fk`, `_estorno_fk`, `_comunicado_fk`).
+- PK `historico_carreira_pk`; 12 FKs (`_empresa_fk`, `_colab_fk`, `_tipo_fk`, `_cargo_ant_fk`, `_depto_ant_fk`, `_gestor_ant_fk`, `_cargo_novo_fk`, `_depto_novo_fk`, `_gestor_novo_fk`, `_estorno_fk`, `_comunicado_fk`, `_aprovador_fk`).
 - `historico_carreira_estorno_uk unique (id_registro_estornado)` — um lançamento só é estornado uma vez.
 - `_st_ck`: status no domínio.
 - `_estorno_ck`: `id_registro_estornado is null or (st_registro='EFETIVADO' and id_registro_estornado <> id_historico_carreira)`.
 - `_efetivacao_ck`: `st_registro='RASCUNHO' or dt_efetivacao is not null`.
 - `_sal_ant_ck`, `_sal_novo_ck`: salários ≥ 0.
 - `_gestor_ck`: `id_gestor_novo is null or id_gestor_novo <> id_colaborador`.
+- `_aprovador_ck`: `id_aprovador is null or id_aprovador <> id_colaborador`.
 
 Índices: `historico_carreira_emp_colab_ix (id_empresa,id_colaborador)`, `_colab_dt_ix (id_colaborador, st_registro, dt_efetiva)`, `_emp_dt_ix (id_empresa, dt_efetiva)`, e um índice por FK (`_tipo_ix`, `_cargo_ant_ix`, `_cargo_nov_ix`, `_dep_ant_ix`, `_dep_nov_ix`, `_ges_ant_ix`, `_ges_nov_ix`, `_comunic_ix`).
 
@@ -690,7 +694,7 @@ Escrita: `solicitar_correcao`, `responder_solicitacao`. Leitura: `PKG_HISTORICO_
 `HISTORICO_CARREIRA ⋈ TIPO_MOVIMENTACAO` onde `st_registro='EFETIVADO' and id_registro_estornado is null`. Colunas: `id_historico_carreira, id_empresa, id_colaborador, id_tipo_movimentacao, cd_tipo, ds_tipo, dt_efetiva, id_cargo_/id_departamento_/id_gestor_ anterior e novo`. **Sem salário.** É a cadeia de eventos que define a situação atual; usada por `ultimo_valido`, `dt_admissao_referencia`, `VW_SITUACAO_ATUAL_COLABORADOR` e pelo pacote de UI.
 
 ### 6.2 `VW_HISTORICO_CARREIRA` (03)
-Todos os lançamentos (inclusive rascunhos e estornos) com nomes resolvidos (`nm_colaborador`, `nm_cargo_anterior/novo`, `nm_departamento_anterior/novo`, `nm_gestor_anterior/novo`, `ds_tipo`, `ds_icone`, `ds_cor`, `cd_tipo`), `fl_estorno` (`'S'`/`'N'`), todos os campos de status/auditoria. `VL_SALARIO_ANTERIOR`/`VL_SALARIO_NOVO` saem **nulos** a menos que `(select fn_carreira_ve_salario from dual) = 'S'` (scalar subquery → avaliada uma vez por consulta). Uso planejado: IR "Lançamentos (RH)" da P13.
+Todos os lançamentos (inclusive rascunhos e estornos) com nomes resolvidos (`nm_colaborador`, `nm_cargo_anterior/novo`, `nm_departamento_anterior/novo`, `nm_gestor_anterior/novo`, `nm_aprovador`, `ds_tipo`, `ds_icone`, `ds_cor`, `cd_tipo`), `fl_estorno` (`'S'`/`'N'`), todos os campos de status/auditoria. `VL_SALARIO_ANTERIOR`/`VL_SALARIO_NOVO` saem **nulos** a menos que `(select fn_carreira_ve_salario from dual) = 'S'` (scalar subquery → avaliada uma vez por consulta). Uso planejado: IR "Lançamentos (RH)" da P13.
 
 ### 6.3 `VW_CARREIRA_TIMELINE` (03)
 `UNION ALL` de:
@@ -714,7 +718,7 @@ Só auditoria/integridade; regras de negócio ficam no package.
 |---|---|---|---|
 | `TRG_CONFIG_CARREIRA_AUD` | CONFIG_CARREIRA | before insert/update, row | Força `DT_/USR_CRIACAO` no insert (zera alteração); no update preserva criação e seta `DT_/USR_ALTERACAO`. Impede forjar autoria. |
 | `TRG_TIPO_MOVIMENTACAO_AUD` | TIPO_MOVIMENTACAO | idem | idem |
-| `TRG_HISTORICO_CARREIRA_AUD` | HISTORICO_CARREIRA | before insert/update/delete, row | Colunas de auditoria + **imutabilidade**: se `:old.st_registro <> 'RASCUNHO'`, o único UPDATE aceito é `EFETIVADO → ESTORNADO` sem mudar nenhuma outra coluna de negócio (compara 19 colunas, CLOB via `dbms_lob.compare`); senão `-20013`. DELETE de não-rascunho → `-20013`. |
+| `TRG_HISTORICO_CARREIRA_AUD` | HISTORICO_CARREIRA | before insert/update/delete, row | Colunas de auditoria + **imutabilidade**: se `:old.st_registro <> 'RASCUNHO'`, o único UPDATE aceito é `EFETIVADO → ESTORNADO` sem mudar nenhuma outra coluna de negócio (compara 20 colunas, incluindo `id_aprovador`, CLOB via `dbms_lob.compare`); senão `-20013`. DELETE de não-rascunho → `-20013`. |
 | `TRG_HISTORICO_CARREIRA_LOG` | HISTORICO_CARREIRA | after I/U/D, row | Insere em `LOG_AUDITORIA_CARREIRA` (`ST_ANTERIOR`/`ST_NOVO` = status). |
 | `TRG_FORMACAO_COLABORADOR_AUD` | FORMACAO_COLABORADOR | before I/U | auditoria |
 | `TRG_FORMACAO_COLABORADOR_LOG` | FORMACAO_COLABORADOR | after I/U/D | log (sem status) |
@@ -765,6 +769,7 @@ Códigos de erro (`raise_application_error`, mensagens em PT-BR amigáveis):
 | `c_err_gestor` | -20017 | MUDANCA_GESTOR sem gestor/igual ao atual; gestor = o próprio colaborador |
 | `c_err_registro` | -20018 | Lançamento não encontrado (ou de outro colaborador na solicitação) |
 | `c_err_solicitacao` | -20019 | Solicitação sem mensagem, não encontrada, status inválido, recusa sem resposta |
+| `c_err_aprovador` | -20020 | Aprovador = o próprio colaborador, inexistente ou de outra empresa |
 
 Outras: `c_st_rascunho/efetivado/estornado`, `c_auth_admin_rh = 'ADMIN_RH'`, `c_dias_futuro_padrao = 30`, `c_fuso_padrao = 'America/Sao_Paulo'`.
 Privadas relevantes: códigos com comportamento próprio `ADMISSAO, PROMOCAO, MUDANCA_CARGO, TRANSFERENCIA_DEPTO, MUDANCA_GESTOR, DESLIGAMENTO`; `altera_estrutura()` = esses menos DESLIGAMENTO (os demais tipos têm cargo/depto/gestor novos descartados); `c_max_titulo_comunicado = 100`; `g_empresa_batch` (empresa de contexto fora do APEX).
@@ -776,7 +781,7 @@ Privadas relevantes: códigos com comportamento próprio `ADMISSAO, PROMOCAO, MU
 | `fn_hoje` | `(p_id_empresa number) return date` | `trunc` da data local no fuso da empresa. Use no lugar de `SYSDATE` para datas de negócio. |
 | `fn_data_local` | `(p_id_empresa number, p_momento timestamp with time zone) return date` | Converte instante para data/hora local (`at time zone fuso`). |
 | `fn_id_tipo` | `(p_id_empresa number, p_cd_tipo varchar2) return number` | ID do tipo por código (`upper`); -20002 se não existe. |
-| `registrar_movimentacao` | `(p_id_colaborador, p_id_tipo_movimentacao, p_dt_efetiva date, p_id_cargo_novo, p_id_departamento_novo, p_id_gestor_novo, p_vl_salario_anterior, p_vl_salario_novo, p_ds_motivo varchar2, p_ds_observacao clob) return number` (todos após `p_dt_efetiva` default null) | Exige ADMIN_RH; carrega colaborador (checa tenant) e tipo (ativo, mesma empresa); `validar`; insere RASCUNHO com snapshot anterior = cadastro atual; `vl_salario_anterior` default = `vl_salario_novo` do último válido. Retorna ID. |
+| `registrar_movimentacao` | `(p_id_colaborador, p_id_tipo_movimentacao, p_dt_efetiva date, p_id_cargo_novo, p_id_departamento_novo, p_id_gestor_novo, p_vl_salario_anterior, p_vl_salario_novo, p_ds_motivo varchar2, p_ds_observacao clob, p_id_aprovador) return number` (todos após `p_dt_efetiva` default null) | Exige ADMIN_RH; carrega colaborador (checa tenant) e tipo (ativo, mesma empresa); `validar`; insere RASCUNHO com snapshot anterior = cadastro atual; `vl_salario_anterior` default = `vl_salario_novo` do último válido. Retorna ID. |
 | `atualizar_rascunho` | `(p_id_historico_carreira, p_id_tipo_movimentacao, p_dt_efetiva, ...mesmos opcionais)` | ADMIN_RH; lock; só RASCUNHO (-20009); revalida; atualiza (colaborador não muda; snapshot anterior recalculado). |
 | `excluir_rascunho` | `(p_id_historico_carreira)` | ADMIN_RH; só RASCUNHO; DELETE. |
 | `efetivar_movimentacao` | `(p_id)` | ADMIN_RH; lock do lançamento e do colaborador (serializa efetivações concorrentes); revalida; calcula cargo/depto/gestor finais (`coalesce(novo, atual)`) e status (DESLIGAMENTO → false; readmissão → true); publica comunicado (antes do UPDATE); UPDATE para EFETIVADO com snapshot completo, `vl_salario_novo = coalesce(novo, anterior)`, `dt_efetivacao`, `usr_efetivacao`; UPDATE `COLABORADOR` (`id_cargo, id_departamento, id_gestor, status`, `data_admissao` = `dt_efetiva` se readmissão). |
@@ -811,7 +816,7 @@ Comunicado automático (`publicar_comunicado`, privada): só se `FL_COMUNICADO_A
 ## 10. Package `PKG_HISTORICO_CARREIRA_UI` (`08_pkg_historico_carreira_ui.sql`, `authid definer`)
 
 Público: `function render(p_id_colaborador number) return clob` — HTML completo da página 13 (região Dynamic Content). Gera -20012 se `fn_pode_ver_colaborador = 'N'`.
-Constantes de navegação: `c_pagina_organograma = 3` / `P3_ID_FOCO`; `c_pagina_comunicado = 11` / item nulo; `c_pagina_holerite = null`; `c_pagina_solicitacao = 22` / `P22_ID_COLABORADOR`; `c_pagina_painel_rh = 20`. (Páginas 18–23 **ainda não existem** no app.)
+Constantes de navegação: `c_pagina_organograma = 3` / `P3_ID_FOCO`; `c_pagina_comunicado = 11` / item nulo; `c_pagina_holerite = null`; `c_pagina_solicitacao = 22` / `P22_ID_COLABORADOR`; `c_pagina_painel_rh = 20`. (As páginas 18–23 estão em `corlixhub/pages/`.)
 Lê: `COLABORADOR`, `EMPRESA`, `CARGO`, `DEPARTAMENTO`, `HISTORICO_CARREIRA`, `TIPO_MOVIMENTACAO`, `FORMACAO_COLABORADOR`, `CONFIG_CARREIRA`, `SOLICITACAO_CORRECAO`, `VW_MOVIMENTACAO_VALIDA`, `VW_SITUACAO_ATUAL_COLABORADOR`. Não escreve.
 Regras de exibição: **nunca exibe salário**; eventos `MERITO` só para o próprio colaborador e RH (fora do APEX = RH); motivo de `AFASTAMENTO`/`RETORNO` oculto para quem não é o próprio nem RH; marcos de tempo de casa gerados por `connect by level` a cada 12 meses; escapa tudo com `apex_escape.html`/`html_attribute`.
 
@@ -871,7 +876,7 @@ Não existe seed de `EMPRESA`/`COLABORADOR` etc. no repo (o `seed_corlixhub.sql`
 - Cria 2 empresas fictícias (A e B), departamentos, cargos e 5 colaboradores cada (INSERTs diretos em `EMPRESA(nome, nome_fantasia, cnpj, status, data_criacao)`, `DEPARTAMENTO(id_empresa, nome)`, `CARGO(id_empresa, id_departamento, nome)`, `COLABORADOR(id_empresa, nome_completo, primeiro_nome, ultimo_nome, email, login_apex, data_admissao, data_de_nascimento, id_departamento, id_cargo, id_gestor, status)`). PKs são identity, como o teste supõe. **O INSERT de `EMPRESA` falha contra o schema real**: `EMAIL_CORPORATIVO`, `TELEFONE`, `CEP`, `LOGRADOURO`, `NUMERO`, `BAIRRO`, `CIDADE` e `UF` são `NOT NULL` (§3.1). Ajuste `nova_empresa` com valores fictícios antes de rodar.
 - Tudo em uma transação; termina em **ROLLBACK** (nada fica no banco). Em erro inesperado imprime backtrace, zera contexto e faz rollback + raise.
 - Saída: linhas `[OK]`/`[FALHA]` e `=== Resumo: N OK | Falhas: 0 ===`.
-- Cobertura (T01–T42): admissão automática; rascunho vs efetivação; comunicado sem salário; cada código de erro -20003..-20019; isolamento entre empresas (T09–T12, T25–T28, T42); UPDATE/DELETE direto bloqueado (T13–T14); estorno em ordem e restauração (T17–T20); desligamento/readmissão (T21–T24); salário mascarado fora de ADMIN_RH (T29); `fn_tempo_no_cargo`/`fn_tempo_de_casa` (T31); trilha de auditoria (T32); mudança de gestão (T33–T35); solicitações (T36–T39); render da UI sem salário (T40–T41).
+- Cobertura (T01–T42): admissão automática; rascunho vs efetivação; comunicado sem salário; cada código de erro -20003..-20020 (aprovador: T02f, T12b–c, T13b, T41b); isolamento entre empresas (T09–T12, T25–T28, T42); UPDATE/DELETE direto bloqueado (T13–T14); estorno em ordem e restauração (T17–T20); desligamento/readmissão (T21–T24); salário mascarado fora de ADMIN_RH (T29); `fn_tempo_no_cargo`/`fn_tempo_de_casa` (T31); trilha de auditoria (T32); mudança de gestão (T33–T35); solicitações (T36–T39); render da UI sem salário (T40–T41).
 
 ---
 

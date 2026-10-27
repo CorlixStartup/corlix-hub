@@ -1,6 +1,6 @@
 # Tema Corlix
 
-Tema visual do Corlix Hub, baseado nos protótipos do Figma exportados em `figma/`. A referência principal é a prancha **"Design System · Redwood Light (CorlixHub)"**. O tema fica em `corlixhub/shared-components/static-files/corlix-tema.css`.
+Tema visual do Corlix Hub, baseado nos protótipos do pen.dev exportados em `pen_dev/`. A referência principal é a prancha **"Design System · Redwood Light (CorlixHub)"**. O tema fica em `corlixhub/shared-components/static-files/corlix-tema.css`.
 
 ## Como foi construído
 
@@ -19,7 +19,7 @@ Por isso o tema não é um tema novo nem um template novo. É uma camada de vari
 | Botão secundário | cinza neutro | cinza quente `#EAE7E3` |
 | Foco do teclado | tracejado de 1px | contorno sólido de 2px na primária |
 
-A **fonte** continua a Oracle Sans do Redwood. O Figma usa Figtree só porque a Oracle Sans não está disponível lá. Cantos de botões e campos, rótulo flutuante, switch, checkbox e alertas também ficam como no Redwood, porque a prancha já os desenha assim.
+A **fonte** é a Figtree e os **ícones** são Lucide, como no protótipo (desde 26/10/2026; antes ficava a Oracle Sans do Redwood). Ver `Etapas-fonte-e-icones.md`. Cantos de botões e campos, rótulo flutuante, switch, checkbox e alertas também ficam como no Redwood, porque a prancha já os desenha assim.
 
 Os nomes das variáveis (`--ut-*`, `--a-*`, `--rw-palette-*`) foram extraídos do CSS do Universal Theme 26.1.5 servido pela própria instância. Se uma atualização do APEX renomear alguma, o tema perde só aquele ajuste, sem quebrar a página.
 
@@ -94,7 +94,7 @@ O seletor do item atual no menu lateral é o ponto mais sensível. Se a barra az
 
 ## Decisões da prancha que não são de tema
 
-A seção "Estrutura da aplicação" da prancha traz mudanças de navegação. Elas pedem alterações em listas, templates e páginas, não em CSS, e ficaram fora deste arquivo:
+A seção "Estrutura da aplicação" da prancha traz mudanças de navegação. Elas pedem alterações em listas, templates e páginas, não em CSS. O passo a passo do header e do menu lateral (grupos do menu, menu do usuário com Meu perfil e Sair, menu aberto por padrão) está em [`Etapas-header-e-menu.md`](Etapas-header-e-menu.md) (fonte Figtree e ícones Lucide: [`Etapas-fonte-e-icones.md`](Etapas-fonte-e-icones.md); página 14 como o protótipo `Novo colaborador.png`: [`Etapas-cadastro-colaborador.md`](Etapas-cadastro-colaborador.md)); "Preferências", "Minha equipe" e "Minhas aprovações" esperam as páginas existirem:
 
 - **"Emitir comunicado":** deixa de ser filho de Início e vira o botão "Novo comunicado" na região Comunicados.
 - **"Sair":** sai do rodapé do menu lateral e vai para o menu do usuário, junto com "Meu perfil" e "Preferências". Hoje o `custom.css` ainda estiliza o último item do menu como botão de rodapé; isso sai junto.
@@ -106,4 +106,4 @@ A seção "Estrutura da aplicação" da prancha traz mudanças de navegação. E
 ## Fora do escopo
 
 - **Modo escuro:** a prancha só tem a versão clara.
-- **As telas de `figma/`:** o tema cobre os componentes da prancha. Cada tela ainda precisa ser montada ou ajustada página a página, como foi feito com o organograma e o histórico de carreira.
+- **As telas de `pen_dev/`:** o tema cobre os componentes da prancha. Cada tela ainda precisa ser montada ou ajustada página a página, como foi feito com o organograma e o histórico de carreira.

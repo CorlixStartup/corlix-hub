@@ -17,9 +17,11 @@ Ao efetivar uma movimentação, o cargo, o departamento, o gestor e o status do 
 | `03_views_carreira.sql` | Views e `FN_CARREIRA_VE_SALARIO` |
 | `04_pkg_historico_carreira.pks` / `.pkb` | Package com as regras de negócio |
 | `05_triggers_auditoria.sql` | Auditoria e trilha de alterações |
-| `06_carga_inicial.sql` | Admissão dos colaboradores que já existem |
+| `06_carga_inicial.sql` | Admissão dos colaboradores que já existem. Rode no SQLcl ou SQL Developer, **não** no SQL Workshop (lá todos falham em silêncio; veja `docs/ai-context/09-erros-e-solucoes.md` §3.3) |
 | `07_testes.sql` | 2 empresas, 10 colaboradores, um teste por regra e prova de isolamento (termina em rollback) |
 | `08_pkg_historico_carreira_ui.sql` | Package que renderiza a página 13 no layout do protótipo |
+| `09_dados_demo_dashboard.sql` | **Opcional, fora do `instalar.sql`.** Massa `[DEMO]` (16 colaboradores, promoções, desligamentos, formações e solicitações) para testar o Dashboard RH na empresa escolhida |
+| `10_remover_dados_demo.sql` | Apaga tudo o que o `09` criou. Desliga a trigger da trilha só durante o DELETE e a religa |
 | `historico-carreira.css` | Estilos da página 13 (tokens do protótipo, responsivo e impressão) |
 | `historico-carreira-pagina.js` | Abas, filtro de ano e Exportar PDF da página 13 |
 | `historico-carreira.js` | Campos dinâmicos da modal de movimentação (página 18) |
@@ -149,12 +151,13 @@ stateDiagram-v2
 - **Página no layout do protótipo.** A página 13 é uma região Dynamic Content renderizada por `PKG_HISTORICO_CARREIRA_UI`, o mesmo padrão do organograma. O layout (faixa de cargos proporcional ao tempo, antes/depois, abas com contagem) não cabe nos templates prontos do Universal Theme. As abas e o filtro de ano rodam no navegador, sem nova ida ao servidor. "Exportar PDF" usa a impressão do navegador, com CSS próprio para impressão.
 - **Comunicado automático.** Admissão, readmissão, promoção e transferência efetivadas publicam um comunicado em `COMUNICADO` para o departamento de destino, na mesma transação da efetivação. Mérito, mudança de gestão, afastamento e desligamento nunca geram comunicado, e o texto nunca menciona salário. Cada empresa pode desligar isso em `CONFIG_CARREIRA.FL_COMUNICADO_AUTOMATICO`. A carga inicial não publica nada.
 - **Mudança de gestão e efetivação de contrato.** O protótipo tem esses eventos, então viraram tipos próprios (`MUDANCA_GESTOR`, que exige um gestor novo diferente do atual, e `EFETIVACAO_CONTRATO`, um evento genérico).
+- **Aprovado por.** Não existe fluxo de aprovação: o RH informa quem aprovou (`ID_APROVADOR`, opcional, da mesma empresa e nunca o próprio colaborador) e a linha do tempo mostra "Aprovado por ...". Como o resto do lançamento, fica imutável depois de efetivado.
 - **Solicitar correção.** O colaborador não altera o histórico: ele abre um pedido em `SOLICITACAO_CORRECAO`, e o RH corrige por estorno + novo lançamento e marca o pedido como resolvido (ou recusa, com justificativa).
 - **O que cada perfil vê na página.** Reajustes por mérito aparecem só para o próprio colaborador e para o RH. O motivo de afastamentos fica oculto para o gestor, porque pode conter dado de saúde.
 
 ### Limitações conhecidas
 
-- **Itens do protótipo sem dado.** PDI, Resultados 360, "Aprovado por" e o regime de contratação ("CLT") não existem no modelo atual (ver `Etapas-historico-carreira.md`, item 2.8).
+- **Itens do protótipo sem dado.** PDI, Resultados 360 e o regime de contratação ("CLT") não existem no modelo atual (ver `Etapas-historico-carreira.md`, item 2.8).
 - **Comunicado sem imagem.** Os comunicados automáticos não têm imagem de capa. Na Home, o card reserva 260px para a capa, então aparece um espaço vazio. Vale definir uma imagem padrão para comunicados sem `IMAGEM`.
 
 - **Remover o gestor.** Uma movimentação não consegue deixar o colaborador sem gestor (gestor vazio significa "manter o atual").

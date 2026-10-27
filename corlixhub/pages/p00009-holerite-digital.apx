@@ -1,0 +1,218 @@
+page 9 (
+    name: Holerite Digital
+    alias: HOLERITE-DIGITAL
+    title: Holerite Digital
+    appearance {
+        pageTemplate: @corlix-standard-page
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        inline:
+            ```css
+            .holerite-card {
+                max-width: 850px;
+                margin: 15px auto;
+                background: #ffffff;
+                border: 1px solid #dcdcdc;
+                border-radius: 8px;
+                padding: 20px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                font-family: Arial, sans-serif;
+            }
+            .holerite-header {
+                display: flex;
+                justify-content: space-between;
+                border-bottom: 2px solid #0056b3;
+                padding-bottom: 10px;
+                margin-bottom: 15px;
+            }
+            .holerite-header h2 { margin: 0; font-size: 18px; color: #0056b3; }
+            .holerite-info { width: 100%; margin-bottom: 15px; font-size: 14px; }
+            .holerite-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+            .holerite-table th, .holerite-table td { border: 1px solid #e0e0e0; padding: 8px 12px; font-size: 13px; }
+            .holerite-table th { background-color: #f4f6f9; text-align: left; }
+            .holerite-totals { display: flex; justify-content: space-between; background: #f8f9fa; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+            .net-salary { color: #28a745; font-size: 15px; }
+            
+            #P9_MES, #P9_ANO {
+                font-weight: bold;
+            }
+            
+            #P9_MES_LABEL, #P9_ANO_LABEL {
+                font-weight: bold;
+            }
+            ```
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region filtro-de-período (
+        name: Filtro de Período
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region navegação-estrutural (
+        name: Navegação Estrutural
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region visualização-do-holerite (
+        name: Visualização do Holerite
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                DECLARE
+                    v_mes NUMBER;
+                    v_ano NUMBER;
+                BEGIN
+                    -- Conversão protegida: se o filtro estiver vazio ou inválido, assume o padrão seguro
+                    BEGIN
+                        v_mes := TO_NUMBER(:P9_MES);
+                    EXCEPTION
+                        WHEN OTHERS THEN v_mes := 10;
+                    END;
+                    
+                    BEGIN
+                        v_ano := TO_NUMBER(:P9_ANO);
+                    EXCEPTION
+                        WHEN OTHERS THEN v_ano := 2026;
+                    END;
+                
+                    -- Chama a função com os números validados
+                    RETURN pkg_holerite.render(p_mes => v_mes, p_ano => v_ano);
+                END;
+                ```
+            pageItemsToSubmit: [
+                P9_MES
+                P9_ANO
+            ]
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--removeHeader js-removeLandmark
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    pageItem P9_ANO (
+        type: selectList
+        label {
+            label: Ano
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:2026;2026,2027;2027
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 20
+            region: @filtro-de-período
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 5
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        default {
+            type: static
+            staticValue: 2026
+        }
+    )
+
+    pageItem P9_MES (
+        type: selectList
+        label {
+            label: Mês
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Janeiro;1,Fevereiro;2,Março;3,Abril;4,Maio;5,Junho;6,Julho;7,Agosto;8,Setembro;9,Outubro;10,Novembro;11,Dezembro;12
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @filtro-de-período
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+            columnSpan: 5
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    dynamicAction recarregar-holerite (
+        name: Recarregar Holerite
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: [
+                P9_MES
+                P9_ANO
+            ]
+        }
+
+        action native-submit-page (
+            action: submitPage
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)
+

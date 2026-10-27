@@ -14,6 +14,11 @@
      6. Card: Meu Gestor
      7. Card: Links Rápidos
      8. Card: Aniversariantes
+     9–10. Popup Todos os aniversariantes
+     11. Classes do design system (Home e cadastros)
+     12. Home (redesign · pen_dev/Início.png)
+     13. Busca na intranet (pen_dev/Busca (resultados).png)
+     14. Cadastro de colaborador (pen_dev/Novo colaborador.png)
    ============================================================ */
 
 
@@ -33,53 +38,8 @@
     margin-bottom: 0 !important;
 }
 
-/* Menu lateral: empurra o último item (ex.: botão de ação) para o rodapé do menu */
-#t_TreeNav>ul[role="group"] {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child {
-    margin-top: auto;
-    padding: 16px;
-    /* Espaço entre a linha divisória e as bordas do botão */
-    border-top: 1px solid var(--cx-borda);
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child>.a-TreeView-row {
-    /* Remove o efeito de hover/seleção padrão do tema */
-    display: none;
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child>.a-TreeView-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background-color: var(--cx-btn);
-    border-radius: var(--cx-raio);
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child>.a-TreeView-content:hover {
-    background-color: var(--cx-btn-hover);
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child .a-TreeView-label {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--cx-texto);
-    text-decoration: none;
-    margin: 0;
-}
-
-#t_TreeNav>ul[role="group"]>li:last-child .fa {
-    font-size: 16px;
-    color: var(--cx-texto);
-}
+/* O "Sair" saiu do menu lateral e foi para o menu do usuário (§2); o menu não
+   tem mais item fixo no rodapé. */
 
 
 /* ============================================================
@@ -105,10 +65,12 @@
     margin-left: 24px;
 }
 
-.corlix-header__search-icon {
+/* Dois seletores: o Core do UT tem .apex-icons-fontapex .fa { position: relative },
+   que vencia a classe sozinha e deixava a lupa no fluxo, empurrando o campo 14px */
+.corlix-header__search .corlix-header__search-icon {
     position: absolute;
-    left: 12px;
-    color: var(--cx-texto-3);
+    left: 14px;
+    color: var(--cx-texto-2);
     font-size: 14px;
     pointer-events: none;
 }
@@ -116,7 +78,7 @@
 .corlix-header__search-input {
     width: 100%;
     height: 36px;
-    padding: 0 12px 0 36px;
+    padding: 0 12px 0 38px;
     border: 1px solid var(--cx-borda);
     border-radius: var(--cx-raio);
     background: var(--cx-tag);
@@ -164,21 +126,37 @@
     background: rgba(22, 21, 19, .06);
 }
 
+/* Divisor entre o sino e o usuário */
+.corlix-header__divisor {
+    width: 1px;
+    height: 24px;
+    margin: 0 4px;
+    background: var(--cx-borda);
+}
+
+/* Botão do usuário: avatar + nome + seta; abre o menu do usuário (popover) */
 .corlix-header__user {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-left: 8px;
-    padding: 4px 8px 4px 12px;
-    border-left: 1px solid var(--cx-borda);
+    height: 40px;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: var(--cx-raio);
+    background: transparent;
+    color: var(--cx-texto);
+    font: inherit;
     cursor: pointer;
 }
 
-.corlix-header__user-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    line-height: 1.2;
+.corlix-header__user:hover,
+.corlix-header__user:has(+ .cx-menu-usuario:popover-open) {
+    background: rgba(22, 21, 19, .06);
+}
+
+.corlix-header__user:focus-visible {
+    outline: 2px solid var(--cx-primaria);
+    outline-offset: 2px;
 }
 
 .corlix-header__user-name {
@@ -187,9 +165,9 @@
     color: var(--cx-texto);
 }
 
-.corlix-header__user-role {
+.corlix-header__user-seta {
     font-size: 12px;
-    color: var(--cx-texto-3);
+    color: var(--cx-texto-2);
 }
 
 .corlix-header__avatar {
@@ -197,6 +175,76 @@
     height: 32px;
     border-radius: 50%;
     object-fit: cover;
+}
+
+/* --- Menu do usuário (atributo popover: abre/fecha sem JS, fecha com Esc ou clique fora) --- */
+
+.cx-menu-usuario {
+    position: fixed;
+    inset: auto;
+    top: calc(var(--ut-header-height, 3.5rem) - 4px);
+    right: 16px;
+    min-width: 240px;
+    margin: 0;
+    padding: 8px 0;
+    background: var(--cx-superficie);
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio);
+    box-shadow: 0 8px 24px rgba(22, 21, 19, .08);
+    color: var(--cx-texto);
+}
+
+.cx-menu-usuario__cabecalho {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 16px 12px;
+}
+
+.cx-menu-usuario__nome {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.cx-menu-usuario__info {
+    font-size: 12px;
+    color: var(--cx-texto-2);
+}
+
+/* O APEX guarda o login em maiúsculas; o protótipo mostra em minúsculas */
+.cx-menu-usuario__login {
+    text-transform: lowercase;
+}
+
+.cx-menu-usuario__separador {
+    height: 1px;
+    margin: 4px 0;
+    border: 0;
+    background: var(--cx-borda);
+}
+
+.cx-menu-usuario__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    font-size: 14px;
+    color: var(--cx-texto);
+    text-decoration: none;
+}
+
+.cx-menu-usuario__item:hover,
+.cx-menu-usuario__item:focus-visible {
+    background: var(--cx-tag);
+    color: var(--cx-texto);
+    text-decoration: none;
+    outline: none;
+}
+
+.cx-menu-usuario__item .fa {
+    width: 16px;
+    color: var(--cx-texto-2);
+    text-align: center;
 }
 
 /* --- Ajuste fino do container nativo do tema --- */
@@ -955,7 +1003,8 @@
     color: var(--cx-texto-3);
 }
 
-/* Título e descrição de página montados em região (ex.: Cadastro de usuários) */
+/* Título e descrição de página montados em região. Para página com trilha,
+   use .cx-cabecalho-pagina (seção 14) */
 .cx-titulo {
     margin: 0 0 4px;
     font-size: 1.625rem;
@@ -976,4 +1025,788 @@
     font-size: 1rem;
     font-weight: 700;
     color: var(--cx-texto);
+}
+
+/* Avatar de iniciais: substitui a <img> quando o colaborador não tem foto.
+   O span começa com style="display:none"; o onerror da <img> a esconde e
+   limpa o display do span (sem !important aqui, senão o inline não esconde).
+   Use junto da classe de tamanho do avatar: figma-avatar-img, corlix-header__avatar. */
+.cx-avatar-iniciais,
+.figma-avatar-img.cx-avatar-iniciais,
+.corlix-header__avatar.cx-avatar-iniciais {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--cx-primaria-suave);
+    color: var(--cx-primaria);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+.corlix-header__avatar.cx-avatar-iniciais {
+    font-size: 12px;
+}
+
+/* Mantém o fundo suave dentro do anel de aniversário (o anel pinta o padding de branco) */
+.figma-row.is-birthday-today .cx-avatar-iniciais,
+.popup-todos-aniversariantes .figma-row.is-birthday-today .cx-avatar-iniciais {
+    background: var(--cx-primaria-suave) content-box !important;
+}
+
+/* ============================================================
+   12. HOME (REDESIGN · pen_dev/Início.png)
+   ============================================================
+   HTML gerado pelo pkg_home_ui (modulos/home). Regiões da página 28:
+   hero (Blank with Attributes), Comunicados (Cards) e Meu gestor /
+   Aniversariantes (Standard + "Remove Body Padding", classe cx-home-card).
+   Os ajustes da Cards ficam escopados em .cx-home-comunicados para vencer
+   as regras globais .a-CardView-* da §3 (sombra, raio 14px, imagem 260px).
+   ============================================================ */
+
+/* --- 12.1 Hero: saudação, data, links rápidos e arte decorativa --- */
+
+.cx-home-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    min-height: 194px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    background: var(--cx-superficie);
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+}
+
+.cx-home-hero__conteudo {
+    padding: 32px;
+}
+
+.cx-home-hero__titulo {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 2.5rem;
+    color: var(--cx-texto);
+}
+
+.cx-home-hero__data {
+    margin: 4px 0 24px;
+    font-size: 15px;
+    color: var(--cx-texto-2);
+}
+
+/* Imagem em modulos/home/home-hero.jpg, enviada para Static Application Files
+   (mesma pasta deste CSS, por isso o caminho relativo) */
+.cx-home-hero__arte {
+    background: var(--cx-tag) url("home-hero.jpg") center / cover no-repeat;
+}
+
+.cx-home-atalhos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cx-home-atalho {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 7px 16px 7px 8px;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio);
+    background: var(--cx-superficie);
+    color: var(--cx-texto);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.cx-home-atalho:hover {
+    background: var(--cx-tag);
+    color: var(--cx-texto);
+    text-decoration: none;
+}
+
+.cx-home-atalho__icone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background: var(--cx-primaria-suave);
+    color: var(--cx-primaria);
+}
+
+.cx-home-atalho__seta {
+    margin-left: 4px;
+    font-size: 12px;
+    color: var(--cx-texto-2);
+}
+
+@media (max-width: 991px) {
+    .cx-home-hero {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cx-home-hero__arte {
+        display: none;
+    }
+}
+
+/* --- 12.2 Cards da Home (Standard, sem padding no corpo) --- */
+
+.cx-home-card .t-Region-header {
+    padding: 16px 24px;
+}
+
+/* O UT põe padding nos itens do cabeçalho; somado ao de cima, o título ficava
+   20px mais recuado que o conteúdo e o cabeçalho, mais alto que o protótipo */
+.cx-home-card .t-Region-headerItems {
+    padding: 0;
+}
+
+.cx-home-card .t-Region-title {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+}
+
+/* Ícone no título (ex.: bolo dos aniversariantes) */
+.cx-home-card .t-Region-title .fa {
+    margin-right: 8px;
+    color: var(--cx-texto-2);
+}
+
+/* Subtítulo dentro do título da região ("Publicações oficiais da empresa") */
+.cx-home-card__subtitulo {
+    display: block;
+    margin-top: 2px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.25rem;
+    color: var(--cx-texto-2);
+}
+
+.cx-home-card__rodape {
+    padding: 8px 24px 12px;
+    border-top: 1px solid var(--cx-borda);
+}
+
+/* "Ver todos": terciário colado à esquerda, alinhado com o texto do card */
+.cx-home-card__rodape .t-Button {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* --- 12.3 Avatar, pessoa, lista e estado vazio --- */
+
+/* Iniciais com a foto por cima; o onerror da <img> a remove se falhar */
+.cx-avatar {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--cx-primaria-suave);
+    color: var(--cx-primaria);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    user-select: none;
+}
+
+.cx-avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cx-avatar--vazio {
+    background: var(--cx-tag);
+    color: var(--cx-texto-2);
+    font-size: 16px;
+}
+
+.cx-home-gestor .cx-pessoa__nome,
+.cx-home-lista .cx-pessoa__nome {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.cx-home-gestor .cx-pessoa__detalhe,
+.cx-home-lista .cx-pessoa__detalhe {
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+.cx-home-gestor {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 24px;
+}
+
+.cx-home-gestor .cx-acoes-card {
+    padding: 0;
+}
+
+.cx-home-lista {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cx-home-lista__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--cx-borda);
+}
+
+.cx-home-lista__item:last-child {
+    border-bottom: 0;
+}
+
+.cx-home-vazio {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+}
+
+.cx-home-vazio__titulo {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 15px;
+    color: var(--cx-texto);
+}
+
+.cx-home-vazio__texto {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--cx-texto-2);
+}
+
+/* --- 12.4 Comunicados (Cards): 1º item com imagem, demais em lista --- */
+
+.cx-home-comunicados .a-CardView-items {
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+.cx-home-comunicados .a-CardView-item,
+.cx-home-comunicados .a-CardView-item:hover {
+    border-radius: 0;
+    border-top: 1px solid var(--cx-borda);
+    box-shadow: none;
+    transform: none;
+}
+
+.cx-home-comunicados .a-CardView-item:first-child {
+    border-top: 0;
+}
+
+.cx-home-comunicados .a-CardView {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 32px;
+    padding: 20px 24px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+}
+
+/* Destaque: imagem 16:9 à esquerda, texto à direita */
+.cx-home-comunicados .a-CardView-item:first-child .a-CardView {
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+    padding-top: 24px;
+    padding-bottom: 24px;
+}
+
+.cx-home-comunicados .a-CardView-media {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    margin: 0;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--cx-raio-card);
+    background: var(--cx-tag);
+}
+
+.cx-home-comunicados .a-CardView-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cx-home-comunicados .a-CardView-item:not(:first-child) .a-CardView-media {
+    display: none;
+}
+
+.cx-home-comunicados .a-CardView-item:first-child .a-CardView-header {
+    align-self: end;
+}
+
+.cx-home-comunicados .a-CardView-item:first-child .a-CardView-body {
+    align-self: start;
+}
+
+.cx-home-comunicados .a-CardView-header,
+.cx-home-comunicados .a-CardView-body {
+    margin: 0;
+    padding: 0;
+}
+
+.cx-home-comunicados .a-CardView-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.5rem;
+    color: var(--cx-texto);
+}
+
+.cx-home-comunicados .a-CardView-item:first-child .cx-home-comunicado__titulo {
+    font-size: 1.375rem;
+    line-height: 1.75rem;
+}
+
+.cx-home-comunicado__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--cx-texto-2);
+}
+
+.cx-home-comunicado__titulo {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.5rem;
+}
+
+.cx-home-comunicados .a-CardView-mainContent,
+.cx-home-comunicados .a-CardView-desc {
+    margin: 4px 0 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--cx-texto-2);
+}
+
+@media (max-width: 640px) {
+    .cx-home-comunicados .a-CardView-item:first-child .a-CardView {
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: 16px;
+    }
+
+    .cx-home-comunicados .a-CardView-media {
+        grid-row: auto;
+    }
+}
+
+
+/* ============================================================
+   13. BUSCA NA INTRANET (pen_dev/Busca (resultados).png)
+   ============================================================
+   HTML gerado pelo pkg_busca_ui (modulos/busca): campo do header
+   (Global Page) e página 29. Cabeçalho na Breadcrumb Bar (dentro de
+   .t-Body-title); cards e ajuda em regiões Blank with Attributes.
+   ============================================================ */
+
+/* type="search": tira o arredondamento nativo do Safari e o "×" do Chrome,
+   que o protótipo não tem (Esc já limpa o campo) */
+.corlix-header__search-input {
+    appearance: none;
+}
+
+.corlix-header__search-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.cx-busca-cabecalho {
+    padding: 24px 32px;
+}
+
+.cx-busca-cabecalho__titulo {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 2.5rem;
+    color: var(--cx-texto);
+}
+
+.cx-busca-cabecalho__resumo {
+    margin: 4px 0 0;
+    font-size: 15px;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-card {
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    background: var(--cx-superficie);
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+}
+
+.cx-busca-card__titulo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--cx-borda);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.5rem;
+    color: var(--cx-texto);
+}
+
+.cx-busca-card__titulo .fa {
+    color: var(--cx-texto-2);
+}
+
+/* Contagem do grupo: pílula cinza ao lado do título */
+.cx-busca-card__qtd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 12px;
+    background: var(--cx-tag);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-card__rodape {
+    margin: 0;
+    padding: 12px 24px;
+    border-top: 1px solid var(--cx-borda);
+    font-size: 13px;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-lista {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cx-busca-lista__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--cx-borda);
+}
+
+.cx-busca-lista__item:last-child {
+    border-bottom: 0;
+}
+
+.cx-busca__link {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cx-primaria);
+    text-decoration: none;
+}
+
+.cx-busca__link:hover {
+    text-decoration: underline;
+}
+
+.cx-busca-lista .cx-pessoa__detalhe {
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-comunicado {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.cx-busca-comunicado__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-comunicado__titulo {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.cx-busca-comunicado__resumo {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--cx-texto-2);
+}
+
+/* Card "O que a busca encontra" (coluna da direita) */
+.cx-busca-ajuda {
+    padding: 20px 24px;
+}
+
+.cx-busca-ajuda .cx-busca-card__titulo {
+    padding: 0 0 12px;
+    border-bottom: 0;
+}
+
+.cx-busca-ajuda__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--cx-texto-2);
+}
+
+.cx-busca-ajuda__lista li {
+    display: flex;
+    gap: 12px;
+}
+
+.cx-busca-ajuda__lista .fa {
+    width: 16px;
+    margin-top: 3px;
+    text-align: center;
+}
+
+.cx-busca-ajuda__nota {
+    margin: 16px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cx-texto-3);
+}
+
+@media (max-width: 640px) {
+    .cx-busca-cabecalho {
+        padding: 20px 16px;
+    }
+
+    .cx-busca-lista__item {
+        flex-wrap: wrap;
+    }
+}
+
+
+/* ============================================================
+   14. CADASTRO DE COLABORADOR (pen_dev/Novo colaborador.png)
+   Guia: modulos/tema/Etapas-cadastro-colaborador.md
+   ============================================================ */
+
+/* Cabeçalho de página com trilha, título e descrição. Região no slot
+   Breadcrumb Bar com template Blank with Attributes (No Grid). */
+.cx-cabecalho-pagina {
+    padding: 24px 32px;
+}
+
+.cx-cabecalho-pagina__trilha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+.cx-cabecalho-pagina__trilha a {
+    font-weight: 500;
+    color: var(--cx-primaria);
+    text-decoration: none;
+}
+
+.cx-cabecalho-pagina__trilha a:hover {
+    text-decoration: underline;
+}
+
+.cx-cabecalho-pagina__trilha .fa {
+    font-size: 14px;
+    color: var(--cx-texto-3);
+}
+
+.cx-cabecalho-pagina__titulo {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 2.5rem;
+    color: var(--cx-texto);
+}
+
+.cx-cabecalho-pagina__descricao {
+    margin: 4px 0 0;
+    font-size: 15px;
+    color: var(--cx-texto-2);
+}
+
+/* Seção de formulário: card com título e descrição à esquerda (1/3) e campos
+   à direita (2/3). A região tem o header escondido; o título vem no HTML
+   (.cx-form-secao__info). Tudo que não é a descrição vai para a coluna dos
+   campos, seja qual for a ordem em que o APEX gera o corpo. */
+.cx-form-secao {
+    --ut-region-body-padding-x: 2rem;
+    --ut-region-body-padding-y: 2rem;
+    margin-bottom: 24px;
+}
+
+.cx-form-secao .t-Region-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    column-gap: 48px;
+}
+
+.cx-form-secao .t-Region-body>* {
+    grid-column: 2;
+}
+
+/* Linha 1: com "span" o grid cria linhas vazias que alongam o card */
+.cx-form-secao .t-Region-body>.cx-form-secao__info {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+}
+
+.cx-form-secao__titulo {
+    margin: 0 0 8px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.5rem;
+    color: var(--cx-texto);
+}
+
+.cx-form-secao__descricao {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--cx-texto-2);
+}
+
+/* Obrigatório: "*" vermelho no rótulo, como no protótipo, no lugar do texto
+   "Required" e do triângulo no canto do campo do Redwood. O Redwood esconde
+   o ::after do rótulo flutuante com um seletor de 5 classes; aqui são 6. */
+.cx-form-secao .t-Form-itemRequired,
+.cx-form-secao .t-Form-itemRequired-marker {
+    display: none;
+}
+
+.cx-form-secao.t-Region .t-Form-fieldContainer.t-Form-fieldContainer--floatingLabel.is-required .t-Form-label::after {
+    display: inline;
+    margin-inline-start: .25rem;
+    content: "*";
+    color: var(--cx-alerta);
+    font-family: inherit !important;
+}
+
+/* Switch (Situação da conta): texto "Ativa"/"Inativa" ao lado e ajuda embaixo */
+.cx-form-secao .apex-item-wrapper--yes-no .t-Form-inputContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.cx-form-secao .apex-item-wrapper--yes-no .a-Switch {
+    align-items: center;
+    gap: 8px;
+}
+
+.cx-form-secao .apex-item-wrapper--yes-no .a-Switch::after {
+    content: "Inativa";
+    font-size: 14px;
+    color: var(--cx-texto);
+}
+
+.cx-form-secao .apex-item-wrapper--yes-no .a-Switch:has(input:checked)::after {
+    content: "Ativa";
+}
+
+/* Rodapé do formulário: nota à esquerda e botões à direita, preso no fim da
+   tela enquanto a página rola. Região Buttons Container com a classe. */
+.cx-form-rodape.t-ButtonRegion {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin: 0;
+    padding: 16px 0;
+    background: var(--cx-superficie);
+    border: 0;
+    border-top: 1px solid var(--cx-borda);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.cx-form-rodape .t-ButtonRegion-wrap {
+    align-items: center;
+}
+
+/* O título da região fica só para leitores de tela */
+.cx-form-rodape .t-ButtonRegion-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.cx-form-rodape__nota {
+    margin: 0;
+    padding-left: 16px;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+@media (max-width: 768px) {
+    .cx-cabecalho-pagina {
+        padding: 20px 16px;
+    }
+
+    .cx-form-secao {
+        --ut-region-body-padding-x: 1.25rem;
+        --ut-region-body-padding-y: 1.25rem;
+    }
+
+    .cx-form-secao .t-Region-body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cx-form-secao .t-Region-body>*,
+    .cx-form-secao .t-Region-body>.cx-form-secao__info {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .cx-form-secao__info {
+        margin-bottom: 16px;
+    }
 }

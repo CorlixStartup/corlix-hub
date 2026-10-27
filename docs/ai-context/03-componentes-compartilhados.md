@@ -36,7 +36,7 @@
 ### 1.2 Cabeçalho global (Global Page 0 — referência cruzada)
 A Page 0 (`pages/p00000-global-page.apx`) injeta duas regiões Static Content (template `@/standard` com `t-Region--removeHeader js-removeLandmark t-Region--noUI t-Region--scrollBody`):
 - slot `afterLogo`: busca `<input id="P0_SEARCH_GLOBAL" class="corlix-header__search-input">` (HTML puro, não é item APEX).
-- slot `afterNavigationBar`: links para notificações/configurações + `&G_NOME_USUARIO.`, `&APP_USER_CARGO.`, `<img src="&APP_USER_FOTO.">`.
+- slot `afterNavigationBar`: links para notificações/configurações + `&G_NOME_USUARIO.`, `&APP_USER_CARGO.`, `<img src="&APP_USER_FOTO.">` com fallback de iniciais `&APP_USER_INICIAIS.` (`.cx-avatar-iniciais`).
   - Os links são **hardcoded**: `r/corlixhub/&APP_ALIAS./notificacoes?session=&SESSION.` e `.../configuracoes?...` (caminho do workspace `corlixhub` fixo; depende de friendly URLs e dos aliases `NOTIFICACOES` (p5) e `CONFIGURACOES` (p6)).
   - Esses slots existem tanto no `@/standard` quanto no `@corlix-standard-page`.
 
@@ -69,12 +69,14 @@ Atribuição: na P14, o processo "Atribuir papéis do cargo" chama `pkg_perfis_a
 ### 2.3 Quem acessa o quê (uso real)
 | Onde | Authorization |
 |---|---|
-| Menu "Cadastro de Usuários" (p14) | `@somente-diretoria` |
+| Menu "Cadastro de Usuários" (p14) | `@admin-rh` (igual à página) |
+| Menu "Dashboard RH" (p20) | **nenhuma** (a página exige `@admin-rh`: alinhar) |
+| Menu "Solicitar correção" (p22) | **nenhuma** (a página exige `@colaborador`) |
 | Menu "Emitir Comunicado" (p17) | `@publicador-de-conteudo` |
 | Menu "Empresas Cadastradas" (p15/16) | `@administration-rights` |
 
 **Pegadinha de segurança:** nenhuma página tem `authorizationScheme` em nível de página. As authorizations só **escondem itens do menu**; qualquer usuário autenticado acessa p14, p15, p16, p17 e **p7 (Monitor de Logs, sem nenhuma authorization)** digitando a URL. Para proteger de verdade, colocar `security { authorizationScheme: @... }` no `page`.
-O módulo `modulos/historico-carreira/` prevê também as authorizations `GESTOR` e `COLABORADOR` (PL/SQL) e o app item `G_ID_EMPRESA`, que **ainda não existem** nos shared components. `ADMIN_RH` já existe (e ainda não protege nenhuma página).
+O módulo `modulos/historico-carreira/` usa as authorizations `ADMIN_RH` (papel), `GESTOR` e `COLABORADOR` (PL/SQL) e o app item `G_ID_EMPRESA`, todos já em `shared-components/`. `ADMIN_RH` protege as páginas 14, 18, 19, 20, 21 e 23 e as regiões e botões de RH da 13; `COLABORADOR` protege a 13 e a 22.
 
 ---
 
@@ -84,7 +86,8 @@ O módulo `modulos/historico-carreira/` prevê também as authorizations `GESTOR
 | Item | Populado por | Usado em |
 |---|---|---|
 | `APP_USER_CARGO` | processo `APP_USER_CARGO` | Page 0 (cabeçalho) |
-| `APP_USER_FOTO` | processo `APP_USER_FOTO` | Page 0 (`<img src="&APP_USER_FOTO.">`) |
+| `APP_USER_FOTO` | processo `APP_USER_FOTO` | Page 0 (`<img src="#APP_FILES#&APP_USER_FOTO.">`); caminho relativo, nulo quando não há foto |
+| `APP_USER_INICIAIS` | processo `APP_USER_FOTO` | Page 0 (avatar de iniciais quando não há foto) |
 | `APP_USER_NOME` | **ninguém** | **ninguém** (item órfão) |
 | `G_NOME_EMPRESA` | processo `G_NOME_EMPRESA` | Home p1 ("Sua jornada de carreira na &G_NOME_EMPRESA.") |
 | `G_NOME_USUARIO` | processo `G_NOME_USUARIO` | Page 0 e Home p1 ("Bem-vindo, &G_NOME_USUARIO.!") |
@@ -101,12 +104,13 @@ SELECT G.nome INTO :APP_USER_CARGO
  WHERE UPPER(TRIM(C.login_apex)) = UPPER(TRIM(:APP_USER));
 -- NO_DATA_FOUND → 'SEM VÍNCULO'; TOO_MANY_ROWS → 'MÚLTIPLOS VÍNCULOS'; OTHERS → 'ERRO AO CARREGAR CARGO'
 
--- APP_USER_FOTO
-SELECT CASE WHEN C.foto_url IS NULL THEN '#APP_FILES#default-user.jpeg'
-            ELSE '#APP_FILES#fotos/' || C.foto_url END
-  INTO :APP_USER_FOTO
+-- APP_USER_FOTO (preenche também APP_USER_INICIAIS)
+SELECT CASE WHEN TRIM(C.foto_url) IS NULL OR C.foto_url = '#APP_FILES#Fotos Colaboradores/' THEN NULL
+            ELSE 'Fotos Colaboradores/' || C.foto_url END,  -- relativo: o #APP_FILES# fica no HTML da p0
+       UPPER(1ª letra de primeiro_nome || 1ª letra de ultimo_nome)  -- fallback: 1º e último nome de nome_completo
+  INTO :APP_USER_FOTO, :APP_USER_INICIAIS
   FROM COLABORADOR C WHERE UPPER(TRIM(C.login_apex)) = UPPER(TRIM(:APP_USER));
--- qualquer exceção → '#APP_FILES#default-user.jpeg'
+-- qualquer exceção → foto NULL, iniciais = UPPER(SUBSTR(:APP_USER, 1, 1))
 
 -- G_NOME_EMPRESA
 SELECT E.nome INTO :G_NOME_EMPRESA
@@ -121,7 +125,7 @@ select initcap(first_name || ' ' || last_name) into :G_NOME_USUARIO
 ```
 
 Pegadinhas:
-- **Caminho da foto quebrado:** `APP_USER_FOTO` monta `#APP_FILES#fotos/<foto_url>`, mas a pasta registrada é `Fotos Colaboradores/` (§9). Não existe pasta `fotos/`. A Home (p1) tem a mesma inconsistência: o card "Meu Gestor" usa `'#APP_FILES#fotos/' || G.FOTO_URL`, enquanto aniversariantes usam `'#APP_FILES#Fotos Colaboradores/' || FOTO_URL`. O avatar do cabeçalho não tem `onerror` de fallback (os da Home têm).
+- **Foto e iniciais:** desde 13/10/2026 o header e a Home montam `#APP_FILES#Fotos Colaboradores/<foto_url>` (antes usavam a pasta inexistente `fotos/`). Sem foto, o avatar mostra as iniciais (`.cx-avatar-iniciais`) em vez de `default-user.jpeg`.
 - `G_NOME_USUARIO` vem do cadastro de usuário do workspace (first/last name), não de `COLABORADOR.nome_completo` → nomes podem divergir.
 - `G_NOME_EMPRESA` expõe `SQLERRM` na tela em caso de erro.
 - Strings `#APP_FILES#` gravadas em item/coluna dependem da substituição feita pelo APEX ao renderizar o HTML (funciona em Static Content/HTML Expression como na Home); em PL/SQL puro o valor é literal.
@@ -131,6 +135,8 @@ Pegadinhas:
 ## 4. Lists (`lists.apx`)
 
 ### 4.1 `navigation-menu` ("Navigation Menu") — menu lateral, em ordem de `sequence`
+> Estado de hoje. A estrutura do protótipo (grupos Pessoas, Minha carreira e Administração; sem "Sair" e "Solicitar correção"; `ADMIN_RH` no Monitor de logs; menu aberto por padrão) está em `modulos/tema/Etapas-header-e-menu.md` §2–3. Atualize esta tabela pelo próximo backup depois de aplicar.
+
 | Seq | Static ID | Label | Ícone | Destino | Current em páginas | Authorization |
 |---|---|---|---|---|---|---|
 | 10 | `home` | Home | `fa-home` | p1 | (padrão: p1) | — |
@@ -139,7 +145,7 @@ Pegadinhas:
 | 40 | `comunicação` | Comunicados | `fa-commenting-o` | p11 | 11 | — |
 | 50 | `colaboradores` | Colaboradores | `fa-users-alt` | p12 | 12 | — |
 | 60 | `histórico-de-carreira` | Histórico de carreira | `fa-workflow` | p13 | 13 | — |
-| 70 | `cadastros` | Cadastro de Usuários | `fa-user-plus` | p14 | 14 | `@somente-diretoria` |
+| 70 | `cadastros` | Cadastro de Usuários | `fa-user-plus` | p14 | 14 | `@admin-rh` |
 | 80 | `emitir-comunicado` | Emitir Comunicado | `fa-magic` | p17 (modal wizard) | 17 | `@publicador-de-conteudo` — **filho de `@home`** (`parentEntry: @home`), aparece como subitem de Home |
 | 110 | `empresas-cadastradas` | Empresas Cadastradas | `fa-building-o` | p15 | 15, 16 | `@administration-rights` |
 | 160 | `central-de-equipes` | Central de Equipes | `fa-table` | p26 | 26, 27 | — |
@@ -150,7 +156,7 @@ Pegadinhas:
 Fora do menu: p5 (Notificações, acessada pelo sino do cabeçalho), p6 (Configurações, engrenagem), p8 (`NOTIFICAÇÕES`, página vazia/duplicada), p9999 (login). `custom.css` empurra o último item do menu para o rodapé (§9). Ícones são Font APEX (`icons.library: fontApex`), classes `fa-*`.
 
 ### 4.2 `emitir-comunicado` ("Emitir Comunicado") — lista de wizard
-Entradas `Step 1` → p17, `Step 2` → p18, `Step 3` → p19. **Páginas 18 e 19 não existem** e a lista **não é referenciada por nenhuma página** (p17 usa `wizard-modal-dialog`, mas sem região Wizard Progress apontando para ela). Resto de geração automática. Atenção: o módulo histórico-de-carreira planeja usar os números 18–23 para outras páginas.
+Entradas `Step 1` → p17, `Step 2` → p18, `Step 3` → p19. A lista **não é referenciada por nenhuma página** (p17 usa `wizard-modal-dialog`, mas sem região Wizard Progress apontando para ela). Resto de geração automática. Desde a integração do histórico de carreira, as páginas 18 e 19 existem, mas são a Movimentação e as Formações do módulo, e não passos do wizard. Pode ser apagada.
 
 ---
 
@@ -230,11 +236,11 @@ A query deve devolver **exatamente** as colunas citadas (nomes em maiúsculas co
 ```html
 #CAB_DEPT#
 <a href="javascript:void(0)" class="ch-contact" data-id="#ID_COLABORADOR#">
-  <span class="ch-avatar-wrap"><span class="ch-avatar">#INICIAIS#</span><i class="ch-dot ch-dot--#PRESENCA#"></i></span>
+  <span class="ch-avatar-wrap"><span class="ch-avatar" aria-hidden="true">#INICIAIS#<img src="#APP_FILES##FOTO_URL#" alt="" loading="lazy" onerror="this.remove()"></span><i class="ch-dot ch-dot--#PRESENCA#"></i></span>
   <span class="ch-contact-txt"><b>#NOME_COMPLETO#</b><small>#CARGO#</small></span>
 </a>
 ```
-Colunas: `CAB_DEPT` (HTML `<button class="ch-dept" aria-expanded="false">` com chevron, nome e quantidade, só na 1ª linha de cada departamento, via `row_number() over (partition by d.nome ...)`; abre/fecha o grupo pela DA `abrir-fechar-departamento` da p4), `ID_COLABORADOR` (lido por JS via `data-id`), `INICIAIS`, `PRESENCA` ∈ `online|ausente|offline` (classes `.ch-dot--online/ausente/offline`; calculada de `presenca_colaborador.data_ultimo_ping` 5/30 min), `NOME_COMPLETO`, `CARGO`. O JS marca o selecionado com `.ch-contact.is-active`.
+Colunas: `CAB_DEPT` (HTML `<button class="ch-dept" aria-expanded="false">` com chevron, nome e quantidade, só na 1ª linha de cada departamento, via `row_number() over (partition by d.nome ...)`; abre/fecha o grupo pela DA `abrir-fechar-departamento` da p4), `ID_COLABORADOR` (lido por JS via `data-id`), `FOTO_URL` (caminho relativo a `#APP_FILES#`; sem foto, nulo → a `<img>` falha, é removida e ficam as iniciais), `INICIAIS`, `PRESENCA` ∈ `online|ausente|offline` (classes `.ch-dot--online/ausente/offline`; calculada de `presenca_colaborador.data_ultimo_ping` 5/30 min), `NOME_COMPLETO`, `CARGO`. O JS marca o selecionado com `.ch-contact.is-active`.
 
 **`chat-mensagens`** — wrapper `<div class="ch-msgs"> ... </div>`; linha:
 ```html
@@ -256,16 +262,16 @@ Paginação dos dois: padrão UT (`#PAGINATION_NEXT#` etc.).
 
 | Arquivo | Uso |
 |---|---|
-| `corlix-tema.css` / `corlix-tema.min.css` | Camada de tema (design system do Figma "Redwood Light (CorlixHub)"). Só redefine variáveis do UT (`--ut-*`, `--a-*`) e define tokens **`--cx-*`** (fonte da verdade: `--cx-primaria` = sky-120 `#00688C`, `--cx-primaria-hover`, `--cx-fundo`, `--cx-superficie`, `--cx-borda`, `--cx-texto`, `--cx-raio`, `--cx-raio-card`, `--cx-sucesso`, `--cx-alerta` ...). CSS de módulos (organograma, histórico-carreira) consomem esses tokens. **Novo, não commitado.** |
+| `corlix-tema.css` / `corlix-tema.min.css` | Camada de tema (design system do pen.dev "Redwood Light (CorlixHub)"). Só redefine variáveis do UT (`--ut-*`, `--a-*`) e define tokens **`--cx-*`** (fonte da verdade: `--cx-primaria` = sky-120 `#00688C`, `--cx-primaria-hover`, `--cx-fundo`, `--cx-superficie`, `--cx-borda`, `--cx-texto`, `--cx-raio`, `--cx-raio-card`, `--cx-sucesso`, `--cx-alerta` ...). CSS de módulos (organograma, histórico-carreira) consomem esses tokens. **Novo, não commitado.** |
 | `custom.css` / `custom.min.css` | Ajustes por página: overrides globais do UT, menu lateral (último item vai ao rodapé), header (`.corlix-header__search*`, `__actions`, `__icon-btn`, `__user*`, `__avatar`), card padrão (`.card-default`), Home (`.card-boas-vindas`, `.card-comunicados-oficiais`, `.card-meu-gestor`, `.links-rapidos-card`, `.card-aniversariantes`, `.popup-todos-aniversariantes`, `.figma-row`, `.cx-pessoa`), logs (`.log-descricao`, `.log-detalhe`). Modificado, não commitado. |
-| `default-user.jpeg` | Avatar padrão (fallback em `onerror` e em `APP_USER_FOTO`). |
+| `default-user.jpeg` | Avatar padrão legado; header e Home agora caem no avatar de iniciais (`.cx-avatar-iniciais`). |
 | `icons/app-icon-32.png`, `-144-rounded`, `-192`, `-256-rounded`, `-512` | Ícones do app/PWA; login (p9999) usa `#APP_FILES#icons/app-icon-512.png`. |
 | `Fotos Colaboradores/<nome>_<sobrenome>.jpg` (291 arquivos) | Fotos fictícias dos colaboradores (ex.: `aline_alves.jpg`), `image/jpeg`. |
 
 Como referenciar:
 - `#APP_FILES#arquivo.ext` (em HTML, CSS URLs de página/app, SQL que gera HTML). `#MIN#` vira `.min` fora do modo debug (`#APP_FILES#custom#MIN#.css` → `custom.min.css`); **mantenha o par `.css`/`.min.css` sincronizado manualmente** (não há build automático no repo).
-- Fotos: `#APP_FILES#Fotos Colaboradores/` || `COLABORADOR.FOTO_URL` (espera-se `FOTO_URL` = só o nome do arquivo, ex. `aline_alves.jpg`; o espaço na pasta funciona no browser, mas `%20` pode ser necessário em alguns contextos). Sempre adicionar `onerror="this.onerror=null;this.src='#APP_FILES#default-user.jpeg';"`.
-- Docs dos módulos pedem subir `organograma.css` e `historico-carreira.css` como static files — **ainda não registrados** em `static-files.apx`.
+- Fotos: `#APP_FILES#Fotos Colaboradores/` || `COLABORADOR.FOTO_URL` (espera-se `FOTO_URL` = só o nome do arquivo, ex. `aline_alves.jpg`; o espaço na pasta funciona no browser, mas `%20` pode ser necessário em alguns contextos). Sem foto, devolva `NULL` e use o padrão de avatar de iniciais (`<img ... onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';">` + `<span class="<classe de tamanho> cx-avatar-iniciais" aria-hidden="true" style="display:none">&INICIAIS.</span>`), ver 04.
+- Docs dos módulos pedem subir `organograma.css` e `historico-carreira.css` como static files. `historico-carreira.css`/`.min.css` e `organograma.css` já estão registrados em `static-files.apx` (conferido em 19/10/2026).
 
 ---
 
@@ -287,16 +293,16 @@ Nenhum DDL acompanha a app (sem supporting objects). O `README.md` cita `databas
 ---
 
 ## 11. `log_pkg.apex_error_handler`
-Fonte em `database/corlix-hub.sql` (spec + body). `gravar` usa `pragma autonomous_transaction` e grava em `APP_LOG`; `erro`/`aviso`/`info` são atalhos. `apex_error_handler` registra origem (tipo do componente), `ORA-`, backtrace sem linhas `APEX_`/`SYS.` e o comando, e devolve `apex_error.init_error_result(p_error)` sem alterar a mensagem. **Não delega** -20001..-20099 a `pkg_historico_carreira.fn_tratar_erro`, como o guia do módulo recomenda. Detalhes em `05` §4.9.
+Fonte em `database/corlix-hub.sql` (spec + body). `gravar` usa `pragma autonomous_transaction` e grava em `APP_LOG`; `erro`/`aviso`/`info` são atalhos. `apex_error_handler` registra origem (tipo do componente), `ORA-`, backtrace sem linhas `APEX_`/`SYS.` e o comando, e devolve `apex_error.init_error_result(p_error)`. Desde 19/10/2026 delega os erros -20001..-20099 a `pkg_historico_carreira.fn_tratar_erro`, que tira o "ORA-200xx" da mensagem (snapshot em `database/ddl/09-plsql-corpos.sql`; passo a passo no guia do histórico de carreira, §9.1). Detalhes em `05` §4.9.
 ---
 
 ## 12. Pegadinhas e inconsistências (resumo)
 1. **Ordem dos CSS diverge** entre APEXlang (`corlix-tema` → `custom`) e `database/f100.sql` atual (`custom` → `corlix-tema`, linhas ~140–142). O correto, pelo comentário do próprio `corlix-tema.css`, é tema primeiro.
 2. README aponta para `database/ddl/` e `database/seed/`, que não existem; o DDL base está em `database/corlix-hub.sql`.
 3. Authorizations só no menu; páginas restritas (7, 14, 15, 16, 17) acessíveis por URL. Monitor de Logs sem authorization alguma.
-4. Caminho de foto `#APP_FILES#fotos/` (app process e card Gestor) vs pasta real `Fotos Colaboradores/`.
+4. ~~Caminho de foto `#APP_FILES#fotos/`~~: corrigido em 13/10/2026 (tudo usa `Fotos Colaboradores/`).
 5. 4 app processes sem condição em Before Header (custo por página, rodam no login). `APP_USER_NOME` órfão. `G_NOME_USUARIO` usa usuários do workspace, os demais usam `COLABORADOR.login_apex`.
-6. Lista `emitir-comunicado` aponta para p18/p19 inexistentes e não é usada; números 18–23 reservados pelo módulo histórico-carreira.
+6. Lista `emitir-comunicado` não é usada e aponta para p18/p19, que hoje são páginas do histórico de carreira (18–23 são do módulo). Pode ser apagada.
 7. Breadcrumb plano (sem pais); entry `cadastros` (p14) sem região; nome "Comunicação" ≠ menu "Comunicados"; static id `terminal` = Monitor de Logs.
 8. `corlix-standard-page`: slot `topNavigation` sem placeholder; sem colunas laterais. Default de página do tema é esse template, mas a maioria das páginas usa `@/standard`.
 9. Static ids com acentos (`publicador-de-conteúdo`, `comunicação`, `histórico-de-carreira`, `configurações`, `notificações`) e páginas duplicadas de notificações (p5 `NOTIFICACOES` usada pelo sino; p8 `NOTIFICAÇÕES` vazia).
@@ -312,4 +318,4 @@ Fonte em `database/corlix-hub.sql` (spec + body). `gravar` usa `pragma autonomou
 - `corlixhub/shared-components/static-files.apx`: registrados `corlix-tema.css` e `corlix-tema.min.css` (arquivos novos, untracked, em `static-files/`).
 - `static-files/custom.css` e `custom.min.css` modificados (~350 linhas; refatoração para usar tokens `--cx-*`).
 - `database/f100.sql` modificado (+814/−510), incluindo `create_app_static_file` dos `corlix-tema*` e `p_css_file_urls` com os dois arquivos (ordem invertida, ver §12.1).
-- Também untracked: `modulos/tema/` (README/Etapas do tema, que documentam a ordem `corlix-tema` → `custom`), `modulos/historico-carreira/`, `figma/`, `scripts/apex-limpar-sql-scripts.sql` (remove SQL Scripts do workspace via `apex_application_files`, `c_dry_run` = true por padrão).
+- Também untracked: `modulos/tema/` (README/Etapas do tema, que documentam a ordem `corlix-tema` → `custom`), `modulos/historico-carreira/`, `pen_dev/`, `scripts/apex-limpar-sql-scripts.sql` (remove SQL Scripts do workspace via `apex_application_files`, `c_dry_run` = true por padrão).

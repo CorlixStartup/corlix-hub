@@ -1,0 +1,235 @@
+page 22 (
+    name: Solicitar correção
+    alias: SOLICITAR-CORRECAO
+    title: Solicitar correção
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @colaborador
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region contêiner-de-botões (
+        name: Botões
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P22_DS_MENSAGEM (
+        type: textarea
+        label {
+            label: O que está incorreto?
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            valueRequired: true
+            maxLength: 2000
+        }
+        help {
+            inlineHelpText: O RH revisa o pedido. Se houver correção, ela também fica registrada no histórico.
+            helpText: O RH revisa o pedido. Se houver correção, ela também fica registrada no histórico.
+        }
+    )
+
+    pageItem P22_ID_COLABORADOR (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P22_ID_HISTORICO_CARREIRA (
+        type: selectList
+        label {
+            label: Qual registro?
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select to_char(h.dt_efetiva, 'dd/mm/yyyy') || ' · ' || t.ds_tipo d, h.id_historico_carreira r
+                  from historico_carreira h
+                  join tipo_movimentacao t on t.id_tipo_movimentacao = h.id_tipo_movimentacao
+                 where h.id_colaborador = :P22_ID_COLABORADOR
+                   and h.id_empresa     = :G_ID_EMPRESA
+                   and h.st_registro    = 'EFETIVADO'
+                   and h.id_registro_estornado is null
+                 order by h.dt_efetiva desc
+                
+                ```
+            nullDisplayValue: Não sei / vários
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    button cancelar (
+        buttonName: CANCELAR
+        label: Cancelar
+        layout {
+            sequence: 40
+            region: @contêiner-de-botões
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button enviar (
+        buttonName: ENVIAR
+        label: Enviar
+        layout {
+            sequence: 50
+            region: @contêiner-de-botões
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction cancelar (
+        name: Cancelar
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancelar
+        }
+
+        action cancelar (
+            name: Cancelar
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process enviar (
+        name: Enviar
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                  l_id number;
+                begin
+                  l_id := pkg_historico_carreira.solicitar_correcao(
+                            p_id_colaborador        => :P22_ID_COLABORADOR,
+                            p_ds_mensagem           => :P22_DS_MENSAGEM,
+                            p_id_historico_carreira => :P22_ID_HISTORICO_CARREIRA);
+                end;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 38251491894320202
+        }
+        serverSideCondition {
+            whenButtonPressed: @enviar
+        }
+    )
+
+    process fechar (
+        name: Fechar
+        type: closeDialog
+        execution {
+            sequence: 20
+        }
+        successMessage {
+            successMessage: Pedido enviado ao RH.
+        }
+        advanced {
+            executionMappingIdentifier: 38251561213320203
+        }
+        serverSideCondition {
+            whenButtonPressed: @enviar
+        }
+    )
+
+    process new (
+        name: Colaborador logado
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                  select id_colaborador
+                    into :P22_ID_COLABORADOR
+                    from colaborador
+                   where upper(trim(login_apex)) = upper(trim(:APP_USER))
+                     and id_empresa = :G_ID_EMPRESA;
+                exception
+                  when no_data_found or too_many_rows then
+                    raise_application_error(-20012,
+                      'Sua conta não está vinculada a um colaborador desta empresa. Fale com o RH.');
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 38251956487320207
+        }
+    )
+
+)
+

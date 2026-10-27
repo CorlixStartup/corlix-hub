@@ -42,9 +42,20 @@ Desktop.ini
 .idea/
 
 ## Backups locais e temporários
+## backups/ é a saída do scripts/backup/backup.sh e contém dados pessoais.
+/backups/
+## database/dados/backup/ recebe os CSVs extraídos pelo scripts/backup/extrair-no-projeto.sh.
+/database/dados/backup/
 *.bak
 *.tmp
 *~
 
 ## Configurações locais de ferramentas de IDE/CLI (específicas da máquina/usuário)
 .claude/settings.local.json
+/.serena/
+
+## Cache local da documentação oficial do APEX (scripts/busca-casos/apex_docs.py)
+/.cache/
+
+## Bytecode do Python (scripts/busca-casos)
+__pycache__/

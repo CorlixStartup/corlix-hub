@@ -66,6 +66,19 @@ breadcrumb breadcrumb (
         }
     )
 
+    entry dashboard-rh (
+        name: Dashboard RH
+        pageNumber: 20
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 20
+            }
+        }
+    )
+
     entry empresas-cadastradas (
         name: Empresas Cadastradas
         pageNumber: 15
@@ -92,15 +105,15 @@ breadcrumb breadcrumb (
         }
     )
 
-    entry home (
-        name: Home
-        pageNumber: 1
+    entry holerite-digital (
+        name: Holerite Digital
+        pageNumber: 9
         execution {
             sequence: 10
         }
         link {
             target: {
-                page: 1
+                page: 9
             }
         }
     )

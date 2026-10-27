@@ -9,6 +9,199 @@ page 3 (
     navigation {
         cursorFocus: doNotFocusCursor
     }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            const ORG_ITEM_FOCO         = "P3_ID_FOCO";
+            const ORG_REGIAO            = "organograma";
+            const ORG_PROCESSO_DETALHES = "ORG_DETALHES";
+            
+            let orgDrawer = null;
+            let orgPedido = 0;
+            
+            function orgId(valor) {
+              const id = Number(valor);
+              return Number.isFinite(id) && id > 0 ? id : null;
+            }
+            
+            /* Função atualizada com tratamento seguro para a região */
+            function orgIrPara(valor) {
+              const id = orgId(valor);
+              if (!id) return;
+            
+              // 1. Atualiza o valor do item no APEX
+              apex.item(ORG_ITEM_FOCO).setValue(String(id));
+            
+              // 2. Tenta atualizar pela API nativa de região ou aplica o refresh no container HTML
+              const reg = apex.region(ORG_REGIAO);
+              if (reg) {
+                reg.refresh();
+              } else {
+                // Fallback para regiões Dynamic Content sem chave registrada
+                $("#" + ORG_REGIAO).trigger("apexrefresh");
+                $(".org").trigger("apexrefresh");
+              }
+            }
+            
+            function orgObterDrawer() {
+              if (orgDrawer) return orgDrawer;
+            
+              orgDrawer = document.createElement("dialog");
+              orgDrawer.className = "org-drawer";
+              orgDrawer.setAttribute("aria-labelledby", "org-drawer-nome");
+              orgDrawer.innerHTML = '<div class="org-drawer__painel"></div>';
+              orgDrawer.addEventListener("click", orgCliqueNoDrawer);
+              document.body.appendChild(orgDrawer);
+            
+              return orgDrawer;
+            }
+            
+            /* Fotos: o PL/SQL manda o caminho em data-org-foto ("Fotos Colaboradores/x.jpg");
+               aqui vira URL dos Static Application Files. Sem foto, ficam as iniciais. */
+            function orgCarregarFotos(raiz) {
+              if (!raiz) return;
+              raiz.querySelectorAll("img[data-org-foto]").forEach(function (img) {
+                const caminho = img.dataset.orgFoto.split("/").map(encodeURIComponent).join("/");
+                img.removeAttribute("data-org-foto");
+                img.src = apex.env.APP_FILES + caminho;
+              });
+            }
+            
+            function orgEstado(html) {
+              return '<div class="org-drawer__estado">' + html + "</div>";
+            }
+            
+            function orgAbrirDetalhes(valor) {
+              const id = orgId(valor);
+              if (!id) return;
+            
+              const drawer = orgObterDrawer();
+              const painel = drawer.firstElementChild;
+              const pedido = ++orgPedido;
+            
+              painel.setAttribute("aria-busy", "true");
+            
+              painel.innerHTML = orgEstado(
+                '<span class="org-spinner" aria-hidden="true"></span><p>Carregando detalhes...</p>'
+              );
+            
+              if (!drawer.open) drawer.showModal();
+            
+              apex.server.process(
+                ORG_PROCESSO_DETALHES,
+                { x01: id },
+                { dataType: "text" }
+              )
+              .done(function (html) {
+                if (pedido !== orgPedido) return;
+            
+                painel.innerHTML = html;
+                orgCarregarFotos(painel);
+            
+                const titulo = painel.querySelector("#org-drawer-nome");
+                if (titulo) titulo.focus();
+              })
+              .fail(function () {
+                if (pedido !== orgPedido) return;
+            
+                painel.innerHTML = orgEstado(
+                  "<p>Não foi possível carregar os detalhes.</p>" +
+                  '<button type="button" class="org-btn org-btn--auto" data-acao="detalhe" data-id="' + id + '">' +
+                  "Tentar novamente</button>" +
+                  '<button type="button" class="org-link" data-acao="fechar">Fechar</button>'
+                );
+              })
+              .always(function () {
+                if (pedido === orgPedido) {
+                  painel.removeAttribute("aria-busy");
+                }
+              });
+            }
+            
+            function orgCopiar(botao) {
+              if (!navigator.clipboard) return;
+            
+              const aviso = botao.parentElement.querySelector(".org-sr");
+            
+              navigator.clipboard.writeText(botao.dataset.valor).then(function () {
+                botao.classList.add("is-copiado");
+                botao.setAttribute("aria-label", "E-mail copiado");
+            
+                if (aviso) {
+                  aviso.textContent = "E-mail copiado.";
+                }
+            
+                setTimeout(function () {
+                  botao.classList.remove("is-copiado");
+                  botao.setAttribute("aria-label", "Copiar e-mail");
+            
+                  if (aviso) {
+                    aviso.textContent = "";
+                  }
+                }, 2000);
+              });
+            }
+            
+            function orgCliqueNoDrawer(ev) {
+              const drawer = ev.currentTarget;
+            
+              if (ev.target === drawer) {
+                drawer.close();
+                return;
+              }
+            
+              const alvo = ev.target.closest("[data-acao]");
+              if (!alvo) return;
+            
+              switch (alvo.dataset.acao) {
+                case "fechar":
+                  drawer.close();
+                  break;
+            
+                case "detalhe":
+                  orgAbrirDetalhes(alvo.dataset.id);
+                  break;
+            
+                case "equipe":
+                  drawer.close();
+                  orgIrPara(alvo.dataset.id);
+                  break;
+            
+                case "copiar":
+                  orgCopiar(alvo);
+                  break;
+              }
+            }
+            ```
+        executeWhenPageLoads:
+            ```javascript-browser
+            orgCarregarFotos(document);
+            
+            // Delegado no document para garantir a captura dos cliques dentro do container .org
+            $(document).on("click", ".org [data-acao]", function () {
+                if (this.dataset.acao === "foco") {
+                    orgIrPara(this.dataset.id);
+                } else if (this.dataset.acao === "detalhe") {
+                    orgAbrirDetalhes(this.dataset.id);
+                }
+            });
+            
+            // Captura a atualização da região para recarregar fotos e ajustar o foco de acessibilidade
+            $(document).on("apexafterrefresh", ".org", function () {
+                orgCarregarFotos(this);
+            
+                const titulo = document.getElementById("org-foco-nome");
+                if (titulo) {
+                    titulo.focus({
+                        preventScroll: true
+                    });
+                }
+            });
+            ```
+    }
+    css {
+        fileUrls: #APP_FILES#organograma#MIN#.css
+    }
     security {
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
@@ -34,6 +227,157 @@ page 3 (
         componentAppearance {
             breadcrumbTemplate: @/breadcrumb
             templateOptions: #DEFAULT#
+        }
+    )
+
+    region organograma (
+        name: Organograma Principal
+        type: dynamicContent
+        source {
+            plsqlFunctionBody:
+                ```plsql
+                declare
+                  v_id_foco number;
+                begin
+                  v_id_foco := to_number(:P3_ID_FOCO default null on conversion error);
+                
+                  -- Se não foi informado nenhum ID na URL/Sessão, assume o ID do usuário logado
+                  if v_id_foco is null then
+                    begin
+                      select id_colaborador
+                        into v_id_foco
+                        from vw_org_colaborador
+                       where upper(trim(login_apex)) = upper(trim(:APP_USER));
+                    exception
+                      when no_data_found then
+                        v_id_foco := null;
+                    end;
+                  end if;
+                
+                  return pkg_organograma.render(v_id_foco);
+                end;
+                ```
+            pageItemsToSubmit: P3_ID_FOCO
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: organograma
+        }
+    )
+
+    pageItem P3_BUSCA (
+        type: popupLov
+        label {
+            label: Novo
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select nome_completo || ' — ' || cargo d,
+                       id_colaborador r
+                from vw_org_colaborador
+                order by nome_completo
+                ```
+        }
+        layout {
+            sequence: 30
+            slot: body
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            valuePlaceholder: Buscar pessoa no organograma
+        }
+    )
+
+    pageItem P3_ID_FOCO (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: body
+        }
+        default {
+            type: sqlQuerySingleValue
+            sqlQuerySingleValue:
+                ```sql
+                select id_colaborador 
+                  from vw_org_colaborador 
+                 where lower(email) = lower(:APP_USER)
+                ```
+        }
+    )
+
+    dynamicAction buscar-organograma (
+        name: Buscar Organograma
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: P3_BUSCA
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    const id = $v("P3_BUSCA");
+                    
+                    if (id) {
+                    
+                      orgIrPara(id);
+                    
+                      apex.item("P3_BUSCA")
+                          .setValue(
+                             "",
+                             null,
+                             true
+                          );
+                    
+                    }
+                    ```
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process ORG_DETALHES (
+        name: ORG_DETALHES
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                apex_util.prn(
+                  p_clob   => pkg_organograma.render_detalhes(
+                                to_number(apex_application.g_x01 default null on conversion error)),
+                  p_escape => false);
+                ```
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 31838483813958909
+        }
+        config {
+            buildOption: !@commented-out
         }
     )
 

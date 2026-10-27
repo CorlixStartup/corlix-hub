@@ -418,6 +418,11 @@ file "Fotos Colaboradores/eduardo_lopes.jpg" (
     charSet: utf-8
 )
 
+file "Fotos Colaboradores/eduardo_marins.jpg" (
+    mimeType: image/jpeg
+    charSet: utf-8
+)
+
 file "Fotos Colaboradores/eduardo_nascimento.jpg" (
     mimeType: image/jpeg
     charSet: utf-8
@@ -1453,6 +1458,16 @@ file "Fotos Colaboradores/vinicius_soares.jpg" (
     charSet: utf-8
 )
 
+file "Meu Perfil.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file "Meu Perfil.min.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
 file corlix-tema.css (
     mimeType: text/css
     charSet: utf-8
@@ -1474,6 +1489,31 @@ file custom.min.css (
 )
 
 file default-user.jpeg (
+    mimeType: image/jpeg
+    charSet: utf-8
+)
+
+file figtree-latin-ext.woff2 (
+    mimeType: font/woff2
+    charSet: utf-8
+)
+
+file figtree-latin.woff2 (
+    mimeType: font/woff2
+    charSet: utf-8
+)
+
+file historico-carreira.css (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file historico-carreira.min.css (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file home-hero.jpg (
     mimeType: image/jpeg
     charSet: utf-8
 )
@@ -1500,6 +1540,21 @@ file "icons/app-icon-32.png" (
 
 file "icons/app-icon-512.png" (
     mimeType: image/png
+    charSet: utf-8
+)
+
+file lucide.woff2 (
+    mimeType: font/woff2
+    charSet: utf-8
+)
+
+file organograma.css (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file organograma.min.css (
+    mimeType: text/css
     charSet: utf-8
 )
 
