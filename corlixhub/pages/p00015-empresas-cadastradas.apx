@@ -1,7 +1,7 @@
 page 15 (
     name: Empresas Cadastradas
     alias: EMPRESAS-CADASTRADAS
-    title: Empresas Cadastradas
+    title: Empresas
     appearance {
         pageTemplate: @/standard
         templateOptions: #DEFAULT#
@@ -10,39 +10,71 @@ page 15 (
         cursorFocus: doNotFocusCursor
     }
     security {
+        authorizationScheme: @administration-rights
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
 
-    region breadcrumb (
-        name: Breadcrumb
-        type: breadcrumb
+    region cabeçalho (
+        name: Cabeçalho
+        type: dynamicContent
         source {
-            breadcrumb: @breadcrumb
+            plsqlFunctionBody:
+                ```plsql
+                return '<div class="cx-cabecalho-pagina cx-cabecalho-pagina--acoes">'
+                    || '<div class="cx-cabecalho-pagina__texto">'
+                    || '<h1 class="cx-cabecalho-pagina__titulo">Empresas</h1>'
+                    || '<p class="cx-cabecalho-pagina__descricao">Consulte e mantenha as empresas cadastradas no CorlixHub.</p>'
+                    || '</div>'
+                    || '<div class="cx-cabecalho-pagina__acoes">'
+                    || '<a class="t-Button t-Button--hot t-Button--iconLeft" href="'
+                    || apex_escape.html_attribute(apex_page.get_url(p_page => 16, p_clear_cache => '16'))
+                    || '"><span class="t-Icon t-Icon--left fa fa-plus" aria-hidden="true"></span>'
+                    || '<span class="t-Button-label">Nova empresa</span></a>'
+                    || '</div>'
+                    || '</div>';
+                
+                ```
         }
         layout {
-            sequence: 10
+            sequence: 20
             slot: breadcrumbBar
         }
         appearance {
-            template: @/title-bar
-            templateOptions: [
-                #DEFAULT#
-                t-BreadcrumbRegion--useBreadcrumbTitle
-            ]
-        }
-        componentAppearance {
-            breadcrumbTemplate: @/breadcrumb
+            template: @/blank-with-attributes-no-grid
             templateOptions: #DEFAULT#
         }
     )
 
     region empresas-cadastradas (
         name: Empresas Cadastradas
+        title: Empresas
         type: interactiveReport
         source {
             location: localDatabase
-            tableName: EMPRESA
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select e.id_empresa,
+                       e.nome_fantasia,
+                       e.nome,
+                       e.cnpj,
+                       e.cidade || case when e.uf is not null then ' – ' || e.uf end as cidade_uf,
+                       e.email_corporativo,
+                       case when regexp_like(e.telefone, '^\d{11}$') then regexp_replace(e.telefone, '^(\d{2})(\d{5})(\d{4})$', '(\1) \2-\3')
+                     when regexp_like(e.telefone, '^\d{10}$') then regexp_replace(e.telefone, '^(\d{2})(\d{4})(\d{4})$', '(\1) \2-\3')
+                     else e.telefone end as telefone,
+                       case when e.status then 'Ativa' else 'Inativa' end as situacao,
+                       case when e.status then 'sucesso' else 'neutro' end as situacao_classe,
+                       e.cep,
+                       e.logradouro,
+                       e.numero,
+                       e.complemento,
+                       e.bairro,
+                       e.data_criacao
+                  from empresa e
+                
+                ```
         }
         layout {
             sequence: 10
@@ -54,6 +86,10 @@ page 15 (
                 #DEFAULT#
                 t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
             ]
+            cssClasses: cx-relatorio
+        }
+        headerAndFooter {
+            footerText: <p class="cx-relatorio__nota">Endereço completo, CEP e data de abertura: Ações › Colunas</p>
         }
         link {
             linkColumn: customTarget
@@ -64,14 +100,14 @@ page 15 (
                 }
                 action: resetPagination
             }
-            linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+            linkIcon: <span role="img" aria-label="Editar" class="fa fa-pencil" title="Editar"></span>
         }
         pagination {
-            type: rowRangesXToY
+            type: rowRangesXToYOfZ
         }
         messages {
-            whenNoDataFound: No data found.
-            whenMoreDataFound: The maximum row count for this report is #MAX_ROW_COUNT# rows.  Please apply a filter to reduce the number of records in your query.
+            whenNoDataFound: Nenhuma empresa cadastrada.
+            whenMoreDataFound: A lista passou de #MAX_ROW_COUNT# linhas. Use a pesquisa para filtrar.
         }
         advanced {
             savedReportMappingIdentifier: 9983244636177663
@@ -83,7 +119,7 @@ page 15 (
                 heading: Bairro
             }
             layout {
-                sequence: 12
+                sequence: 150
             }
             source {
                 dataType: STRING
@@ -99,7 +135,7 @@ page 15 (
                 heading: CEP
             }
             layout {
-                sequence: 8
+                sequence: 90
             }
             source {
                 dataType: STRING
@@ -109,19 +145,19 @@ page 15 (
             }
         )
 
-        column CIDADE (
+        column CIDADE_UF (
             type: plainText
             heading {
-                heading: Cidade
+                heading: Cidade/UF
             }
             layout {
-                sequence: 13
+                sequence: 40
             }
             source {
                 dataType: STRING
             }
             advanced {
-                endUserAlias: M
+                endUserAlias: P
             }
         )
 
@@ -131,7 +167,7 @@ page 15 (
                 heading: CNPJ
             }
             layout {
-                sequence: 3
+                sequence: 30
             }
             source {
                 dataType: STRING
@@ -147,7 +183,7 @@ page 15 (
                 heading: Complemento
             }
             layout {
-                sequence: 11
+                sequence: 140
             }
             source {
                 dataType: STRING
@@ -160,10 +196,13 @@ page 15 (
         column DATA_CRIACAO (
             type: plainText
             heading {
-                heading: Data de Criação
+                heading: Data de abertura
             }
             layout {
-                sequence: 4
+                sequence: 160
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
             }
             source {
                 dataType: DATE
@@ -176,10 +215,10 @@ page 15 (
         column EMAIL_CORPORATIVO (
             type: plainText
             heading {
-                heading: Email Corporativo
+                heading: E-mail corporativo
             }
             layout {
-                sequence: 6
+                sequence: 50
             }
             source {
                 dataType: STRING
@@ -212,7 +251,7 @@ page 15 (
                 heading: Logradouro
             }
             layout {
-                sequence: 9
+                sequence: 100
             }
             source {
                 dataType: STRING
@@ -225,10 +264,10 @@ page 15 (
         column NOME (
             type: plainText
             heading {
-                heading: Razão Social
+                heading: Razão social
             }
             layout {
-                sequence: 2
+                sequence: 20
             }
             source {
                 dataType: STRING
@@ -239,12 +278,22 @@ page 15 (
         )
 
         column NOME_FANTASIA (
-            type: plainText
+            type: link
             heading {
-                heading: Nome Fantasia
+                heading: Nome fantasia
             }
             layout {
-                sequence: 5
+                sequence: 10
+            }
+            link {
+                target: {
+                    page: 16
+                    items: {
+                        P16_ID_EMPRESA: #ID_EMPRESA#
+                    }
+                    clearCache: 16
+                }
+                linkText: #NOME_FANTASIA#
             }
             source {
                 dataType: STRING
@@ -260,7 +309,7 @@ page 15 (
                 heading: Número
             }
             layout {
-                sequence: 10
+                sequence: 130
             }
             source {
                 dataType: STRING
@@ -270,22 +319,38 @@ page 15 (
             }
         )
 
-        column STATUS (
-            type: plainTextBasedOnLov
+        column SITUACAO (
+            type: plainText
             heading {
                 heading: Status
             }
-            lov {
-                lov: @boolean
-            }
             layout {
-                sequence: 15
+                sequence: 70
+            }
+            columnFormatting {
+                htmlExpression: <span class="cx-badge cx-badge--#SITUACAO_CLASSE#">#SITUACAO#</span>
             }
             source {
-                dataType: BOOLEAN
+                dataType: STRING
             }
             advanced {
-                endUserAlias: O
+                endUserAlias: Q
+            }
+        )
+
+        column SITUACAO_CLASSE (
+            type: hidden
+            heading {
+                heading: Situação classe
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: R
             }
         )
 
@@ -295,7 +360,7 @@ page 15 (
                 heading: Telefone
             }
             layout {
-                sequence: 7
+                sequence: 60
             }
             source {
                 dataType: STRING
@@ -305,25 +370,12 @@ page 15 (
             }
         )
 
-        column UF (
-            type: plainText
-            heading {
-                heading: UF
-            }
-            layout {
-                sequence: 14
-            }
-            source {
-                dataType: STRING
-            }
-            advanced {
-                endUserAlias: N
-            }
-        )
-
         page {
             borderWidth: 0.5
             borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: Empresas
         }
 
         savedReport primary (
@@ -332,40 +384,16 @@ page 15 (
                 rowsPerPage: 50
             }
 
-            displayColumn BAIRRO (
-                sequence: 12
-            )
-
-            displayColumn CEP (
-                sequence: 8
-            )
-
-            displayColumn CIDADE (
-                sequence: 13
+            displayColumn CIDADE_UF (
+                sequence: 4
             )
 
             displayColumn CNPJ (
                 sequence: 3
             )
 
-            displayColumn COMPLEMENTO (
-                sequence: 11
-            )
-
-            displayColumn DATA_CRIACAO (
-                sequence: 4
-            )
-
             displayColumn EMAIL_CORPORATIVO (
-                sequence: 6
-            )
-
-            displayColumn ID_EMPRESA (
-                sequence: 1
-            )
-
-            displayColumn LOGRADOURO (
-                sequence: 9
+                sequence: 5
             )
 
             displayColumn NOME (
@@ -373,50 +401,26 @@ page 15 (
             )
 
             displayColumn NOME_FANTASIA (
-                sequence: 5
+                sequence: 1
             )
 
-            displayColumn NUMERO (
-                sequence: 10
-            )
-
-            displayColumn STATUS (
-                sequence: 15
-            )
-
-            displayColumn TELEFONE (
+            displayColumn SITUACAO (
                 sequence: 7
             )
 
-            displayColumn UF (
-                sequence: 14
+            displayColumn TELEFONE (
+                sequence: 6
+            )
+
+            sort (
+                column: NOME_FANTASIA
+                sort {
+                    sequence: 1
+                }
             )
 
         )
 
-    )
-
-    button create (
-        buttonName: CREATE
-        label: Cadastrar
-        layout {
-            sequence: 10
-            region: @empresas-cadastradas
-            slot: rightOfInteractiveReportSearchBar
-        }
-        appearance {
-            buttonTemplate: @/text
-            hot: true
-            templateOptions: #DEFAULT#
-        }
-        behavior {
-            action: redirectThisApp
-            target: {
-                page: 16
-                clearCache: 16
-            }
-            warnOnUnsavedChanges: doNotCheck
-        }
     )
 
     dynamicAction edit-report-dialog-closed (
@@ -426,8 +430,8 @@ page 15 (
         }
         when {
             event: apexafterclosedialog
-            selectionType: region
-            region: @empresas-cadastradas
+            selectionType: jsExpression
+            javaScriptExpression: document
         }
 
         action native-refresh (

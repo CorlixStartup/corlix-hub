@@ -14,6 +14,7 @@ page 16 (
         cursorFocus: doNotFocusCursor
     }
     security {
+        authorizationScheme: @administration-rights
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
@@ -526,6 +527,7 @@ page 16 (
         }
         settings {
             subtype: phone
+            trimSpaces: none
         }
         layout {
             sequence: 20

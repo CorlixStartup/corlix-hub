@@ -995,13 +995,14 @@ page 4 (
 
         action atualizar-conversa (
             name: Atualizar conversa
-            action: show
+            action: refresh
             affectedElements {
                 selectionType: region
                 region: @msgs
             }
             execution {
                 sequence: 30
+                fireOnInit: false
             }
         )
 
