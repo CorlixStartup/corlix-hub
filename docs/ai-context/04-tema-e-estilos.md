@@ -298,6 +298,15 @@ Guia: `modulos/tema/Etapas-empresas.md` (p15, protótipo `Empresas.png`).
 | `.cx-cabecalho-pagina--acoes` (`__texto`, `__acoes`) | cabeçalho com botões à direita (flex, quebra abaixo de 768px). O botão é um `<a class="t-Button t-Button--hot">` com `apex_page.get_url` no HTML da região (p15, guia `Etapas-empresas.md`) |
 | `.cx-relatorio` (`__nota`) | CSS Class de região Interactive Report; card com borda e raio `--cx-raio-card`, barra de pesquisa e cabeçalho da tabela separados por borda, cabeçalho em `--cx-superficie-2`, links da linha em negrito `--cx-primaria`; `__nota` vai no Footer Text da região |
 
+### 5.2.5 Cadastro de empresa (`custom.css` §16)
+
+Guia: `modulos/tema/Etapas-cadastro-empresa.md` (p16, protótipo `Nova empresa (modal).png`).
+
+| Classe | Uso |
+|---|---|
+| `.cx-form-modal` | CSS Class da região do form em modal (Blank with Attributes) com seções Standard sem UI: `*` vermelho no rótulo dos obrigatórios (esconde `.t-Form-itemRequired` e `-marker`), switch com "Ativa"/"Inativa" e `.cx-titulo-secao` com respiro de 8/12px |
+| `.cx-form-modal-rodape` (`__nota`) | CSS Class da região Buttons (Buttons Container, slot Dialog Footer): pinta o `.t-Dialog-footer` de `--cx-superficie-2` com borda superior (via `:has`), centraliza a linha e deixa o título só para leitores de tela; `__nota` é o aviso de obrigatórios no HTML da região (coluna do meio) |
+
 ### 5.3 Cabeçalho (`custom.css` §2, p0 Global Page)
 
 `.corlix-header__search` (360px, max 40vw, margin-left 24px; some < 768px) › `__search-icon` (absoluto a 14px, centralizado, `--cx-texto-2`; seletor com `.corlix-header__search` na frente porque o Core do UT tem `.apex-icons-fontapex .fa { position: relative }`) + `__search-input` (36px, padding-left 38px, fundo `--cx-tag`, raio `--cx-raio`; foco: fundo branco + outline 2px primária) — região no slot *After Logo*.
@@ -391,7 +400,7 @@ O tema vale para o app inteiro assim que o CSS carrega — não há "ligar por p
 | 13 Histórico | seguir `modulos/historico-carreira/Etapas-historico-carreira.md` item 2 | CSS do módulo fora do app |
 | 14 Cadastro de usuários | **Redesign** pelo guia `modulos/tema/Etapas-cadastro-colaborador.md`: cabeçalho `.cx-cabecalho-pagina` na Breadcrumb Bar, seções `.cx-form-secao` (Dados pessoais, Vínculo profissional, Acesso ao sistema), rodapé `.cx-form-rodape` | CSS na `DEV`; página aguardando o Builder (o `.apx` ainda tem `cadastrar-colaborador-header` com `cx-titulo`/`cx-descricao`) |
 | 15 Empresas | **Redesign** pelo guia `modulos/tema/Etapas-empresas.md`: cabeçalho `.cx-cabecalho-pagina--acoes` com "+ Nova empresa", IR em SQL com sete colunas, badge de status e `.cx-relatorio`, autorização na página | **aplicado** (26/10/2026) |
-| 16 Cadastro de empresas | guia manda apagar Header Text; `delete` = Danger sem Hot | **divergente**: Header Text virou `<h2 class="cx-titulo-secao">` (sem style inline) |
+| 16 Cadastro de empresas | **Redesign** pelo guia `modulos/tema/Etapas-cadastro-empresa.md`: protótipo `Nova empresa (modal).png`, `.cx-form-modal` e `.cx-form-modal-rodape`, CNPJ pela BrasilAPI, correções de ViaCEP/máscara/logotipo; banco: `modulos/empresas/01` | CSS na `DEV`; página aguardando o Builder |
 | 17 Emitir comunicado | opcional renomear para "Novo comunicado" | — |
 | 26 Central de equipes | nada | ok |
 | 27 Nova equipe | `delete` = Danger sem Hot | modificado |
