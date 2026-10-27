@@ -210,7 +210,7 @@ Siga [`Etapas-cadastro-colaborador.md`](Etapas-cadastro-colaborador.md): ele ref
 
 ### Página 15 · Empresas cadastradas
 
-Nada obrigatório: o Interactive Report e o botão "Criar" (Hot) já seguem o padrão.
+Siga [`Etapas-empresas.md`](Etapas-empresas.md): ele refaz a página como o protótipo `Empresas.png` (cabeçalho com "+ Nova empresa", relatório em card com sete colunas e badge de status, colunas de endereço em *Ações › Colunas*).
 
 ---
 

@@ -1908,3 +1908,78 @@
         padding: 12px;
     }
 }
+
+
+/* ============================================================
+   16. CADASTRO DE EMPRESA (pen_dev/Nova empresa (modal).png)
+   Guia: modulos/tema/Etapas-cadastro-empresa.md
+   CSS Class cx-form-modal na região do form (Blank with Attributes); as
+   seções são regiões Standard sem UI dentro dela. O rodapé é a região
+   Buttons (Buttons Container, slot Dialog Footer) com cx-form-modal-rodape.
+   ============================================================ */
+
+.cx-form-modal .cx-titulo-secao {
+    margin: 8px 0 12px;
+}
+
+/* Obrigatório: mesmo tratamento da .cx-form-secao (seção 14) */
+.cx-form-modal .t-Form-itemRequired,
+.cx-form-modal .t-Form-itemRequired-marker {
+    display: none;
+}
+
+.cx-form-modal .t-Region .t-Form-fieldContainer.t-Form-fieldContainer--floatingLabel.is-required .t-Form-label::after {
+    display: inline;
+    margin-inline-start: .25rem;
+    content: "*";
+    color: var(--cx-alerta);
+    font-family: inherit !important;
+}
+
+/* Switch (Situação): texto "Ativa"/"Inativa" ao lado e ajuda embaixo */
+.cx-form-modal .apex-item-wrapper--yes-no .t-Form-inputContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.cx-form-modal .apex-item-wrapper--yes-no .a-Switch {
+    align-items: center;
+    gap: 8px;
+}
+
+.cx-form-modal .apex-item-wrapper--yes-no .a-Switch::after {
+    content: "Inativa";
+    font-size: 14px;
+    color: var(--cx-texto);
+}
+
+.cx-form-modal .apex-item-wrapper--yes-no .a-Switch:has(input:checked)::after {
+    content: "Ativa";
+}
+
+/* Rodapé do modal: fundo --cx-superficie-2 com borda, aviso de obrigatórios
+   na coluna do meio do Buttons Container (HTML da região) e botões à direita */
+.t-Dialog-footer:has(.cx-form-modal-rodape) {
+    background: var(--cx-superficie-2);
+    border-top: 1px solid var(--cx-borda);
+}
+
+.cx-form-modal-rodape .t-ButtonRegion-wrap {
+    align-items: center;
+}
+
+.cx-form-modal-rodape .t-ButtonRegion-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.cx-form-modal-rodape__nota {
+    margin: 0;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
