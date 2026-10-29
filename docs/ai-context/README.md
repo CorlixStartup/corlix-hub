@@ -10,7 +10,7 @@
 - **App:** ID `100`, alias `CORLIXHUB`, workspace/schema `WKSP_CORLIXHUB`, autenticação por contas APEX, idioma da UI pt-BR (idioma primário técnico `en`).
 - **Fonte da app:** `corlixhub/` em formato **APEXlang** (`.apx`), **somente leitura** para agentes (ver regra 1 abaixo). `database/f100.sql` é o mesmo app num export SQL de 12 MB: use só para consultar, nunca edite.
 - **Banco:** o DDL das tabelas base (`COLABORADOR`, `CARGO`, `DEPARTAMENTO`, `EMPRESA`, `COMUNICADO`, `EQUIPE`, chat, logs…) está em `database/corlix-hub.sql`. É um snapshot só de estrutura, **sem dados**, e não serve como instalador. O módulo de histórico de carreira tem DDL próprio em `modulos/historico-carreira/`. Dados exportados ficam em `database/dados/` (hoje só `departamento.xlsx`: 6 departamentos da empresa 1).
-- **Em andamento:** redesign visual (tokens `--cx-*` em `corlix-tema.css`), módulo de Organograma (`modulos/organograma`, página 3), Histórico de carreira integrado nas páginas 13 e 18–23 (guia `modulos/historico-carreira/Etapas-historico-carreira.md`), redesign da Home numa página nova, a 28, sem apagar a 1 (`modulos/home`, guia `Etapas-home.md`, branch `feature/redesign-home`) e ~28 telas-alvo em `pen_dev/`.
+- **Em andamento:** redesign visual (tokens `--cx-*` em `corlix-tema.css`), módulo de Organograma (`modulos/organograma`, página 3), Histórico de carreira integrado nas páginas 13 e 18–23 (guia `modulos/historico-carreira/Etapas-historico-carreira.md`), redesign da Home numa página nova, a 28, sem apagar a 1 (`modulos/home`, guia `Etapas-home.md`, branch `feature/redesign-home`), redesign do Dashboard RH na própria página 20 (`modulos/dashboard-rh`, guia `Etapas-dashboard-rh.md`) e ~28 telas-alvo em `pen_dev/`.
 
 ## Documentos
 
@@ -56,7 +56,7 @@
 | 14 | Cadastro de Usuários (cria usuário APEX e a admissão no histórico) | Implementada (`ADMIN_RH`) |
 | 18 | Movimentação (modal do histórico de carreira) | Implementada (§3 do guia) |
 | 19 / 21 | Formações e certificações (lista) / Formação (modal) | Implementadas (§4 do guia) |
-| 20 | Dashboard RH | Implementada (§5 do guia) |
+| 20 | Dashboard RH | Implementada (§5 do guia); redesign pelo `modulos/dashboard-rh/Etapas-dashboard-rh.md` |
 | 22 | Solicitar correção (modal do colaborador) | Implementada (§6 do guia) |
 | 23 | Responder solicitação de correção (modal do Dashboard RH) | Implementada (§5.5 do guia) |
 | 15 / 16 | Empresas (lista / modal de cadastro com ViaCEP) | Implementada |

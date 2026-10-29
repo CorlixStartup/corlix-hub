@@ -108,7 +108,7 @@
 | 14 | Cadastro de Usuários | CADASTROS-DE-USUARIOS | p00014-cadastros-de-usuarios.apx | @/standard | normal | @admin-rh / menu: @admin-rh | Implementada (form COLABORADOR + cria usuário APEX + admissão no histórico) |
 | 18 | Movimentação | MOVIMENTACAO | p00018-movimentacao.apx | @/modal-dialog | modal | @admin-rh | Implementada (rascunho, efetivar, estornar, excluir; guia §3) |
 | 19 | Formações e certificações | FORMAÇÕES-E-CERTIFICAÇÕES | p00019-formações-e-certificações.apx | @corlix-standard-page | normal | @admin-rh | Implementada (IR de `FORMACAO_COLABORADOR`; guia §4) |
-| 20 | Dashboard RH | DASHBOARD-RH | p00020-dashboard-rh.apx | @/standard | normal | @admin-rh / menu: @admin-rh | Implementada (3 gráficos, formações a vencer, solicitações abertas; guia §5) |
+| 20 | Dashboard RH | DASHBOARD-RH | p00020-dashboard-rh.apx | @/standard | normal | @admin-rh / menu: @admin-rh | Implementada (3 gráficos, formações a vencer, solicitações abertas; guia §5). Redesign do protótipo pelo `modulos/dashboard-rh/Etapas-dashboard-rh.md`: cards Dynamic Content do `pkg_dashboard_rh_ui` |
 | 21 | Formação | FORMACAO | p00021-formacao.apx | @/modal-dialog | modal | @admin-rh | Implementada (form `FORMACAO_COLABORADOR` com anexo; guia §4) |
 | 22 | Solicitar correção | SOLICITAR-CORRECAO | p00022-solicitar-correcao.apx | @/modal-dialog | modal | @colaborador / menu: @colaborador | Implementada (guia §6) |
 | 23 | Responder solicitação | RESPONDER-SOLICITACAO | p00023-responder-solicitacao.apx | @/modal-dialog | modal | @admin-rh | Implementada (aberta pela p20; guia §5.5) |

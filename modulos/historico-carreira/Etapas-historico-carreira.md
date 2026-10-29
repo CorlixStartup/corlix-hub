@@ -1417,6 +1417,8 @@ Dynamic Actions
 
 ## 5. Página 20 · Dashboard RH
 
+> **Redesign (27/10/2026):** o layout desta seção (gráficos JET, Classic Report e Interactive Report) é substituído pelo do protótipo `pen_dev/Dashboard RH.png`, montado pelo [`modulos/dashboard-rh/Etapas-dashboard-rh.md`](../dashboard-rh/Etapas-dashboard-rh.md). As regras de negócio abaixo continuam valendo; os passos de Builder desta seção ficam como histórico da versão anterior.
+
 Painel do RH com indicadores de carreira da empresa num período: promoções por departamento (§5.1), turnover (§5.2), tempo médio no cargo (§5.3), formações a vencer (§5.4) e solicitações de correção abertas (§5.5). A página **não está no protótipo** e, por isso, usa o mesmo cabeçalho das páginas 13 e 19.
 
 Todas as consultas usam só movimentações válidas: efetivadas, não estornadas e que não são lançamentos de estorno (`VW_MOVIMENTACAO_VALIDA`). Toda consulta filtra por `:G_ID_EMPRESA`.
