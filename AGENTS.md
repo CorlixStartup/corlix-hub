@@ -9,6 +9,7 @@ Instruções para agentes de IA (Claude Code, Copilot, Cursor, Codex etc.).
 Resumo:
 - App Oracle APEX 26.1 (ID 100, `CORLIXHUB`, workspace `WKSP_CORLIXHUB`) sobre Oracle DB 23ai. Toda a lógica está em SQL/PL/SQL e no APEX.
 - Fonte da app: `corlixhub/` (APEXlang `.apx`), **somente leitura** (regra acima). `database/f100.sql` é um export gerado: só leia com grep, nunca edite.
+- **Protótipos:** todo protótipo/tela-alvo do projeto está em `pen_dev/` (PNGs do pen.dev, um por tela; descrições em `docs/ai-context/07-design-pen-dev.md`). Procure lá antes de qualquer outro lugar; se a tela pedida não existir, pergunte.
 - Módulos de feature em `modulos/<nome>/`: SQL numerado + `instalar.sql`, packages, CSS/JS e o guia `Etapas-*.md`.
 - Tema: tokens `--cx-*` em `corlixhub/shared-components/static-files/corlix-tema.css`; ajustes em `custom.css`. Mantenha os `.min.css` em sincronia.
 - Escreva em pt-BR. Use Conventional Commits (`scripts/git-hooks/commit-msg`) e abra PRs para `DEV`.

@@ -19,6 +19,7 @@
     - Não copie caminhos de versões antigas: no 26.1.5 o painel de propriedades **não tem a aba "Attributes"** e a região de Form **não mostra a seção "Edit"**.
     - Caminho que não foi conferido na tela do 26.1.5 vai marcado **(confirmar no 26.1.5)** e acompanhado de um jeito de verificar o resultado (o processo que o APEX cria, ou o trecho esperado no export APEXlang).
     - Se o usuário disser que um caminho não existe, **não chute outro**: peça um print da árvore e do painel de propriedades, e depois corrija o guia com o caminho real.
+12. **Protótipos ficam em `pen_dev/`.** Toda tela-alvo, mockup ou protótipo do projeto está nessa pasta (PNGs exportados do pen.dev, um arquivo por tela, nomeado pelo título da tela). Quando a tarefa falar em "protótipo", "tela do pen.dev", "design" ou "tela-alvo", procure primeiro em `pen_dev/` e não em outro lugar; a descrição de cada tela está em [`07-design-pen-dev.md`](./07-design-pen-dev.md). Se o protótipo pedido não estiver lá, pergunte ao time em vez de inventar o layout. A pasta continua somente leitura (regra 1).
 
 ## 2. Lacunas estruturais (objetos que faltam no repositório)
 

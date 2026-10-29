@@ -75,3 +75,4 @@
 6. Se o README raiz divergir do código, confie no código. O que não estiver confirmado, pergunte ao time (ex.: o ambiente atual, já que `docker-compose.yml` foi apagado, e os dados reais do banco).
 7. Ao mudar páginas, schema, tema ou módulos, **atualize o documento correspondente nesta pasta**.
 8. Passo a passo do Builder sempre para o **APEX 26.1.5**: caminho não conferido vai marcado "(confirmar no 26.1.5)"; se não existir, peça print em vez de chutar (ver 08 §1, regra 11).
+9. **Todo protótipo está em `pen_dev/`** (PNGs das telas-alvo do pen.dev, descritas no 07). Procure lá primeiro; se a tela não existir, pergunte (ver 08 §1, regra 12).
