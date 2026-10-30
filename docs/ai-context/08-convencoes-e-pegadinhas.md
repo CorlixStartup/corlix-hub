@@ -5,7 +5,7 @@
 
 ## 1. Regras para uma IA trabalhando neste repositório
 
-1. **Edite a app em `corlixhub/*.apx` (APEXlang).** Não edite `database/f100.sql` à mão: é um export gerado (12 MB) que serve só para consulta via `grep`.
+1. **Proibido modificar** `corlixhub/`, `backups/`, `pen_dev/` e `scripts/` (regra obrigatória do projeto). São só para leitura: nada de criar, editar, apagar ou reverter arquivos nelas. A app muda pelo Builder, feita pelo time, e o `.apx` chega ao repositório pelo export/backup; o agente valida, escreve o guia em `modulos/<nome>/Etapas-*.md` e atualiza `docs/`. Se a tarefa parecer exigir mudança nessas pastas, pare e pergunte. `database/f100.sql` também não se edita: é um export gerado (12 MB), só para consulta via `grep`.
 2. **Sempre em pt-BR**: textos da UI, comentários, nomes de objetos (`colaborador`, `departamento`, `id_empresa`…), mensagens de commit.
 3. **Nomes de objetos de banco** em `snake_case` minúsculo nos scripts. Prefixos: `pkg_` (packages), `vw_` (views), `trg_<tabela>_aud|log` (triggers), `fn_` (funções), `prc_` (procedures), `id_<entidade>` (PKs/FKs), `dt_` (datas), `fl_` (flags `S/N`), `ds_`/`nm_` quando aparecem.
 4. **Módulos novos** seguem o padrão de `modulos/<nome>/`: scripts SQL numerados + `instalar.sql`, package `pkg_<nome>` com a lógica, `pkg_<nome>_ui` (ou procedure `render_*`) que devolve HTML para uma região *Dynamic Content*, `<nome>.css` e `<nome>.js`, e um `Etapas-<nome>.md` com o passo a passo no Builder. Veja o template em [`06-modulos.md`](./06-modulos.md).
@@ -19,6 +19,7 @@
     - Não copie caminhos de versões antigas: no 26.1.5 o painel de propriedades **não tem a aba "Attributes"** e a região de Form **não mostra a seção "Edit"**.
     - Caminho que não foi conferido na tela do 26.1.5 vai marcado **(confirmar no 26.1.5)** e acompanhado de um jeito de verificar o resultado (o processo que o APEX cria, ou o trecho esperado no export APEXlang).
     - Se o usuário disser que um caminho não existe, **não chute outro**: peça um print da árvore e do painel de propriedades, e depois corrija o guia com o caminho real.
+12. **Protótipos ficam em `pen_dev/`.** Toda tela-alvo, mockup ou protótipo do projeto está nessa pasta (PNGs exportados do pen.dev, um arquivo por tela, nomeado pelo título da tela). Quando a tarefa falar em "protótipo", "tela do pen.dev", "design" ou "tela-alvo", procure primeiro em `pen_dev/` e não em outro lugar; a descrição de cada tela está em [`07-design-pen-dev.md`](./07-design-pen-dev.md). Se o protótipo pedido não estiver lá, pergunte ao time em vez de inventar o layout. A pasta continua somente leitura (regra 1).
 
 ## 2. Lacunas estruturais (objetos que faltam no repositório)
 
@@ -49,10 +50,7 @@
   - Não há processo *Close Dialog*.
   - A lista do wizard (não usada) aponta para p18/p19, que hoje são páginas do histórico de carreira. Não reaproveite a lista; apague-a ou crie outra.
   - Todos os itens estão com `sequence: 10`.
-- **p16 Cadastro de empresa**:
-  - Os campos de endereço preenchidos pelo ViaCEP ficam desabilitados, e item desabilitado não é submetido.
-  - Os `maxLength` de CEP, telefone e número são curtos demais para valores com máscara.
-  - O logo usa `appTempFiles`.
+- **p16 Cadastro de empresa**: os defeitos antigos (endereço desabilitado, `maxLength` curtos, logo em `appTempFiles`) foram corrigidos no Builder em 27/10/2026 pelo `modulos/tema/Etapas-cadastro-empresa.md`. O `.apx` do repositório só reflete isso depois do próximo backup. Faltam no Builder as validações de CNPJ repetido e de remoção com vínculos (§6.1 do guia).
 - **p1 Home** (o redesign de `modulos/home/Etapas-home.md` vai para a página nova 28 e **não altera a página 1**; os itens abaixo continuam valendo para a 1 e deixam de afetar o usuário quando a Home for trocada para a 28 no §5 do guia):
   - Os links rápidos Holerite/Ponto/Suporte TI levam às páginas 5/6/7 (Home antiga). Na Início (`pkg_home_ui.render_hero`), o Holerite leva à página 9 e Ponto/Suporte TI ainda não têm destino.
   - Os botões Chat/E-mail do gestor têm `href="#"`.

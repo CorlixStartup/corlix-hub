@@ -10,8 +10,10 @@
 | `modulos/organograma/` | versionada (commit `bac2d69`), **com mudanças não commitadas** (+774/−80 linhas: drawer de detalhes) | p. 3 `Organograma` (`corlixhub/pages/p00003-organograma.apx`) | **Não.** A página só tem a região Breadcrumb |
 | `modulos/historico-carreira/` | versionado | p. 13 `Histórico de carreira` (`p00013-historico-de-carreira.apx`) + páginas 18–23 | **Sim** (revalidado em 19/10/2026). Guia e checklist: `Etapas-historico-carreira.md` §1–§9 |
 | `modulos/home/` | branch `feature/redesign-home` (19/10/2026) | p. 28 `Início` (nova; a p. 1 `Home` é mantida) | **Não** ainda: montar pelo `Etapas-home.md` |
+| `modulos/dashboard-rh/` | versionado (27/10/2026) | p. 20 `Dashboard RH` (redesign na própria página) | **Não** ainda: montar pelo `Etapas-dashboard-rh.md` |
 | `modulos/tema/` | **untracked** | todas (tema global) | documentado em `04-tema-e-estilos.md` |
 | `modulos/perfis-acesso/` | versionado | p. 14 `Cadastro de Usuários` | **Sim** na app (papéis `colaborador`/`gestor`/`admin-rh`, authorization `ADMIN_RH`, processo e LOV de gestor na P14); SQL instalado no banco em 06/10/2026, com papéis vinculados à mão aos cargos antigos. Guia: `Etapas-perfis-acesso.md`; histórico: `Registro-implantacao.md` |
+| `modulos/empresas/` | versionado | p. 16 `Cadastro de Empresas` | **Sim** (01 e 02, confirmados no DDL do backup de 27/10/2026) | `01_data_criacao_opcional.sql`: `EMPRESA.DATA_CRIACAO` passa a aceitar NULL; `02_complemento_100.sql`: `EMPRESA.COMPLEMENTO` de 30 para 100 caracteres (idempotentes). Sem package nem página própria |
 
 O histórico de carreira já está integrado: `G_ID_EMPRESA`, as authorizations `GESTOR` e `COLABORADOR`, as LOVs, os static files e as páginas 13 e 18–23 estão em `corlixhub/` e no `database/f100.sql`. O papel `Admin RH` e a authorization `ADMIN_RH` foram criados pelo módulo `perfis-acesso`.
 
@@ -295,6 +297,19 @@ Nova Home conforme `pen_dev/Início.png`, montada na página nova 28 ("Início")
 | `Etapas-home.md` | passo a passo no Builder 26.1.5 |
 
 Os comunicados ficam numa região **Cards** nativa (precisam da imagem BLOB), com SQL filtrada por `:G_ID_EMPRESA`; CSS em `custom.css` §12 (ver `04` §5.2.1). Links rápidos: o destino de cada um é o `p_pagina` da chamada a `atalho` no `render_hero` (link com `apex_page.get_url`). Holerite digital → página 9; Ponto eletrônico e Suporte TI seguem sem destino (`aria-disabled`) até as páginas existirem. Para torná-los configuráveis por empresa, ver a tabela `LINK_RAPIDO` sugerida em `07` §5.
+
+## 2C. Dashboard RH (`modulos/dashboard-rh/`)
+
+Redesign da página 20 conforme `pen_dev/Dashboard RH.png`, na própria página (mesmo alias, `ADMIN_RH` e itens `P20_DT_INICIO`/`P20_DT_FIM`), no padrão "Dynamic Content renderizado por PL/SQL", sem tabelas novas. Substitui no Builder o layout do `Etapas-historico-carreira.md` §5; as regras de negócio são as mesmas.
+
+| Arquivo | Conteúdo |
+|---|---|
+| `pkg_dashboard_rh_ui.pks` / `.pkb` | `render_indicadores` / `render_turnover` / `render_departamentos` (período em texto `DD/MM/YYYY`), `render_solicitacoes` e `render_formacoes` (`p_limite`, `p_ver_todas`: card ou diálogo). Ícones SVG Lucide em linha. Turnover em HTML/CSS: com o maior valor acima de `c_fator_corte` (4) × o segundo maior, o eixo segue o segundo e a barra sai cortada, com nota; os números também saem numa tabela |
+| `dashboard-rh.css` / `.min.css` | classes `cx-dash-*`; sobem como Static Application Files e entram em *CSS › File URLs* da página (no lugar de `historico-carreira#MIN#.css`) |
+| `dashboard-rh-pagina.js` | "Ver em tabela"/"Ver gráfico" e "Ver todas" → `apex.theme.openRegion` (HTML DOM IDs `dash_solicitacoes_todas`, `dash_formacoes_todas`) |
+| `instalar.sql` | instala o package |
+
+"Responder" → p23 e nome da formação → p19, ambos com `apex_page.get_url`. A DA de fechamento da p23 escuta `document` (mesmo padrão da p13).
 
 ## 2B. Busca na intranet (`modulos/busca/`)
 

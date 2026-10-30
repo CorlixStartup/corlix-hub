@@ -1,0 +1,622 @@
+/* ============================================================
+   DASHBOARD RH (página 20) · pen_dev/Dashboard RH.png
+   Guia: modulos/dashboard-rh/Etapas-dashboard-rh.md
+   HTML: pkg_dashboard_rh_ui (classes cx-dash-*). Usa os tokens --cx-* do
+   corlix-tema.css e o .cx-avatar / .cx-cabecalho-pagina do custom.css.
+   Sem sombras (política do tema).
+   ============================================================ */
+
+:root {
+    /* Séries do gráfico de turnover e barras por departamento */
+    --cx-dash-serie-1: #2B78D4;
+    --cx-dash-serie-2: #E8683A;
+    /* Prazos das formações */
+    --cx-dash-urgente: var(--cx-alerta);
+    --cx-dash-urgente-fundo: #FCE8E6;
+    --cx-dash-atencao: #8A4B00;
+    --cx-dash-atencao-fundo: #FDF0DC;
+}
+
+/* --- 1. Cabeçalho: título à esquerda, período (De / Até) à direita --- */
+
+.cx-dash-cabecalho {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 16px;
+}
+
+.cx-dash-cabecalho .cx-cabecalho-pagina__texto {
+    flex: 1 1 320px;
+}
+
+.cx-dash-cabecalho .t-Form-fieldContainer {
+    flex: 0 0 232px;
+    margin: 0;
+    padding: 0;
+}
+
+/* --- 2. Base dos cards --- */
+
+.cx-dash-card {
+    margin-bottom: 24px;
+    padding: 24px 32px 28px;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+    background: var(--cx-superficie);
+    color: var(--cx-texto);
+}
+
+.cx-dash-card__cabecalho {
+    margin-bottom: 20px;
+}
+
+.cx-dash-card__linha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+}
+
+.cx-dash-card__titulo {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.5rem;
+}
+
+.cx-dash-card__subtitulo {
+    margin: 4px 0 0;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--cx-texto-2);
+}
+
+.cx-dash-selo {
+    padding: 2px 8px;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio);
+    background: var(--cx-tag);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--cx-texto-2);
+    white-space: nowrap;
+}
+
+.cx-dash-icone {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Link de texto (botões "Ver em tabela", "Ver todas", link "Responder") */
+.cx-dash-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cx-primaria);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.cx-dash-link:hover {
+    color: var(--cx-primaria-hover);
+    text-decoration: underline;
+}
+
+.cx-dash-link .cx-dash-icone {
+    width: 16px;
+    height: 16px;
+}
+
+.cx-dash-kpi:focus-visible,
+.cx-dash-link:focus-visible,
+.cx-dash-formacao__nome:focus-visible {
+    outline: 2px solid var(--cx-primaria);
+    outline-offset: 2px;
+}
+
+.cx-dash-aviso,
+.cx-dash-nota {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--cx-texto-2);
+}
+
+.cx-dash-aviso {
+    padding: 16px 0;
+}
+
+.cx-dash-aviso .cx-dash-icone,
+.cx-dash-nota .cx-dash-icone {
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+}
+
+.cx-dash-vazio {
+    padding: 24px;
+    text-align: center;
+}
+
+.cx-dash-vazio strong {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.cx-dash-vazio p {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+/* "hidden" vence o display dos blocos (grafico/tabela) ao alternar */
+.cx-dash-card [hidden] {
+    display: none !important;
+}
+
+/* Âncoras dos indicadores: não esconder o título atrás do header fixo */
+#cx-dash-turnover,
+#cx-dash-departamentos {
+    scroll-margin-top: 80px;
+}
+
+/* --- 3. Indicadores --- */
+
+.cx-dash-kpis {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.cx-dash-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 20px 24px;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+    background: var(--cx-superficie);
+    color: var(--cx-texto);
+    text-decoration: none;
+}
+
+.cx-dash-kpi:hover {
+    border-color: var(--cx-borda-campo);
+    color: var(--cx-texto);
+    text-decoration: none;
+}
+
+.cx-dash-kpi__topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--cx-texto-3);
+}
+
+.cx-dash-kpi__rotulo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    color: var(--cx-texto-2);
+}
+
+.cx-dash-kpi__valor {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.cx-dash-kpi__detalhe {
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+/* --- 4. Turnover --- */
+
+.cx-dash-turnover__acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 24px;
+}
+
+.cx-dash-legenda {
+    display: flex;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 15px;
+    color: var(--cx-texto-2);
+}
+
+.cx-dash-legenda li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cx-dash-legenda__cor {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.cx-dash-serie--adm {
+    background: var(--cx-dash-serie-1);
+}
+
+.cx-dash-serie--desl {
+    background: var(--cx-dash-serie-2);
+}
+
+/* Eixo à esquerda + área do gráfico; os rótulos dos meses ficam abaixo */
+.cx-dash-grafico {
+    display: grid;
+    grid-template-columns: 32px minmax(480px, 1fr);
+    padding: 24px 0 40px;
+    overflow-x: auto;
+}
+
+.cx-dash-grafico__eixo,
+.cx-dash-grafico__area {
+    position: relative;
+    height: 360px;
+}
+
+.cx-dash-grafico__eixo span {
+    position: absolute;
+    bottom: var(--y);
+    left: 0;
+    transform: translateY(50%);
+    font-size: 13px;
+    color: var(--cx-texto-2);
+}
+
+.cx-dash-grafico__guia {
+    position: absolute;
+    bottom: var(--y);
+    left: 0;
+    right: 0;
+    border-top: 1px solid var(--cx-borda);
+}
+
+.cx-dash-grafico__meses {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    margin: 0;
+    padding: 0 0 0 4px;
+    list-style: none;
+}
+
+.cx-dash-grafico__mes {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.cx-dash-grafico__barras {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 4px;
+    height: 100%;
+}
+
+.cx-dash-barra {
+    position: relative;
+    flex: 0 1 22px;
+    height: var(--h);
+    min-height: 2px;
+    border-radius: 4px 4px 0 0;
+}
+
+/* Barra fora de escala: corte diagonal perto do topo e o valor em cima */
+.cx-dash-barra.is-cortada::after {
+    content: "";
+    position: absolute;
+    top: 7%;
+    left: -2px;
+    right: -2px;
+    height: 6px;
+    background: var(--cx-superficie);
+    transform: skewY(-30deg);
+}
+
+.cx-dash-barra__valor {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-bottom: 4px;
+    transform: translateX(-50%);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cx-texto);
+    white-space: nowrap;
+}
+
+.cx-dash-grafico__rotulo {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+    color: var(--cx-texto-2);
+    white-space: nowrap;
+}
+
+.cx-dash-grafico__mes.is-destaque .cx-dash-grafico__rotulo {
+    font-weight: 700;
+    color: var(--cx-texto);
+}
+
+/* Mais de 12 meses: um rótulo sim, outro não */
+.cx-dash-grafico__meses.is-denso .cx-dash-grafico__mes:nth-child(even) .cx-dash-grafico__rotulo {
+    visibility: hidden;
+}
+
+/* --- 5. Tabelas (turnover em tabela e departamentos) --- */
+
+.cx-dash-rolagem,
+.cx-dash-turnover__tabela {
+    overflow-x: auto;
+}
+
+.cx-dash-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+.cx-dash-tabela thead th {
+    padding: 0 16px 10px 0;
+    border-bottom: 1px solid var(--cx-borda);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    color: var(--cx-texto);
+}
+
+.cx-dash-tabela tbody th,
+.cx-dash-tabela tbody td,
+.cx-dash-tabela tfoot th,
+.cx-dash-tabela tfoot td {
+    padding: 16px 16px 16px 0;
+    border-bottom: 1px solid var(--cx-borda);
+    font-weight: 400;
+    text-align: left;
+}
+
+.cx-dash-tabela tfoot th,
+.cx-dash-tabela tfoot td {
+    border-bottom: 0;
+    font-weight: 700;
+}
+
+.cx-dash-tabela tbody tr:last-child th,
+.cx-dash-tabela tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.cx-dash-tabela .cx-dash-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.cx-dash-turnover__tabela tbody tr:last-child th,
+.cx-dash-turnover__tabela tbody tr:last-child td {
+    border-bottom: 1px solid var(--cx-borda);
+}
+
+.cx-dash-tabela--deptos th:first-child {
+    width: 40%;
+}
+
+.cx-dash-tabela--deptos th:nth-child(2) {
+    width: 32%;
+}
+
+/* Barra + número na mesma célula */
+.cx-dash-medida {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cx-dash-medida__barra {
+    flex: 0 0 calc(var(--w) * .78);
+    min-width: 6px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--cx-dash-serie-1);
+}
+
+.cx-dash-medida strong {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.cx-dash-medida.is-zero {
+    color: var(--cx-texto-2);
+}
+
+/* --- 6. Coluna lateral: solicitações e formações --- */
+
+.cx-dash-card--lateral {
+    padding: 0;
+}
+
+.cx-dash-card--lateral .cx-dash-card__cabecalho {
+    margin: 0;
+    padding: 20px 24px;
+}
+
+.cx-dash-lista {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cx-dash-lista > li {
+    padding: 16px 24px;
+    border-top: 1px solid var(--cx-borda);
+}
+
+.cx-dash-card__rodape {
+    padding: 16px 24px 20px;
+    border-top: 1px solid var(--cx-borda);
+}
+
+.cx-dash-card--lateral .cx-dash-vazio {
+    border-top: 1px solid var(--cx-borda);
+}
+
+/* Solicitação: avatar + nome/tempo, pedido, "Aberta em" e Responder */
+.cx-dash-solicitacao {
+    display: flex;
+    gap: 16px;
+}
+
+.cx-dash-solicitacao__corpo {
+    flex: 1;
+    min-width: 0;
+}
+
+.cx-dash-solicitacao__topo,
+.cx-dash-solicitacao__rodape,
+.cx-dash-formacao__topo {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cx-dash-solicitacao__topo strong {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.cx-dash-tempo {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: var(--cx-texto-3);
+}
+
+.cx-dash-solicitacao__texto {
+    display: -webkit-box;
+    margin: 4px 0 12px;
+    overflow: hidden;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.cx-dash-solicitacao__rodape {
+    align-items: center;
+    font-size: 14px;
+    color: var(--cx-texto-3);
+}
+
+/* Formação: nome + prazo, título e "tipo · instituição · vence em" */
+.cx-dash-formacao__topo {
+    align-items: center;
+}
+
+.cx-dash-formacao__nome {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cx-texto);
+    text-decoration: none;
+}
+
+.cx-dash-formacao__nome:hover {
+    color: var(--cx-primaria);
+    text-decoration: underline;
+}
+
+.cx-dash-formacao__titulo {
+    margin: 2px 0 0;
+    font-size: 15px;
+}
+
+.cx-dash-formacao__detalhe {
+    margin: 2px 0 0;
+    font-size: 14px;
+    color: var(--cx-texto-3);
+}
+
+.cx-dash-prazo {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--cx-tag);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cx-texto-2);
+    white-space: nowrap;
+}
+
+.cx-dash-prazo::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.cx-dash-prazo.is-urgente {
+    background: var(--cx-dash-urgente-fundo);
+    color: var(--cx-dash-urgente);
+}
+
+.cx-dash-prazo.is-atencao {
+    background: var(--cx-dash-atencao-fundo);
+    color: var(--cx-dash-atencao);
+}
+
+/* --- 7. Telas estreitas --- */
+
+@media (max-width: 640px) {
+    .cx-dash-kpis {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .cx-dash-card {
+        padding: 20px;
+    }
+
+    .cx-dash-card--lateral {
+        padding: 0;
+    }
+
+    .cx-dash-cabecalho .t-Form-fieldContainer {
+        flex: 1 1 160px;
+    }
+}

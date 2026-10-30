@@ -8,9 +8,9 @@
 - **Produto:** intranet corporativa SaaS para PMEs. Reúne colaboradores, organograma, histórico de carreira, comunicados, chat, equipes e cadastro multiempresa. Projeto FIAP Enterprise Challenge 2026.
 - **Stack:** Oracle APEX 26.1 (Universal Theme, visual Redwood Light) sobre Oracle Database 23ai e ORDS 25.4. Toda a lógica está em SQL/PL/SQL e nas definições declarativas do APEX. Não há Node/Java/Python.
 - **App:** ID `100`, alias `CORLIXHUB`, workspace/schema `WKSP_CORLIXHUB`, autenticação por contas APEX, idioma da UI pt-BR (idioma primário técnico `en`).
-- **Fonte da app:** `corlixhub/` em formato **APEXlang** (`.apx`). `database/f100.sql` é o mesmo app num export SQL de 12 MB: use só para consultar, nunca edite.
+- **Fonte da app:** `corlixhub/` em formato **APEXlang** (`.apx`), **somente leitura** para agentes (ver regra 1 abaixo). `database/f100.sql` é o mesmo app num export SQL de 12 MB: use só para consultar, nunca edite.
 - **Banco:** o DDL das tabelas base (`COLABORADOR`, `CARGO`, `DEPARTAMENTO`, `EMPRESA`, `COMUNICADO`, `EQUIPE`, chat, logs…) está em `database/corlix-hub.sql`. É um snapshot só de estrutura, **sem dados**, e não serve como instalador. O módulo de histórico de carreira tem DDL próprio em `modulos/historico-carreira/`. Dados exportados ficam em `database/dados/` (hoje só `departamento.xlsx`: 6 departamentos da empresa 1).
-- **Em andamento:** redesign visual (tokens `--cx-*` em `corlix-tema.css`), módulo de Organograma (`modulos/organograma`, página 3), Histórico de carreira integrado nas páginas 13 e 18–23 (guia `modulos/historico-carreira/Etapas-historico-carreira.md`), redesign da Home numa página nova, a 28, sem apagar a 1 (`modulos/home`, guia `Etapas-home.md`, branch `feature/redesign-home`) e ~28 telas-alvo em `pen_dev/`.
+- **Em andamento:** redesign visual (tokens `--cx-*` em `corlix-tema.css`), módulo de Organograma (`modulos/organograma`, página 3), Histórico de carreira integrado nas páginas 13 e 18–23 (guia `modulos/historico-carreira/Etapas-historico-carreira.md`), redesign da Home numa página nova, a 28, sem apagar a 1 (`modulos/home`, guia `Etapas-home.md`, branch `feature/redesign-home`), redesign do Dashboard RH na própria página 20 (`modulos/dashboard-rh`, guia `Etapas-dashboard-rh.md`) e ~28 telas-alvo em `pen_dev/`.
 
 ## Documentos
 
@@ -56,7 +56,7 @@
 | 14 | Cadastro de Usuários (cria usuário APEX e a admissão no histórico) | Implementada (`ADMIN_RH`) |
 | 18 | Movimentação (modal do histórico de carreira) | Implementada (§3 do guia) |
 | 19 / 21 | Formações e certificações (lista) / Formação (modal) | Implementadas (§4 do guia) |
-| 20 | Dashboard RH | Implementada (§5 do guia) |
+| 20 | Dashboard RH | Implementada (§5 do guia); redesign pelo `modulos/dashboard-rh/Etapas-dashboard-rh.md` |
 | 22 | Solicitar correção (modal do colaborador) | Implementada (§6 do guia) |
 | 23 | Responder solicitação de correção (modal do Dashboard RH) | Implementada (§5.5 do guia) |
 | 15 / 16 | Empresas (lista / modal de cadastro com ViaCEP) | Implementada |
@@ -67,11 +67,12 @@
 | 9999 | Login | Implementada |
 
 ## Regras de ouro (resumo do 08)
-1. Edite `corlixhub/**/*.apx`; nunca edite `database/f100.sql`.
+1. **Proibido modificar** `corlixhub/`, `backups/`, `pen_dev/` e `scripts/`: são só leitura; a app muda pelo Builder e o agente escreve guias e docs. Nunca edite `database/f100.sql`.
 2. Use pt-BR em tudo e Conventional Commits; abra PRs para `DEV`.
 3. Toda query de negócio deve filtrar por `id_empresa`, e toda página administrativa precisa de `authorizationScheme` na própria página.
 4. Gere links com checksum (`apex_page.get_url`).
-5. Ao alterar um `.css`, altere também o `.min.css` e registre arquivos novos em `static-files.apx`.
+5. Quando o time alterar um `.css`, o `.min.css` muda junto e arquivos novos entram em `static-files.apx` (o agente indica isso no guia; não edita `corlixhub/`).
 6. Se o README raiz divergir do código, confie no código. O que não estiver confirmado, pergunte ao time (ex.: o ambiente atual, já que `docker-compose.yml` foi apagado, e os dados reais do banco).
 7. Ao mudar páginas, schema, tema ou módulos, **atualize o documento correspondente nesta pasta**.
 8. Passo a passo do Builder sempre para o **APEX 26.1.5**: caminho não conferido vai marcado "(confirmar no 26.1.5)"; se não existir, peça print em vez de chutar (ver 08 §1, regra 11).
+9. **Todo protótipo está em `pen_dev/`** (PNGs das telas-alvo do pen.dev, descritas no 07). Procure lá primeiro; se a tela não existir, pergunte (ver 08 §1, regra 12).

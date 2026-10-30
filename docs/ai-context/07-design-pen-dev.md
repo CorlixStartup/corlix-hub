@@ -19,6 +19,7 @@
 | 6 | `Novo colaborador.png` | Formulário de criação | p00014-cadastros-de-usuarios | **Alta** |
 | 7 | `Editar colaborador.png` | Formulário de edição | p00014-cadastros-de-usuarios (modo edição) | **Alta** |
 | 8 | `Empresas.png` | Lista de empresas | p00015-empresas-cadastradas (+ p00016 modal) | Média |
+| 8.1 | `Nova empresa (modal).png` | Modal "Nova empresa" | p00016-cadastro-de-empresas | Média |
 | 9 | `Organograma.png` | Organograma por níveis | p00003-organograma | **Alta** |
 | 10 | `modulos/organograma/Organograma — redesign (navegação por níveis).png` | Organograma por níveis (variante com texto de ajuda) | p00003-organograma | **Alta** |
 | 11 | `modulos/organograma/Organograma · detalhes da pessoa (Drawer) — redesign.png` | Drawer de detalhes da pessoa | p00003 + nova página modal (drawer) — não implementada | **Alta** |
@@ -178,7 +179,17 @@ Mesma estrutura do 4.5, com diferenças:
 - Cabeçalho "Empresas" / "Consulte e mantenha as empresas cadastradas no CorlixHub." + botão "**+ Nova empresa**" (abre p00016 modal).
 - Card com **Interactive Report** padrão: barra de pesquisa (lupa ▾, "Pesquisar", botão "Ir", menu "Ações ▾"); coluna de ícone lápis (link de edição); colunas **Nome fantasia ↑** (link azul), **Razão social**, **CNPJ**, **Cidade/UF**, **E-mail corporativo**, **Telefone**, **Status** (badge "Ativa"). Linha exemplo: Corlix · Empresa Piloto Corlix · 00.000.000/0001-00 · São Paulo – SP · financeiro@corlix.com.br · (11) 98765-1234 · Ativa.
 - Rodapé do IR: "Endereço completo, CEP e data de abertura: Ações › Colunas" (colunas ocultas por padrão) | "1 – 1 de 1".
-**Guia**: `modulos/tema/Etapas-empresas.md` (CSS `custom.css` §15). Fica de fora: o idioma da barra do IR ("Ir"/"Ações") e a máscara do CNPJ, que é do cadastro (p16).
+**Guia**: `modulos/tema/Etapas-empresas.md` (CSS `custom.css` §15). Fica de fora: o idioma da barra do IR ("Ir"/"Ações") e a máscara do CNPJ, que é do cadastro (p16). Modal: §4.7.1.
+
+### 4.7.1 Nova empresa (modal) — `Nova empresa (modal).png` → p00016-cadastro-de-empresas
+**Layout**: Modal Dialog (~1000px) sobre a lista de empresas escurecida. Título "Nova empresa" + ×, linha embaixo.
+- **Identificação**: **CNPJ *** (placeholder "00.000.000/0000-00"; ajuda "Preenche os dados pela Receita Federal.") | **Data de abertura (opcional)** com ícone de calendário; **Razão social *** (linha inteira); **Nome fantasia *** (linha inteira).
+- **Contato e endereço**: **E-mail corporativo *** (~2/3) | **Telefone *** (~1/3); **CEP *** (ajuda "Preenche o endereço.") | **Logradouro *** | **Número ***; **Complemento (opcional)** | **Bairro ***; **Cidade *** | **UF *** (Select List).
+- **Logotipo e situação**: **Logotipo (opcional)** em dropzone "Arraste o logotipo ou clique para selecionar" / "PNG, JPG ou SVG, até 2 MB. Prefira fundo transparente." (~2/3) | **Situação**: switch ligado "Ativa", ajuda "Novas empresas nascem ativas."
+- Rodapé cinza-claro: "Campos marcados com * são obrigatórios." à esquerda; "Cancelar" (secundário) + "**Criar empresa**" (primário) à direita.
+- Rótulos flutuantes com `*` vermelho nos obrigatórios e "(opcional)" no texto dos opcionais; sem "Required".
+**APEX**: o form da p16 com 3 sub-regiões, itens em grade (Column Span 5/7, 12, 8/4, 3/7/2, 6/6, 10/2, 8/4); DA de CNPJ (BrasilAPI) e de CEP (ViaCEP) no navegador; Image Upload *Inline Dropzone* com storage na coluna BLOB; `DATA_CRIACAO` passa a aceitar NULL (`modulos/empresas/01`). Só a criação está no protótipo; a edição usa o mesmo layout ("Editar empresa", "Salvar alterações", "Remover" em Danger).
+**Guia**: `modulos/tema/Etapas-cadastro-empresa.md` (CSS `custom.css` §16).
 
 ### 4.8 Organograma (navegação por níveis) — `Organograma.png` e `modulos/organograma/Organograma — redesign (navegação por níveis).png` → p00003-organograma
 As duas imagens são praticamente iguais; difere apenas o texto de ajuda inferior (a versão em `modulos/` é a mais recente e menciona o drawer).
