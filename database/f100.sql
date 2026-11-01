@@ -19,7 +19,7 @@ whenever sqlerror exit sql.sqlcode rollback
 begin
 wwv_flow_imp.import_begin (
  p_version_yyyy_mm_dd=>'2026.03.30'
-,p_release=>'26.1.5'
+,p_release=>'26.1.6'
 ,p_default_workspace_id=>10008945716225088
 ,p_default_application_id=>100
 ,p_default_id_offset=>0
@@ -70,7 +70,7 @@ prompt APPLICATION 100 - Corlix Hub
 --       Reports:
 --       E-Mail:
 --     Supporting Objects:  Included
---   Version:         26.1.5
+--   Version:         26.1.6
 --   Instance ID:     10008549869164147
 --
 
@@ -70513,4 +70513,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:1WrQILp3WC++JteyeobBrdtumDdqU5MepRJFTcs9iaw=
+-- Application Checksum SH256:a2JBWyTgENN1PzifItYVd7/wS1sDsZ7enMcW0fc1ioU=
