@@ -9,7 +9,7 @@
 |---|---|---|---|
 | `modulos/organograma/` | versionada (commit `bac2d69`), **com mudanças não commitadas** (+774/−80 linhas: drawer de detalhes) | p. 3 `Organograma` (`corlixhub/pages/p00003-organograma.apx`) | **Não.** A página só tem a região Breadcrumb |
 | `modulos/historico-carreira/` | versionado | p. 13 `Histórico de carreira` (`p00013-historico-de-carreira.apx`) + páginas 18–23 | **Sim** (revalidado em 19/10/2026). Guia e checklist: `Etapas-historico-carreira.md` §1–§9 |
-| `modulos/home/` | branch `feature/redesign-home` (19/10/2026) | p. 28 `Início` (nova; a p. 1 `Home` é mantida) | **Não** ainda: montar pelo `Etapas-home.md` |
+| `modulos/home/` | versionado | p. 1 `Início` (o redesign foi montado direto na p. 1; a p. 28 não existe) | **Sim** até o §5 do guia (protótipo antigo). Protótipo de 28/10/2026: **não** ainda, montar pelo §6 do `Etapas-home.md` |
 | `modulos/dashboard-rh/` | versionado (27/10/2026) | p. 20 `Dashboard RH` (redesign na própria página) | **Não** ainda: montar pelo `Etapas-dashboard-rh.md` |
 | `modulos/tema/` | **untracked** | todas (tema global) | documentado em `04-tema-e-estilos.md` |
 | `modulos/perfis-acesso/` | versionado | p. 14 `Cadastro de Usuários` | **Sim** na app (papéis `colaborador`/`gestor`/`admin-rh`, authorization `ADMIN_RH`, processo e LOV de gestor na P14); SQL instalado no banco em 06/10/2026, com papéis vinculados à mão aos cargos antigos. Guia: `Etapas-perfis-acesso.md`; histórico: `Registro-implantacao.md` |
@@ -286,15 +286,18 @@ Feito (no módulo): DDL, seed, views, package de regras, package de UI, triggers
 
 ## 2A. Home (`modulos/home/`)
 
-Nova Home conforme `pen_dev/Início.png`, montada na página nova 28 ("Início") sem apagar a página 1; o Home URL, o menu e o breadcrumb só passam para a 28 no §5 do guia, no mesmo padrão "Dynamic Content renderizado por PL/SQL", sem tabelas novas.
+Nova Home conforme `pen_dev/Início.png`. O guia previa a página nova 28, mas o time montou direto na página 1 (renomeada "Início"). Mesmo padrão "Dynamic Content renderizado por PL/SQL", sem tabelas novas.
 
 | Arquivo | Conteúdo |
 |---|---|
 | `pkg_home_ui.pks` / `.pkb` | `mes_atual`, `render_hero` ("Olá, <primeiro nome>", data por extenso no fuso `America/Sao_Paulo`, 3 links rápidos), `render_meu_gestor` (gestor com Chat → p4 via `apex_page.get_url` e E-mail `mailto:`; dois estados vazios: sem vínculo com a empresa × sem gestor), `render_aniversariantes(p_id_empresa, p_limite default 3, p_ver_todos default 'S')` (mês inteiro, `status = true`, próximos primeiro, selo "Hoje") |
 | `instalar.sql` | instala o package pelo SQLcl |
-| `home-pagina.js` | bloco 1 `cxHomeCarregarFotos` (fotos via `data-cx-foto` + `apex.env.APP_FILES`, mesmo padrão do organograma); bloco 2: "Ver todos" → `apex.theme.openRegion('aniversariantes_todos')` e aviso nos atalhos sem destino |
+| `home.css` / `home.min.css` | (§6 do guia) complementa a §12 do `custom.css` só na p. 1 (`#APP_FILES#home#MIN#.css`): hero sem arte, comunicados em carrossel (`cx-home-carrossel`, `cx-carrossel__*`), botões do Meu gestor, destaque "hoje" das celebrações |
+| `home-pagina.js` | bloco 1 `cxHomeCarregarFotos` e `cxHomeCarrossel` (setas e pontos sobre a Cards; refeito no `apexafterrefresh`) (fotos via `data-cx-foto` + `apex.env.APP_FILES`, mesmo padrão do organograma); bloco 2: "Ver todos" → `apex.theme.openRegion('aniversariantes_todos')` e aviso nos atalhos sem destino |
 | `home-hero.jpg` | arte do hero (recorte do protótipo); também em `corlixhub/shared-components/static-files/` |
 | `Etapas-home.md` | passo a passo no Builder 26.1.5 |
+
+**Protótipo de 28/10/2026 (§6 do guia):** saudação por horário ("Bom dia/Boa tarde/Boa noite"), atalhos Holerite (p9), Organograma (p3), Suporte TI (sem destino) e Chat (p4); comunicados em carrossel (5 mais recentes, selo "Novo" até 7 dias, ação "Ler comunicado" → p11); Meu gestor com "Mensagem"; `render_celebracoes(p_id_empresa, p_limite default 4, p_ver_todos default 'S')` com aniversários e anos de empresa (`DATA_ADMISSAO`, a partir de 1 ano) no lugar de `render_aniversariantes` (mantida no package por compatibilidade). Ficam sem backend: Ponto de hoje, indicadores, pendências, feedbacks, pesquisa de clima, próximos eventos, 1:1 e "não lido" (ver `07` §5).
 
 Os comunicados ficam numa região **Cards** nativa (precisam da imagem BLOB), com SQL filtrada por `:G_ID_EMPRESA`; CSS em `custom.css` §12 (ver `04` §5.2.1). Links rápidos: o destino de cada um é o `p_pagina` da chamada a `atalho` no `render_hero` (link com `apex_page.get_url`). Holerite digital → página 9; Ponto eletrônico e Suporte TI seguem sem destino (`aria-disabled`) até as páginas existirem. Para torná-los configuráveis por empresa, ver a tabela `LINK_RAPIDO` sugerida em `07` §5.
 
@@ -322,6 +325,22 @@ Guia: `modulos/busca/Etapas-busca.md`. Protótipo `pen_dev/Busca (resultados).pn
 | `instalar.sql` | instala o package |
 
 Pessoas: `colaborador` ativo (`status = true`) da empresa, por nome, cargo ou departamento; nome → p3 com `P3_ID_FOCO` (checksum via `apex_page.get_url`), "Conversar" → p4 (o chat não abre conversa por parâmetro). Comunicados: da empresa, por título ou pelos primeiros 2.000 caracteres do conteúdo; título → p11. Busca sem diferença de maiúsculas e acentos (`translate(lower(...))` com constantes do package) e com `%`/`_` do termo escapados. A p29 é *Unrestricted* e o `P29_TERMO` sem Value Protected, porque o termo chega pela URL. Fica para depois o grupo "Páginas do menu" do protótipo.
+
+---
+
+## 2D. Ponto eletrônico (`modulos/ponto-eletronico/`)
+
+Guia: `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`. Protótipo `pen_dev/Ponto eletrônico.png`. Páginas 30 a 33, ainda não criadas no app; os packages ainda não foram compilados no banco.
+
+| Arquivo | Conteúdo |
+|---|---|
+| `01_ddl_ponto.sql` / `02_seed_ponto.sql` | Tabelas, trigger, view; jornada padrão, vínculos e feriados nacionais de 2026–2027 |
+| `03_pkg_ponto.pks` / `.pkb` | `fn_dias` (cálculo por dia), `calcular_banco` (créditos com vencimento, o mais antigo é consumido primeiro), `registrar_marcacao`, `solicitar_ajuste`, `responder_ajuste`, `assinar_espelho`, `fn_pode_aprovar`, `fn_e_aprovador` |
+| `04_pkg_ponto_ui.pks` / `.pkb` | `render_*` das regiões e diálogos; `ajax_registrar`, `ajax_assinar`, `ajax_baixar_espelho` (respondem JSON `{ok, mensagem}`) |
+| `05_dados_demo.sql` / `06_remover_dados_demo.sql` | Dados de teste (`ds_origem = 'DEMO'`) |
+| `ponto.css` / `ponto.min.css`, `ponto-pagina.js` | Classes `cx-ponto-*`; relógio, chamadas Ajax e atualização das regiões por HTML DOM ID (`ponto_*`) |
+
+A hora registrada é sempre a do servidor no fuso da empresa (`pkg_historico_carreira.fn_data_local`). Marcação não muda: ajuste aprovado é uma nova linha, e `vw_ponto_marcacao_vigente` escolhe a que vale. Quem aprova é o gestor direto ou o RH, nunca o próprio colaborador. Não é um REP-P homologado (Portaria MTP 671/2021). Fora do escopo: férias e afastamentos, turno noturno, telas de cadastro de jornada e feriado, notificações.
 
 ---
 

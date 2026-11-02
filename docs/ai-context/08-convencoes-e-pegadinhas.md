@@ -13,13 +13,20 @@
 6. **Links entre páginas**: as páginas usam `argumentsMustHaveChecksum`, então gere URLs com `apex_page.get_url(...)` ou com o link builder. URLs `f?p=` montadas manualmente com parâmetros quebram.
 7. **Multiempresa**: toda consulta nova a dados de negócio deve filtrar por `id_empresa` da empresa do usuário. Hoje quase nenhuma filtra (ver §3).
 8. **Segurança**: quando criar ou alterar páginas administrativas, defina `authorizationScheme` **na página**, e não apenas na entrada do menu.
-9. **Commits**: Conventional Commits (`feat(escopo): …`). Faça PR para `DEV`. Nunca versione `apex/`, `oracle_oradata/`, `ords_config/`, `.env`.
+9. **Commits**: Conventional Commits (`feat(escopo): …`). Branches e PRs seguem a regra 13. Nunca versione `apex/`, `oracle_oradata/`, `ords_config/`, `.env`.
 10. **Não invente**: o README e o código divergem em vários pontos (ver [`01`](./01-arquitetura-e-ambiente.md) §6). Confie no código e pergunte ao time sobre o que não estiver confirmado (ambiente atual, DDL das tabelas base, `log_pkg`).
 11. **Passo a passo do Builder é para o APEX 26.1.5.** Os guias (`Etapas-*.md`) descrevem caminhos do Page Designer desta versão, com passos detalhados (onde clicar, seção › atributo, valor, como testar).
     - Não copie caminhos de versões antigas: no 26.1.5 o painel de propriedades **não tem a aba "Attributes"** e a região de Form **não mostra a seção "Edit"**.
     - Caminho que não foi conferido na tela do 26.1.5 vai marcado **(confirmar no 26.1.5)** e acompanhado de um jeito de verificar o resultado (o processo que o APEX cria, ou o trecho esperado no export APEXlang).
     - Se o usuário disser que um caminho não existe, **não chute outro**: peça um print da árvore e do painel de propriedades, e depois corrija o guia com o caminho real.
 12. **Protótipos ficam em `pen_dev/`.** Toda tela-alvo, mockup ou protótipo do projeto está nessa pasta (PNGs exportados do pen.dev, um arquivo por tela, nomeado pelo título da tela). Quando a tarefa falar em "protótipo", "tela do pen.dev", "design" ou "tela-alvo", procure primeiro em `pen_dev/` e não em outro lugar; a descrição de cada tela está em [`07-design-pen-dev.md`](./07-design-pen-dev.md). Se o protótipo pedido não estiver lá, pergunte ao time em vez de inventar o layout. A pasta continua somente leitura (regra 1).
+
+13. **Toda alteração vai numa branch `fix/<assunto>`, com PR.** Vale para qualquer alteração no repositório, por menor que seja:
+    - Crie a branch a partir da `DEV` atualizada. Nunca faça commit direto na `DEV` ou na `PROD`.
+    - Faça commit e push e abra o PR para `DEV`. Mudanças de assuntos diferentes ficam em branches e PRs diferentes.
+    - Quando a `DEV` tiver commits que ainda não estão na `PROD`, abra o PR `DEV` → `PROD`, se não houver um aberto. Antes do merge do PR para `DEV`, o `DEV` → `PROD` ainda não tem o que mostrar: o GitHub recusa um PR sem commits.
+    - O merge é do time: o agente só abre os PRs.
+    - A regra não libera as pastas somente leitura (regra 1).
 
 ## 2. Lacunas estruturais (objetos que faltam no repositório)
 
