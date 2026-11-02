@@ -64,11 +64,12 @@
 | 26 / 27 | Central de Equipes / Nova Equipe (modal) | Implementada |
 | 28 | Início (nova Home) | Em montagem pelo `modulos/home/Etapas-home.md`; vira a Home no §5 do guia |
 | 29 | Busca (resultados da busca do header) | Em montagem pelo `modulos/busca/Etapas-busca.md` |
+| 30 a 33 | Ponto eletrônico, Solicitar ajuste (modal), Ajustes de ponto, Responder ajuste (modal) | Planejadas: `modulos/ponto-eletronico/Etapas-ponto-eletronico.md` |
 | 9999 | Login | Implementada |
 
 ## Regras de ouro (resumo do 08)
 1. **Proibido modificar** `corlixhub/`, `backups/`, `pen_dev/` e `scripts/`: são só leitura; a app muda pelo Builder e o agente escreve guias e docs. Nunca edite `database/f100.sql`.
-2. Use pt-BR em tudo e Conventional Commits; abra PRs para `DEV`.
+2. Use pt-BR em tudo e Conventional Commits. Toda alteração vai numa branch `fix/<assunto>`, com PR para `DEV` e depois `DEV` → `PROD` (ver 08 §1, regra 13).
 3. Toda query de negócio deve filtrar por `id_empresa`, e toda página administrativa precisa de `authorizationScheme` na própria página.
 4. Gere links com checksum (`apex_page.get_url`).
 5. Quando o time alterar um `.css`, o `.min.css` muda junto e arquivos novos entram em `static-files.apx` (o agente indica isso no guia; não edita `corlixhub/`).

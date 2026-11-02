@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- Corlix Hub · Home (página 28) · corpo
+-- Corlix Hub · Home (página 1, "Início") · corpo
 -- Fotos: FOTO_URL guarda o nome do arquivo em "Fotos Colaboradores/" (Static
 -- Application Files). O HTML sai com data-cx-foto e o JS da página completa o
 -- src com apex.env.APP_FILES. Se a imagem falhar, o onerror remove a <img> e as
@@ -42,6 +42,12 @@ create or replace package body pkg_home_ui as
   begin
     return cast(systimestamp at time zone 'America/Sao_Paulo' as date);
   end hoje;
+
+  -- Hora atual no fuso do Brasil, para a saudação
+  function hora_atual return pls_integer is
+  begin
+    return to_number(to_char(systimestamp at time zone 'America/Sao_Paulo', 'hh24'));
+  end hora_atual;
 
   function mes_por_extenso (p_data in date) return varchar2 is
   begin
@@ -92,16 +98,29 @@ create or replace package body pkg_home_ui as
         || '</span>';
   end avatar;
 
-  -- Nome + linha de detalhe, com avatar
-  function pessoa (p_nome in varchar2, p_foto_url in varchar2, p_detalhe in varchar2) return varchar2 is
+  -- Nome + linha de detalhe, com avatar. p_classe_detalhe destaca a linha (ex.: "hoje").
+  function pessoa (p_nome in varchar2, p_foto_url in varchar2, p_detalhe in varchar2,
+                   p_classe_detalhe in varchar2 default null) return varchar2 is
   begin
     return '<div class="cx-pessoa">' || avatar(p_nome, p_foto_url)
         || '<div><strong class="cx-pessoa__nome">' || e(p_nome) || '</strong>'
         || case when p_detalhe is not null then
-             '<span class="cx-pessoa__detalhe">' || e(p_detalhe) || '</span>'
+             '<span class="cx-pessoa__detalhe'
+             || case when p_classe_detalhe is not null then ' ' || p_classe_detalhe end
+             || '">' || e(p_detalhe) || '</span>'
            end
         || '</div></div>';
   end pessoa;
+
+  -- Rodapé "Ver todos" dos cards da coluna lateral (o JS abre o diálogo)
+  function rodape_ver_todos (p_acao in varchar2) return varchar2 is
+  begin
+    return '<div class="cx-home-card__rodape">'
+        || '<button type="button" class="t-Button t-Button--noUI t-Button--iconRight" data-cx-acao="' || a(p_acao) || '">'
+        || '<span class="t-Button-label">Ver todos</span>'
+        || '<span class="t-Icon t-Icon--right fa fa-arrow-right" aria-hidden="true"></span>'
+        || '</button></div>';
+  end rodape_ver_todos;
 
   -- Estado vazio: ícone em círculo + título + orientação (textos já em HTML)
   function estado_vazio (p_icone in varchar2, p_titulo in varchar2, p_texto in varchar2) return varchar2 is
@@ -139,7 +158,11 @@ create or replace package body pkg_home_ui as
   function render_hero (
     p_login in varchar2 default v('APP_USER')
   ) return clob is
-    l_nome varchar2(200);
+    l_nome     varchar2(200);
+    l_hora     constant pls_integer := hora_atual;
+    l_saudacao constant varchar2(20) := case when l_hora < 12 then 'Bom dia'
+                                             when l_hora < 18 then 'Boa tarde'
+                                             else 'Boa noite' end;
   begin
     begin
       select coalesce(trim(primeiro_nome), regexp_substr(trim(nome_completo), '^\S+'))
@@ -158,15 +181,17 @@ create or replace package body pkg_home_ui as
     inicia;
     p('<section class="cx-home-hero" aria-labelledby="cx-home-saudacao">');
     p('<div class="cx-home-hero__conteudo">');
-    p('<h1 id="cx-home-saudacao" class="cx-home-hero__titulo">Ol&aacute;, ' || e(l_nome) || '</h1>');
+    p('<h1 id="cx-home-saudacao" class="cx-home-hero__titulo">' || l_saudacao || ', ' || e(l_nome) || '</h1>');
     p('<p class="cx-home-hero__data">' || e(data_por_extenso(hoje)) || '</p>');
     p('<ul class="cx-home-atalhos" aria-label="Links r&aacute;pidos">');
     -- Página de destino de cada link; nula enquanto a página não existir
-    p(atalho('fa-file-text-o', 'Holerite digital',      p_pagina => 9));
-    p(atalho('fa-clock-o',     'Ponto eletr&ocirc;nico', p_pagina => null));
-    p(atalho('fa-headphones',  'Suporte TI',            p_pagina => null));
+    p(atalho('fa-file-text-o', 'Holerite',    p_pagina => 9));
+    p(atalho('fa-sitemap',     'Organograma', p_pagina => 3));
+    p(atalho('fa-headphones',  'Suporte TI',  p_pagina => null));
+    p(atalho('fa-comments-o',  'Chat',        p_pagina => 4));
+    -- O card "Ponto de hoje" do protótipo fica à direita quando houver backend
+    -- de ponto (docs/ai-context/07 §5); até lá o hero ocupa a largura toda.
     p('</ul></div>');
-    p('<div class="cx-home-hero__arte" aria-hidden="true"></div>');
     p('</section>');
     return g_html;
   end render_hero;
@@ -201,10 +226,10 @@ create or replace package body pkg_home_ui as
       p(pessoa(g.nome_completo, g.foto_url,
                g.cargo || case when g.cargo is not null and g.departamento is not null then ' · ' end
                        || g.departamento));
-      p('<div class="cx-acoes-card">');
+      p('<div class="cx-acoes-card cx-home-gestor__acoes">');
       p('<a class="t-Button t-Button--icon t-Button--iconLeft" href="' || a(apex_page.get_url(p_page => 4)) || '">'
         || '<span class="t-Icon t-Icon--left fa fa-comments-o" aria-hidden="true"></span>'
-        || '<span class="t-Button-label">Chat</span></a>');
+        || '<span class="t-Button-label">Mensagem</span></a>');
       if g.email is not null then
         p('<a class="t-Button t-Button--icon t-Button--iconLeft" href="mailto:' || a(g.email) || '">'
           || '<span class="t-Icon t-Icon--left fa fa-envelope-o" aria-hidden="true"></span>'
@@ -284,14 +309,90 @@ create or replace package body pkg_home_ui as
 
     p('</ul>');
     if p_ver_todos = 'S' then
-      p('<div class="cx-home-card__rodape">'
-        || '<button type="button" class="t-Button t-Button--noUI t-Button--iconRight" data-cx-acao="aniversariantes">'
-        || '<span class="t-Button-label">Ver todos</span>'
-        || '<span class="t-Icon t-Icon--right fa fa-arrow-right" aria-hidden="true"></span>'
-        || '</button></div>');
+      p(rodape_ver_todos('aniversariantes'));
     end if;
     return g_html;
   end render_aniversariantes;
+
+  function render_celebracoes (
+    p_id_empresa in number      default to_number(v('G_ID_EMPRESA') default null on conversion error),
+    p_limite     in pls_integer default 4,
+    p_ver_todos  in varchar2    default 'S'
+  ) return clob is
+    l_hoje    constant date := hoje;
+    l_dia_hoj constant pls_integer := to_number(to_char(l_hoje, 'dd'));
+    l_limite  constant pls_integer := coalesce(p_limite, 1000);
+    l_qt      pls_integer := 0;
+    l_detalhe varchar2(200);
+  begin
+    inicia;
+
+    -- Aniversário (nascimento) e tempo de empresa (admissão há 1 ano ou mais)
+    -- no mês atual. Próximos primeiro; os que já passaram no mês vão para o fim.
+    for r in (
+      with celebracao as (
+        select nome_completo, foto_url, 'ANIVERSARIO' as tipo,
+               to_number(to_char(data_de_nascimento, 'dd')) as dia,
+               cast(null as number) as anos
+          from colaborador
+         where id_empresa = p_id_empresa
+           and status = true
+           and to_char(data_de_nascimento, 'mm') = to_char(l_hoje, 'mm')
+        union all
+        select nome_completo, foto_url, 'EMPRESA',
+               to_number(to_char(data_admissao, 'dd')),
+               extract(year from l_hoje) - extract(year from data_admissao)
+          from colaborador
+         where id_empresa = p_id_empresa
+           and status = true
+           and to_char(data_admissao, 'mm') = to_char(l_hoje, 'mm')
+           and extract(year from data_admissao) < extract(year from l_hoje)
+      )
+      select nome_completo, foto_url, tipo, dia, anos
+        from celebracao
+       order by case when dia >= l_dia_hoj then 0 else 1 end,
+                dia,
+                case tipo when 'ANIVERSARIO' then 0 else 1 end,
+                nome_completo
+       fetch first l_limite rows only
+    ) loop
+      l_qt := l_qt + 1;
+      if l_qt = 1 then
+        p('<ul class="cx-home-lista">');
+      end if;
+
+      -- "Aniversário · hoje", "Aniversário · 28 de outubro", "2 anos de empresa · 27 de outubro"
+      l_detalhe := case r.tipo
+                     when 'ANIVERSARIO' then 'Aniversário'
+                     else r.anos || case when r.anos = 1 then ' ano' else ' anos' end || ' de empresa'
+                   end
+                || ' · '
+                || case when r.dia = l_dia_hoj then 'hoje'
+                        else r.dia || ' de ' || mes_por_extenso(l_hoje) end;
+
+      p('<li class="cx-home-lista__item">'
+        || pessoa(r.nome_completo, r.foto_url, l_detalhe,
+                  case when r.dia = l_dia_hoj then 'cx-home-celebracao--hoje' end)
+        || '</li>');
+    end loop;
+
+    if l_qt = 0 then
+      p(estado_vazio('fa-birthday-cake',
+        'Nenhuma celebração em ' || e(mes_por_extenso(l_hoje)),
+        case when p_id_empresa is null then
+          'As celebra&ccedil;&otilde;es aparecem aqui quando seu perfil estiver vinculado a uma empresa.'
+        else
+          'Anivers&aacute;rios e anos de empresa de quem trabalha com voc&ecirc; aparecem aqui.'
+        end));
+      return g_html;
+    end if;
+
+    p('</ul>');
+    if p_ver_todos = 'S' then
+      p(rodape_ver_todos('aniversariantes'));
+    end if;
+    return g_html;
+  end render_celebracoes;
 
 end pkg_home_ui;
 /

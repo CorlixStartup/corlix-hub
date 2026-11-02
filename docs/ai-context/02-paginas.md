@@ -94,7 +94,7 @@
 | Nº | Nome | Alias | Arquivo | Template | Modo | Autorização (página / menu) | Status |
 |---|---|---|---|---|---|---|---|
 | 0 | Global Page | — | p00000-global-page.apx | — | — | — | Implementada (header: busca + ações/usuário) |
-| 1 | Home | HOME | p00001-home.apx | @/standard | normal | nenhuma / nenhuma | Implementada (dashboard) |
+| 1 | Início | INÍCIO | p00001-início.apx | @corlix-standard-page | normal | nenhuma / nenhuma | Implementada (redesign do `modulos/home`, protótipo antigo); protótipo de 28/10/2026 pelo §6 do `Etapas-home.md` |
 | 2 | Meu Perfil | MEU-PERFIL | p00002-meu-perfil.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (só breadcrumb) |
 | 3 | Organograma | ORGANOGRAMA | p00003-organograma.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (módulo em `modulos/organograma/`, não integrado) |
 | 4 | Chat | CHAT | p00004-chat.apx | @corlix-standard-page | normal | nenhuma / nenhuma | Implementada parcialmente (envio funciona; sem polling/presença) |
@@ -151,6 +151,7 @@ Notas da tabela:
 - **Pegadinhas**: os hrefs são relativos e começam com `r/corlixhub/...` (sem `/` inicial nem `f?p`); a resolução depende da URL corrente (friendly URL `/ords/r/<workspace>/<alias>/<page>`) e pode gerar caminho duplicado — conferir no browser. Prefira `f?p=&APP_ID.:5:&SESSION.` ou `apex.util.makeApplicationUrl`. Slots `afterLogo`/`afterNavigationBar` existem no `@corlix-standard-page`; páginas com `@/standard` podem renderizar o header de forma diferente.
 
 ### Página 1 — Home (`p00001-home.apx`)
+> **Situação em 28/10/2026:** o redesign foi montado direto na página 1 (nome "Início", alias `INÍCIO`, export `p00001-início.apx`, template `@corlix-standard-page`); a página 28 não existe. Regiões: `home_hero`, `home_comunicados` (Cards, span 8, botões `VER_TODOS`/`NOVO_COMUNICADO`, DA de refresh), `coluna-lateral` (span 4) com `home_meu_gestor` e `home_aniversariantes`, diálogo `aniversariantes_todos`, item `P1_MES_ATUAL` (computação Before Header). O protótipo foi atualizado em 28/10/2026; o §6 do guia traz o carrossel de comunicados, as celebrações (aniversário + tempo de empresa) e o hero novo. A nota e a descrição abaixo são do estado anterior.
 > **Redesign em andamento (19/10/2026, branch `feature/redesign-home`):** a nova Home segue `pen_dev/Início.png` e é montada numa **página nova, a 28 ("Início", alias `INICIO`)**, sem apagar nem alterar a página 1, pelo guia [`modulos/home/Etapas-home.md`](../../modulos/home/Etapas-home.md): hero (Dynamic Content `home_hero`), Comunicados (Cards `home_comunicados`, span 8, botões "Ver todos" e "Novo comunicado" com `PUBLICADOR_DE_CONTEUDO`), coluna lateral com Meu gestor e Aniversariantes (Dynamic Content `home_meu_gestor` / `home_aniversariantes`) e o diálogo `aniversariantes_todos`; HTML gerado pelo `pkg_home_ui`, tudo filtrado por `G_ID_EMPRESA`. Quando a 28 estiver pronta, o Home URL, a entrada "Home" do menu e a do breadcrumb passam a apontar para ela (§5 do guia); a página 1 continua no app. A descrição abaixo é a da página 1, que segue valendo.
 
 - **Propósito**: dashboard inicial (boas-vindas, comunicados recentes, gestor, links rápidos, aniversariantes do mês).
@@ -362,6 +363,13 @@ Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colabo
 - **Botões**: `cancel` (cancelDialog), `delete` ("Excluir", danger, confirmação, se ID não nulo), `save` ("Aplicar Alterações", se ID não nulo), `create` ("Criar", se ID nulo).
 - **Processos**: formInitialization; formAutoRowProcessing; `fechar-caixa-de-diálogo` (closeDialog quando CREATE,SAVE,DELETE).
 - **Pegadinhas**: LOVs não filtradas por empresa nem em cascata (departamento de outra empresa pode ser escolhido); criador escolhido manualmente (deveria ser o usuário logado); data de criação digitada manualmente. Mudança não commitada: botão Excluir ganhou `t-Button--danger`.
+
+### Páginas 30 a 33 — Ponto eletrônico (planejadas)
+Ainda não existem no app. São montadas pelo guia `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`, a partir do protótipo `pen_dev/Ponto eletrônico.png`:
+- **p30 Ponto eletrônico** (`COLABORADOR`): regiões Dynamic Content do `pkg_ponto_ui`, 4 diálogos e os Ajax Callbacks `REGISTRAR_MARCACAO`, `ASSINAR_ESPELHO` e `BAIXAR_ESPELHO`. Item `P30_COMPETENCIA` (mês, YYYYMM).
+- **p31 Solicitar ajuste** (modal, `COLABORADOR`): chama `pkg_ponto.solicitar_ajuste`.
+- **p32 Ajustes de ponto** (`APROVADOR_PONTO`): Interactive Report dos pedidos pendentes.
+- **p33 Responder ajuste** (modal, `APROVADOR_PONTO`): chama `pkg_ponto.responder_ajuste`.
 
 ### Página 9999 — Login (`p09999-login.apx`)
 - Página padrão gerada pelo APEX: `@/login`, `authentication: public`, title "CorlixHub - Log In".
