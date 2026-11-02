@@ -364,6 +364,13 @@ Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colabo
 - **Processos**: formInitialization; formAutoRowProcessing; `fechar-caixa-de-diálogo` (closeDialog quando CREATE,SAVE,DELETE).
 - **Pegadinhas**: LOVs não filtradas por empresa nem em cascata (departamento de outra empresa pode ser escolhido); criador escolhido manualmente (deveria ser o usuário logado); data de criação digitada manualmente. Mudança não commitada: botão Excluir ganhou `t-Button--danger`.
 
+### Páginas 30 a 33 — Ponto eletrônico (planejadas)
+Ainda não existem no app. São montadas pelo guia `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`, a partir do protótipo `pen_dev/Ponto eletrônico.png`:
+- **p30 Ponto eletrônico** (`COLABORADOR`): regiões Dynamic Content do `pkg_ponto_ui`, 4 diálogos e os Ajax Callbacks `REGISTRAR_MARCACAO`, `ASSINAR_ESPELHO` e `BAIXAR_ESPELHO`. Item `P30_COMPETENCIA` (mês, YYYYMM).
+- **p31 Solicitar ajuste** (modal, `COLABORADOR`): chama `pkg_ponto.solicitar_ajuste`.
+- **p32 Ajustes de ponto** (`APROVADOR_PONTO`): Interactive Report dos pedidos pendentes.
+- **p33 Responder ajuste** (modal, `APROVADOR_PONTO`): chama `pkg_ponto.responder_ajuste`.
+
 ### Página 9999 — Login (`p09999-login.apx`)
 - Página padrão gerada pelo APEX: `@/login`, `authentication: public`, title "CorlixHub - Log In".
 - **Região** `corlixhub` (template @/login, imagem `#APP_FILES#icons/app-icon-512.png`).

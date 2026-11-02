@@ -328,6 +328,22 @@ Pessoas: `colaborador` ativo (`status = true`) da empresa, por nome, cargo ou de
 
 ---
 
+## 2D. Ponto eletrônico (`modulos/ponto-eletronico/`)
+
+Guia: `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`. Protótipo `pen_dev/Ponto eletrônico.png`. Páginas 30 a 33, ainda não criadas no app; os packages ainda não foram compilados no banco.
+
+| Arquivo | Conteúdo |
+|---|---|
+| `01_ddl_ponto.sql` / `02_seed_ponto.sql` | Tabelas, trigger, view; jornada padrão, vínculos e feriados nacionais de 2026–2027 |
+| `03_pkg_ponto.pks` / `.pkb` | `fn_dias` (cálculo por dia), `calcular_banco` (créditos com vencimento, o mais antigo é consumido primeiro), `registrar_marcacao`, `solicitar_ajuste`, `responder_ajuste`, `assinar_espelho`, `fn_pode_aprovar`, `fn_e_aprovador` |
+| `04_pkg_ponto_ui.pks` / `.pkb` | `render_*` das regiões e diálogos; `ajax_registrar`, `ajax_assinar`, `ajax_baixar_espelho` (respondem JSON `{ok, mensagem}`) |
+| `05_dados_demo.sql` / `06_remover_dados_demo.sql` | Dados de teste (`ds_origem = 'DEMO'`) |
+| `ponto.css` / `ponto.min.css`, `ponto-pagina.js` | Classes `cx-ponto-*`; relógio, chamadas Ajax e atualização das regiões por HTML DOM ID (`ponto_*`) |
+
+A hora registrada é sempre a do servidor no fuso da empresa (`pkg_historico_carreira.fn_data_local`). Marcação não muda: ajuste aprovado é uma nova linha, e `vw_ponto_marcacao_vigente` escolhe a que vale. Quem aprova é o gestor direto ou o RH, nunca o próprio colaborador. Não é um REP-P homologado (Portaria MTP 671/2021). Fora do escopo: férias e afastamentos, turno noturno, telas de cadastro de jornada e feriado, notificações.
+
+---
+
 ## 3. `modulos/tema/`
 
 `README.md` + `Etapas-tema-paginas.md`: camada de variáveis CSS (`corlix-tema.css`, tokens `--cx-*`) sobre o Redwood Light. Os CSS dos módulos acima leem esses tokens com fallback, então funcionam com ou sem o tema carregado. Detalhes em **`04-tema-e-estilos.md`**.
