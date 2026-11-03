@@ -346,7 +346,7 @@ Situações: `ABERTO` → `EM_ATENDIMENTO` ⇄ `AGUARDANDO_USUARIO` → `RESOLVI
 
 ## 2D. Ponto eletrônico (`modulos/ponto-eletronico/`)
 
-Guia: `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`. Protótipo `pen_dev/Ponto eletrônico.png`. Páginas 30 a 33, ainda não criadas no app; os packages ainda não foram compilados no banco.
+Guia: `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`. Protótipo `pen_dev/Ponto eletrônico.png`. Páginas 30 a 33 na app e packages no banco. Ajustes da validação de 03/11/2026, ainda a aplicar: `Etapas-ajustes-validacao.md`.
 
 | Arquivo | Conteúdo |
 |---|---|
