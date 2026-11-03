@@ -214,7 +214,7 @@ Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e os backups do
 - comprovantes nº 3 (retorno às 09:02) e nº 4 (saída às 09:25), que não podem ser apagados. O dia fechou com 0h24 trabalhadas e -7h36, zerados pelo abono abaixo;
 - um pedido de abono com o motivo "Teste de validação", recusado pelo gestor com a mesma mensagem;
 - um segundo pedido de abono, com o mesmo motivo, aprovado pelo gestor com a mesma mensagem;
-- um terceiro pedido de abono, enviado às 10:10 para conferir `Pedido em`, ainda pendente na última atualização deste guia.
+- um terceiro pedido de abono, enviado às 10:10 para conferir `Pedido em`, recusado pelo gestor com a mensagem "Teste de validação".
 
 **Pontos achados no teste e já corrigidos** (`Etapas-meus-pedidos.md`):
 
