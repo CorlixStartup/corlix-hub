@@ -4750,6 +4750,7 @@ end pkg_ponto;
   c_dias_pendencia    constant pls_integer := 30;
   c_max_pendencias    constant pls_integer := 5;
   c_max_extrato       constant pls_integer := 60;
+  c_max_pedidos       constant pls_integer := 5;
 
   g_html clob;
 
@@ -4917,7 +4918,12 @@ end pkg_ponto;
     l_classe varchar2(20);
   begin
     case p_dia.cd_situacao
-      when pkg_ponto.c_regular      then return '<span class="cx-ponto-regular">Regular</span>';
+      when pkg_ponto.c_regular      then
+        if p_dia.nr_saldo < 0 then
+          l_txt := 'Abaixo da jornada'; l_classe := 'is-atencao';
+        else
+          return '<span class="cx-ponto-regular">Regular</span>';
+        end if;
       when pkg_ponto.c_andamento    then l_txt := 'Em andamento';     l_classe := 'is-info';
       when pkg_ponto.c_sem_marcacao then l_txt := 'Sem marcação';     l_classe := 'is-neutro';
       when pkg_ponto.c_ausente      then l_txt := 'Marcação ausente'; l_classe := 'is-atencao';
@@ -5244,6 +5250,44 @@ end pkg_ponto;
   ------------------------------------------------------------------------------
   -- Pendências
   ------------------------------------------------------------------------------
+  -- Últimos pedidos do colaborador, com o status e a resposta de quem aprovou.
+  -- Sem pedidos, o cartão não aparece. Fica junto das pendências para atualizar
+  -- quando o modal de ajuste fecha, sem precisar de outra região na página.
+  procedure meus_pedidos (p_id_colaborador in number) is
+    l_qt pls_integer := 0;
+  begin
+    for r in (select dt_referencia, tp_ajuste, tp_marcacao, dh_solicitada, st_ajuste, ds_resposta
+                from ponto_ajuste
+               where id_colaborador = p_id_colaborador
+               order by id_ajuste desc
+               fetch first c_max_pedidos rows only) loop
+      if l_qt = 0 then
+        p('<section class="cx-ponto-card cx-ponto-lateral">');
+        cabecalho_card('Meus pedidos');
+        p('<ul class="cx-ponto-pendencias">');
+      end if;
+      l_qt := l_qt + 1;
+      p('<li class="cx-ponto-pendencia"><div>');
+      p('<strong>' || e(dia_curto(r.dt_referencia)) || ' · '
+        || case r.tp_ajuste
+             when 'ABONO' then 'Abonar o dia'
+             else e(rotulo_marcacao(r.tp_marcacao)) || ' às ' || hora(r.dh_solicitada)
+           end || '</strong>');
+      p('<p>' || case r.st_ajuste
+                   when 'PENDENTE' then '<span class="cx-ponto-selo is-atencao">Em análise</span>'
+                   when 'APROVADO' then '<span class="cx-ponto-selo is-sucesso">Aprovado</span>'
+                   else '<span class="cx-ponto-selo is-erro">Recusado</span>'
+                 end || '</p>');
+      if r.ds_resposta is not null then
+        p('<p>Resposta: ' || e(r.ds_resposta) || '</p>');
+      end if;
+      p('</div></li>');
+    end loop;
+    if l_qt > 0 then
+      p('</ul></section>');
+    end if;
+  end meus_pedidos;
+
   function render_pendencias (p_id_colaborador in number default null) return clob is
     l_id      constant number := id_ou_logado(p_id_colaborador);
     l_hoje    date;
@@ -5278,6 +5322,7 @@ end pkg_ponto;
 
     if l_total = 0 then
       p('<p class="cx-ponto-vazio">Nada para resolver.</p></section>');
+      meus_pedidos(l_id);
       return g_html;
     end if;
 
@@ -5318,6 +5363,7 @@ end pkg_ponto;
       p('<button type="button" class="t-Button cx-ponto-botao" data-cx-ponto-dialogo="ponto_dlg_assinatura">Revisar e assinar</button></div></li>');
     end if;
     p('</ul></section>');
+    meus_pedidos(l_id);
     return g_html;
   end render_pendencias;
 
@@ -5444,7 +5490,7 @@ end pkg_ponto;
     l_id := pkg_ponto.registrar_marcacao(p_tp_marcacao);
     apex_json.open_object;
     apex_json.write('ok', true);
-    apex_json.write('mensagem', rotulo_marcacao(p_tp_marcacao) || ' registrada. Comprovante nº ' || l_id || '.');
+    apex_json.write('mensagem', 'Marcação registrada: ' || rotulo_marcacao(p_tp_marcacao) || '. Comprovante nº ' || l_id || '.');
     apex_json.close_object;
   exception
     when others then
@@ -5481,7 +5527,7 @@ end pkg_ponto;
     l_csv := 'Dia;Entrada;Intervalo;Retorno;Saída;Trabalhadas;Saldo;Situação' || c_nl;
     for i in 1 .. l_dias.count loop
       l_sit := case l_dias(i).cd_situacao
-        when pkg_ponto.c_regular      then 'Regular'
+        when pkg_ponto.c_regular      then case when l_dias(i).nr_saldo < 0 then 'Abaixo da jornada' else 'Regular' end
         when pkg_ponto.c_andamento    then 'Em andamento'
         when pkg_ponto.c_sem_marcacao then 'Sem marcação'
         when pkg_ponto.c_ausente      then 'Marcação ausente'

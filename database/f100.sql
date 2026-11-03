@@ -117,7 +117,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461348115531
-,p_version_scn=>'47050200583359'
+,p_version_scn=>'47050203253120'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -71228,7 +71228,7 @@ unistr('                else ''Sa\00EDda'''),
 '       end as pedido,',
 '       to_char(a.dh_solicitada, ''HH24:MI'') as horario,',
 '       a.ds_motivo as motivo,',
-'       cast(a.dh_pedido as date) as pedido_em,',
+'       pkg_historico_carreira.fn_data_local(a.id_empresa, a.dh_pedido) as pedido_em,',
 '       ''Responder'' as responder',
 '  from ponto_ajuste a',
 '  join colaborador c on c.id_colaborador = a.id_colaborador',
@@ -71901,4 +71901,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:tlo9ifFGZWDQrIEoEzdQss7EHoiqln0ZO5kT1KhtH70=
+-- Application Checksum SH256:mBydL6xVHud37jNk1Kh2VgVszIKXtVnCYD/6QqDeo7Y=
