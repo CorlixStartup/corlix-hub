@@ -206,7 +206,11 @@ Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e o backup das 
 - assinatura do espelho, inclusive o bloqueio com pedido em análise;
 - seletor de mês e "Ver mês completo", que precisam de uma conta com mais dados.
 
-**Dado de teste que ficou no banco:** na conta `TESTE.RH`, o comprovante nº 3 (retorno de 03/11/2026 às 09:02), que não pode ser apagado, e um pedido de abono de 03/11/2026 com o motivo "Teste de validação", recusado pelo gestor com a mesma mensagem.
+**Dados de teste que ficaram no banco**, na conta `TESTE.RH`, em 03/11/2026:
+
+- comprovantes nº 3 (retorno às 09:02) e nº 4 (saída às 09:25), que não podem ser apagados. O dia fechou com 0h24 trabalhadas e **-7h36** no banco de horas;
+- um pedido de abono com o motivo "Teste de validação", recusado pelo gestor com a mesma mensagem;
+- um segundo pedido de abono, com o mesmo motivo, para zerar esse débito. Estava pendente na última atualização deste guia.
 
 **Bug a corrigir no Builder: hora de `Pedido em` em UTC.** Na página 32, o pedido enviado às 09:01 aparece como 12:01. O `cast(a.dh_pedido as date)` mantém o fuso em que a hora foi gravada, sem converter para o da empresa. Na região `Pedidos pendentes`, em **Source › SQL Query**, troque a linha `cast(a.dh_pedido as date) as pedido_em,` por:
 
@@ -215,6 +219,10 @@ pkg_historico_carreira.fn_data_local(a.id_empresa, a.dh_pedido) as pedido_em,
 ```
 
 Depois, envie um pedido de teste e confira na página 32 se a hora é a local. A troca ainda não foi testada.
+
+**Lacuna: o colaborador não vê a resposta do pedido.** As telas do ponto não mostram o status nem a mensagem de quem respondeu; a recusa só se percebe pelo espelho.
+
+**Selo do dia:** um dia completo com -7h36 aparece como "Regular", o que pode confundir.
 
 **Detalhes de texto, ainda sem correção:**
 
