@@ -43,7 +43,7 @@ As páginas 31 a 33 não estão no protótipo, mas sem elas os botões **Solicit
 - Sábado, domingo e feriado trabalhados: todas as horas são crédito.
 - **Banco de horas:** o crédito vence no fim do mês, 6 meses depois do dia em que entrou. O débito consome primeiro o crédito mais antigo. Crédito vencido sai do saldo; o pagamento fica fora do sistema.
 - **Marcação não muda:** um trigger bloqueia `update` e `delete`. Ajuste aprovado cria outra linha, que passa a valer no cálculo, e a original continua na lista de comprovantes.
-- **Mês assinado** não aceita ajustes novos.
+- **Mês assinado** não aceita ajustes novos, e um mês com pedido em análise não pode ser assinado.
 
 ### Decisões que diferem do print
 

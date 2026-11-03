@@ -43,6 +43,7 @@ select name, type, line, position, text from user_errors
 | Pedido de marcação para **hoje** | Podia pular marcações. Uma saída aprovada sem entrada mostrava "Jornada concluída" e travava o botão até o fim do dia | Só aceita se as marcações anteriores do dia existirem, no pedido e de novo na aprovação. Dias passados continuam podendo vir em qualquer ordem, um pedido por vez |
 | Pendência de assinatura | Só o mês anterior: em 01/12, o espelho de outubro sumia, embora o prazo fosse 05/12 | O mês retrasado continua pendente até o dia 5; depois dele, vale o mês anterior |
 | Assinar mês anterior ao início do controle | Aceitava, por chamada forjada, e gravava um espelho vazio | Recusa com "Não há espelho deste mês para assinar" |
+| Assinar mês com pedido em análise | Aceitava, e depois quem aprova só podia recusar o pedido (`-20070`) | Recusa com "Este mês tem pedido de ajuste em análise" (`-20074`). Decisão de 03/11/2026 |
 | `render_*(p_id_colaborador)` fora do APEX | O id era ignorado: voltava o aviso de conta sem vínculo | Usa o id informado (só no SQLcl: no SQL Commands continua dando `ORA-20012`, veja `docs/ai-context/09`) |
 
 ---
@@ -113,13 +114,7 @@ Clique em `P33_ST_AJUSTE` e mude **List of Values › Display Null Value** para 
 
 ---
 
-## 5. Decisão pendente
-
-Hoje o colaborador consegue assinar um mês com pedido ainda em análise. Depois disso, quem aprova não consegue mais aprovar (`-20070`) e só pode recusar. Isso segue a regra "mês assinado não aceita ajustes", mas o RH precisa dizer se prefere **impedir a assinatura enquanto houver pedido pendente naquele mês**. Nada foi mudado neste ponto.
-
----
-
-## 6. Testar
+## 5. Testar
 
 Use uma conta **de teste**, com colaborador e gestor. **Marcações reais não podem ser apagadas**, então não registre ponto em nome de outra pessoa nem em conta de uso real.
 
@@ -135,6 +130,7 @@ Use uma conta **de teste**, com colaborador e gestor. **Marcações reais não p
 5. Registre uma marcação: aparece o comprovante, e o relógio e o espelho atualizam sem recarregar.
 6. Em **Solicitar ajuste**, peça a **Saída** de hoje antes de existir entrada: mensagem "as marcações anteriores precisam estar registradas".
 7. Envie um pedido válido para um dia passado: o modal fecha e o dia passa a **Ajuste em análise**.
+7a. Se esse dia for do mês com espelho pendente, clique em **Revisar e assinar** e em **Assinar espelho**: mensagem "Este mês tem pedido de ajuste em análise", e nada é assinado.
 
 **Páginas 32 e 33 (com o gestor)**
 
@@ -159,5 +155,6 @@ No próximo backup:
 | `Region does not support being opened and closed` | Diálogo sem HTML DOM ID | Passo 2.1 |
 | Pedido da saída de hoje aceito sem entrada | `pkg_ponto` antigo no banco | Seção 1 |
 | Saída aprovada travou o botão com "Jornada concluída" e sem entrada | Pedido aprovado antes da correção | O gestor não consegue desfazer: o dia precisa de um ajuste de entrada, que o colaborador pede em **Solicitar ajuste** |
+| Colaborador não consegue assinar: "Este mês tem pedido de ajuste em análise" | Regra nova: há pedido pendente naquele mês | O gestor ou o RH responde na página 32, e depois o colaborador assina |
 | `ORA-20012` ao testar `render_*` no SQL Commands | O SQL Workshop é uma sessão APEX sem `G_ID_EMPRESA` | Teste no SQLcl (`docs/ai-context/09`) |
 | `Page Template` **Standard** deixou a página 32 sem o cabeçalho | O Cabeçalho está em Breadcrumb Bar | Mande um print da página e da árvore antes de mudar mais |

@@ -9,7 +9,7 @@
 --   -20063 marcação repetida          -20071 competência inválida
 --   -20064 menos de 1 minuto          -20072 assinatura repetida
 --   -20065 pedido de ajuste inválido  -20073 colaborador de outra empresa
---   -20066 ajuste já respondido
+--   -20066 ajuste já respondido       -20074 assinatura com pedido em análise
 --   -20067 sem permissão para aprovar
 --------------------------------------------------------------------------------
 create or replace package pkg_ponto authid definer as

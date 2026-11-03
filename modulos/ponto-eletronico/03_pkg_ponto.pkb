@@ -745,11 +745,23 @@ create or replace package body pkg_ponto as
     l_dias     t_dias;
     l_texto    varchar2(4000);
     l_hash     varchar2(64);
+    l_qt       pls_integer;
   begin
     if l_mes is null or l_mes >= trunc(l_hoje, 'MM') then
       raise_application_error(-20071, 'Só é possível assinar o espelho de um mês já encerrado.');
     elsif l_mes < trunc(l_j.dt_inicio_controle, 'MM') then
       raise_application_error(-20071, 'Não há espelho deste mês para assinar: o controle de ponto começou depois.');
+    end if;
+
+    -- Depois de assinado, o mês não aceita aprovação: o pedido só poderia ser recusado
+    select count(*)
+      into l_qt
+      from ponto_ajuste
+     where id_colaborador = l_id_colab
+       and dt_referencia between l_mes and last_day(l_mes)
+       and st_ajuste = 'PENDENTE';
+    if l_qt > 0 then
+      raise_application_error(-20074, 'Este mês tem pedido de ajuste em análise. Assine depois que ele for respondido.');
     end if;
 
     -- O hash registra o que estava no espelho na hora da assinatura
