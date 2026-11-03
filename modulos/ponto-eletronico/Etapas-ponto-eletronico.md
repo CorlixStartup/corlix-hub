@@ -73,7 +73,7 @@ As páginas 31 a 33 não estão no protótipo, mas sem elas os botões **Solicit
 | `05_dados_demo.sql` / `06_remover_dados_demo.sql` | Dados de teste para um colaborador e a remoção deles (opcionais) |
 | `instalar.sql` | Instala tudo pelo SQLcl, menos a demonstração |
 | `Etapas-ajustes-validacao.md` | Ajustes encontrados na validação de 03/11/2026 |
-| `Etapas-meus-pedidos.md` | Lista "Meus pedidos", selo do dia e mensagem do registro |
+| `Etapas-meus-pedidos.md` | Lista "Meus pedidos", selo do dia e textos do relógio |
 | `ponto.css` / `ponto.min.css` | Estilos (classes `cx-ponto-*`); sobem como Static Application Files |
 | `ponto-pagina.js` | JavaScript da página 30 |
 
