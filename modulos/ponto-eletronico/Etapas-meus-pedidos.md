@@ -1,5 +1,7 @@
 # Ponto eletrônico · Meus pedidos, selo do dia e textos do relógio
 
+> **Estado (03/11/2026):** seções 1 e 2 aplicadas. O resultado está em [`Etapas-ajustes-validacao.md`](./Etapas-ajustes-validacao.md).
+
 Este guia traz os ajustes encontrados no teste da app em 03/11/2026. **Não há região nova nem CSS novo:** basta reinstalar um package e, se ainda não foi feito, trocar uma linha na página 32.
 
 | Ajuste | Antes | Depois |

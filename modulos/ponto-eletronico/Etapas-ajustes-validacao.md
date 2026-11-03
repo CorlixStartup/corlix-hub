@@ -181,7 +181,7 @@ No próximo backup:
 
 ## Resultado na app
 
-Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e o backup das 08:57.
+Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e os backups do dia, até o das 09:52.
 
 | Item | Resultado |
 |---|---|
@@ -195,14 +195,17 @@ Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e o backup das 
 | Modal fecha e a página 30 recebe o evento | Certo |
 | Baixar espelho (CSV com BOM e colunas certas) | Certo |
 | Página 32 não mostra o pedido da própria conta | Certo |
-| Página 32 mostra o pedido ao gestor direto, com as colunas certas | Certo, menos a hora de `Pedido em` |
+| Página 32 mostra o pedido ao gestor direto, com as colunas certas | Certo; `Pedido em` saía em UTC e, depois da correção, mostra a hora local (pedido das 10:10 aparece como 10:10) |
 | Página 33: dados do pedido, só Aprovar e Recusar, botões no rodapé | Certo |
 | Recusar sem mensagem | Recusado, como previsto |
 | Recusar com mensagem | Certo: "Resposta registrada", e o pedido saiu da fila |
 | Aprovar abono em dia com saldo negativo | Certo: dia **Abonado**, saldo do dia e banco de horas em 0h00, extrato sem lançamentos |
+| Cartão **Meus pedidos** (`Etapas-meus-pedidos.md`) | Certo: Em análise, Aprovado e Recusado, com a resposta; atualiza quando o modal fecha |
+| Rodapé do relógio depois da saída | Certo: "jornada encerrada" |
 
 **Ainda não testado na app:**
 
+- selo "Abaixo da jornada" e mensagem "Marcação registrada: ...", cobertos só pelos testes locais;
 - assinatura do espelho, inclusive o bloqueio com pedido em análise;
 - seletor de mês e "Ver mês completo", que precisam de uma conta com mais dados.
 
@@ -210,23 +213,17 @@ Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e o backup das 
 
 - comprovantes nº 3 (retorno às 09:02) e nº 4 (saída às 09:25), que não podem ser apagados. O dia fechou com 0h24 trabalhadas e -7h36, zerados pelo abono abaixo;
 - um pedido de abono com o motivo "Teste de validação", recusado pelo gestor com a mesma mensagem;
-- um segundo pedido de abono, com o mesmo motivo, aprovado pelo gestor com a mesma mensagem.
+- um segundo pedido de abono, com o mesmo motivo, aprovado pelo gestor com a mesma mensagem;
+- um terceiro pedido de abono, enviado às 10:10 para conferir `Pedido em`, recusado pelo gestor com a mensagem "Teste de validação".
 
-**Bug a corrigir no Builder: hora de `Pedido em` em UTC.** Na página 32, o pedido enviado às 09:01 aparece como 12:01. O `cast(a.dh_pedido as date)` mantém o fuso em que a hora foi gravada, sem converter para o da empresa. Na região `Pedidos pendentes`, em **Source › SQL Query**, troque a linha `cast(a.dh_pedido as date) as pedido_em,` por:
+**Pontos achados no teste e já corrigidos** (`Etapas-meus-pedidos.md`):
 
-```sql
-pkg_historico_carreira.fn_data_local(a.id_empresa, a.dh_pedido) as pedido_em,
-```
+- a hora de `Pedido em` saía em UTC na página 32;
+- o colaborador não via o status nem a resposta do pedido;
+- um dia completo com saldo negativo aparecia como "Regular";
+- o rodapé do relógio dizia "faltam 7h36" depois da saída;
+- a mensagem do registro errava o gênero ("Retorno do intervalo registrada").
 
-Depois, envie um pedido de teste e confira na página 32 se a hora é a local. A troca ainda não foi testada.
+**Detalhe de texto, ainda sem correção:**
 
-**Lacuna: o colaborador não vê a resposta do pedido.** As telas do ponto não mostram o status nem a mensagem de quem respondeu; a recusa só se percebe pelo espelho.
-
-**Selo do dia:** um dia completo com -7h36 aparece como "Regular", o que pode confundir.
-
-**Relógio em dia encerrado:** com a saída registrada, o rodapé do cartão ainda diz "faltam 7h36 para completar a jornada", mesmo com o dia abonado.
-
-**Detalhes de texto, ainda sem correção:**
-
-- "Retorno do intervalo registrada": o texto de `ajax_registrar` usa sempre o feminino.
 - Mensagens e rótulos do APEX em inglês: "1 error has occurred", "Required", "Search", "Go" e "Actions".
