@@ -128,7 +128,7 @@ page 32 (
         column HORARIO (
             type: plainText
             heading {
-                heading: Horario
+                heading: Horário
             }
             layout {
                 sequence: 50
@@ -176,13 +176,10 @@ page 32 (
         column PEDIDO (
             type: plainText
             heading {
-                heading: Pedido em
+                heading: Pedido
             }
             layout {
                 sequence: 40
-            }
-            appearance {
-                formatMask: DD/MM/YYYY HH24:MI
             }
             source {
                 dataType: STRING
@@ -195,10 +192,13 @@ page 32 (
         column PEDIDO_EM (
             type: plainText
             heading {
-                heading: Pedido Em
+                heading: Pedido em
             }
             layout {
                 sequence: 70
+            }
+            appearance {
+                formatMask: DD/MM/YYYY HH24:MI
             }
             source {
                 dataType: DATE
@@ -238,6 +238,47 @@ page 32 (
             borderWidth: 0.5
             borderColor: #666666
         }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn COLABORADOR (
+                sequence: 2
+            )
+
+            displayColumn DIA (
+                sequence: 3
+            )
+
+            displayColumn HORARIO (
+                sequence: 5
+            )
+
+            displayColumn ID_AJUSTE (
+                sequence: 1
+            )
+
+            displayColumn MOTIVO (
+                sequence: 6
+            )
+
+            displayColumn PEDIDO (
+                sequence: 4
+            )
+
+            displayColumn PEDIDO_EM (
+                sequence: 7
+            )
+
+            displayColumn RESPONDER (
+                sequence: 8
+            )
+
+        )
+
     )
 
     dynamicAction pedido-respondido (
