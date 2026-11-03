@@ -389,7 +389,7 @@ O `pen_dev/Início.png` ganhou blocos novos. A página 1 recebe só os que têm 
 
 | Bloco do protótipo | O que esta seção faz |
 |---|---|
-| Hero "Boa tarde, Sarah" + atalhos Holerite, Organograma, Suporte TI, Chat | Saudação pelo horário de Brasília; 4 atalhos (Holerite → p9, Organograma → p3, Chat → p4, Suporte TI sem destino); a arte decorativa sai e o hero ocupa a largura toda |
+| Hero "Boa tarde, Sarah" + atalhos Holerite, Organograma, Suporte TI, Chat | Saudação pelo horário de Brasília; 4 atalhos (Holerite → p9, Organograma → p3, Chat → p4, Suporte TI sem destino até aplicar o `modulos/suporte-ti/Etapas-suporte-ti.md` §13); a arte decorativa sai e o hero ocupa a largura toda |
 | Comunicados em carrossel (imagem de fundo, selo "Novo", "Ler comunicado →", setas e pontos) | A Cards atual vira carrossel com os 5 mais recentes; "Novo" = publicado há até 7 dias; "Ler comunicado" abre a p11 |
 | Meu gestor com "Mensagem" e "Dar feedback" | "Chat" vira **Mensagem** (p4); o segundo botão continua **E-mail** |
 | Celebrações de outubro (aniversário e tempo de empresa) | Substitui "Aniversariantes": aniversários + anos de empresa pela `DATA_ADMISSAO`; "hoje" em destaque |
@@ -533,7 +533,7 @@ Clique no nó **Page 1** e substitua os dois campos pelos blocos de `modulos/hom
 
 Abra a página 1 e recarregue com **Ctrl+Shift+R** (Cmd+Shift+R no Mac).
 
-1. **Hero:** "Boa tarde, <primeiro nome>" (ou Bom dia / Boa noite, pelo horário de Brasília), a data por extenso e os 4 atalhos; o card ocupa a largura toda, sem a arte. Holerite abre a p9, Organograma a p3, Chat a p4; Suporte TI mostra "Este atalho ainda não tem destino configurado."
+1. **Hero:** "Boa tarde, <primeiro nome>" (ou Bom dia / Boa noite, pelo horário de Brasília), a data por extenso e os 4 atalhos; o card ocupa a largura toda, sem a arte. Holerite abre a p9, Organograma a p3, Chat a p4; Suporte TI mostra "Este atalho ainda não tem destino configurado." até aplicar o `modulos/suporte-ti/Etapas-suporte-ti.md` §13, e depois abre a p34.
 2. **Comunicados:** um comunicado por vez, com a imagem de fundo escurecida e o texto branco à esquerda; o selo **Novo** só nos publicados há até 7 dias; botão branco **Ler comunicado →** (abre a p11). Setas nas laterais e pontos embaixo; o ponto do slide atual fica mais largo. Com a janela estreita, as setas somem e o carrossel rola com o dedo ou o trackpad.
 3. Com só 1 comunicado na empresa: sem setas nem pontos. Sem comunicado: a mensagem "Nenhum comunicado publicado...".
 4. **Novo comunicado** (usuário publicador): ao fechar a p17, a lista atualiza e as setas continuam funcionando.
