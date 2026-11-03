@@ -537,6 +537,25 @@
 
 /* --- 7. Telas estreitas --- */
 
+/* Dentro dos diálogos (720 px), a tabela do espelho precisa caber sem cortar */
+.t-DialogRegion .cx-ponto-card {
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.t-DialogRegion .cx-ponto-tabela th,
+.t-DialogRegion .cx-ponto-tabela td {
+    padding: 12px 8px;
+}
+
+.t-DialogRegion .cx-ponto-tabela-rolagem {
+    overflow-x: auto;
+}
+
 @media (max-width: 767px) {
     .cx-ponto-relogio__topo,
     .cx-ponto-linha {
