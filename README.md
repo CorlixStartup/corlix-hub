@@ -139,7 +139,7 @@ Tudo o que a IA gera passa por QA da equipe antes de entrar por pull request. Ca
 
 ## Fluxo de trabalho
 
-1. Crie a branch a partir da `DEV`: `feature/<nome>` ou `bugfix/<nome>`.
+1. Crie a branch a partir da `DEV`: `feature/<nome>` para funcionalidade nova ou `fix/<nome>` para as demais alterações.
 2. Ative o hook de commits uma vez por clone: `git config core.hooksPath scripts/git-hooks`.
 3. Commite no padrão `tipo(escopo): descrição`, por exemplo `feat(organograma): adiciona busca no topo`.
 4. Abra o PR para a `DEV`. Depois da validação, ele segue `DEV` → `UAT` → `PROD`.

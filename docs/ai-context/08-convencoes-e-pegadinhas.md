@@ -21,7 +21,8 @@
     - Se o usuário disser que um caminho não existe, **não chute outro**: peça um print da árvore e do painel de propriedades, e depois corrija o guia com o caminho real.
 12. **Protótipos ficam em `pen_dev/`.** Toda tela-alvo, mockup ou protótipo do projeto está nessa pasta (PNGs exportados do pen.dev, um arquivo por tela, nomeado pelo título da tela). Quando a tarefa falar em "protótipo", "tela do pen.dev", "design" ou "tela-alvo", procure primeiro em `pen_dev/` e não em outro lugar; a descrição de cada tela está em [`07-design-pen-dev.md`](./07-design-pen-dev.md). Se o protótipo pedido não estiver lá, pergunte ao time em vez de inventar o layout. A pasta continua somente leitura (regra 1).
 
-13. **Toda alteração vai numa branch `fix/<assunto>`, com PR.** Vale para qualquer alteração no repositório, por menor que seja:
+13. **Toda alteração vai numa branch própria, com PR.** Vale para qualquer alteração no repositório, por menor que seja:
+    - Use `feature/<assunto>` para funcionalidade nova (módulo, tela, recurso) e `fix/<assunto>` para as demais (correção, documentação, ajuste).
     - Crie a branch a partir da `DEV` atualizada. Nunca faça commit direto na `DEV` ou na `PROD`.
     - Faça commit e push e abra o PR para `DEV`. Mudanças de assuntos diferentes ficam em branches e PRs diferentes.
     - Quando a `DEV` tiver commits que ainda não estão na `PROD`, abra o PR `DEV` → `PROD`, se não houver um aberto. Antes do merge do PR para `DEV`, o `DEV` → `PROD` ainda não tem o que mostrar: o GitHub recusa um PR sem commits.

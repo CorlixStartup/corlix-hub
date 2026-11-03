@@ -128,7 +128,7 @@ Quando o README e o código discordarem, **confie no código** e sinalize a dive
 
 ## 7. Git, branches e commits
 
-- Branches permanentes: `DEV` (integração, padrão para PRs) → `UAT` (homologação) → `PROD`. Auxiliares: `feature/*`, `bugfix/*` (de `DEV`), `hotfix/*` (de `PROD`, depois replicado para UAT e DEV), `release/*` opcional.
+- Branches permanentes: `DEV` (integração, padrão para PRs) → `UAT` (homologação) → `PROD`. Auxiliares: `feature/*`, `fix/*` (de `DEV`; ver 08 §1, regra 13), `hotfix/*` (de `PROD`, depois replicado para UAT e DEV), `release/*` opcional.
 - Nunca commit direto em `DEV`/`UAT`/`PROD`; sempre PR.
 - **Conventional Commits** validado por `scripts/git-hooks/commit-msg` (ativar com `git config core.hooksPath scripts/git-hooks`). Regex:
   `^(feat|fix|hotfix|refactor|test|docs|chore|build|ci|perf)(\([a-z0-9_-]+\))?!?: .{1,100}$`
