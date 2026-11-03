@@ -202,19 +202,29 @@ Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e os backups do
 | Aprovar abono em dia com saldo negativo | Certo: dia **Abonado**, saldo do dia e banco de horas em 0h00, extrato sem lançamentos |
 | Cartão **Meus pedidos** (`Etapas-meus-pedidos.md`) | Certo: Em análise, Aprovado e Recusado, com a resposta; atualiza quando o modal fecha |
 | Rodapé do relógio depois da saída | Certo: "jornada encerrada" |
+| Seletor de mês e "Ver mês completo", com `05_dados_demo.sql` | Certo: junho a novembro. No mês cheio, a tabela tem 695 px e o diálogo fica com 7 px de rolagem lateral, sem cortar informação |
+| Selo "Abaixo da jornada" | Certo |
+| Banco de horas e extrato com dados de demonstração | Certo: +9h19, aviso de 0h24 vencendo em 31/12/2026 e 16 lançamentos |
+| "Justificar" | Certo: abre com o dia e a marcação preenchidos |
+| Assinar mês com pedido em análise | Recusado, como previsto (`-20074`) |
+| Assinar depois de responder ao pedido | Certo: "Espelho assinado", e a pendência passa para o mês seguinte |
+| Pedir ajuste em mês assinado | Recusado, como previsto (`-20070`) |
 
 **Ainda não testado na app:**
 
-- selo "Abaixo da jornada" e mensagem "Marcação registrada: ...", cobertos só pelos testes locais;
-- assinatura do espelho, inclusive o bloqueio com pedido em análise;
-- seletor de mês e "Ver mês completo", que precisam de uma conta com mais dados.
+- mensagem "Marcação registrada: ...", coberta só pelos testes locais;
+- CSV de meses anteriores: só o de novembro foi baixado.
 
 **Dados de teste que ficaram no banco**, na conta `TESTE.RH`, em 03/11/2026:
 
 - comprovantes nº 3 (retorno às 09:02) e nº 4 (saída às 09:25), que não podem ser apagados. O dia fechou com 0h24 trabalhadas e -7h36, zerados pelo abono abaixo;
 - um pedido de abono com o motivo "Teste de validação", recusado pelo gestor com a mesma mensagem;
 - um segundo pedido de abono, com o mesmo motivo, aprovado pelo gestor com a mesma mensagem;
-- um terceiro pedido de abono, enviado às 10:10 para conferir `Pedido em`, recusado pelo gestor com a mensagem "Teste de validação".
+- um terceiro pedido de abono, enviado às 10:10 para conferir `Pedido em`, recusado pelo gestor com a mensagem "Teste de validação";
+- dados de `05_dados_demo.sql` para o colaborador 292 (`TESTE.RH`), no ambiente DEV, com o controle de ponto desde 01/06/2026;
+- um pedido de abono de 15/09/2026, recusado pelo gestor, e o espelho de setembro assinado.
+
+`06_remover_dados_demo.sql` tira as marcações de demonstração e a assinatura e reinicia o controle para hoje, mas apaga dados de todos os colaboradores que têm marcações de demonstração. Os comprovantes nº 1 a 4 e os pedidos sem o prefixo `[DEMO]` continuam.
 
 **Pontos achados no teste e já corrigidos** (`Etapas-meus-pedidos.md`):
 
@@ -226,4 +236,4 @@ Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e os backups do
 
 **Detalhe de texto, ainda sem correção:**
 
-- Mensagens e rótulos do APEX em inglês: "1 error has occurred", "Required", "Search", "Go" e "Actions".
+- Mensagens e rótulos do APEX em inglês: "1 error has occurred", "Required", "Search", "Go", "Actions", "Cancel" e "OK".

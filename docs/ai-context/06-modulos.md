@@ -346,7 +346,7 @@ Situações: `ABERTO` → `EM_ATENDIMENTO` ⇄ `AGUARDANDO_USUARIO` → `RESOLVI
 
 ## 2D. Ponto eletrônico (`modulos/ponto-eletronico/`)
 
-Guia: `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`. Protótipo `pen_dev/Ponto eletrônico.png`. Páginas 30 a 33 na app e packages no banco. Ajustes da validação de 03/11/2026 aplicados (`Etapas-ajustes-validacao.md`). Ajustes de `Etapas-meus-pedidos.md` também aplicados (o cartão Meus pedidos sai de `render_pendencias`). Falta testar na app a assinatura.
+Guia: `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`. Protótipo `pen_dev/Ponto eletrônico.png`. Páginas 30 a 33 na app e packages no banco. Ajustes da validação de 03/11/2026 aplicados (`Etapas-ajustes-validacao.md`). Ajustes de `Etapas-meus-pedidos.md` também aplicados (o cartão Meus pedidos sai de `render_pendencias`). Fluxos validados na app em 03/11/2026, no ambiente DEV.
 
 | Arquivo | Conteúdo |
 |---|---|
