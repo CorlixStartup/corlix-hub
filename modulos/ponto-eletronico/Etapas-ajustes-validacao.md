@@ -2,9 +2,11 @@
 
 Este guia traz **só o que a validação encontrou** nas páginas 30 a 33, já montadas pelo [`Etapas-ponto-eletronico.md`](./Etapas-ponto-eletronico.md). Os caminhos são do **APEX 26.1.5**. Passos marcados com **(confirmar no 26.1.5)** não foram conferidos na tela; se o caminho não existir, tire um print da árvore e do painel e registre o caminho certo aqui.
 
-Faça as seções na ordem. A seção 1 muda o banco; as seções 2 a 4 mudam a app no Builder.
+> **Estado (03/11/2026):** as seções 1 a 4 já foram aplicadas. O resultado está em [Resultado na app](#resultado-na-app). As seções ficam como registro do que foi feito.
 
-| Prioridade | Onde | O que acontece hoje | Seção |
+A seção 1 muda o banco; as seções 2 a 4 mudam a app no Builder.
+
+| Prioridade | Onde | O que acontecia | Seção |
 |---|---|---|---|
 | **Alta** | Página 30 | Regiões sem HTML DOM ID: registrar grava, mas a tela não atualiza; seletor de mês e diálogos não funcionam | 2.1 |
 | Média | `pkg_ponto` | Saída de hoje aprovada sem entrada trava o registro; pendência de assinatura some antes do prazo | 1 |
@@ -176,3 +178,33 @@ No próximo backup:
 | Colaborador não consegue assinar: "Este mês tem pedido de ajuste em análise" | Regra nova: há pedido pendente naquele mês | O gestor ou o RH responde na página 32, e depois o colaborador assina |
 | `ORA-20012` ao testar `render_*` no SQL Commands | O SQL Workshop é uma sessão APEX sem `G_ID_EMPRESA` | Teste no SQLcl (`docs/ai-context/09`) |
 | Layout da página 30 quebrou depois de trocar o template | Troca do passo 2.2 ainda não testada | Volte o template e o slot, e mande um print da página e da árvore |
+
+## Resultado na app
+
+Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e o backup das 08:57.
+
+| Item | Resultado |
+|---|---|
+| Packages no banco iguais aos do módulo | Certo |
+| Os 9 HTML DOM IDs e o título na faixa branca | Certo |
+| Os 4 diálogos sem corte nem erro de JavaScript | Certo, com poucas linhas de dados |
+| Registrar marcação e atualizar a tela sem recarregar | Certo (comprovante nº 3) |
+| Outra marcação em menos de 1 minuto | Recusada, como previsto |
+| Pedido da saída de hoje sem as marcações anteriores | Recusado, como previsto |
+| Pedido de abono e pedido igual repetido | Enviado; o repetido foi recusado |
+| Modal fecha e a página 30 recebe o evento | Certo |
+| Baixar espelho (CSV com BOM e colunas certas) | Certo |
+| Página 32 não mostra o pedido da própria conta | Certo |
+
+**Ainda não testado na app:**
+
+- colunas da página 32 com dados e modal da página 33, que precisam de um pedido e de uma conta que possa aprová-lo;
+- assinatura do espelho, inclusive o bloqueio com pedido em análise;
+- seletor de mês e "Ver mês completo", que precisam de uma conta com mais dados.
+
+**Dado de teste que ficou no banco:** na conta `TESTE.RH`, o comprovante nº 3 (retorno de 03/11/2026 às 09:02), que não pode ser apagado, e um pedido de abono de 03/11/2026 com o motivo "Teste de validação", pendente.
+
+**Detalhes de texto, ainda sem correção:**
+
+- "Retorno do intervalo registrada": o texto de `ajax_registrar` usa sempre o feminino.
+- Mensagens e rótulos do APEX em inglês: "1 error has occurred", "Required", "Search", "Go" e "Actions".
