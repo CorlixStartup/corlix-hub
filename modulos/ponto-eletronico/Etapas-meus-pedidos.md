@@ -1,4 +1,4 @@
-# Ponto eletrônico · Meus pedidos, selo do dia e mensagem do registro
+# Ponto eletrônico · Meus pedidos, selo do dia e textos do relógio
 
 Este guia traz os ajustes encontrados no teste da app em 03/11/2026. **Não há região nova nem CSS novo:** basta reinstalar um package e, se ainda não foi feito, trocar uma linha na página 32.
 
@@ -7,6 +7,7 @@ Este guia traz os ajustes encontrados no teste da app em 03/11/2026. **Não há 
 | **Meus pedidos** (página 30) | O colaborador não via o status nem a resposta do pedido | Novo cartão, abaixo de Pendências, com os 5 pedidos mais recentes: Em análise, Aprovado ou Recusado, e a resposta de quem aprovou |
 | **Selo do dia** (espelho e CSV) | Dia completo com saldo negativo aparecia como "Regular" | Aparece "Abaixo da jornada" |
 | **Mensagem do registro** | "Retorno do intervalo registrada. Comprovante nº 3." | "Marcação registrada: Retorno do intervalo. Comprovante nº 3." |
+| **Rodapé do relógio** | Com a saída registrada antes de completar a jornada: "faltam 7h36 para completar a jornada" | "jornada encerrada" |
 | **`Pedido em`** (página 32) | Hora em UTC: 09:01 aparecia como 12:01 | Hora local da empresa |
 
 ---
@@ -63,15 +64,16 @@ Use uma conta **de teste**. Enviar e responder pedidos fica registrado.
 2. Em **Solicitar ajuste**, envie um pedido. O modal fecha, e o pedido aparece no cartão como **Em análise**, sem recarregar a página.
 3. Procure no espelho um dia completo com saldo negativo: ele mostra **Abaixo da jornada**, e a mesma situação sai no CSV de **Baixar espelho**.
 4. Registre uma marcação: a mensagem é "Marcação registrada: ... Comprovante nº N".
+5. Num dia com a saída já registrada e menos horas que a jornada, o rodapé do relógio diz "jornada encerrada", sem "faltam". Com a jornada completa, continua "jornada completa".
 
 **Com o gestor ou o RH**
 
-5. Em **Ajustes de ponto**, `Pedido em` mostra a hora local em que o pedido foi enviado.
-6. Responda ao pedido, com uma mensagem.
+6. Em **Ajustes de ponto**, `Pedido em` mostra a hora local em que o pedido foi enviado.
+7. Responda ao pedido, com uma mensagem.
 
 **De volta ao colaborador**
 
-7. Recarregue a página 30: o pedido aparece como **Aprovado** ou **Recusado**, com "Resposta: ...".
+8. Recarregue a página 30: o pedido aparece como **Aprovado** ou **Recusado**, com "Resposta: ...".
 
 ### Como conferir no export
 
