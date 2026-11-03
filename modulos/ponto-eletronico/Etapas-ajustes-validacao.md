@@ -85,6 +85,17 @@ Na tela, o título da página 30 fica solto no fundo cinza. O protótipo mostra 
 
 Compare o resultado com `pen_dev/Ponto eletrônico.png`. A troca de template ainda não foi testada na página 30: se o layout quebrar, volte os dois passos e mande um print antes de mudar mais alguma coisa.
 
+### 2.3 Tabela cortada nos diálogos
+
+O **Espelho do mês** já está em Large (720 px), mas a tabela ocupa 782 px e a coluna Situação fica cortada. A correção é de CSS: não mude o tamanho do diálogo.
+
+Em *Shared Components › Static Application Files*, na pasta `ponto-eletronico/`, reenvie **os dois** arquivos, substituindo os atuais:
+
+- `modulos/ponto-eletronico/ponto.css`
+- `modulos/ponto-eletronico/ponto.min.css`
+
+Recarregue a página 30 com Cmd+Shift+R e abra **Ver comprovantes** ou **Ver mês completo**: a tabela cabe no diálogo, sem barra de rolagem embaixo dele. Com um nome de feriado muito longo, a rolagem fica dentro da tabela.
+
 ---
 
 ## 3. Página 32 · Ajustes de ponto
