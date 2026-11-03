@@ -195,7 +195,7 @@ Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e os backups do
 | Modal fecha e a página 30 recebe o evento | Certo |
 | Baixar espelho (CSV com BOM e colunas certas) | Certo |
 | Página 32 não mostra o pedido da própria conta | Certo |
-| Página 32 mostra o pedido ao gestor direto, com as colunas certas | Certo; a hora de `Pedido em` saía em UTC e foi corrigida (ver abaixo) |
+| Página 32 mostra o pedido ao gestor direto, com as colunas certas | Certo; `Pedido em` saía em UTC e, depois da correção, mostra a hora local (pedido das 10:10 aparece como 10:10) |
 | Página 33: dados do pedido, só Aprovar e Recusar, botões no rodapé | Certo |
 | Recusar sem mensagem | Recusado, como previsto |
 | Recusar com mensagem | Certo: "Resposta registrada", e o pedido saiu da fila |
@@ -205,7 +205,6 @@ Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e os backups do
 
 **Ainda não testado na app:**
 
-- hora de `Pedido em` na página 32, depois da correção: a consulta está aplicada, mas a hora ainda não foi vista na tela;
 - selo "Abaixo da jornada" e mensagem "Marcação registrada: ...", cobertos só pelos testes locais;
 - assinatura do espelho, inclusive o bloqueio com pedido em análise;
 - seletor de mês e "Ver mês completo", que precisam de uma conta com mais dados.
