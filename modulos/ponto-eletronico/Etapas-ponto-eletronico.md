@@ -372,20 +372,97 @@ Botão direito em **Dialog Footer** › **Create Region** (confirmar no 26.1.5):
 
 ### 5.4 Dynamic actions
 
-**Cancelar:** botão direito em `CANCELAR` › **Create Dynamic Action**. Name `Cancelar`, Event Click. Ação True: **Cancel Dialog**, Fire on Initialization **Off**.
+Esta página tem duas dynamic actions (DAs). Uma DA tem duas partes, e cada configuração fica em uma delas:
 
-**Mostrar campos de marcação:**
+- **A DA em si** (o nó com o nome dela) diz *quando* ela dispara e guarda a *condição*. Seções: **Identification**, **When** e **Client-side Condition**.
+- **As ações** (os nós dentro de **True** e **False**) dizem *o que* acontece. Seções: **Identification › Action**, **Affected Elements** e **Execution**.
+
+Para ver as DAs, clique na aba **Dynamic Actions** (o ícone de raio) no painel da esquerda do Page Designer. No fim do passo 5.4, ela deve estar assim:
+
+```
+Dynamic Actions
+└── Events
+    ├── Click
+    │   └── Cancelar                  ← a DA 1
+    │       └── True
+    │           └── Cancel Dialog     ← a ação
+    └── Change
+        └── Tipo de ajuste            ← a DA 2: aqui ficam o evento e a condição
+            ├── True
+            │   └── Show              ← roda quando o tipo é MARCACAO
+            └── False
+                └── Hide              ← roda quando o tipo é ABONO
+```
+
+#### DA 1: botão Cancelar
+
+1. Na árvore **Rendering**, botão direito no botão `CANCELAR` › **Create Dynamic Action**. O APEX já cria a DA para o clique nesse botão e uma ação dentro de **True**.
+2. Clique no nó da DA (o de cima) e confira no painel da direita:
 
 | Seção | Atributo | Valor |
 |---|---|---|
-| Identification | Name | `Tipo de ajuste` |
-| When | Event | **Change** |
-| When | Selection Type | **Item(s)** · `P31_TP_AJUSTE` |
-| Client-side Condition | Type | **Item = Value** |
-| Client-side Condition | Item / Value | `P31_TP_AJUSTE` / `MARCACAO` |
+| Identification | Name | `Cancelar` |
+| When | Event | **Click** |
+| When | Selection Type | **Button** |
+| When | Button | `CANCELAR` |
 
-- Ação **True**: **Show**, Affected Elements Item(s) `P31_TP_MARCACAO,P31_HR_MARCACAO`, Fire on Initialization **On**.
-- Ação **False**: **Hide**, os mesmos itens, Fire on Initialization **On**.
+3. Clique na ação, o nó dentro de **True**, e preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Action | **Cancel Dialog** |
+| Execution | Fire on Initialization | **Off** |
+
+#### DA 2: mostrar ou esconder os campos de marcação
+
+O campo **Marcação** e o campo **Horário** só fazem sentido quando a pessoa escolhe "Incluir ou corrigir marcação". No abono, eles somem.
+
+**Passo 1: criar a DA e configurar o evento e a condição**
+
+1. Na árvore **Rendering**, botão direito no item `P31_TP_AJUSTE` › **Create Dynamic Action**.
+2. Clique no nó da DA (o de cima, **não** o que está dentro de True) e preencha tudo isto nele:
+
+| Seção | Atributo | Valor | Para quê |
+|---|---|---|---|
+| Identification | Name | `Tipo de ajuste` | Nome no Builder |
+| When | Event | **Change** | Dispara quando a pessoa muda a opção |
+| When | Selection Type | **Item(s)** | O gatilho é um item |
+| When | Item(s) | `P31_TP_AJUSTE` | Qual item |
+| Client-side Condition | Type | **Item = Value** | Faz a DA separar os dois casos |
+| Client-side Condition | Item | `P31_TP_AJUSTE` | Item testado |
+| Client-side Condition | Value | `MARCACAO` | Verdadeiro: roda **True**. Falso: roda **False** |
+
+**Passo 2: configurar a ação True (mostrar)**
+
+Clique na ação que o APEX criou dentro de **True** e preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Action | **Show** |
+| Affected Elements | Selection Type | **Item(s)** |
+| Affected Elements | Item(s) | `P31_TP_MARCACAO,P31_HR_MARCACAO` |
+| Execution | Fire on Initialization | **On** |
+
+**Passo 3: criar a ação False (esconder)**
+
+O APEX não cria essa ação sozinho. Botão direito no nó da DA `Tipo de ajuste` › **Create FALSE Action**, clique nela e preencha:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Action | **Hide** |
+| Affected Elements | Selection Type | **Item(s)** |
+| Affected Elements | Item(s) | `P31_TP_MARCACAO,P31_HR_MARCACAO` |
+| Execution | Fire on Initialization | **On** |
+
+**Fire on Initialization On** é o que aplica a regra quando o modal abre, sem esperar a pessoa mudar a opção. É necessário porque **Justificar** num dia sem marcação já abre o modal com "Abonar o dia" escolhido.
+
+**Como conferir:** rode a página 31 pelo botão **Solicitar ajuste** da página 30, depois de terminar a seção 5.
+
+1. O modal abre com "Incluir ou corrigir marcação" e os campos **Marcação** e **Horário** aparecem.
+2. Escolha "Abonar o dia": os dois somem.
+3. Volte para a primeira opção: os dois reaparecem.
+
+No próximo backup, a DA fica em `corlixhub/pages/p00031-*.apx`, com um bloco `clientSideCondition` na DA, a ação `show` e a ação `hide` com `fireWhenEventResultIs: false` (a página 14 tem um exemplo parecido).
 
 ### 5.5 Processos
 
