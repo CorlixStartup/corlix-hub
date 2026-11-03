@@ -102,7 +102,8 @@ create or replace package pkg_ponto authid definer as
   -- 'S' se a conta logada é RH ou tem alguém sob sua gestão (autorização APROVADOR_PONTO).
   function fn_e_aprovador return varchar2;
 
-  -- Mês anterior ainda sem assinatura (1º dia do mês) ou nulo.
+  -- Mês mais antigo sem assinatura e ainda no prazo (1º dia do mês) ou nulo: o
+  -- retrasado até o dia 5 e, depois dele, o anterior.
   function fn_competencia_a_assinar (p_id_colaborador in number) return date;
 
   -- Prazo para assinar: dia 5 do segundo mês depois da competência.

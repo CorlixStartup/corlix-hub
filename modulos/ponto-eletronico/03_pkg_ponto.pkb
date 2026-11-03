@@ -463,7 +463,9 @@ create or replace package body pkg_ponto as
     end if;
   end validar_mes_aberto;
 
-  -- Os quatro horários do dia, com o novo no lugar, têm de ficar em ordem
+  -- Os quatro horários do dia, com o novo no lugar, têm de ficar em ordem.
+  -- No dia de hoje, o pedido também não pode pular marcações: uma saída aprovada
+  -- sem entrada encerraria a jornada e travaria o botão de registrar até o fim do dia.
   procedure validar_ordem (
     p_id_colaborador in number,
     p_dt             in date,
@@ -473,6 +475,8 @@ create or replace package body pkg_ponto as
     type t_horarios is table of date index by varchar2(10);
     l_h t_horarios;
     l_anterior date;
+    l_hoje          constant date    := pkg_historico_carreira.fn_hoje(empresa_do_colaborador(p_id_colaborador));
+    l_tem_intervalo constant boolean := fn_jornada(p_id_colaborador).nr_min_intervalo > 0;
 
     procedure conferir (p_t in varchar2) is
     begin
@@ -484,6 +488,14 @@ create or replace package body pkg_ponto as
         l_anterior := l_h(p_t);
       end if;
     end conferir;
+
+    procedure exigir (p_t in varchar2) is
+    begin
+      if not l_h.exists(p_t) then
+        raise_application_error(-20069,
+          'Para o dia de hoje, as marcações anteriores precisam estar registradas. Peça primeiro o ajuste delas.');
+      end if;
+    end exigir;
   begin
     for r in (select tp_marcacao, dh_marcacao
                 from vw_ponto_marcacao_vigente
@@ -491,6 +503,19 @@ create or replace package body pkg_ponto as
                  and dt_referencia  = p_dt) loop
       l_h(r.tp_marcacao) := r.dh_marcacao;
     end loop;
+
+    if p_dt = l_hoje then
+      if p_tipo <> 'ENTRADA' then
+        exigir('ENTRADA');
+      end if;
+      if l_tem_intervalo and p_tipo in ('RETORNO', 'SAIDA') then
+        exigir('INTERVALO');
+      end if;
+      if l_tem_intervalo and p_tipo = 'SAIDA' then
+        exigir('RETORNO');
+      end if;
+    end if;
+
     l_h(p_tipo) := p_dh;
 
     conferir('ENTRADA');
@@ -683,18 +708,30 @@ create or replace package body pkg_ponto as
   function fn_competencia_a_assinar (p_id_colaborador in number) return date is
     l_empresa constant number    := empresa_do_colaborador(p_id_colaborador);
     l_j       constant t_jornada := fn_jornada(p_id_colaborador);
-    l_mes     constant date      := add_months(trunc(pkg_historico_carreira.fn_hoje(l_empresa), 'MM'), -1);
-    l_qt      pls_integer;
+    l_hoje    constant date      := pkg_historico_carreira.fn_hoje(l_empresa);
+    l_atual   constant date      := trunc(l_hoje, 'MM');
+
+    function pendente (p_mes in date) return boolean is
+      l_qt pls_integer;
+    begin
+      if l_j.dt_inicio_controle > last_day(p_mes) then
+        return false;
+      end if;
+      select count(*)
+        into l_qt
+        from ponto_espelho_assinatura
+       where id_colaborador = p_id_colaborador
+         and dt_competencia = p_mes;
+      return l_qt = 0;
+    end pendente;
   begin
-    if l_j.dt_inicio_controle > last_day(l_mes) then
-      return null;
+    -- O mês retrasado continua pendente até o dia 5 (fn_prazo_assinatura)
+    if l_hoje <= fn_prazo_assinatura(add_months(l_atual, -2)) and pendente(add_months(l_atual, -2)) then
+      return add_months(l_atual, -2);
+    elsif pendente(add_months(l_atual, -1)) then
+      return add_months(l_atual, -1);
     end if;
-    select count(*)
-      into l_qt
-      from ponto_espelho_assinatura
-     where id_colaborador = p_id_colaborador
-       and dt_competencia = l_mes;
-    return case when l_qt = 0 then l_mes end;
+    return null;
   end fn_competencia_a_assinar;
 
   procedure assinar_espelho (p_competencia in varchar2) is
@@ -702,6 +739,7 @@ create or replace package body pkg_ponto as
     l_empresa  constant number := empresa_do_colaborador(l_id_colab);
     l_hoje     constant date   := pkg_historico_carreira.fn_hoje(l_empresa);
     l_mes      constant date   := to_date(p_competencia || '01' default null on conversion error, 'YYYYMMDD');
+    l_j        constant t_jornada := fn_jornada(l_id_colab);
     l_usuario  constant varchar2(255) := usuario_atual;
     l_ip       constant varchar2(64)  := ip_origem;
     l_dias     t_dias;
@@ -710,6 +748,8 @@ create or replace package body pkg_ponto as
   begin
     if l_mes is null or l_mes >= trunc(l_hoje, 'MM') then
       raise_application_error(-20071, 'Só é possível assinar o espelho de um mês já encerrado.');
+    elsif l_mes < trunc(l_j.dt_inicio_controle, 'MM') then
+      raise_application_error(-20071, 'Não há espelho deste mês para assinar: o controle de ponto começou depois.');
     end if;
 
     -- O hash registra o que estava no espelho na hora da assinatura

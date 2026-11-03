@@ -64,7 +64,7 @@
 | 26 / 27 | Central de Equipes / Nova Equipe (modal) | Implementada |
 | 28 | Início (nova Home) | Em montagem pelo `modulos/home/Etapas-home.md`; vira a Home no §5 do guia |
 | 29 | Busca (resultados da busca do header) | Em montagem pelo `modulos/busca/Etapas-busca.md` |
-| 30 a 33 | Ponto eletrônico, Solicitar ajuste (modal), Ajustes de ponto, Responder ajuste (modal) | Planejadas: `modulos/ponto-eletronico/Etapas-ponto-eletronico.md` |
+| 30 a 33 | Ponto eletrônico, Solicitar ajuste (modal), Ajustes de ponto, Responder ajuste (modal) | Na app, com ajustes pendentes: `modulos/ponto-eletronico/Etapas-ajustes-validacao.md` |
 | 9999 | Login | Implementada |
 
 ## Regras de ouro (resumo do 08)
