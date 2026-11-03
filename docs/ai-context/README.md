@@ -64,7 +64,7 @@
 | 26 / 27 | Central de Equipes / Nova Equipe (modal) | Implementada |
 | 28 | Início (nova Home) | Em montagem pelo `modulos/home/Etapas-home.md`; vira a Home no §5 do guia |
 | 29 | Busca (resultados da busca do header) | Em montagem pelo `modulos/busca/Etapas-busca.md` |
-| 30 a 33 | Ponto eletrônico, Solicitar ajuste (modal), Ajustes de ponto, Responder ajuste (modal) | Na app, com ajustes pendentes: `modulos/ponto-eletronico/Etapas-ajustes-validacao.md` |
+| 30 a 33 | Ponto eletrônico, Solicitar ajuste (modal), Ajustes de ponto, Responder ajuste (modal) | Implementadas; ajustes da validação aplicados em 03/11/2026. Falta corrigir a hora de `Pedido em` na p32 e testar na app a assinatura (`modulos/ponto-eletronico/Etapas-ajustes-validacao.md`, "Resultado na app") |
 | 34 a 43 | Suporte TI, Abrir chamado e Chamado (modais), Base de conhecimento, Atendimento TI e Atender chamado (modal), Status dos sistemas e Artigos (lista + modal) | Planejadas: `modulos/suporte-ti/Etapas-suporte-ti.md` |
 | 9999 | Login | Implementada |
 

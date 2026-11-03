@@ -4,7 +4,7 @@ Este guia cria a tela do protótipo [`pen_dev/Ponto eletrônico.png`](../../pen_
 
 Como nos outros guias, a mudança é feita no Builder. O backup diário traz o resultado para `corlixhub/pages/` na `DEV`; editar o `.apx` do repositório não muda o app e é desfeito no próximo backup.
 
-> **Estado (03/11/2026):** as páginas 30 a 33 já estão na app e os packages, no banco. A validação encontrou ajustes a fazer: siga [`Etapas-ajustes-validacao.md`](./Etapas-ajustes-validacao.md).
+> **Estado (03/11/2026):** as páginas 30 a 33 estão na app, os packages no banco e os ajustes da validação foram aplicados. O que já foi conferido e o que falta testar estão em [`Etapas-ajustes-validacao.md`](./Etapas-ajustes-validacao.md).
 
 ### Como ler os caminhos deste guia (APEX 26.1.5)
 
@@ -608,7 +608,7 @@ select a.id_ajuste,
        end as pedido,
        to_char(a.dh_solicitada, 'HH24:MI') as horario,
        a.ds_motivo as motivo,
-       cast(a.dh_pedido as date) as pedido_em,
+       pkg_historico_carreira.fn_data_local(a.id_empresa, a.dh_pedido) as pedido_em,
        'Responder' as responder
   from ponto_ajuste a
   join colaborador c on c.id_colaborador = a.id_colaborador
