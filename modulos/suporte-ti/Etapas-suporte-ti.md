@@ -190,25 +190,22 @@ As páginas 34, 36, 37 e 39 carregam `suporte#MIN#.css`, então os dois precisam
 
 ### 3.3 Dar o papel à equipe
 
-**Primeiro decida quem atende.** Os cargos de TI são:
+**O atendimento fica com pessoas escolhidas, e não com um cargo inteiro.** Quem tem o papel lê os chamados e os anexos de toda a empresa, então ele vai só para os desenvolvedores designados para o suporte. **Não inclua `suporte-ti` em `cargo_papel`:** todo mundo cadastrado depois com aquele cargo receberia o papel, e os desenvolvedores que não atendem também.
 
-```sql
-select g.id_cargo, g.nome, count(c.id_colaborador) pessoas
-  from cargo g
-  left join colaborador c on c.id_cargo = g.id_cargo
- where g.id_departamento = 60
- group by g.id_cargo, g.nome
- order by 1
-```
+Para cada pessoa designada:
 
-Para quem for **cadastrado depois** na P14 receber o papel, inclua cada cargo escolhido:
+1. Confira se a conta dela tem colaborador vinculado. Sem isso, ela não consegue atender:
+   ```sql
+   select id_colaborador, nome_completo, login_apex
+     from colaborador
+    where upper(login_apex) = upper('<login>')
+   ```
+2. Em *Application Access Control › User Role Assignments › Add User Role Assignment*, escolha o usuário e o papel `Suporte TI` (`modulos/perfis-acesso/Etapas-perfis-acesso.md` §6.1). O `apex_acl` não funciona no SQL Commands.
+3. Peça para a pessoa sair e entrar de novo.
 
-```sql
-insert into cargo_papel (id_cargo, cd_papel) values (602, 'suporte-ti')
-```
-O `602` é só um exemplo. O papel precisa já existir (§3.1); sem ele, a P14 dá o erro `-20102`.
+Quando alguém deixar o suporte, remova o papel na mesma tela e peça o mesmo novo login. Os chamados que essa pessoa atendia continuam com ela até outra pessoa da equipe escolher **Assumir o chamado**, então passe os que estiverem em aberto antes de remover o papel.
 
-Para quem **já existe**: *Application Access Control › User Role Assignments › Add User Role Assignment*, com o usuário e o papel `Suporte TI` (`modulos/perfis-acesso/Etapas-perfis-acesso.md` §6.1). O `apex_acl` não funciona no SQL Commands.
+Tenha ao menos duas pessoas com o papel, para a fila não parar em férias ou ausências. O papel só libera as páginas de suporte: não dá acesso a outras áreas de administração.
 
 ---
 
