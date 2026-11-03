@@ -59,7 +59,7 @@
   - Todos os itens estão com `sequence: 10`.
 - **p16 Cadastro de empresa**: os defeitos antigos (endereço desabilitado, `maxLength` curtos, logo em `appTempFiles`) foram corrigidos no Builder em 27/10/2026 pelo `modulos/tema/Etapas-cadastro-empresa.md`. O `.apx` do repositório só reflete isso depois do próximo backup. Faltam no Builder as validações de CNPJ repetido e de remoção com vínculos (§6.1 do guia).
 - **p1 Home** (o redesign de `modulos/home/Etapas-home.md` vai para a página nova 28 e **não altera a página 1**; os itens abaixo continuam valendo para a 1 e deixam de afetar o usuário quando a Home for trocada para a 28 no §5 do guia):
-  - Os links rápidos Holerite/Ponto/Suporte TI levam às páginas 5/6/7 (Home antiga). Na Início (`pkg_home_ui.render_hero`), o Holerite leva à página 9 e Ponto/Suporte TI ainda não têm destino.
+  - Os links rápidos Holerite/Ponto/Suporte TI levam às páginas 5/6/7 (Home antiga). Na Início (`pkg_home_ui.render_hero`), o Holerite leva à página 9, o Suporte TI leva à 34 depois do `modulos/suporte-ti/Etapas-suporte-ti.md` §13, e o Ponto ainda não tem destino.
   - Os botões Chat/E-mail do gestor têm `href="#"`.
   - Em `columnCssClasses` há um `.` sobrando.
   - A coluna `CLASSE_DEPTO` não é usada.

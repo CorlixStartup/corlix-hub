@@ -297,7 +297,7 @@ Nova Home conforme `pen_dev/Início.png`. O guia previa a página nova 28, mas o
 | `home-hero.jpg` | arte do hero (recorte do protótipo); também em `corlixhub/shared-components/static-files/` |
 | `Etapas-home.md` | passo a passo no Builder 26.1.5 |
 
-**Protótipo de 28/10/2026 (§6 do guia):** saudação por horário ("Bom dia/Boa tarde/Boa noite"), atalhos Holerite (p9), Organograma (p3), Suporte TI (sem destino) e Chat (p4); comunicados em carrossel (5 mais recentes, selo "Novo" até 7 dias, ação "Ler comunicado" → p11); Meu gestor com "Mensagem"; `render_celebracoes(p_id_empresa, p_limite default 4, p_ver_todos default 'S')` com aniversários e anos de empresa (`DATA_ADMISSAO`, a partir de 1 ano) no lugar de `render_aniversariantes` (mantida no package por compatibilidade). Ficam sem backend: Ponto de hoje, indicadores, pendências, feedbacks, pesquisa de clima, próximos eventos, 1:1 e "não lido" (ver `07` §5).
+**Protótipo de 28/10/2026 (§6 do guia):** saudação por horário ("Bom dia/Boa tarde/Boa noite"), atalhos Holerite (p9), Organograma (p3), Suporte TI (p34, depois do `modulos/suporte-ti/Etapas-suporte-ti.md` §13) e Chat (p4); comunicados em carrossel (5 mais recentes, selo "Novo" até 7 dias, ação "Ler comunicado" → p11); Meu gestor com "Mensagem"; `render_celebracoes(p_id_empresa, p_limite default 4, p_ver_todos default 'S')` com aniversários e anos de empresa (`DATA_ADMISSAO`, a partir de 1 ano) no lugar de `render_aniversariantes` (mantida no package por compatibilidade). Ficam sem backend: Ponto de hoje, indicadores, pendências, feedbacks, pesquisa de clima, próximos eventos, 1:1 e "não lido" (ver `07` §5).
 
 Os comunicados ficam numa região **Cards** nativa (precisam da imagem BLOB), com SQL filtrada por `:G_ID_EMPRESA`; CSS em `custom.css` §12 (ver `04` §5.2.1). Links rápidos: o destino de cada um é o `p_pagina` da chamada a `atalho` no `render_hero` (link com `apex_page.get_url`). Holerite digital → página 9; Ponto eletrônico e Suporte TI seguem sem destino (`aria-disabled`) até as páginas existirem. Para torná-los configuráveis por empresa, ver a tabela `LINK_RAPIDO` sugerida em `07` §5.
 
@@ -325,6 +325,22 @@ Guia: `modulos/busca/Etapas-busca.md`. Protótipo `pen_dev/Busca (resultados).pn
 | `instalar.sql` | instala o package |
 
 Pessoas: `colaborador` ativo (`status = true`) da empresa, por nome, cargo ou departamento; nome → p3 com `P3_ID_FOCO` (checksum via `apex_page.get_url`), "Conversar" → p4 (o chat não abre conversa por parâmetro). Comunicados: da empresa, por título ou pelos primeiros 2.000 caracteres do conteúdo; título → p11. Busca sem diferença de maiúsculas e acentos (`translate(lower(...))` com constantes do package) e com `%`/`_` do termo escapados. A p29 é *Unrestricted* e o `P29_TERMO` sem Value Protected, porque o termo chega pela URL. Fica para depois o grupo "Páginas do menu" do protótipo.
+
+---
+
+## 2E. Suporte TI (`modulos/suporte-ti/`)
+
+Guia: `modulos/suporte-ti/Etapas-suporte-ti.md`. Protótipo `pen_dev/Suporte TI.png`. Páginas 34 a 43, ainda não criadas no app. Os packages foram compilados e testados em Oracle 23ai local com as APIs do APEX simuladas; falta instalar no banco do app.
+
+| Arquivo | Conteúdo |
+|---|---|
+| `01_ddl_suporte.sql` / `02_seed_suporte.sql` | Tabelas, triggers, view; assuntos, sistemas, artigos e contatos de exemplo, por empresa |
+| `03_pkg_suporte.pks` / `.pkb` | `abrir_chamado`, `responder`, `confirmar_solucao`, `reabrir`, `atender`, `encerrar_vencidos`, `registrar_acesso_artigo`, `baixar_anexo`, `fn_situacao`, `fn_e_ti` |
+| `04_pkg_suporte_ui.pks` / `.pkb` | `render_*` das regiões; `ajax_buscar` e `ajax_confirmar` (respondem JSON `{ok, mensagem}`) |
+| `05_job_suporte.sql` | Job diário `SUPORTE_ENCERRAR_VENCIDOS` (23:30) |
+| `suporte.css` / `suporte.min.css`, `suporte-pagina.js` | Classes `cx-sup-*`; abas, busca, confirmação e fechamento do aviso |
+
+Situações: `ABERTO` → `EM_ATENDIMENTO` ⇄ `AGUARDANDO_USUARIO` → `RESOLVIDO` → `ENCERRADO`; `RESOLVIDO` volta para atendimento quando o colaborador reabre. Quem atende tem o papel `suporte-ti` (autorização `SUPORTE_TI`) e precisa de colaborador vinculado. O solicitante e a TI da mesma empresa veem o chamado; qualquer outra conta recebe -20077. Toda mensagem é vista pelo colaborador: não há nota interna. Anexo: até 5 MB, em PNG, JPG, PDF, TXT ou LOG; o tipo gravado vem da extensão, e o download nunca abre na página.
 
 ---
 
