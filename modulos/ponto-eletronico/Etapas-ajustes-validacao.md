@@ -2,9 +2,11 @@
 
 Este guia traz **só o que a validação encontrou** nas páginas 30 a 33, já montadas pelo [`Etapas-ponto-eletronico.md`](./Etapas-ponto-eletronico.md). Os caminhos são do **APEX 26.1.5**. Passos marcados com **(confirmar no 26.1.5)** não foram conferidos na tela; se o caminho não existir, tire um print da árvore e do painel e registre o caminho certo aqui.
 
-Faça as seções na ordem. A seção 1 muda o banco; as seções 2 a 4 mudam a app no Builder.
+> **Estado (03/11/2026):** as seções 1 a 4 já foram aplicadas. O resultado está em [Resultado na app](#resultado-na-app). As seções ficam como registro do que foi feito.
 
-| Prioridade | Onde | O que acontece hoje | Seção |
+A seção 1 muda o banco; as seções 2 a 4 mudam a app no Builder.
+
+| Prioridade | Onde | O que acontecia | Seção |
 |---|---|---|---|
 | **Alta** | Página 30 | Regiões sem HTML DOM ID: registrar grava, mas a tela não atualiza; seletor de mês e diálogos não funcionam | 2.1 |
 | Média | `pkg_ponto` | Saída de hoje aprovada sem entrada trava o registro; pendência de assinatura some antes do prazo | 1 |
@@ -176,3 +178,55 @@ No próximo backup:
 | Colaborador não consegue assinar: "Este mês tem pedido de ajuste em análise" | Regra nova: há pedido pendente naquele mês | O gestor ou o RH responde na página 32, e depois o colaborador assina |
 | `ORA-20012` ao testar `render_*` no SQL Commands | O SQL Workshop é uma sessão APEX sem `G_ID_EMPRESA` | Teste no SQLcl (`docs/ai-context/09`) |
 | Layout da página 30 quebrou depois de trocar o template | Troca do passo 2.2 ainda não testada | Volte o template e o slot, e mande um print da página e da árvore |
+
+## Resultado na app
+
+Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e o backup das 08:57.
+
+| Item | Resultado |
+|---|---|
+| Packages no banco iguais aos do módulo | Certo |
+| Os 9 HTML DOM IDs e o título na faixa branca | Certo |
+| Os 4 diálogos sem corte nem erro de JavaScript | Certo, com poucas linhas de dados |
+| Registrar marcação e atualizar a tela sem recarregar | Certo (comprovante nº 3) |
+| Outra marcação em menos de 1 minuto | Recusada, como previsto |
+| Pedido da saída de hoje sem as marcações anteriores | Recusado, como previsto |
+| Pedido de abono e pedido igual repetido | Enviado; o repetido foi recusado |
+| Modal fecha e a página 30 recebe o evento | Certo |
+| Baixar espelho (CSV com BOM e colunas certas) | Certo |
+| Página 32 não mostra o pedido da própria conta | Certo |
+| Página 32 mostra o pedido ao gestor direto, com as colunas certas | Certo, menos a hora de `Pedido em` |
+| Página 33: dados do pedido, só Aprovar e Recusar, botões no rodapé | Certo |
+| Recusar sem mensagem | Recusado, como previsto |
+| Recusar com mensagem | Certo: "Resposta registrada", e o pedido saiu da fila |
+| Aprovar abono em dia com saldo negativo | Certo: dia **Abonado**, saldo do dia e banco de horas em 0h00, extrato sem lançamentos |
+
+**Ainda não testado na app:**
+
+- assinatura do espelho, inclusive o bloqueio com pedido em análise;
+- seletor de mês e "Ver mês completo", que precisam de uma conta com mais dados.
+
+**Dados de teste que ficaram no banco**, na conta `TESTE.RH`, em 03/11/2026:
+
+- comprovantes nº 3 (retorno às 09:02) e nº 4 (saída às 09:25), que não podem ser apagados. O dia fechou com 0h24 trabalhadas e -7h36, zerados pelo abono abaixo;
+- um pedido de abono com o motivo "Teste de validação", recusado pelo gestor com a mesma mensagem;
+- um segundo pedido de abono, com o mesmo motivo, aprovado pelo gestor com a mesma mensagem.
+
+**Bug a corrigir no Builder: hora de `Pedido em` em UTC.** Na página 32, o pedido enviado às 09:01 aparece como 12:01. O `cast(a.dh_pedido as date)` mantém o fuso em que a hora foi gravada, sem converter para o da empresa. Na região `Pedidos pendentes`, em **Source › SQL Query**, troque a linha `cast(a.dh_pedido as date) as pedido_em,` por:
+
+```sql
+pkg_historico_carreira.fn_data_local(a.id_empresa, a.dh_pedido) as pedido_em,
+```
+
+Depois, envie um pedido de teste e confira na página 32 se a hora é a local. A troca ainda não foi testada.
+
+**Lacuna: o colaborador não vê a resposta do pedido.** As telas do ponto não mostram o status nem a mensagem de quem respondeu; a recusa só se percebe pelo espelho.
+
+**Selo do dia:** um dia completo com -7h36 aparece como "Regular", o que pode confundir.
+
+**Relógio em dia encerrado:** com a saída registrada, o rodapé do cartão ainda diz "faltam 7h36 para completar a jornada", mesmo com o dia abonado.
+
+**Detalhes de texto, ainda sem correção:**
+
+- "Retorno do intervalo registrada": o texto de `ajax_registrar` usa sempre o feminino.
+- Mensagens e rótulos do APEX em inglês: "1 error has occurred", "Required", "Search", "Go" e "Actions".

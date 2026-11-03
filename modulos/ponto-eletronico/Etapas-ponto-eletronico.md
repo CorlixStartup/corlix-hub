@@ -4,7 +4,7 @@ Este guia cria a tela do protótipo [`pen_dev/Ponto eletrônico.png`](../../pen_
 
 Como nos outros guias, a mudança é feita no Builder. O backup diário traz o resultado para `corlixhub/pages/` na `DEV`; editar o `.apx` do repositório não muda o app e é desfeito no próximo backup.
 
-> **Estado (03/11/2026):** as páginas 30 a 33 já estão na app e os packages, no banco. A validação encontrou ajustes a fazer: siga [`Etapas-ajustes-validacao.md`](./Etapas-ajustes-validacao.md).
+> **Estado (03/11/2026):** as páginas 30 a 33 estão na app, os packages no banco e os ajustes da validação foram aplicados. O que já foi conferido e o que falta testar estão em [`Etapas-ajustes-validacao.md`](./Etapas-ajustes-validacao.md).
 
 ### Como ler os caminhos deste guia (APEX 26.1.5)
 
@@ -73,6 +73,7 @@ As páginas 31 a 33 não estão no protótipo, mas sem elas os botões **Solicit
 | `05_dados_demo.sql` / `06_remover_dados_demo.sql` | Dados de teste para um colaborador e a remoção deles (opcionais) |
 | `instalar.sql` | Instala tudo pelo SQLcl, menos a demonstração |
 | `Etapas-ajustes-validacao.md` | Ajustes encontrados na validação de 03/11/2026 |
+| `Etapas-meus-pedidos.md` | Lista "Meus pedidos", selo do dia e mensagem do registro |
 | `ponto.css` / `ponto.min.css` | Estilos (classes `cx-ponto-*`); sobem como Static Application Files |
 | `ponto-pagina.js` | JavaScript da página 30 |
 
@@ -608,7 +609,7 @@ select a.id_ajuste,
        end as pedido,
        to_char(a.dh_solicitada, 'HH24:MI') as horario,
        a.ds_motivo as motivo,
-       cast(a.dh_pedido as date) as pedido_em,
+       pkg_historico_carreira.fn_data_local(a.id_empresa, a.dh_pedido) as pedido_em,
        'Responder' as responder
   from ponto_ajuste a
   join colaborador c on c.id_colaborador = a.id_colaborador
@@ -654,7 +655,7 @@ Use uma conta com colaborador e que tenha gestor. Recarregue com **Ctrl+Shift+R*
 **Registro**
 
 1. Abra **Ponto eletrônico** no menu. O item fica destacado e o relógio mostra a hora local, mudando sozinho.
-2. Clique em **Registrar entrada**. Aparece "Entrada registrada. Comprovante nº N", o primeiro círculo fica azul com a hora e o botão vira **Iniciar intervalo**.
+2. Clique em **Registrar entrada**. Aparece "Marcação registrada: Entrada. Comprovante nº N", o primeiro círculo fica azul com a hora e o botão vira **Iniciar intervalo**.
 3. Clique de novo em menos de 1 minuto: mensagem "Sua última marcação foi há menos de um minuto".
 4. Depois de 1 minuto, registre intervalo e retorno. A previsão de saída acompanha os horários reais. As horas trabalhadas param durante o intervalo e voltam a contar depois do retorno.
 5. Registre a saída: o botão fica cinza, "Jornada concluída". A linha de hoje no espelho sai de **Em andamento**.
@@ -674,7 +675,7 @@ Use uma conta com colaborador e que tenha gestor. Recarregue com **Ctrl+Shift+R*
 9. **Espelho:** escolha o mês do último dia útil no seletor, porque no começo do mês o atual tem poucas linhas. São 7 linhas, a mais recente em cima. O último dia útil aparece com **Marcação ausente** e "Incompleto"; o anterior, **Abonado**, 6h00 e saldo `0h00`. Fins de semana não aparecem.
 10. Troque o mês no seletor: espelho e rodapé mudam sem recarregar. **Ver mês completo** abre o diálogo com todos os dias do mês escolhido, e feriados aparecem com o nome.
 11. **Banco de horas:** saldo, acumulado do mês e aviso âmbar de vencimento. **Ver extrato** mostra os lançamentos e o saldo depois de cada um.
-12. **Pendências:** selo "N para resolver", a marcação ausente e o espelho do mês anterior.
+12. **Pendências:** selo "N para resolver", a marcação ausente e o espelho a assinar. Quem já fez pedidos vê também o cartão **Meus pedidos**.
 13. **Baixar espelho** salva `espelho-ponto-AAAA-MM.csv`. Abra no Excel e confira os acentos e as colunas.
 
 **Ajuste**
