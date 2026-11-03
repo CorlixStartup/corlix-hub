@@ -339,6 +339,7 @@ create or replace package body pkg_ponto_ui as
     p('<strong data-cx-ponto-trabalhadas>' || pkg_ponto.fn_horas(l_trab) || ' trabalhadas hoje</strong>');
     p('<span data-cx-ponto-faltam> · '
       || case when l_trab >= l_j.nr_min_diarios then 'jornada completa'
+              when l_proxima is null then 'jornada encerrada'
               else 'faltam ' || pkg_ponto.fn_horas(l_j.nr_min_diarios - l_trab) || ' para completar a jornada' end
       || '</span></p>');
     p('<button type="button" class="cx-ponto-link" data-cx-ponto-dialogo="ponto_dlg_comprovantes">Ver comprovantes'
