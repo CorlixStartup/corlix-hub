@@ -44,7 +44,7 @@
 | 30 | `Feedbacks · dar feedback (Drawer).png` | Drawer "Dar feedback" | não implementada | Baixa |
 | 31 | `Holerite digital.png` | Holerite digital: líquido a receber, detalhamento de proventos e descontos, bases de cálculo e FGTS, lista de holerites do ano, "Ocultar valores", "Baixar PDF" e "Solicitar correção" | p00009-holerite-digital | Média |
 | 32 | `Ponto eletrônico.png` | Ponto eletrônico: relógio com "Registrar saída", linha do tempo das marcações do dia, espelho de ponto do mês, banco de horas, pendências (justificar, assinar espelho) e dados da jornada | guia pronto, páginas 30 a 33 a criar (`modulos/ponto-eletronico/`) | Baixa/Média |
-| 33 | `Suporte TI.png` | Suporte TI: aviso de instabilidade, busca e assuntos da base de conhecimento, "Meus chamados" (abertos/resolvidos), status dos sistemas, artigos mais acessados e "Conversar com a TI" | não implementada | Baixa/Média |
+| 33 | `Suporte TI.png` | Suporte TI: aviso de instabilidade, busca e assuntos da base de conhecimento, "Meus chamados" (abertos/resolvidos), status dos sistemas, artigos mais acessados e "Conversar com a TI" | guia pronto, páginas 34 a 43 a criar (`modulos/suporte-ti/`) | Baixa/Média |
 
 Páginas APEX existentes **sem tela no pen.dev**: p00004-chat, p00005/p00008-notificações, p00026-central-de-equipes, p00027-nova-equipe, p09999-login. Devem apenas herdar o tema/estrutura do Design System.
 

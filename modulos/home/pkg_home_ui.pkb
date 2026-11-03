@@ -187,7 +187,7 @@ create or replace package body pkg_home_ui as
     -- Página de destino de cada link; nula enquanto a página não existir
     p(atalho('fa-file-text-o', 'Holerite',    p_pagina => 9));
     p(atalho('fa-sitemap',     'Organograma', p_pagina => 3));
-    p(atalho('fa-headphones',  'Suporte TI',  p_pagina => null));
+    p(atalho('fa-headphones',  'Suporte TI',  p_pagina => 34));
     p(atalho('fa-comments-o',  'Chat',        p_pagina => 4));
     -- O card "Ponto de hoje" do protótipo fica à direita quando houver backend
     -- de ponto (docs/ai-context/07 §5); até lá o hero ocupa a largura toda.
