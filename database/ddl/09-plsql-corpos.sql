@@ -3951,3 +3951,1506 @@ end pkg_perfil;
 
 end pkg_perfis_acesso;
 /
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_PONTO" as
+
+  -- Janela do pedido de ajuste, em dias
+  c_dias_ajuste constant pls_integer := 60;
+
+  ------------------------------------------------------------------------------
+  -- Utilitários
+  ------------------------------------------------------------------------------
+  function em_sessao_apex return boolean is
+  begin
+    return sys_context('APEX$SESSION', 'APP_SESSION') is not null;
+  end em_sessao_apex;
+
+  function usuario_atual return varchar2 is
+  begin
+    return coalesce(sys_context('APEX$SESSION', 'APP_USER'), sys_context('USERENV', 'SESSION_USER'));
+  end usuario_atual;
+
+  function e_rh return boolean is
+  begin
+    return em_sessao_apex and apex_authorization.is_authorized('ADMIN_RH');
+  end e_rh;
+
+  function cgi (p_nome in varchar2) return varchar2 is
+  begin
+    return substr(owa_util.get_cgi_env(p_nome), 1, 400);
+  exception
+    when others then
+      return null; -- fora de uma requisição web (scripts e testes)
+  end cgi;
+
+  -- Atrás do proxy da OCI, o IP do usuário é o primeiro do X-Forwarded-For
+  function ip_origem return varchar2 is
+  begin
+    return substr(coalesce(trim(regexp_substr(cgi('HTTP_X_FORWARDED_FOR'), '[^,]+', 1, 1)),
+                           cgi('REMOTE_ADDR')), 1, 64);
+  end ip_origem;
+
+  function empresa_do_colaborador (p_id_colaborador in number) return number is
+    l_id       number;
+    l_contexto constant number := pkg_historico_carreira.fn_empresa_contexto;
+  begin
+    select id_empresa into l_id from colaborador where id_colaborador = p_id_colaborador;
+    if l_contexto is not null and l_id <> l_contexto then
+      raise_application_error(-20073, 'Colaborador não encontrado nesta empresa.');
+    end if;
+    return l_id;
+  exception
+    when no_data_found then
+      raise_application_error(-20073, 'Colaborador não encontrado nesta empresa.');
+  end empresa_do_colaborador;
+
+  function minutos (p_de in date, p_ate in date) return number is
+  begin
+    return round((p_ate - p_de) * 1440);
+  end minutos;
+
+  function dia_util (p_dt in date) return boolean is
+  begin
+    return p_dt - trunc(p_dt, 'IW') < 5; -- segunda = 0; independe de NLS
+  end dia_util;
+
+  function chave (p_dt in date, p_tipo in varchar2 default null) return varchar2 is
+  begin
+    return to_char(p_dt, 'YYYYMMDD') || p_tipo;
+  end chave;
+
+  ------------------------------------------------------------------------------
+  -- Públicas: formatação
+  ------------------------------------------------------------------------------
+  function fn_horas (p_minutos in number) return varchar2 is
+    l_abs constant number := abs(nvl(p_minutos, 0));
+  begin
+    return trunc(l_abs / 60) || 'h' || to_char(mod(l_abs, 60), 'fm00');
+  end fn_horas;
+
+  function fn_saldo (p_minutos in number) return varchar2 is
+  begin
+    return case when p_minutos > 0 then '+' when p_minutos < 0 then '-' end || fn_horas(p_minutos);
+  end fn_saldo;
+
+  ------------------------------------------------------------------------------
+  -- Públicas: colaborador e jornada
+  ------------------------------------------------------------------------------
+  function fn_colaborador_logado return number is
+    l_id      number;
+    l_usuario constant varchar2(255) := usuario_atual;
+    l_empresa constant number := pkg_historico_carreira.fn_empresa_contexto;
+  begin
+    select id_colaborador
+      into l_id
+      from colaborador
+     where upper(trim(login_apex)) = upper(trim(l_usuario))
+       and id_empresa = l_empresa;
+    return l_id;
+  exception
+    when no_data_found or too_many_rows then
+      raise_application_error(-20060, 'Sua conta não está vinculada a um colaborador desta empresa. Fale com o RH.');
+  end fn_colaborador_logado;
+
+  function fn_jornada (p_id_colaborador in number) return t_jornada is
+    l_j       t_jornada;
+    l_empresa constant number := empresa_do_colaborador(p_id_colaborador);
+  begin
+    begin
+      select j.id_jornada, j.nr_min_entrada, j.nr_min_saida, j.nr_min_intervalo, j.nr_min_diarios,
+             j.nr_min_semanais, j.nr_min_tolerancia, j.nr_meses_validade, p.dt_inicio_controle, p.ds_local
+        into l_j.id_jornada, l_j.nr_min_entrada, l_j.nr_min_saida, l_j.nr_min_intervalo, l_j.nr_min_diarios,
+             l_j.nr_min_semanais, l_j.nr_min_tolerancia, l_j.nr_meses_validade, l_j.dt_inicio_controle, l_j.ds_local
+        from ponto_colaborador p
+        join ponto_jornada j on j.id_jornada = p.id_jornada
+       where p.id_colaborador = p_id_colaborador;
+    exception
+      when no_data_found then
+        -- Colaborador admitido depois da instalação: usa a jornada padrão e o
+        -- controle começa hoje. O vínculo é gravado na primeira marcação.
+        select j.id_jornada, j.nr_min_entrada, j.nr_min_saida, j.nr_min_intervalo, j.nr_min_diarios,
+               j.nr_min_semanais, j.nr_min_tolerancia, j.nr_meses_validade
+          into l_j.id_jornada, l_j.nr_min_entrada, l_j.nr_min_saida, l_j.nr_min_intervalo, l_j.nr_min_diarios,
+               l_j.nr_min_semanais, l_j.nr_min_tolerancia, l_j.nr_meses_validade
+          from ponto_jornada j
+         where j.id_empresa = l_empresa
+           and j.fl_padrao  = 'S'
+           and rownum = 1;
+        l_j.dt_inicio_controle := pkg_historico_carreira.fn_hoje(l_empresa);
+        select 'Sede ' || cidade into l_j.ds_local from empresa where id_empresa = l_empresa;
+    end;
+    return l_j;
+  exception
+    when no_data_found then
+      raise_application_error(-20061, 'Sua empresa ainda não tem jornada de trabalho cadastrada. Fale com o RH.');
+  end fn_jornada;
+
+  ------------------------------------------------------------------------------
+  -- Públicas: cálculo dos dias
+  ------------------------------------------------------------------------------
+  function fn_dias (p_id_colaborador in number, p_dt_inicio in date, p_dt_fim in date) return t_dias is
+    type t_mapa_data is table of date index by varchar2(20);
+    type t_mapa_texto is table of varchar2(100) index by varchar2(20);
+
+    l_empresa constant number    := empresa_do_colaborador(p_id_colaborador);
+    l_j       constant t_jornada := fn_jornada(p_id_colaborador);
+    l_hoje    constant date      := pkg_historico_carreira.fn_hoje(l_empresa);
+    l_agora   constant date      := pkg_historico_carreira.fn_data_local(l_empresa, systimestamp);
+    l_ini     constant date      := greatest(trunc(p_dt_inicio), l_j.dt_inicio_controle);
+    l_fim     constant date      := least(trunc(p_dt_fim), l_hoje);
+
+    l_marcas    t_mapa_data;
+    l_tem_marca t_mapa_data;
+    l_feriados  t_mapa_texto;
+    l_abonos    t_mapa_texto;
+    l_pedidos   t_mapa_texto;
+    l_dias      t_dias;
+    l_d         date;
+    l_dia       t_dia;
+    l_k         varchar2(20);
+    l_completo  boolean;
+    l_diff      number;
+
+    -- marcação do dia ou nula
+    function marca (p_tipo in varchar2) return date is
+    begin
+      return case when l_marcas.exists(chave(l_d, p_tipo)) then l_marcas(chave(l_d, p_tipo)) end;
+    end marca;
+  begin
+    -- Marcações anteriores ao início do controle (dados migrados) também contam
+    for r in (select dt_referencia, tp_marcacao, dh_marcacao
+                from vw_ponto_marcacao_vigente
+               where id_colaborador = p_id_colaborador
+                 and dt_referencia between trunc(p_dt_inicio) and l_fim) loop
+      l_marcas(chave(r.dt_referencia, r.tp_marcacao)) := r.dh_marcacao;
+      l_tem_marca(chave(r.dt_referencia)) := r.dt_referencia;
+    end loop;
+
+    for r in (select dt_feriado, nm_feriado
+                from ponto_feriado
+               where id_empresa = l_empresa
+                 and dt_feriado between trunc(p_dt_inicio) and l_fim) loop
+      l_feriados(chave(r.dt_feriado)) := r.nm_feriado;
+    end loop;
+
+    for r in (select dt_referencia, tp_ajuste, st_ajuste
+                from ponto_ajuste
+               where id_colaborador = p_id_colaborador
+                 and dt_referencia between trunc(p_dt_inicio) and l_fim
+                 and st_ajuste in ('PENDENTE', 'APROVADO')) loop
+      if r.st_ajuste = 'PENDENTE' then
+        l_pedidos(chave(r.dt_referencia)) := 'S';
+      elsif r.tp_ajuste = 'ABONO' then
+        l_abonos(chave(r.dt_referencia)) := 'S';
+      end if;
+    end loop;
+
+    l_d := trunc(p_dt_inicio);
+    while l_d <= l_fim loop
+      l_k := chave(l_d);
+
+      if l_tem_marca.exists(l_k) or l_d >= l_ini then
+        l_dia := null;
+        l_dia.dt           := l_d;
+        l_dia.dh_entrada   := marca('ENTRADA');
+        l_dia.dh_intervalo := marca('INTERVALO');
+        l_dia.dh_retorno   := marca('RETORNO');
+        l_dia.dh_saida     := marca('SAIDA');
+        if l_feriados.exists(l_k) then
+          l_dia.nm_feriado := l_feriados(l_k);
+        end if;
+
+        if l_tem_marca.exists(l_k) then
+          l_dia.nr_trabalhados := 0;
+          if l_dia.dh_entrada is not null and l_dia.dh_intervalo is not null then
+            l_dia.nr_trabalhados := l_dia.nr_trabalhados + minutos(l_dia.dh_entrada, l_dia.dh_intervalo);
+          end if;
+          if l_dia.dh_retorno is not null and l_dia.dh_saida is not null then
+            l_dia.nr_trabalhados := l_dia.nr_trabalhados + minutos(l_dia.dh_retorno, l_dia.dh_saida);
+          end if;
+          if l_dia.dh_entrada is not null and l_dia.dh_saida is not null
+             and l_dia.dh_intervalo is null and l_dia.dh_retorno is null then
+            l_dia.nr_trabalhados := minutos(l_dia.dh_entrada, l_dia.dh_saida);
+          end if;
+          -- Hoje, com o relógio correndo
+          if l_d = l_hoje and l_dia.dh_saida is null then
+            if l_dia.dh_retorno is not null then
+              l_dia.nr_trabalhados := l_dia.nr_trabalhados + minutos(l_dia.dh_retorno, l_agora);
+            elsif l_dia.dh_entrada is not null and l_dia.dh_intervalo is null then
+              l_dia.nr_trabalhados := l_dia.nr_trabalhados + minutos(l_dia.dh_entrada, l_agora);
+            end if;
+          end if;
+
+          l_completo := l_dia.dh_entrada is not null and l_dia.dh_saida is not null
+                        and ((l_dia.dh_intervalo is not null and l_dia.dh_retorno is not null)
+                             or (l_j.nr_min_intervalo = 0 and l_dia.dh_intervalo is null and l_dia.dh_retorno is null));
+
+          if l_completo then
+            if dia_util(l_d) and not l_feriados.exists(l_k) then
+              l_diff := l_dia.nr_trabalhados - l_j.nr_min_diarios;
+              l_dia.nr_saldo := case when abs(l_diff) <= l_j.nr_min_tolerancia then 0 else l_diff end;
+              if l_dia.nr_saldo < 0 and l_abonos.exists(l_k) then
+                l_dia.nr_saldo    := 0;
+                l_dia.cd_situacao := c_abonado;
+              end if;
+            else
+              l_dia.nr_saldo := l_dia.nr_trabalhados; -- folga ou feriado trabalhado
+            end if;
+            l_dia.cd_situacao := case
+              when l_pedidos.exists(l_k) then c_analise
+              else nvl(l_dia.cd_situacao, c_regular)
+            end;
+          elsif l_d = l_hoje then
+            l_dia.cd_situacao := c_andamento;
+          elsif l_abonos.exists(l_k) then
+            l_dia.cd_situacao := c_abonado;
+            l_dia.nr_saldo    := 0;
+          elsif l_pedidos.exists(l_k) then
+            l_dia.cd_situacao := c_analise;
+          else
+            l_dia.cd_situacao := c_ausente;
+          end if;
+
+        elsif l_feriados.exists(l_k) then
+          l_dia.cd_situacao := c_feriado;
+        elsif dia_util(l_d) then
+          if l_d = l_hoje then
+            l_dia.cd_situacao := c_sem_marcacao;
+          elsif l_abonos.exists(l_k) then
+            l_dia.cd_situacao := c_abonado;
+            l_dia.nr_saldo    := 0;
+          elsif l_pedidos.exists(l_k) then
+            l_dia.cd_situacao := c_analise;
+          else
+            l_dia.cd_situacao := c_falta;
+            l_dia.nr_saldo    := -l_j.nr_min_diarios;
+          end if;
+        end if;
+
+        if l_dia.cd_situacao is not null then
+          l_dias(l_dias.count + 1) := l_dia;
+        end if;
+      end if;
+
+      l_d := l_d + 1;
+    end loop;
+
+    return l_dias;
+  end fn_dias;
+
+  procedure calcular_banco (
+    p_id_colaborador in  number,
+    p_saldo          out number,
+    p_min_vencendo   out number,
+    p_dt_vencimento  out date,
+    p_extrato        out t_dias
+  ) is
+    type t_numeros is table of number index by pls_integer;
+    type t_datas is table of date index by pls_integer;
+
+    l_empresa constant number    := empresa_do_colaborador(p_id_colaborador);
+    l_j       constant t_jornada := fn_jornada(p_id_colaborador);
+    l_hoje    constant date      := pkg_historico_carreira.fn_hoje(l_empresa);
+    l_dias    constant t_dias    := fn_dias(p_id_colaborador, l_j.dt_inicio_controle, l_hoje);
+
+    l_credito t_numeros;
+    l_vence   t_datas;
+    l_inicio  pls_integer := 1;
+    l_fim     pls_integer := 0;
+    l_total   number := 0;
+    l_debito  number := 0;
+    l_resto   number;
+    l_uso     number;
+
+    procedure descartar_vencidos (p_em in date) is
+    begin
+      while l_inicio <= l_fim and l_vence(l_inicio) < p_em loop
+        l_total  := l_total - l_credito(l_inicio);
+        l_inicio := l_inicio + 1;
+      end loop;
+    end descartar_vencidos;
+  begin
+    for i in 1 .. l_dias.count loop
+      descartar_vencidos(l_dias(i).dt);
+      l_resto := nvl(l_dias(i).nr_saldo, 0);
+
+      if l_resto > 0 then
+        l_uso    := least(l_resto, l_debito);
+        l_debito := l_debito - l_uso;
+        l_resto  := l_resto - l_uso;
+        if l_resto > 0 then
+          l_fim := l_fim + 1;
+          l_credito(l_fim) := l_resto;
+          l_vence(l_fim)   := last_day(add_months(l_dias(i).dt, l_j.nr_meses_validade));
+          l_total          := l_total + l_resto;
+        end if;
+      elsif l_resto < 0 then
+        l_resto := -l_resto;
+        while l_resto > 0 and l_inicio <= l_fim loop
+          l_uso := least(l_resto, l_credito(l_inicio));
+          l_credito(l_inicio) := l_credito(l_inicio) - l_uso;
+          l_total := l_total - l_uso;
+          l_resto := l_resto - l_uso;
+          if l_credito(l_inicio) = 0 then
+            l_inicio := l_inicio + 1;
+          end if;
+        end loop;
+        l_debito := l_debito + l_resto;
+      end if;
+
+      if nvl(l_dias(i).nr_saldo, 0) <> 0 then
+        p_extrato(p_extrato.count + 1) := l_dias(i);
+        p_extrato(p_extrato.count).nr_saldo_banco := l_total - l_debito;
+      end if;
+    end loop;
+
+    descartar_vencidos(l_hoje);
+    p_saldo := l_total - l_debito;
+
+    if l_inicio <= l_fim then
+      p_dt_vencimento := l_vence(l_inicio);
+      p_min_vencendo  := 0;
+      for i in l_inicio .. l_fim loop
+        exit when l_vence(i) <> p_dt_vencimento;
+        p_min_vencendo := p_min_vencendo + l_credito(i);
+      end loop;
+    end if;
+  end calcular_banco;
+
+  function fn_proxima_marcacao (p_id_colaborador in number) return varchar2 is
+    l_empresa   constant number    := empresa_do_colaborador(p_id_colaborador);
+    l_j         constant t_jornada := fn_jornada(p_id_colaborador);
+    l_hoje      constant date      := pkg_historico_carreira.fn_hoje(l_empresa);
+    l_entrada   pls_integer;
+    l_intervalo pls_integer;
+    l_retorno   pls_integer;
+    l_saida     pls_integer;
+  begin
+    select count(case when tp_marcacao = 'ENTRADA'   then 1 end),
+           count(case when tp_marcacao = 'INTERVALO' then 1 end),
+           count(case when tp_marcacao = 'RETORNO'   then 1 end),
+           count(case when tp_marcacao = 'SAIDA'     then 1 end)
+      into l_entrada, l_intervalo, l_retorno, l_saida
+      from vw_ponto_marcacao_vigente
+     where id_colaborador = p_id_colaborador
+       and dt_referencia  = l_hoje;
+
+    return case
+      when l_saida > 0 then null
+      when l_entrada = 0 then 'ENTRADA'
+      when l_j.nr_min_intervalo = 0 then 'SAIDA'
+      when l_intervalo = 0 then 'INTERVALO'
+      when l_retorno = 0 then 'RETORNO'
+      else 'SAIDA'
+    end;
+  end fn_proxima_marcacao;
+
+  ------------------------------------------------------------------------------
+  -- Públicas: marcação
+  ------------------------------------------------------------------------------
+  function registrar_marcacao (p_tp_marcacao in varchar2) return number is
+    l_id_colab   constant number    := fn_colaborador_logado;
+    l_empresa    constant number    := empresa_do_colaborador(l_id_colab);
+    l_j          constant t_jornada := fn_jornada(l_id_colab);
+    l_agora      constant date      := pkg_historico_carreira.fn_data_local(l_empresa, systimestamp);
+    l_proxima    constant varchar2(10) := fn_proxima_marcacao(l_id_colab);
+    l_usuario    constant varchar2(255) := usuario_atual;
+    l_ip         constant varchar2(64)  := ip_origem;
+    l_navegador  constant varchar2(400) := cgi('HTTP_USER_AGENT');
+    l_ultima     date;
+    l_id         number;
+  begin
+    if l_proxima is null or p_tp_marcacao is null or p_tp_marcacao <> l_proxima then
+      raise_application_error(-20062,
+        'Esta marcação não é a próxima da sua jornada de hoje. Atualize a página e confira.');
+    end if;
+
+    select max(dh_marcacao)
+      into l_ultima
+      from vw_ponto_marcacao_vigente
+     where id_colaborador = l_id_colab
+       and dt_referencia  = trunc(l_agora);
+
+    if l_ultima is not null and (l_agora - l_ultima) * 1440 < 1 then
+      raise_application_error(-20064, 'Sua última marcação foi há menos de um minuto. Aguarde para registrar a próxima.');
+    end if;
+
+    -- Primeira marcação de quem foi admitido depois da instalação
+    merge into ponto_colaborador p
+    using (select l_id_colab as id_colaborador from dual) s
+       on (p.id_colaborador = s.id_colaborador)
+     when not matched then
+       insert (id_colaborador, id_empresa, id_jornada, dt_inicio_controle, ds_local)
+       values (l_id_colab, l_empresa, l_j.id_jornada, trunc(l_agora), l_j.ds_local);
+
+    insert into ponto_marcacao (
+      id_empresa, id_colaborador, dt_referencia, tp_marcacao, dh_marcacao,
+      ds_origem, ds_ip, ds_navegador, usr_registro
+    ) values (
+      l_empresa, l_id_colab, trunc(l_agora), p_tp_marcacao, l_agora,
+      'NAVEGADOR', l_ip, l_navegador, l_usuario
+    ) returning id_marcacao into l_id;
+
+    return l_id;
+  exception
+    when dup_val_on_index then
+      raise_application_error(-20063, 'Esta marcação já foi registrada hoje.');
+  end registrar_marcacao;
+
+  ------------------------------------------------------------------------------
+  -- Públicas: ajustes
+  ------------------------------------------------------------------------------
+  procedure validar_mes_aberto (p_id_colaborador in number, p_dt in date) is
+    l_qt pls_integer;
+    l_competencia constant date := trunc(p_dt, 'MM');
+  begin
+    select count(*)
+      into l_qt
+      from ponto_espelho_assinatura
+     where id_colaborador = p_id_colaborador
+       and dt_competencia = l_competencia;
+    if l_qt > 0 then
+      raise_application_error(-20070, 'O espelho deste mês já foi assinado e não aceita ajustes. Fale com o RH.');
+    end if;
+  end validar_mes_aberto;
+
+  -- Os quatro horários do dia, com o novo no lugar, têm de ficar em ordem
+  procedure validar_ordem (
+    p_id_colaborador in number,
+    p_dt             in date,
+    p_tipo           in varchar2,
+    p_dh             in date
+  ) is
+    type t_horarios is table of date index by varchar2(10);
+    l_h t_horarios;
+    l_anterior date;
+
+    procedure conferir (p_t in varchar2) is
+    begin
+      if l_h.exists(p_t) then
+        if l_anterior is not null and l_h(p_t) <= l_anterior then
+          raise_application_error(-20069,
+            'Os horários do dia ficariam fora de ordem (entrada, intervalo, retorno e saída). Confira o horário.');
+        end if;
+        l_anterior := l_h(p_t);
+      end if;
+    end conferir;
+  begin
+    for r in (select tp_marcacao, dh_marcacao
+                from vw_ponto_marcacao_vigente
+               where id_colaborador = p_id_colaborador
+                 and dt_referencia  = p_dt) loop
+      l_h(r.tp_marcacao) := r.dh_marcacao;
+    end loop;
+    l_h(p_tipo) := p_dh;
+
+    conferir('ENTRADA');
+    conferir('INTERVALO');
+    conferir('RETORNO');
+    conferir('SAIDA');
+  end validar_ordem;
+
+  function solicitar_ajuste (
+    p_dt_referencia in varchar2,
+    p_tp_ajuste     in varchar2,
+    p_tp_marcacao   in varchar2,
+    p_hr_marcacao   in varchar2,
+    p_ds_motivo     in varchar2
+  ) return number is
+    l_id_colab constant number := fn_colaborador_logado;
+    l_empresa  constant number := empresa_do_colaborador(l_id_colab);
+    l_agora    constant date   := pkg_historico_carreira.fn_data_local(l_empresa, systimestamp);
+    l_hoje     constant date   := trunc(l_agora);
+    l_dt       constant date   := to_date(p_dt_referencia default null on conversion error, 'DD/MM/YYYY');
+    l_tipo     constant varchar2(10) := case when p_tp_ajuste = 'MARCACAO' then p_tp_marcacao end;
+    l_dh       date;
+    l_qt       pls_integer;
+    l_id       number;
+  begin
+    if l_dt is null then
+      raise_application_error(-20065, 'Informe o dia no formato DD/MM/AAAA.');
+    elsif l_dt > l_hoje or l_dt < l_hoje - c_dias_ajuste then
+      raise_application_error(-20065, 'O ajuste precisa ser de um dia dos últimos ' || c_dias_ajuste || ' dias, até hoje.');
+    elsif p_tp_ajuste is null or p_tp_ajuste not in ('MARCACAO', 'ABONO') then
+      raise_application_error(-20065, 'Escolha o tipo de ajuste.');
+    elsif trim(p_ds_motivo) is null then
+      raise_application_error(-20065, 'Explique o motivo do ajuste.');
+    end if;
+
+    if p_tp_ajuste = 'MARCACAO' then
+      if l_tipo is null or l_tipo not in ('ENTRADA', 'INTERVALO', 'RETORNO', 'SAIDA') then
+        raise_application_error(-20065, 'Escolha qual marcação quer incluir ou corrigir.');
+      end if;
+      if p_hr_marcacao is null or not regexp_like(p_hr_marcacao, '^([01][0-9]|2[0-3]):[0-5][0-9]$') then
+        raise_application_error(-20065, 'Informe o horário no formato HH:MM, por exemplo 18:05.');
+      end if;
+      l_dh := to_date(to_char(l_dt, 'YYYYMMDD') || p_hr_marcacao, 'YYYYMMDDHH24:MI');
+      if l_dh > l_agora then
+        raise_application_error(-20065, 'O horário informado ainda não aconteceu.');
+      end if;
+      validar_ordem(l_id_colab, l_dt, l_tipo, l_dh);
+    end if;
+
+    validar_mes_aberto(l_id_colab, l_dt);
+
+    select count(*)
+      into l_qt
+      from ponto_ajuste
+     where id_colaborador = l_id_colab
+       and dt_referencia  = l_dt
+       and st_ajuste      = 'PENDENTE'
+       and tp_ajuste      = p_tp_ajuste
+       and (tp_marcacao = l_tipo or (tp_marcacao is null and l_tipo is null));
+    if l_qt > 0 then
+      raise_application_error(-20065, 'Já existe um pedido igual em análise para este dia.');
+    end if;
+
+    insert into ponto_ajuste (
+      id_empresa, id_colaborador, dt_referencia, tp_ajuste, tp_marcacao, dh_solicitada, ds_motivo
+    ) values (
+      l_empresa, l_id_colab, l_dt, p_tp_ajuste, l_tipo, l_dh, trim(p_ds_motivo)
+    ) returning id_ajuste into l_id;
+
+    return l_id;
+  end solicitar_ajuste;
+
+  function fn_pode_aprovar (p_id_ajuste in number) return varchar2 is
+    l_aprovador number;
+    l_colab     number;
+    l_gestor    number;
+    l_empresa   constant number := pkg_historico_carreira.fn_empresa_contexto;
+  begin
+    select a.id_colaborador, c.id_gestor
+      into l_colab, l_gestor
+      from ponto_ajuste a
+      join colaborador c on c.id_colaborador = a.id_colaborador
+     where a.id_ajuste  = p_id_ajuste
+       and a.id_empresa = l_empresa;
+
+    begin
+      l_aprovador := fn_colaborador_logado;
+    exception
+      when others then
+        if sqlcode = -20060 then
+          l_aprovador := null; -- conta do RH sem colaborador
+        else
+          raise;
+        end if;
+    end;
+
+    if l_aprovador = l_colab then
+      return 'N';
+    end if;
+    return case when l_aprovador = l_gestor or e_rh then 'S' else 'N' end;
+  exception
+    when no_data_found then
+      return 'N';
+  end fn_pode_aprovar;
+
+  function fn_e_aprovador return varchar2 is
+    l_qt      pls_integer;
+    l_usuario constant varchar2(255) := usuario_atual;
+    l_empresa constant number := pkg_historico_carreira.fn_empresa_contexto;
+  begin
+    if e_rh then
+      return 'S';
+    end if;
+    select count(*)
+      into l_qt
+      from colaborador s
+      join colaborador g on g.id_colaborador = s.id_gestor
+     where upper(trim(g.login_apex)) = upper(trim(l_usuario))
+       and g.id_empresa = l_empresa;
+    return case when l_qt > 0 then 'S' else 'N' end;
+  end fn_e_aprovador;
+
+  procedure responder_ajuste (
+    p_id_ajuste   in number,
+    p_st_ajuste   in varchar2,
+    p_ds_resposta in varchar2
+  ) is
+    l_a        ponto_ajuste%rowtype;
+    l_usuario  constant varchar2(255) := usuario_atual;
+    l_aprovador number;
+    l_ip       constant varchar2(64) := ip_origem;
+  begin
+    begin
+      select * into l_a from ponto_ajuste where id_ajuste = p_id_ajuste for update;
+    exception
+      when no_data_found then
+        raise_application_error(-20066, 'Pedido de ajuste não encontrado.');
+    end;
+
+    if fn_pode_aprovar(p_id_ajuste) <> 'S' then
+      raise_application_error(-20067, 'Você não pode responder a este pedido: ele cabe ao gestor direto ou ao RH.');
+    elsif l_a.st_ajuste <> 'PENDENTE' then
+      raise_application_error(-20066, 'Este pedido já foi respondido.');
+    elsif p_st_ajuste is null or p_st_ajuste not in ('APROVADO', 'RECUSADO') then
+      raise_application_error(-20068, 'Escolha aprovar ou recusar.');
+    elsif p_st_ajuste = 'RECUSADO' and trim(p_ds_resposta) is null then
+      raise_application_error(-20068, 'Explique ao colaborador por que o pedido foi recusado.');
+    end if;
+
+    if p_st_ajuste = 'APROVADO' then
+      validar_mes_aberto(l_a.id_colaborador, l_a.dt_referencia);
+      if l_a.tp_ajuste = 'MARCACAO' then
+        validar_ordem(l_a.id_colaborador, l_a.dt_referencia, l_a.tp_marcacao, l_a.dh_solicitada);
+        insert into ponto_marcacao (
+          id_empresa, id_colaborador, dt_referencia, tp_marcacao, dh_marcacao,
+          ds_origem, id_ajuste, ds_ip, usr_registro
+        ) values (
+          l_a.id_empresa, l_a.id_colaborador, l_a.dt_referencia, l_a.tp_marcacao, l_a.dh_solicitada,
+          'AJUSTE', l_a.id_ajuste, l_ip, l_usuario
+        );
+      end if;
+    end if;
+
+    begin
+      l_aprovador := fn_colaborador_logado;
+    exception
+      when others then
+        if sqlcode <> -20060 then
+          raise;
+        end if;
+    end;
+
+    update ponto_ajuste
+       set st_ajuste    = p_st_ajuste,
+           id_aprovador = l_aprovador,
+           usr_resposta = l_usuario,
+           dh_resposta  = systimestamp,
+           ds_resposta  = trim(p_ds_resposta)
+     where id_ajuste = p_id_ajuste;
+  end responder_ajuste;
+
+  ------------------------------------------------------------------------------
+  -- Públicas: assinatura do espelho
+  ------------------------------------------------------------------------------
+  function fn_prazo_assinatura (p_dt_competencia in date) return date is
+  begin
+    return add_months(trunc(p_dt_competencia, 'MM'), 2) + 4;
+  end fn_prazo_assinatura;
+
+  function fn_competencia_a_assinar (p_id_colaborador in number) return date is
+    l_empresa constant number    := empresa_do_colaborador(p_id_colaborador);
+    l_j       constant t_jornada := fn_jornada(p_id_colaborador);
+    l_mes     constant date      := add_months(trunc(pkg_historico_carreira.fn_hoje(l_empresa), 'MM'), -1);
+    l_qt      pls_integer;
+  begin
+    if l_j.dt_inicio_controle > last_day(l_mes) then
+      return null;
+    end if;
+    select count(*)
+      into l_qt
+      from ponto_espelho_assinatura
+     where id_colaborador = p_id_colaborador
+       and dt_competencia = l_mes;
+    return case when l_qt = 0 then l_mes end;
+  end fn_competencia_a_assinar;
+
+  procedure assinar_espelho (p_competencia in varchar2) is
+    l_id_colab constant number := fn_colaborador_logado;
+    l_empresa  constant number := empresa_do_colaborador(l_id_colab);
+    l_hoje     constant date   := pkg_historico_carreira.fn_hoje(l_empresa);
+    l_mes      constant date   := to_date(p_competencia || '01' default null on conversion error, 'YYYYMMDD');
+    l_usuario  constant varchar2(255) := usuario_atual;
+    l_ip       constant varchar2(64)  := ip_origem;
+    l_dias     t_dias;
+    l_texto    varchar2(4000);
+    l_hash     varchar2(64);
+  begin
+    if l_mes is null or l_mes >= trunc(l_hoje, 'MM') then
+      raise_application_error(-20071, 'Só é possível assinar o espelho de um mês já encerrado.');
+    end if;
+
+    -- O hash registra o que estava no espelho na hora da assinatura
+    l_dias := fn_dias(l_id_colab, l_mes, last_day(l_mes));
+    for i in 1 .. l_dias.count loop
+      l_texto := substr(l_texto
+        || to_char(l_dias(i).dt, 'YYYYMMDD')
+        || to_char(l_dias(i).dh_entrada, 'HH24MI') || to_char(l_dias(i).dh_intervalo, 'HH24MI')
+        || to_char(l_dias(i).dh_retorno, 'HH24MI') || to_char(l_dias(i).dh_saida, 'HH24MI')
+        || l_dias(i).nr_saldo || ';', 1, 4000);
+    end loop;
+
+    select rawtohex(standard_hash(l_id_colab || '|' || p_competencia || '|' || l_texto, 'SHA256'))
+      into l_hash
+      from dual;
+
+    insert into ponto_espelho_assinatura (
+      id_empresa, id_colaborador, dt_competencia, ds_hash, ds_ip, usr_assinatura
+    ) values (
+      l_empresa, l_id_colab, l_mes, l_hash, l_ip, l_usuario
+    );
+  exception
+    when dup_val_on_index then
+      raise_application_error(-20072, 'Este espelho já foi assinado.');
+  end assinar_espelho;
+
+end pkg_ponto;
+/
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_PONTO_UI" as
+
+  -- Aviso de banco de horas: créditos que vencem nos próximos N dias
+  c_dias_alerta_banco constant pls_integer := 60;
+  -- Procura de marcações ausentes e faltas, em dias
+  c_dias_pendencia    constant pls_integer := 30;
+  c_max_pendencias    constant pls_integer := 5;
+  c_max_extrato       constant pls_integer := 60;
+
+  g_html clob;
+
+  ------------------------------------------------------------------------------
+  -- Utilitários
+  ------------------------------------------------------------------------------
+  procedure inicia is
+  begin
+    dbms_lob.createtemporary(g_html, true, dbms_lob.call);
+  end inicia;
+
+  procedure p (p_txt in varchar2) is
+  begin
+    if p_txt is not null then
+      dbms_lob.writeappend(g_html, length(p_txt), p_txt);
+    end if;
+  end p;
+
+  function e (p_txt in varchar2) return varchar2 is
+  begin
+    return apex_escape.html(p_txt);
+  end e;
+
+  function a (p_txt in varchar2) return varchar2 is
+  begin
+    return apex_escape.html_attribute(p_txt);
+  end a;
+
+  -- Colaborador informado ou o da conta logada; nulo se a conta não tem vínculo
+  function id_ou_logado (p_id in number) return number is
+  begin
+    return nvl(p_id, pkg_ponto.fn_colaborador_logado);
+  exception
+    when others then
+      if sqlcode = -20060 then
+        return null;
+      end if;
+      raise;
+  end id_ou_logado;
+
+  function hoje_de (p_id_colaborador in number) return date is
+    l_empresa number;
+  begin
+    select id_empresa into l_empresa from colaborador where id_colaborador = p_id_colaborador;
+    return pkg_historico_carreira.fn_hoje(l_empresa);
+  end hoje_de;
+
+  function agora_de (p_id_colaborador in number) return date is
+    l_empresa number;
+  begin
+    select id_empresa into l_empresa from colaborador where id_colaborador = p_id_colaborador;
+    return pkg_historico_carreira.fn_data_local(l_empresa, systimestamp);
+  end agora_de;
+
+  function dia_semana (p_dt in date, p_curto in boolean default false) return varchar2 is
+    l_i constant pls_integer := p_dt - trunc(p_dt, 'IW');
+  begin
+    if p_curto then
+      return case l_i when 0 then 'seg' when 1 then 'ter' when 2 then 'qua' when 3 then 'qui'
+                      when 4 then 'sex' when 5 then 'sáb' else 'dom' end;
+    end if;
+    return case l_i when 0 then 'Segunda-feira' when 1 then 'Terça-feira' when 2 then 'Quarta-feira'
+                    when 3 then 'Quinta-feira' when 4 then 'Sexta-feira' when 5 then 'Sábado' else 'Domingo' end;
+  end dia_semana;
+
+  function mes_nome (p_dt in date) return varchar2 is
+  begin
+    return case to_number(to_char(p_dt, 'MM'))
+      when 1 then 'janeiro' when 2 then 'fevereiro' when 3 then 'março' when 4 then 'abril'
+      when 5 then 'maio' when 6 then 'junho' when 7 then 'julho' when 8 then 'agosto'
+      when 9 then 'setembro' when 10 then 'outubro' when 11 then 'novembro' else 'dezembro' end;
+  end mes_nome;
+
+  -- "Segunda-feira, 26 de outubro de 2026"
+  function data_extenso (p_dt in date) return varchar2 is
+  begin
+    return dia_semana(p_dt) || ', ' || to_char(p_dt, 'fmDD') || ' de ' || mes_nome(p_dt)
+        || ' de ' || to_char(p_dt, 'YYYY');
+  end data_extenso;
+
+  -- "seg, 26/10"
+  function dia_curto (p_dt in date) return varchar2 is
+  begin
+    return dia_semana(p_dt, true) || ', ' || to_char(p_dt, 'DD/MM');
+  end dia_curto;
+
+  -- "Outubro de 2026"
+  function mes_ano (p_dt in date) return varchar2 is
+    l_mes constant varchar2(20) := mes_nome(p_dt);
+  begin
+    return upper(substr(l_mes, 1, 1)) || substr(l_mes, 2) || ' de ' || to_char(p_dt, 'YYYY');
+  end mes_ano;
+
+  function hora (p_dh in date) return varchar2 is
+  begin
+    return to_char(p_dh, 'HH24:MI');
+  end hora;
+
+  function hora_ou_traco (p_dh in date) return varchar2 is
+  begin
+    return nvl(hora(p_dh), '—');
+  end hora_ou_traco;
+
+  -- "8h", "1h30" (sem o "00" das horas cheias)
+  function duracao (p_minutos in number) return varchar2 is
+  begin
+    return regexp_replace(pkg_ponto.fn_horas(p_minutos), 'h00$', 'h');
+  end duracao;
+
+  function competencia (p_txt in varchar2, p_hoje in date) return date is
+    l_dt constant date := to_date(p_txt || '01' default null on conversion error, 'YYYYMMDD');
+  begin
+    if l_dt is null or l_dt > trunc(p_hoje, 'MM') then
+      return trunc(p_hoje, 'MM');
+    end if;
+    return l_dt;
+  end competencia;
+
+  function rotulo_marcacao (p_tipo in varchar2) return varchar2 is
+  begin
+    return case p_tipo
+      when 'ENTRADA'   then 'Entrada'
+      when 'INTERVALO' then 'Saída para intervalo'
+      when 'RETORNO'   then 'Retorno do intervalo'
+      when 'SAIDA'     then 'Saída'
+    end;
+  end rotulo_marcacao;
+
+  function icone (p_nome in varchar2) return varchar2 is
+    l_svg varchar2(1000);
+  begin
+    l_svg := case p_nome
+      when 'log-in'     then '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/>'
+      when 'log-out'    then '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>'
+      when 'coffee'     then '<path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>'
+      when 'check'      then '<path d="M20 6 9 17l-5-5"/>'
+      when 'map-pin'    then '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>'
+      when 'timer'      then '<line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/>'
+      when 'arrow'      then '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>'
+      when 'download'   then '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>'
+      when 'history'    then '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>'
+      when 'hourglass'  then '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>'
+      when 'alerta'     then '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
+      when 'assinar'    then '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.4 2.6a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4Z"/>'
+      when 'cadeado'    then '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'
+    end;
+    return '<svg class="cx-ponto-icone" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+        || l_svg || '</svg>';
+  end icone;
+
+  procedure cabecalho_card (p_titulo in varchar2, p_extra in varchar2 default null) is
+  begin
+    p('<header class="cx-ponto-card__cabecalho"><h2 class="cx-ponto-card__titulo">' || e(p_titulo) || '</h2>');
+    p(p_extra);
+    p('</header>');
+  end cabecalho_card;
+
+  function selo_situacao (p_dia in pkg_ponto.t_dia) return varchar2 is
+    l_txt    varchar2(120);
+    l_classe varchar2(20);
+  begin
+    case p_dia.cd_situacao
+      when pkg_ponto.c_regular      then return '<span class="cx-ponto-regular">Regular</span>';
+      when pkg_ponto.c_andamento    then l_txt := 'Em andamento';     l_classe := 'is-info';
+      when pkg_ponto.c_sem_marcacao then l_txt := 'Sem marcação';     l_classe := 'is-neutro';
+      when pkg_ponto.c_ausente      then l_txt := 'Marcação ausente'; l_classe := 'is-atencao';
+      when pkg_ponto.c_analise      then l_txt := 'Ajuste em análise'; l_classe := 'is-atencao';
+      when pkg_ponto.c_falta        then l_txt := 'Falta';            l_classe := 'is-erro';
+      when pkg_ponto.c_abonado      then l_txt := 'Abonado';          l_classe := 'is-sucesso';
+      when pkg_ponto.c_feriado      then l_txt := p_dia.nm_feriado;   l_classe := 'is-neutro';
+      else return null;
+    end case;
+    return '<span class="cx-ponto-selo ' || l_classe || '">' || e(l_txt) || '</span>';
+  end selo_situacao;
+
+  -- Hora prevista de saída, conforme as marcações do dia
+  function saida_prevista (p_dia in pkg_ponto.t_dia, p_j in pkg_ponto.t_jornada, p_hoje in date) return date is
+    l_manha number;
+  begin
+    if p_dia.dh_entrada is null then
+      return p_hoje + p_j.nr_min_saida / 1440;
+    elsif p_dia.dh_intervalo is null then
+      return p_dia.dh_entrada + (p_j.nr_min_diarios + p_j.nr_min_intervalo) / 1440;
+    end if;
+    l_manha := round((p_dia.dh_intervalo - p_dia.dh_entrada) * 1440);
+    if p_dia.dh_retorno is null then
+      return p_dia.dh_intervalo + (p_j.nr_min_intervalo + p_j.nr_min_diarios - l_manha) / 1440;
+    end if;
+    return p_dia.dh_retorno + (p_j.nr_min_diarios - l_manha) / 1440;
+  end saida_prevista;
+
+  ------------------------------------------------------------------------------
+  -- Cabeçalho
+  ------------------------------------------------------------------------------
+  function render_cabecalho (p_id_colaborador in number default null) return clob is
+    l_id constant number := id_ou_logado(p_id_colaborador);
+  begin
+    inicia;
+    p('<div class="cx-cabecalho-pagina cx-cabecalho-pagina--acoes">');
+    p('<div class="cx-cabecalho-pagina__texto"><h1 class="cx-cabecalho-pagina__titulo">Ponto eletrônico</h1>');
+    p('<p class="cx-cabecalho-pagina__descricao">Registre suas marcações e acompanhe sua jornada, o espelho de ponto e o banco de horas.</p></div>');
+    if l_id is not null then
+      p('<div class="cx-cabecalho-pagina__acoes">');
+      p('<button type="button" class="t-Button cx-ponto-botao" data-cx-ponto-baixar>' || icone('download')
+        || '<span class="t-Button-label">Baixar espelho</span></button>');
+      p('<a class="t-Button cx-ponto-botao" href="' || a(apex_page.get_url(p_page => 31, p_clear_cache => '31')) || '">'
+        || icone('history') || '<span class="t-Button-label">Solicitar ajuste</span></a>');
+      p('</div>');
+    end if;
+    p('</div>');
+    return g_html;
+  end render_cabecalho;
+
+  ------------------------------------------------------------------------------
+  -- Relógio e marcações de hoje
+  ------------------------------------------------------------------------------
+  function render_relogio (p_id_colaborador in number default null) return clob is
+    l_id      constant number := id_ou_logado(p_id_colaborador);
+    l_j       pkg_ponto.t_jornada;
+    l_agora   date;
+    l_hoje    date;
+    l_dias    pkg_ponto.t_dias;
+    l_dia     pkg_ponto.t_dia;
+    l_proxima varchar2(10);
+    l_prevista date;
+    l_trab    number;
+    l_correndo varchar2(1);
+    l_tipos   apex_t_varchar2;
+    l_valor   date;
+    l_classe  varchar2(20);
+    l_rotulo  varchar2(60);
+    l_icone   varchar2(20);
+  begin
+    inicia;
+    if l_id is null then
+      p('<section class="cx-ponto-card cx-ponto-vazio"><p>Sua conta não está vinculada a um colaborador desta empresa. '
+        || 'O ponto eletrônico fica disponível depois que o RH fizer esse vínculo.</p></section>');
+      return g_html;
+    end if;
+
+    l_j       := pkg_ponto.fn_jornada(l_id);
+    l_agora   := agora_de(l_id);
+    l_hoje    := trunc(l_agora);
+    l_dias    := pkg_ponto.fn_dias(l_id, l_hoje, l_hoje);
+    if l_dias.count > 0 then
+      l_dia := l_dias(1);
+    end if;
+    l_proxima  := pkg_ponto.fn_proxima_marcacao(l_id);
+    l_prevista := saida_prevista(l_dia, l_j, l_hoje);
+    l_trab     := nvl(l_dia.nr_trabalhados, 0);
+    l_correndo := case when l_dia.dh_entrada is not null and l_dia.dh_saida is null
+                        and (l_dia.dh_intervalo is null or l_dia.dh_retorno is not null)
+                       then 'S' else 'N' end;
+
+    p('<section class="cx-ponto-card cx-ponto-relogio" data-cx-ponto-relogio'
+      || ' data-segundos="' || to_char((l_agora - l_hoje) * 86400, 'fm99990') || '"'
+      || ' data-trabalhados="' || l_trab || '"'
+      || ' data-meta="' || l_j.nr_min_diarios || '"'
+      || ' data-correndo="' || l_correndo || '">');
+
+    p('<div class="cx-ponto-relogio__topo"><div>');
+    p('<p class="cx-ponto-relogio__data">' || e(data_extenso(l_hoje)) || '</p>');
+    p('<p class="cx-ponto-relogio__hora" data-cx-ponto-hora>' || hora(l_agora) || '</p>');
+    p('<p class="cx-ponto-relogio__local">' || icone('map-pin') || '<span>'
+      || e(l_j.ds_local || case when l_j.ds_local is not null then ' · ' end || 'registro pelo navegador')
+      || '</span></p></div>');
+
+    p('<div class="cx-ponto-relogio__acao">');
+    if l_proxima is null then
+      p('<button type="button" class="cx-ponto-registrar" disabled>' || icone('check') || '<span>Jornada concluída</span></button>');
+      p('<p class="cx-ponto-relogio__previsao">Saída registrada às ' || hora(l_dia.dh_saida) || '.</p>');
+    else
+      case l_proxima
+        when 'ENTRADA'   then l_rotulo := 'Registrar entrada'; l_icone := 'log-in';
+        when 'INTERVALO' then l_rotulo := 'Iniciar intervalo'; l_icone := 'coffee';
+        when 'RETORNO'   then l_rotulo := 'Voltar do intervalo'; l_icone := 'log-in';
+        else                  l_rotulo := 'Registrar saída';   l_icone := 'log-out';
+      end case;
+      p('<button type="button" class="cx-ponto-registrar" data-cx-ponto-registrar="' || l_proxima || '">'
+        || icone(l_icone) || '<span>' || l_rotulo || '</span></button>');
+      p('<p class="cx-ponto-relogio__previsao">Saída prevista às ' || hora(l_prevista)
+        || ' para completar ' || duracao(l_j.nr_min_diarios) || '</p>');
+    end if;
+    p('</div></div>');
+
+    -- Linha do tempo
+    l_tipos := case when l_j.nr_min_intervalo = 0
+                    then apex_t_varchar2('ENTRADA', 'SAIDA')
+                    else apex_t_varchar2('ENTRADA', 'INTERVALO', 'RETORNO', 'SAIDA') end;
+    p('<ol class="cx-ponto-linha" aria-label="Marcações de hoje">');
+    for i in 1 .. l_tipos.count loop
+      l_valor := case l_tipos(i)
+        when 'ENTRADA'   then l_dia.dh_entrada
+        when 'INTERVALO' then l_dia.dh_intervalo
+        when 'RETORNO'   then l_dia.dh_retorno
+        else l_dia.dh_saida
+      end;
+      l_classe := case when l_valor is not null then 'is-feita'
+                       when l_tipos(i) = l_proxima then 'is-atual' end;
+      p('<li class="cx-ponto-passo ' || l_classe || '">');
+      p('<span class="cx-ponto-passo__marca">' || case when l_valor is not null then icone('check') end || '</span>');
+      p('<span class="cx-ponto-passo__rotulo">' || rotulo_marcacao(l_tipos(i)) || '</span>');
+      if l_valor is not null then
+        p('<strong class="cx-ponto-passo__hora">' || hora(l_valor) || '</strong>');
+      elsif l_tipos(i) = 'SAIDA' then
+        p('<span class="cx-ponto-passo__prevista">Prevista ' || hora(l_prevista) || '</span>');
+      else
+        p('<span class="cx-ponto-passo__prevista">—</span>');
+      end if;
+      p('</li>');
+    end loop;
+    p('</ol>');
+
+    p('<footer class="cx-ponto-card__rodape"><p class="cx-ponto-resumo">' || icone('timer'));
+    p('<strong data-cx-ponto-trabalhadas>' || pkg_ponto.fn_horas(l_trab) || ' trabalhadas hoje</strong>');
+    p('<span data-cx-ponto-faltam> · '
+      || case when l_trab >= l_j.nr_min_diarios then 'jornada completa'
+              else 'faltam ' || pkg_ponto.fn_horas(l_j.nr_min_diarios - l_trab) || ' para completar a jornada' end
+      || '</span></p>');
+    p('<button type="button" class="cx-ponto-link" data-cx-ponto-dialogo="ponto_dlg_comprovantes">Ver comprovantes'
+      || icone('arrow') || '</button></footer>');
+    p('</section>');
+    return g_html;
+  end render_relogio;
+
+  ------------------------------------------------------------------------------
+  -- Espelho de ponto
+  ------------------------------------------------------------------------------
+  function render_espelho (
+    p_competencia    in varchar2 default null,
+    p_limite         in pls_integer default 7,
+    p_completo       in varchar2 default 'S',
+    p_id_colaborador in number default null
+  ) return clob is
+    l_id     constant number := id_ou_logado(p_id_colaborador);
+    l_hoje   date;
+    l_mes    date;
+    l_mes_i  date;
+    l_dias   pkg_ponto.t_dias;
+    l_j      pkg_ponto.t_jornada;
+    l_saldo  number := 0;
+    l_qt     pls_integer := 0;
+    l_seletor varchar2(32767);
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+
+    l_hoje := hoje_de(l_id);
+    l_mes  := competencia(p_competencia, l_hoje);
+    l_j    := pkg_ponto.fn_jornada(l_id);
+    l_dias := pkg_ponto.fn_dias(l_id, l_mes, last_day(l_mes));
+
+    p('<section class="cx-ponto-card cx-ponto-espelho">');
+    if p_completo = 'S' then
+      -- Meses disponíveis: do início do controle (no máximo 12) até o atual
+      l_seletor := '<select class="cx-ponto-seletor" data-cx-ponto-competencia aria-label="Mês do espelho">';
+      l_mes_i := trunc(l_hoje, 'MM');
+      for i in 1 .. 12 loop
+        exit when l_mes_i < trunc(l_j.dt_inicio_controle, 'MM');
+        l_seletor := l_seletor || '<option value="' || to_char(l_mes_i, 'YYYYMM') || '"'
+                  || case when l_mes_i = l_mes then ' selected' end || '>' || e(mes_ano(l_mes_i)) || '</option>';
+        l_mes_i := add_months(l_mes_i, -1);
+      end loop;
+      cabecalho_card('Espelho de ponto', l_seletor || '</select>');
+    else
+      cabecalho_card(mes_ano(l_mes));
+    end if;
+
+    if l_dias.count = 0 then
+      p('<p class="cx-ponto-vazio">Nenhuma marcação neste mês.</p>');
+    else
+      p('<div class="cx-ponto-tabela-rolagem"><table class="cx-ponto-tabela"><thead><tr>'
+        || '<th scope="col">Dia</th><th scope="col">Entrada</th><th scope="col">Intervalo</th>'
+        || '<th scope="col">Retorno</th><th scope="col">Saída</th>'
+        || '<th scope="col" class="is-num">Trabalhadas</th><th scope="col" class="is-num">Saldo</th>'
+        || '<th scope="col">Situação</th></tr></thead><tbody>');
+
+      for i in reverse 1 .. l_dias.count loop
+        l_saldo := l_saldo + nvl(l_dias(i).nr_saldo, 0);
+        if p_limite is null or l_qt < p_limite then
+          l_qt := l_qt + 1;
+          p('<tr' || case when l_dias(i).dt = l_hoje then ' class="is-hoje"' end || '>');
+          p('<th scope="row">' || e(dia_curto(l_dias(i).dt))
+            || case when l_dias(i).dt = l_hoje then ' <span class="cx-ponto-hoje">Hoje</span>' end || '</th>');
+          p('<td>' || hora_ou_traco(l_dias(i).dh_entrada) || '</td><td>' || hora_ou_traco(l_dias(i).dh_intervalo)
+            || '</td><td>' || hora_ou_traco(l_dias(i).dh_retorno) || '</td><td>' || hora_ou_traco(l_dias(i).dh_saida) || '</td>');
+          if l_dias(i).cd_situacao = pkg_ponto.c_ausente then
+            p('<td class="is-num cx-ponto-apagado">Incompleto</td>');
+          elsif l_dias(i).nr_trabalhados is null then
+            p('<td class="is-num">—</td>');
+          else
+            p('<td class="is-num"><strong>' || pkg_ponto.fn_horas(l_dias(i).nr_trabalhados) || '</strong></td>');
+          end if;
+          p('<td class="is-num">' || case when l_dias(i).nr_saldo is null then '—' else pkg_ponto.fn_saldo(l_dias(i).nr_saldo) end || '</td>');
+          p('<td>' || selo_situacao(l_dias(i)) || '</td></tr>');
+        end if;
+      end loop;
+      p('</tbody></table></div>');
+    end if;
+
+    p('<footer class="cx-ponto-card__rodape"><p>Saldo de ' || e(mes_nome(l_mes))
+      || case when l_mes = trunc(l_hoje, 'MM') then ' até hoje' end
+      || ': <strong>' || pkg_ponto.fn_saldo(l_saldo) || '</strong></p>');
+    if p_completo = 'S' and p_limite is not null and l_dias.count > p_limite then
+      p('<button type="button" class="cx-ponto-link" data-cx-ponto-dialogo="ponto_dlg_mes">Ver mês completo'
+        || icone('arrow') || '</button>');
+    end if;
+    p('</footer></section>');
+    return g_html;
+  end render_espelho;
+
+  ------------------------------------------------------------------------------
+  -- Banco de horas
+  ------------------------------------------------------------------------------
+  function render_banco (p_id_colaborador in number default null) return clob is
+    l_id       constant number := id_ou_logado(p_id_colaborador);
+    l_hoje     date;
+    l_saldo    number;
+    l_vencendo number;
+    l_dt_venc  date;
+    l_extrato  pkg_ponto.t_dias;
+    l_dias_mes pkg_ponto.t_dias;
+    l_mes      number := 0;
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+    l_hoje := hoje_de(l_id);
+    pkg_ponto.calcular_banco(l_id, l_saldo, l_vencendo, l_dt_venc, l_extrato);
+    l_dias_mes := pkg_ponto.fn_dias(l_id, trunc(l_hoje, 'MM'), l_hoje);
+    for i in 1 .. l_dias_mes.count loop
+      l_mes := l_mes + nvl(l_dias_mes(i).nr_saldo, 0);
+    end loop;
+
+    p('<section class="cx-ponto-card cx-ponto-lateral">');
+    cabecalho_card('Banco de horas');
+    p('<div class="cx-ponto-card__corpo">');
+    p('<p class="cx-ponto-rotulo">Saldo atual</p><p class="cx-ponto-saldo">' || pkg_ponto.fn_saldo(l_saldo) || '</p>');
+    p('<p class="cx-ponto-par"><span>Acumulado em ' || e(mes_nome(l_hoje)) || '</span><strong>' || pkg_ponto.fn_saldo(l_mes) || '</strong></p>');
+    if l_dt_venc is not null and l_dt_venc - l_hoje <= c_dias_alerta_banco then
+      p('<div class="cx-ponto-aviso">' || icone('hourglass') || '<div><strong>'
+        || pkg_ponto.fn_horas(l_vencendo) || ' vencem em ' || to_char(l_dt_venc, 'DD/MM/YYYY') || '</strong>'
+        || '<p>Combine a compensação com a sua gestão.</p></div></div>');
+    end if;
+    p('<button type="button" class="cx-ponto-link" data-cx-ponto-dialogo="ponto_dlg_extrato">Ver extrato do banco de horas'
+      || icone('arrow') || '</button>');
+    p('</div></section>');
+    return g_html;
+  end render_banco;
+
+  function render_extrato (p_id_colaborador in number default null) return clob is
+    l_id       constant number := id_ou_logado(p_id_colaborador);
+    l_saldo    number;
+    l_vencendo number;
+    l_dt_venc  date;
+    l_extrato  pkg_ponto.t_dias;
+    l_qt       pls_integer := 0;
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+    pkg_ponto.calcular_banco(l_id, l_saldo, l_vencendo, l_dt_venc, l_extrato);
+    if l_extrato.count = 0 then
+      p('<p class="cx-ponto-vazio">Ainda não há lançamentos no banco de horas.</p>');
+      return g_html;
+    end if;
+
+    p('<div class="cx-ponto-tabela-rolagem"><table class="cx-ponto-tabela"><thead><tr><th scope="col">Dia</th>'
+      || '<th scope="col" class="is-num">Lançamento</th><th scope="col" class="is-num">Saldo depois</th></tr></thead><tbody>');
+    for i in reverse 1 .. l_extrato.count loop
+      exit when l_qt >= c_max_extrato;
+      l_qt := l_qt + 1;
+      p('<tr><th scope="row">' || e(dia_curto(l_extrato(i).dt)) || '/' || to_char(l_extrato(i).dt, 'YYYY') || '</th>'
+        || '<td class="is-num">' || pkg_ponto.fn_saldo(l_extrato(i).nr_saldo) || '</td>'
+        || '<td class="is-num"><strong>' || pkg_ponto.fn_saldo(l_extrato(i).nr_saldo_banco) || '</strong></td></tr>');
+    end loop;
+    p('</tbody></table></div>');
+    p('<p class="cx-ponto-nota">Crédito vence ao fim do mês, ' || pkg_ponto.fn_jornada(l_id).nr_meses_validade
+      || ' meses depois do dia em que entrou. Horas vencidas saem do saldo e são tratadas com o RH.</p>');
+    return g_html;
+  end render_extrato;
+
+  ------------------------------------------------------------------------------
+  -- Pendências
+  ------------------------------------------------------------------------------
+  function render_pendencias (p_id_colaborador in number default null) return clob is
+    l_id      constant number := id_ou_logado(p_id_colaborador);
+    l_hoje    date;
+    l_dias    pkg_ponto.t_dias;
+    l_mes     date;
+    l_total   pls_integer := 0;
+    l_qt      pls_integer := 0;
+    l_faltante varchar2(10);
+    l_url     varchar2(4000);
+    l_detalhe varchar2(200);
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+    l_hoje := hoje_de(l_id);
+    l_dias := pkg_ponto.fn_dias(l_id, l_hoje - c_dias_pendencia, l_hoje - 1);
+    l_mes  := pkg_ponto.fn_competencia_a_assinar(l_id);
+
+    for i in 1 .. l_dias.count loop
+      if l_dias(i).cd_situacao in (pkg_ponto.c_ausente, pkg_ponto.c_falta) then
+        l_total := l_total + 1;
+      end if;
+    end loop;
+    if l_mes is not null then
+      l_total := l_total + 1;
+    end if;
+
+    p('<section class="cx-ponto-card cx-ponto-lateral">');
+    cabecalho_card('Pendências',
+      case when l_total > 0 then '<span class="cx-ponto-selo is-atencao">' || l_total || ' para resolver</span>' end);
+
+    if l_total = 0 then
+      p('<p class="cx-ponto-vazio">Nada para resolver.</p></section>');
+      return g_html;
+    end if;
+
+    p('<ul class="cx-ponto-pendencias">');
+    for i in reverse 1 .. l_dias.count loop
+      if l_dias(i).cd_situacao in (pkg_ponto.c_ausente, pkg_ponto.c_falta) and l_qt < c_max_pendencias then
+        l_qt := l_qt + 1;
+        if l_dias(i).cd_situacao = pkg_ponto.c_falta then
+          l_detalhe := 'nenhuma marcação no dia.';
+          l_url := apex_page.get_url(p_page => 31, p_clear_cache => '31',
+                     p_items  => 'P31_DT_REFERENCIA,P31_TP_AJUSTE',
+                     p_values => to_char(l_dias(i).dt, 'DD/MM/YYYY') || ',ABONO');
+        else
+          l_faltante := case when l_dias(i).dh_entrada is null then 'ENTRADA'
+                             when l_dias(i).dh_intervalo is null then 'INTERVALO'
+                             when l_dias(i).dh_retorno is null then 'RETORNO'
+                             else 'SAIDA' end;
+          l_detalhe := case l_faltante
+                         when 'ENTRADA'   then 'a entrada não foi registrada.'
+                         when 'INTERVALO' then 'a saída para o intervalo não foi registrada.'
+                         when 'RETORNO'   then 'o retorno do intervalo não foi registrado.'
+                         else 'a saída não foi registrada.' end;
+          l_url := apex_page.get_url(p_page => 31, p_clear_cache => '31',
+                     p_items  => 'P31_DT_REFERENCIA,P31_TP_AJUSTE,P31_TP_MARCACAO',
+                     p_values => to_char(l_dias(i).dt, 'DD/MM/YYYY') || ',MARCACAO,' || l_faltante);
+        end if;
+        p('<li class="cx-ponto-pendencia">' || icone('alerta') || '<div>');
+        p('<strong>' || case when l_dias(i).cd_situacao = pkg_ponto.c_falta then 'Dia sem marcação' else 'Marcação ausente' end || '</strong>');
+        p('<p>' || e(dia_curto(l_dias(i).dt)) || ' · ' || l_detalhe || '</p>');
+        p('<a class="t-Button cx-ponto-botao" href="' || a(l_url) || '">Justificar</a></div></li>');
+      end if;
+    end loop;
+
+    if l_mes is not null then
+      p('<li class="cx-ponto-pendencia">' || icone('assinar') || '<div>');
+      p('<strong>Espelho de ' || e(mes_nome(l_mes)) || '</strong>');
+      p('<p>Confira e assine até ' || to_char(pkg_ponto.fn_prazo_assinatura(l_mes), 'DD/MM/YYYY') || '.</p>');
+      p('<button type="button" class="t-Button cx-ponto-botao" data-cx-ponto-dialogo="ponto_dlg_assinatura">Revisar e assinar</button></div></li>');
+    end if;
+    p('</ul></section>');
+    return g_html;
+  end render_pendencias;
+
+  function render_assinatura (p_id_colaborador in number default null) return clob is
+    l_id  constant number := id_ou_logado(p_id_colaborador);
+    l_mes date;
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+    l_mes := pkg_ponto.fn_competencia_a_assinar(l_id);
+    if l_mes is null then
+      p('<p class="cx-ponto-vazio">Nenhum espelho aguardando assinatura.</p>');
+      return g_html;
+    end if;
+
+    -- render_espelho recomeça g_html; o botão entra depois dele
+    g_html := render_espelho(to_char(l_mes, 'YYYYMM'), null, 'N', l_id);
+    p('<div class="cx-ponto-assinar"><button type="button" class="t-Button t-Button--hot" data-cx-ponto-assinar="'
+      || to_char(l_mes, 'YYYYMM') || '">Assinar espelho de ' || e(mes_nome(l_mes)) || '</button></div>');
+    return g_html;
+  end render_assinatura;
+
+  ------------------------------------------------------------------------------
+  -- Sua jornada
+  ------------------------------------------------------------------------------
+  function render_jornada (p_id_colaborador in number default null) return clob is
+    l_id     constant number := id_ou_logado(p_id_colaborador);
+    l_j      pkg_ponto.t_jornada;
+    l_gestor varchar2(200);
+
+    procedure par (p_rotulo in varchar2, p_valor in varchar2) is
+    begin
+      p('<div class="cx-ponto-par"><dt>' || e(p_rotulo) || '</dt><dd>' || e(p_valor) || '</dd></div>');
+    end par;
+
+    function hhmi (p_minutos in number) return varchar2 is
+    begin
+      return to_char(trunc(p_minutos / 60), 'fm00') || ':' || to_char(mod(p_minutos, 60), 'fm00');
+    end hhmi;
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+    l_j := pkg_ponto.fn_jornada(l_id);
+
+    select max(g.nome_completo)
+      into l_gestor
+      from colaborador c
+      left join colaborador g on g.id_colaborador = c.id_gestor
+     where c.id_colaborador = l_id;
+
+    p('<section class="cx-ponto-card cx-ponto-lateral">');
+    cabecalho_card('Sua jornada');
+    p('<div class="cx-ponto-card__corpo"><dl class="cx-ponto-pares">');
+    par('Horário', 'Seg a sex, ' || hhmi(l_j.nr_min_entrada) || ' às ' || hhmi(l_j.nr_min_saida));
+    par('Intervalo', case when l_j.nr_min_intervalo = 0 then 'Sem intervalo' else duracao(l_j.nr_min_intervalo) || ' por dia' end);
+    par('Carga semanal', duracao(l_j.nr_min_semanais));
+    par('Tolerância', 'Até ' || l_j.nr_min_tolerancia || ' min por dia');
+    par('Aprova ajustes', nvl(l_gestor, 'RH'));
+    p('</dl><p class="cx-ponto-nota">' || icone('cadeado')
+      || '<span>Suas marcações são visíveis para você, sua gestão e o RH.</span></p></div></section>');
+    return g_html;
+  end render_jornada;
+
+  ------------------------------------------------------------------------------
+  -- Comprovantes
+  ------------------------------------------------------------------------------
+  function render_comprovantes (p_id_colaborador in number default null) return clob is
+    l_id constant number := id_ou_logado(p_id_colaborador);
+    l_qt pls_integer := 0;
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+
+    for r in (select id_marcacao, dt_referencia, dh_marcacao, tp_marcacao, ds_origem
+                from ponto_marcacao
+               where id_colaborador = l_id
+               order by id_marcacao desc
+               fetch first 60 rows only) loop
+      if l_qt = 0 then
+        p('<div class="cx-ponto-tabela-rolagem"><table class="cx-ponto-tabela"><thead><tr><th scope="col">Comprovante</th>'
+          || '<th scope="col">Data e hora</th><th scope="col">Marcação</th><th scope="col">Origem</th></tr></thead><tbody>');
+      end if;
+      l_qt := l_qt + 1;
+      p('<tr><th scope="row">Nº ' || r.id_marcacao || '</th><td>' || to_char(r.dh_marcacao, 'DD/MM/YYYY HH24:MI')
+        || '</td><td>' || rotulo_marcacao(r.tp_marcacao) || '</td><td>'
+        || case r.ds_origem when 'AJUSTE' then 'Ajuste aprovado'
+                            when 'DEMO' then 'Demonstração'
+                            else 'Navegador' end || '</td></tr>');
+    end loop;
+
+    if l_qt = 0 then
+      p('<p class="cx-ponto-vazio">Nenhuma marcação registrada ainda.</p>');
+    else
+      p('</tbody></table></div>');
+    end if;
+    return g_html;
+  end render_comprovantes;
+
+  ------------------------------------------------------------------------------
+  -- Ajax Callbacks
+  ------------------------------------------------------------------------------
+  procedure responder_erro (p_codigo in number, p_mensagem in varchar2) is
+  begin
+    rollback;
+    apex_debug.error('pkg_ponto_ui: %s', p_mensagem);
+    apex_json.open_object;
+    apex_json.write('ok', false);
+    apex_json.write('mensagem',
+      case when p_codigo between -20099 and -20001
+           then regexp_substr(regexp_replace(p_mensagem, '^ORA-[0-9]+: *'), '^[^' || chr(10) || ']*')
+           else 'Não foi possível concluir agora. Atualize a página e tente de novo.' end);
+    apex_json.close_object;
+  end responder_erro;
+
+  procedure ajax_registrar (p_tp_marcacao in varchar2) is
+    l_id number;
+  begin
+    l_id := pkg_ponto.registrar_marcacao(p_tp_marcacao);
+    apex_json.open_object;
+    apex_json.write('ok', true);
+    apex_json.write('mensagem', rotulo_marcacao(p_tp_marcacao) || ' registrada. Comprovante nº ' || l_id || '.');
+    apex_json.close_object;
+  exception
+    when others then
+      responder_erro(sqlcode, sqlerrm);
+  end ajax_registrar;
+
+  procedure ajax_assinar (p_competencia in varchar2) is
+  begin
+    pkg_ponto.assinar_espelho(p_competencia);
+    apex_json.open_object;
+    apex_json.write('ok', true);
+    apex_json.write('mensagem', 'Espelho assinado.');
+    apex_json.close_object;
+  exception
+    when others then
+      responder_erro(sqlcode, sqlerrm);
+  end ajax_assinar;
+
+  procedure ajax_baixar_espelho (p_competencia in varchar2) is
+    l_id    number;
+    l_hoje  date;
+    l_mes   date;
+    l_dias  pkg_ponto.t_dias;
+    l_csv   varchar2(32767);
+    l_saldo number := 0;
+    l_sit   varchar2(100);
+    c_nl    constant varchar2(2) := chr(13) || chr(10);
+  begin
+    l_id   := pkg_ponto.fn_colaborador_logado;
+    l_hoje := hoje_de(l_id);
+    l_mes  := competencia(p_competencia, l_hoje);
+    l_dias := pkg_ponto.fn_dias(l_id, l_mes, last_day(l_mes));
+
+    l_csv := 'Dia;Entrada;Intervalo;Retorno;Saída;Trabalhadas;Saldo;Situação' || c_nl;
+    for i in 1 .. l_dias.count loop
+      l_sit := case l_dias(i).cd_situacao
+        when pkg_ponto.c_regular      then 'Regular'
+        when pkg_ponto.c_andamento    then 'Em andamento'
+        when pkg_ponto.c_sem_marcacao then 'Sem marcação'
+        when pkg_ponto.c_ausente      then 'Marcação ausente'
+        when pkg_ponto.c_analise      then 'Ajuste em análise'
+        when pkg_ponto.c_falta        then 'Falta'
+        when pkg_ponto.c_abonado      then 'Abonado'
+        when pkg_ponto.c_feriado      then replace(l_dias(i).nm_feriado, ';', ',')
+      end;
+      l_saldo := l_saldo + nvl(l_dias(i).nr_saldo, 0);
+      l_csv := l_csv || to_char(l_dias(i).dt, 'DD/MM/YYYY') || ';' || hora(l_dias(i).dh_entrada) || ';'
+            || hora(l_dias(i).dh_intervalo) || ';' || hora(l_dias(i).dh_retorno) || ';' || hora(l_dias(i).dh_saida) || ';'
+            || case when l_dias(i).nr_trabalhados is not null then pkg_ponto.fn_horas(l_dias(i).nr_trabalhados) end || ';'
+            || case when l_dias(i).nr_saldo is not null then pkg_ponto.fn_saldo(l_dias(i).nr_saldo) end || ';'
+            || l_sit || c_nl;
+    end loop;
+    l_csv := l_csv || 'Saldo do mês;;;;;;' || pkg_ponto.fn_saldo(l_saldo) || ';' || c_nl;
+
+    apex_json.open_object;
+    apex_json.write('ok', true);
+    apex_json.write('nome', 'espelho-ponto-' || to_char(l_mes, 'YYYY-MM') || '.csv');
+    apex_json.write('conteudo', l_csv);
+    apex_json.close_object;
+  exception
+    when others then
+      responder_erro(sqlcode, sqlerrm);
+  end ajax_baixar_espelho;
+
+end pkg_ponto_ui;
+/

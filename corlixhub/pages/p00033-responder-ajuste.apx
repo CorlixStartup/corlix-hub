@@ -1,0 +1,285 @@
+page 33 (
+    name: Responder ajuste
+    alias: RESPONDER-AJUSTE
+    title: Responder ajuste
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @aprovador-ponto
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region botões (
+        name: Botões
+        type: staticContent
+        layout {
+            sequence: 70
+            slot: contentBody
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P33_DS_MOTIVO (
+        type: displayOnly
+        label {
+            label: Motivo
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P33_DS_PEDIDO (
+        type: displayOnly
+        label {
+            label: Pedido
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P33_DS_RESPOSTA (
+        type: textarea
+        label {
+            label: Mensagem ao colaborador
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            maxLength: 2000
+        }
+        help {
+            inlineHelpText: Obrigatória se recusar.
+        }
+    )
+
+    pageItem P33_ID_AJUSTE (
+        type: hidden
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+    )
+
+    pageItem P33_NM_COLABORADOR (
+        type: displayOnly
+        label {
+            label: Colaborador
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P33_ST_AJUSTE (
+        type: radioGroup
+        label {
+            label: Resposta
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:Aprovar;APROVADO,Recusar;RECUSADO
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 50
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    button cancelar (
+        buttonName: CANCELAR
+        label: Cancelar
+        layout {
+            sequence: 10
+            region: @botões
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button responder (
+        buttonName: RESPONDER
+        label: Responder
+        layout {
+            sequence: 10
+            region: @botões
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction cancelar (
+        name: Cancelar
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancelar
+        }
+
+        action true (
+            name: True
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process fechar (
+        name: Fechar
+        type: closeDialog
+        execution {
+            sequence: 20
+        }
+        successMessage {
+            successMessage: Resposta registrada.
+        }
+        advanced {
+            executionMappingIdentifier: 44207675792570306
+        }
+        serverSideCondition {
+            whenButtonPressed: @responder
+        }
+    )
+
+    process new (
+        name: New
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                  if pkg_ponto.fn_pode_aprovar(:P33_ID_AJUSTE) <> 'S' then
+                    raise_application_error(-20067, 'Você não pode responder a este pedido: ele cabe ao gestor direto ou ao RH.');
+                  end if;
+                
+                  select c.nome_completo,
+                         to_char(a.dt_referencia, 'DD/MM/YYYY') || ' · '
+                         || case a.tp_ajuste
+                              when 'ABONO' then 'Abonar o dia'
+                              else case a.tp_marcacao
+                                     when 'ENTRADA'   then 'Entrada'
+                                     when 'INTERVALO' then 'Saída para intervalo'
+                                     when 'RETORNO'   then 'Retorno do intervalo'
+                                     else 'Saída'
+                                   end || ' às ' || to_char(a.dh_solicitada, 'HH24:MI')
+                            end,
+                         a.ds_motivo
+                    into :P33_NM_COLABORADOR, :P33_DS_PEDIDO, :P33_DS_MOTIVO
+                    from ponto_ajuste a
+                    join colaborador c on c.id_colaborador = a.id_colaborador
+                   where a.id_ajuste  = :P33_ID_AJUSTE
+                     and a.id_empresa = :G_ID_EMPRESA
+                     and a.st_ajuste  = 'PENDENTE';
+                exception
+                  when no_data_found then
+                    raise_application_error(-20066, 'Pedido não encontrado ou já respondido.');
+                end;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 44207442385570304
+        }
+    )
+
+    process responder (
+        name: Responder
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                pkg_ponto.responder_ajuste(
+                  p_id_ajuste   => :P33_ID_AJUSTE,
+                  p_st_ajuste   => :P33_ST_AJUSTE,
+                  p_ds_resposta => :P33_DS_RESPOSTA);
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 44207533205570305
+        }
+        serverSideCondition {
+            whenButtonPressed: @responder
+        }
+    )
+
+)
+

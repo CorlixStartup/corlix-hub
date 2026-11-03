@@ -1,0 +1,431 @@
+page 30 (
+    name: Ponto eletrônico
+    alias: PONTO-ELETRONICO
+    title: Ponto eletrônico
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        executeWhenPageLoads:
+            ```javascript-browser
+            // =============================================================================
+            // Corlix Hub · Ponto eletrônico (página 30)
+            // Cole em Page › JavaScript › Execute when Page Loads.
+            // Os eventos ficam no document porque as regiões são atualizadas (Refresh) e o
+            // HTML delas é trocado. A hora registrada é sempre a do servidor; o relógio da
+            // tela só acompanha a partir da hora que o servidor mandou.
+            // =============================================================================
+            
+            const cxPontoRegioes = [
+              "ponto_relogio", "ponto_espelho", "ponto_banco", "ponto_pendencias",
+              "ponto_dlg_comprovantes", "ponto_dlg_mes", "ponto_dlg_extrato", "ponto_dlg_assinatura"
+            ];
+            
+            function cxPontoAtualizar(regioes) {
+              (regioes || cxPontoRegioes).forEach(function (id) {
+                const regiao = apex.region(id);
+                if (regiao) { regiao.refresh(); }
+              });
+            }
+            
+            function cxPontoErro(mensagem) {
+              apex.message.clearErrors();
+              apex.message.showErrors([{ type: "error", location: "page", message: mensagem, unsafe: true }]);
+            }
+            
+            // Chama o Ajax Callback e trata a resposta {ok, mensagem}
+            function cxPontoChamar(processo, valor, aoConcluir, botao) {
+              if (botao) { botao.disabled = true; }
+              apex.server.process(processo, { x01: valor }, { dataType: "json" }).done(function (resposta) {
+                if (resposta.ok) {
+                  apex.message.clearErrors();
+                  aoConcluir(resposta);
+                } else {
+                  cxPontoErro(resposta.mensagem);
+                }
+              }).fail(function () {
+                cxPontoErro("Não foi possível falar com o servidor. Confira sua conexão e tente de novo.");
+              }).always(function () {
+                if (botao) { botao.disabled = false; }
+              });
+            }
+            
+            // Registrar entrada / intervalo / retorno / saída
+            $(document).on("click", "[data-cx-ponto-registrar]", function () {
+              cxPontoChamar("REGISTRAR_MARCACAO", this.dataset.cxPontoRegistrar, function (resposta) {
+                apex.message.showPageSuccess(resposta.mensagem);
+                cxPontoAtualizar();
+              }, this);
+            });
+            
+            // "Ver comprovantes", "Ver mês completo", "Ver extrato", "Revisar e assinar"
+            $(document).on("click", "[data-cx-ponto-dialogo]", function () {
+              apex.theme.openRegion(this.dataset.cxPontoDialogo);
+            });
+            
+            // Assinar o espelho (botão dentro do diálogo)
+            $(document).on("click", "[data-cx-ponto-assinar]", function () {
+              const botao = this;
+              apex.message.confirm("Confirma a assinatura deste espelho? Depois dela, o mês não aceita novos ajustes.", function (ok) {
+                if (!ok) { return; }
+                cxPontoChamar("ASSINAR_ESPELHO", botao.dataset.cxPontoAssinar, function (resposta) {
+                  apex.theme.closeRegion("ponto_dlg_assinatura");
+                  apex.message.showPageSuccess(resposta.mensagem);
+                  cxPontoAtualizar(["ponto_pendencias", "ponto_dlg_assinatura"]);
+                }, botao);
+              });
+            });
+            
+            // Seletor de mês do espelho
+            $(document).on("change", "[data-cx-ponto-competencia]", function () {
+              apex.item("P30_COMPETENCIA").setValue(this.value);
+              cxPontoAtualizar(["ponto_espelho", "ponto_dlg_mes"]);
+            });
+            
+            // "Baixar espelho": o servidor monta o CSV do mês selecionado e o navegador salva.
+            // O BOM faz o Excel abrir os acentos certos.
+            $(document).on("click", "[data-cx-ponto-baixar]", function () {
+              cxPontoChamar("BAIXAR_ESPELHO", apex.item("P30_COMPETENCIA").getValue(), function (resposta) {
+                const arquivo = new Blob(["﻿" + resposta.conteudo], { type: "text/csv;charset=utf-8" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(arquivo);
+                link.download = resposta.nome;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(link.href);
+              }, this);
+            });
+            
+            // Pedido de ajuste enviado: o modal fechou
+            $(document).on("apexafterclosedialog", function () {
+              cxPontoAtualizar(["ponto_espelho", "ponto_pendencias", "ponto_dlg_mes"]);
+            });
+            
+            // Relógio e horas trabalhadas
+            (function () {
+              let base = null;
+            
+              function dois(n) { return String(n).padStart(2, "0"); }
+              function horas(min) { return Math.floor(min / 60) + "h" + dois(min % 60); }
+            
+              function atualizar() {
+                const card = document.querySelector("[data-cx-ponto-relogio]");
+                if (!card) { return; }
+            
+                // O Refresh troca o card: recomeça da hora que o servidor mandou
+                if (!base || base.card !== card) {
+                  base = { card: card, inicio: Date.now(), segundos: Number(card.dataset.segundos) };
+                }
+            
+                const passados = Math.floor((Date.now() - base.inicio) / 1000);
+                const agora = (base.segundos + passados) % 86400;
+                const hora = card.querySelector("[data-cx-ponto-hora]");
+                const texto = dois(Math.floor(agora / 3600)) + ":" + dois(Math.floor(agora / 60) % 60);
+                if (hora.textContent !== texto) { hora.textContent = texto; }
+            
+                if (card.dataset.correndo === "S") {
+                  const minutos = Math.floor(((base.segundos % 60) + passados) / 60);
+                  const trabalhados = Number(card.dataset.trabalhados) + minutos;
+                  const meta = Number(card.dataset.meta);
+                  card.querySelector("[data-cx-ponto-trabalhadas]").textContent = horas(trabalhados) + " trabalhadas hoje";
+                  card.querySelector("[data-cx-ponto-faltam]").textContent = trabalhados >= meta
+                    ? " · jornada completa"
+                    : " · faltam " + horas(meta - trabalhados) + " para completar a jornada";
+                }
+              }
+            
+              atualizar();
+              setInterval(atualizar, 1000);
+            })();
+            
+            ```
+    }
+    css {
+        fileUrls: #APP_FILES#ponto-eletronico/ponto.css
+    }
+    security {
+        authorizationScheme: @colaborador
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region cabeçalho (
+        name: Cabeçalho
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_ponto_ui.render_cabecalho;
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region coluna-lateral (
+        name: Coluna lateral
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region coluna-principal (
+        name: Coluna principal
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+            columnSpan: 8
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region ponto_banco (
+        name: Banco de horas
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_ponto_ui.render_banco;
+        }
+        layout {
+            sequence: 10
+            parentRegion: @coluna-lateral
+            slot: subRegions
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region ponto_dlg_assinatura (
+        name: Assinar espelho
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_ponto_ui.render_assinatura;
+        }
+        layout {
+            sequence: 60
+            slot: dialogsDrawersAndPopups
+        }
+        appearance {
+            template: @/inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-size720x480
+            ]
+        }
+    )
+
+    region ponto_dlg_comprovantes (
+        name: Comprovantes de marcação
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_ponto_ui.render_comprovantes;
+        }
+        layout {
+            sequence: 30
+            slot: dialogsDrawersAndPopups
+        }
+        appearance {
+            template: @/inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-size720x480
+            ]
+        }
+    )
+
+    region ponto_dlg_extrato (
+        name: Extrato do banco de horas
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_ponto_ui.render_extrato;
+        }
+        layout {
+            sequence: 50
+            slot: dialogsDrawersAndPopups
+        }
+        appearance {
+            template: @/inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-size720x480
+            ]
+        }
+    )
+
+    region ponto_dlg_mes (
+        name: Espelho do mês
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: "return pkg_ponto_ui.render_espelho(:P30_COMPETENCIA, null, 'N');	"
+            pageItemsToSubmit: P30_COMPETENCIA
+        }
+        layout {
+            sequence: 40
+            slot: dialogsDrawersAndPopups
+        }
+        appearance {
+            template: @/inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-size720x480
+            ]
+        }
+    )
+
+    region ponto_espelho (
+        name: Espelho
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_ponto_ui.render_espelho(:P30_COMPETENCIA);
+            pageItemsToSubmit: P30_COMPETENCIA
+        }
+        layout {
+            sequence: 20
+            parentRegion: @coluna-principal
+            slot: subRegions
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region ponto_jornada (
+        name: Sua jornada
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_ponto_ui.render_jornada;
+        }
+        layout {
+            sequence: 30
+            parentRegion: @coluna-lateral
+            slot: subRegions
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region ponto_pendencias (
+        name: Pendências
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_ponto_ui.render_pendencias;
+        }
+        layout {
+            sequence: 20
+            parentRegion: @coluna-lateral
+            slot: subRegions
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region ponto_relogio (
+        name: Relógio
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: "return pkg_ponto_ui.render_relogio;	"
+        }
+        layout {
+            sequence: 10
+            parentRegion: @coluna-principal
+            slot: subRegions
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P30_COMPETENCIA (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 10
+            region: @coluna-principal
+            slot: regionBody
+        }
+    )
+
+    process assinar-espelho (
+        name: ASSINAR_ESPELHO
+        type: executeCode
+        source {
+            plsqlCode: pkg_ponto_ui.ajax_assinar(apex_application.g_x01);
+        }
+        execution {
+            sequence: 20
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 42034034726317217
+        }
+    )
+
+    process baixar-espelho (
+        name: BAIXAR_ESPELHO
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                pkg_ponto_ui.ajax_baixar_espelho(apex_application.g_x01);
+                
+                ```
+        }
+        execution {
+            sequence: 30
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 42034181438317218
+        }
+    )
+
+    process registrar-marcacao (
+        name: REGISTRAR_MARCACAO
+        type: executeCode
+        source {
+            plsqlCode: pkg_ponto_ui.ajax_registrar(apex_application.g_x01);
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 42033920236317216
+        }
+    )
+
+)
+

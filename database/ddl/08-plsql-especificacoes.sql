@@ -454,6 +454,155 @@ end pkg_perfil;
 end pkg_perfis_acesso;
 /
 
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_PONTO" authid definer as
+
+  -- Situações do dia
+  c_regular      constant varchar2(15) := 'REGULAR';
+  c_andamento    constant varchar2(15) := 'ANDAMENTO';
+  c_ausente      constant varchar2(15) := 'AUSENTE';
+  c_abonado      constant varchar2(15) := 'ABONADO';
+  c_falta        constant varchar2(15) := 'FALTA';
+  c_sem_marcacao constant varchar2(15) := 'SEM_MARCACAO';
+  c_feriado      constant varchar2(15) := 'FERIADO';
+  c_analise      constant varchar2(15) := 'ANALISE';
+
+  type t_jornada is record (
+    id_jornada         ponto_jornada.id_jornada%type,
+    nr_min_entrada     ponto_jornada.nr_min_entrada%type,
+    nr_min_saida       ponto_jornada.nr_min_saida%type,
+    nr_min_intervalo   ponto_jornada.nr_min_intervalo%type,
+    nr_min_diarios     ponto_jornada.nr_min_diarios%type,
+    nr_min_semanais    ponto_jornada.nr_min_semanais%type,
+    nr_min_tolerancia  ponto_jornada.nr_min_tolerancia%type,
+    nr_meses_validade  ponto_jornada.nr_meses_validade%type,
+    dt_inicio_controle date,
+    ds_local           ponto_colaborador.ds_local%type
+  );
+
+  type t_dia is record (
+    dt             date,
+    dh_entrada     date,
+    dh_intervalo   date,
+    dh_retorno     date,
+    dh_saida       date,
+    nr_trabalhados number,        -- minutos; nulo se não há marcação
+    nr_saldo       number,        -- minutos; nulo enquanto o dia não fecha
+    cd_situacao    varchar2(15),
+    nm_feriado     varchar2(100),
+    nr_saldo_banco number         -- saldo acumulado depois do dia (só calcular_banco)
+  );
+  type t_dias is table of t_dia index by pls_integer;
+
+  -- Colaborador da conta logada na empresa da sessão. Sem vínculo: -20060.
+  function fn_colaborador_logado return number;
+
+  function fn_jornada (p_id_colaborador in number) return t_jornada;
+
+  -- Dias do período em ordem crescente, de início do controle até hoje. Fins de
+  -- semana sem marcação ficam de fora; feriados entram com a situação FERIADO.
+  function fn_dias (p_id_colaborador in number, p_dt_inicio in date, p_dt_fim in date) return t_dias;
+
+  -- Banco de horas: créditos vencem ao fim do mês, nr_meses_validade depois;
+  -- débitos consomem primeiro os créditos mais antigos. p_extrato traz os dias
+  -- com saldo diferente de zero e o acumulado depois de cada um.
+  procedure calcular_banco (
+    p_id_colaborador in  number,
+    p_saldo          out number,
+    p_min_vencendo   out number,
+    p_dt_vencimento  out date,
+    p_extrato        out t_dias
+  );
+
+  -- Próxima marcação esperada hoje (ENTRADA, INTERVALO, RETORNO, SAIDA) ou nula
+  -- se a jornada já foi concluída.
+  function fn_proxima_marcacao (p_id_colaborador in number) return varchar2;
+
+  -- Registra a marcação do colaborador logado. p_tp_marcacao é o que a tela
+  -- mostrava: se já mudou (outra aba, clique duplo), dá erro e não registra.
+  function registrar_marcacao (p_tp_marcacao in varchar2) return number;
+
+  -- p_dt_referencia em DD/MM/YYYY e p_hr_marcacao em HH24:MI.
+  function solicitar_ajuste (
+    p_dt_referencia in varchar2,
+    p_tp_ajuste     in varchar2,
+    p_tp_marcacao   in varchar2,
+    p_hr_marcacao   in varchar2,
+    p_ds_motivo     in varchar2
+  ) return number;
+
+  -- p_st_ajuste: APROVADO ou RECUSADO
+  procedure responder_ajuste (
+    p_id_ajuste   in number,
+    p_st_ajuste   in varchar2,
+    p_ds_resposta in varchar2
+  );
+
+  -- 'S' se a conta logada pode responder ao ajuste: gestor direto do colaborador
+  -- ou RH, nunca o próprio colaborador. Usada no SQL da página 32.
+  function fn_pode_aprovar (p_id_ajuste in number) return varchar2;
+
+  -- 'S' se a conta logada é RH ou tem alguém sob sua gestão (autorização APROVADOR_PONTO).
+  function fn_e_aprovador return varchar2;
+
+  -- Mês anterior ainda sem assinatura (1º dia do mês) ou nulo.
+  function fn_competencia_a_assinar (p_id_colaborador in number) return date;
+
+  -- Prazo para assinar: dia 5 do segundo mês depois da competência.
+  function fn_prazo_assinatura (p_dt_competencia in date) return date;
+
+  -- p_competencia em YYYYMM.
+  procedure assinar_espelho (p_competencia in varchar2);
+
+  -- "4h33"
+  function fn_horas (p_minutos in number) return varchar2;
+
+  -- "+0h17", "-2h10", "0h00"
+  function fn_saldo (p_minutos in number) return varchar2;
+
+end pkg_ponto;
+/
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_PONTO_UI" authid definer as
+
+  -- Título, descrição e botões "Baixar espelho" e "Solicitar ajuste"
+  function render_cabecalho (p_id_colaborador in number default null) return clob;
+
+  -- Relógio, botão de registrar, linha do tempo do dia e horas trabalhadas
+  function render_relogio (p_id_colaborador in number default null) return clob;
+
+  -- p_limite: últimos N dias (nulo = mês inteiro). p_completo = 'S' mostra o
+  -- seletor de mês e o link "Ver mês completo".
+  function render_espelho (
+    p_competencia    in varchar2 default null,
+    p_limite         in pls_integer default 7,
+    p_completo       in varchar2 default 'S',
+    p_id_colaborador in number default null
+  ) return clob;
+
+  function render_banco (p_id_colaborador in number default null) return clob;
+
+  function render_pendencias (p_id_colaborador in number default null) return clob;
+
+  function render_jornada (p_id_colaborador in number default null) return clob;
+
+  -- Conteúdo dos diálogos
+  function render_comprovantes (p_id_colaborador in number default null) return clob;
+
+  function render_extrato (p_id_colaborador in number default null) return clob;
+
+  function render_assinatura (p_id_colaborador in number default null) return clob;
+
+  -- Ajax Callbacks da página 30. Respondem {"ok":true|false,"mensagem":"..."}.
+  procedure ajax_registrar (p_tp_marcacao in varchar2);
+
+  procedure ajax_assinar (p_competencia in varchar2);
+
+  -- Responde também "nome" e "conteudo" (CSV separado por ponto e vírgula)
+  procedure ajax_baixar_espelho (p_competencia in varchar2);
+
+end pkg_ponto_ui;
+/
+
   CREATE OR REPLACE EDITIONABLE PROCEDURE "PRC_SEED_TIPO_MOVIMENTACAO" (
   p_id_empresa in number
 ) is

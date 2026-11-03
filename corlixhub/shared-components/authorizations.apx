@@ -26,6 +26,20 @@ authorization administration-rights (
     }
 )
 
+authorization aprovador-ponto (
+    name: APROVADOR_PONTO
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody: return pkg_ponto.fn_e_aprovador = 'S';
+    }
+    error {
+        errorMessage: Acesso restrito à gestão direta e ao RH.
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
 authorization colaborador (
     name: COLABORADOR
     type: plSqlFunctionBody

@@ -173,6 +173,17 @@ end;
 /
 ALTER TRIGGER "TRG_HISTORICO_CARREIRA_LOG" ENABLE;
 
+  CREATE OR REPLACE EDITIONABLE TRIGGER "TRG_PONTO_MARCACAO_IMUTAVEL"
+  before update or delete on ponto_marcacao
+  for each row
+begin
+  if updating or :old.ds_origem <> 'DEMO' then
+    raise_application_error(-20061, 'Marcações de ponto não podem ser alteradas nem apagadas. Solicite um ajuste.');
+  end if;
+end;
+/
+ALTER TRIGGER "TRG_PONTO_MARCACAO_IMUTAVEL" ENABLE;
+
   CREATE OR REPLACE EDITIONABLE TRIGGER "TRG_SOLICITACAO_CORRECAO_AUD"
 before insert or update on solicitacao_correcao
 for each row

@@ -52,6 +52,22 @@ list navigation-menu (
         }
     )
 
+    entry ajustes-de-ponto (
+        label: Ajustes de ponto
+        layout {
+            sequence: 67
+            parentEntry: @administração
+        }
+        link {
+            target: {
+                page: 32
+            }
+        }
+        security {
+            authorizationScheme: @aprovador-ponto
+        }
+    )
+
     entry cadastros (
         label: Cadastro de usuários
         layout {
@@ -290,6 +306,24 @@ list navigation-menu (
         }
         layout {
             sequence: 40
+        }
+    )
+
+    entry ponto-eletrônico (
+        label: Ponto eletrônico
+        icon {
+            imageIconCssClasses: fa-clock-o
+        }
+        layout {
+            sequence: 35
+        }
+        link {
+            target: {
+                page: 30
+            }
+        }
+        security {
+            authorizationScheme: @colaborador
         }
     )
 
