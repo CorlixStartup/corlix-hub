@@ -1558,3 +1558,13 @@ file organograma.min.css (
     charSet: utf-8
 )
 
+file "ponto-eletronico/ponto.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file "ponto-eletronico/ponto.min.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+

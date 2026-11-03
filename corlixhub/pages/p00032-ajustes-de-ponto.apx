@@ -1,0 +1,270 @@
+page 32 (
+    name: Ajustes de ponto
+    alias: AJUSTES-DE-PONTO
+    title: Ajustes de ponto
+    appearance {
+        pageTemplate: @corlix-standard-page
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @aprovador-ponto
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region cabeçalho (
+        name: Cabeçalho
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="cx-cabecalho-pagina__texto">
+                  <h1 class="cx-cabecalho-pagina__titulo">Ajustes de ponto</h1>
+                  <p class="cx-cabecalho-pagina__descricao">Pedidos de ajuste e abono que aguardam a sua resposta.</p>
+                </div>
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+            cssClasses: cx-cabecalho-pagina
+        }
+    )
+
+    region pedidos-pendentes (
+        name: Pedidos pendentes
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select a.id_ajuste,
+                       c.nome_completo as colaborador,
+                       a.dt_referencia as dia,
+                       case a.tp_ajuste
+                         when 'ABONO' then 'Abonar o dia'
+                         else case a.tp_marcacao
+                                when 'ENTRADA'   then 'Entrada'
+                                when 'INTERVALO' then 'Saída para intervalo'
+                                when 'RETORNO'   then 'Retorno do intervalo'
+                                else 'Saída'
+                              end
+                       end as pedido,
+                       to_char(a.dh_solicitada, 'HH24:MI') as horario,
+                       a.ds_motivo as motivo,
+                       cast(a.dh_pedido as date) as pedido_em,
+                       'Responder' as responder
+                  from ponto_ajuste a
+                  join colaborador c on c.id_colaborador = a.id_colaborador
+                 where a.id_empresa = :G_ID_EMPRESA
+                   and a.st_ajuste  = 'PENDENTE'
+                   and pkg_ponto.fn_pode_aprovar(a.id_ajuste) = 'S'
+                
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+            cssClasses: cx-relatorio
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        advanced {
+            savedReportMappingIdentifier: 44207964197570309
+        }
+
+        column COLABORADOR (
+            type: plainText
+            heading {
+                heading: Colaborador
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column DIA (
+            type: plainText
+            heading {
+                heading: Dia
+            }
+            layout {
+                sequence: 30
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column HORARIO (
+            type: plainText
+            heading {
+                heading: Horario
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column ID_AJUSTE (
+            type: hidden
+            heading {
+                heading: Id Ajuste
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column MOTIVO (
+            type: plainText
+            heading {
+                heading: Motivo
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column PEDIDO (
+            type: plainText
+            heading {
+                heading: Pedido em
+            }
+            layout {
+                sequence: 40
+            }
+            appearance {
+                formatMask: DD/MM/YYYY HH24:MI
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column PEDIDO_EM (
+            type: plainText
+            heading {
+                heading: Pedido Em
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column RESPONDER (
+            type: link
+            heading {
+                heading: Responder
+            }
+            layout {
+                sequence: 80
+            }
+            link {
+                target: {
+                    page: 33
+                    items: {
+                        P33_ID_AJUSTE: #ID_AJUSTE#
+                    }
+                    clearCache: 33
+                }
+                linkText: Responder
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+    )
+
+    dynamicAction pedido-respondido (
+        name: Pedido respondido
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @pedidos-pendentes
+        }
+
+        action true (
+            name: True
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @pedidos-pendentes
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)
+

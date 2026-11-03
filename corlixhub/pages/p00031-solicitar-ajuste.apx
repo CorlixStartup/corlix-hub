@@ -1,0 +1,313 @@
+page 31 (
+    name: Solicitar ajuste
+    alias: SOLICITAR-AJUSTE
+    title: Solicitar ajuste
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @colaborador
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region botões (
+        name: Botões
+        type: staticContent
+        layout {
+            sequence: 60
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P31_DS_MOTIVO (
+        type: textarea
+        label {
+            label: Motivo
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            valueRequired: true
+            maxLength: 2000
+        }
+        help {
+            inlineHelpText: Quem aprova vê este texto.
+        }
+    )
+
+    pageItem P31_DT_REFERENCIA (
+        type: datePicker
+        label {
+            label: Dia
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            formatMask: DD/MM/YYYY
+            width: 30
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: expression
+            plsqlExpression: to_char(pkg_historico_carreira.fn_hoje(:G_ID_EMPRESA), 'DD/MM/YYYY')
+        }
+    )
+
+    pageItem P31_HR_MARCACAO (
+        type: textField
+        label {
+            label: Horário
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            maxLength: 5
+        }
+        help {
+            inlineHelpText: No formato HH:MM, por exemplo 18:05.
+        }
+    )
+
+    pageItem P31_TP_AJUSTE (
+        type: radioGroup
+        label {
+            label: O que você precisa?
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Incluir ou corrigir marcação;MARCACAO,Abonar o dia;ABONO
+            displayNullValue: false
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: static
+            staticValue: MARCACAO
+        }
+    )
+
+    pageItem P31_TP_MARCACAO (
+        type: selectList
+        label {
+            label: Marcação
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Entrada;ENTRADA,Saída para intervalo;INTERVALO,Retorno do intervalo;RETORNO,Saída;SAIDA
+            nullDisplayValue: Escolha
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    button cancelar (
+        buttonName: CANCELAR
+        label: Cancelar
+        layout {
+            sequence: 10
+            region: @botões
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button enviar (
+        buttonName: ENVIAR
+        label: Enviar pedido
+        layout {
+            sequence: 10
+            region: @botões
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction cancelar (
+        name: Cancelar
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancelar
+        }
+
+        action tipo-de-ajuste (
+            name: True
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    dynamicAction tipo-de-ajuste (
+        name: Tipo de ajuste
+        execution {
+            sequence: 20
+        }
+        when {
+            selectionType: items
+            items: P31_TP_AJUSTE
+        }
+        clientSideCondition {
+            type: item=value
+            item: P31_TP_AJUSTE
+            value: MARCACAO
+        }
+
+        action false (
+            name: False
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: [
+                    P31_TP_MARCACAO
+                    P31_HR_MARCACAO
+                ]
+            }
+            execution {
+                sequence: 10
+                fireWhenEventResultIs: false
+            }
+        )
+
+        action true (
+            name: True
+            action: show
+            affectedElements {
+                selectionType: items
+                items: [
+                    P31_TP_MARCACAO
+                    P31_HR_MARCACAO
+                ]
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    process enviar (
+        name: Enviar
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                  l_id number;
+                begin
+                  l_id := pkg_ponto.solicitar_ajuste(
+                            p_dt_referencia => :P31_DT_REFERENCIA,
+                            p_tp_ajuste     => :P31_TP_AJUSTE,
+                            p_tp_marcacao   => :P31_TP_MARCACAO,
+                            p_hr_marcacao   => :P31_HR_MARCACAO,
+                            p_ds_motivo     => :P31_DS_MOTIVO);
+                end;
+                
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 42036189489317238
+        }
+        serverSideCondition {
+            whenButtonPressed: @enviar
+        }
+    )
+
+    process fechar (
+        name: Fechar
+        type: closeDialog
+        execution {
+            sequence: 20
+        }
+        successMessage {
+            successMessage: Pedido enviado para aprovação.
+        }
+        advanced {
+            executionMappingIdentifier: 42036237250317239
+        }
+        serverSideCondition {
+            whenButtonPressed: @enviar
+        }
+    )
+
+)
+

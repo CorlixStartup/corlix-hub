@@ -218,6 +218,17 @@ join cargo cg on cg.id_cargo = c.id_cargo
 join departamento d on d.id_departamento = c.id_departamento
 where c.status = true;
 
+  CREATE OR REPLACE FORCE EDITIONABLE VIEW "VW_PONTO_MARCACAO_VIGENTE" ("ID_MARCACAO", "ID_EMPRESA", "ID_COLABORADOR", "DT_REFERENCIA", "TP_MARCACAO", "DH_MARCACAO", "DS_ORIGEM", "ID_AJUSTE") AS
+  select id_marcacao, id_empresa, id_colaborador, dt_referencia, tp_marcacao,
+       dh_marcacao, ds_origem, id_ajuste
+  from (select m.*,
+               row_number() over (
+                 partition by m.id_colaborador, m.dt_referencia, m.tp_marcacao
+                 order by case when m.id_ajuste is not null then 0 else 1 end, m.id_marcacao desc
+               ) as nr_ordem
+          from ponto_marcacao m)
+ where nr_ordem = 1;
+
   CREATE OR REPLACE FORCE EDITIONABLE VIEW "VW_SITUACAO_ATUAL_COLABORADOR" ("ID_EMPRESA", "ID_COLABORADOR", "NM_COLABORADOR", "ID_ULTIMO_REGISTRO", "CD_ULTIMO_TIPO", "DS_ULTIMO_TIPO", "DT_ULTIMA_MOVIMENTACAO", "ID_CARGO", "NM_CARGO", "ID_DEPARTAMENTO", "NM_DEPARTAMENTO", "ID_GESTOR", "NM_GESTOR", "DT_INICIO_FUNCAO", "DT_ULTIMA_ADMISSAO", "FL_VINCULO_ATIVO") AS
   with eventos as (
   select v.*,
