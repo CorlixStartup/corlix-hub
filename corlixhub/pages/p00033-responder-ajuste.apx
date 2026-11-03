@@ -21,7 +21,7 @@ page 33 (
         type: staticContent
         layout {
             sequence: 70
-            slot: contentBody
+            slot: dialogFooter
         }
         appearance {
             template: @/buttons-container
@@ -123,6 +123,7 @@ page 33 (
             type: staticValues
             staticValues: STATIC:Aprovar;APROVADO,Recusar;RECUSADO
             displayExtraValues: false
+            displayNullValue: false
         }
         layout {
             sequence: 50
@@ -161,7 +162,7 @@ page 33 (
         layout {
             sequence: 10
             region: @botões
-            slot: regionBody
+            slot: next
         }
         appearance {
             buttonTemplate: @/text
@@ -213,7 +214,7 @@ page 33 (
     )
 
     process new (
-        name: New
+        name: Carregar
         type: executeCode
         source {
             plsqlCode:

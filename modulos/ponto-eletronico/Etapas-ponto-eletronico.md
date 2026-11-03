@@ -4,7 +4,7 @@ Este guia cria a tela do protótipo [`pen_dev/Ponto eletrônico.png`](../../pen_
 
 Como nos outros guias, a mudança é feita no Builder. O backup diário traz o resultado para `corlixhub/pages/` na `DEV`; editar o `.apx` do repositório não muda o app e é desfeito no próximo backup.
 
-> **Estado do código:** os scripts e packages deste módulo **ainda não foram compilados**, porque não há banco acessível no ambiente em que foram escritos. A seção 1 tem os testes para fazer antes de montar as páginas. Se aparecer erro de compilação, mande a saída de `user_errors` para corrigir o arquivo aqui no módulo.
+> **Estado (03/11/2026):** as páginas 30 a 33 já estão na app e os packages, no banco. A validação encontrou ajustes a fazer: siga [`Etapas-ajustes-validacao.md`](./Etapas-ajustes-validacao.md).
 
 ### Como ler os caminhos deste guia (APEX 26.1.5)
 
@@ -43,7 +43,7 @@ As páginas 31 a 33 não estão no protótipo, mas sem elas os botões **Solicit
 - Sábado, domingo e feriado trabalhados: todas as horas são crédito.
 - **Banco de horas:** o crédito vence no fim do mês, 6 meses depois do dia em que entrou. O débito consome primeiro o crédito mais antigo. Crédito vencido sai do saldo; o pagamento fica fora do sistema.
 - **Marcação não muda:** um trigger bloqueia `update` e `delete`. Ajuste aprovado cria outra linha, que passa a valer no cálculo, e a original continua na lista de comprovantes.
-- **Mês assinado** não aceita ajustes novos.
+- **Mês assinado** não aceita ajustes novos, e um mês com pedido em análise não pode ser assinado.
 
 ### Decisões que diferem do print
 
@@ -72,6 +72,7 @@ As páginas 31 a 33 não estão no protótipo, mas sem elas os botões **Solicit
 | `04_pkg_ponto_ui.pks` / `.pkb` | HTML das regiões e Ajax Callbacks |
 | `05_dados_demo.sql` / `06_remover_dados_demo.sql` | Dados de teste para um colaborador e a remoção deles (opcionais) |
 | `instalar.sql` | Instala tudo pelo SQLcl, menos a demonstração |
+| `Etapas-ajustes-validacao.md` | Ajustes encontrados na validação de 03/11/2026 |
 | `ponto.css` / `ponto.min.css` | Estilos (classes `cx-ponto-*`); sobem como Static Application Files |
 | `ponto-pagina.js` | JavaScript da página 30 |
 
@@ -124,7 +125,7 @@ select (select count(*) from ponto_jornada) jornadas,
 ```
 Deve voltar 1 jornada por empresa, 1 vínculo por colaborador e 20 feriados por empresa (10 em cada ano: 9 de data fixa e a Sexta-feira Santa).
 
-Teste as telas fora do APEX, trocando `123` pelo `id_colaborador` da sua conta de teste:
+Teste as telas fora do APEX **pelo SQLcl**, trocando `123` pelo `id_colaborador` da sua conta de teste. No SQL Commands dá `ORA-20012`, porque o SQL Workshop é uma sessão APEX sem `G_ID_EMPRESA` (`docs/ai-context/09`).
 
 ```sql
 select pkg_ponto_ui.render_relogio(123) from dual
@@ -670,7 +671,7 @@ Use uma conta com colaborador e que tenha gestor. Recarregue com **Ctrl+Shift+R*
 
 **Com os dados de demonstração** (§1.4)
 
-9. **Espelho:** 7 linhas, a mais recente em cima. O último dia útil aparece com **Marcação ausente** e "Incompleto"; o anterior, **Abonado**, 6h00 e saldo `0h00`. Fins de semana não aparecem.
+9. **Espelho:** escolha o mês do último dia útil no seletor, porque no começo do mês o atual tem poucas linhas. São 7 linhas, a mais recente em cima. O último dia útil aparece com **Marcação ausente** e "Incompleto"; o anterior, **Abonado**, 6h00 e saldo `0h00`. Fins de semana não aparecem.
 10. Troque o mês no seletor: espelho e rodapé mudam sem recarregar. **Ver mês completo** abre o diálogo com todos os dias do mês escolhido, e feriados aparecem com o nome.
 11. **Banco de horas:** saldo, acumulado do mês e aviso âmbar de vencimento. **Ver extrato** mostra os lançamentos e o saldo depois de cada um.
 12. **Pendências:** selo "N para resolver", a marcação ausente e o espelho do mês anterior.

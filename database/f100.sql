@@ -117,7 +117,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347003235
-,p_version_scn=>'47050196969499'
+,p_version_scn=>'47050200071440'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -70661,7 +70661,7 @@ unistr('        : " \00B7 faltam " + horas(meta - trabalhados) + " para completa
 '})();',
 ''))
 ,p_css_file_urls=>'#APP_FILES#ponto-eletronico/ponto.css'
-,p_step_template=>4073832297226169690
+,p_step_template=>wwv_flow_imp.id(19815602566775266)
 ,p_page_template_options=>'#DEFAULT#'
 ,p_required_role=>wwv_flow_imp.id(30607785537919512)
 ,p_protection_level=>'C'
@@ -70674,6 +70674,7 @@ wwv_flow_imp_page.create_page_plug(
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>3372714138756020509
 ,p_plug_display_sequence=>10
+,p_plug_display_point=>'REGION_POSITION_01'
 ,p_plug_item_display_point=>'ABOVE'
 ,p_location=>null
 ,p_function_body_language=>'PLSQL'
@@ -70714,6 +70715,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(42033286846317209)
 ,p_plug_name=>'Banco de horas'
 ,p_static_id=>'ponto_banco'
+,p_region_name=>'ponto_banco'
 ,p_parent_plug_id=>wwv_flow_imp.id(42033140668317208)
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>4502917002193490937
@@ -70730,6 +70732,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(42033846260317215)
 ,p_plug_name=>'Assinar espelho'
 ,p_static_id=>'ponto_dlg_assinatura'
+,p_region_name=>'ponto_dlg_assinatura'
 ,p_region_template_options=>'#DEFAULT#:js-dialog-autoheight:js-dialog-size720x480'
 ,p_plug_template=>2674150083631647148
 ,p_plug_display_sequence=>60
@@ -70745,6 +70748,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(42033582822317212)
 ,p_plug_name=>unistr('Comprovantes de marca\00E7\00E3o')
 ,p_static_id=>'ponto_dlg_comprovantes'
+,p_region_name=>'ponto_dlg_comprovantes'
 ,p_region_template_options=>'#DEFAULT#:js-dialog-autoheight:js-dialog-size720x480'
 ,p_plug_template=>2674150083631647148
 ,p_plug_display_sequence=>30
@@ -70760,6 +70764,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(42033781158317214)
 ,p_plug_name=>'Extrato do banco de horas'
 ,p_static_id=>'ponto_dlg_extrato'
+,p_region_name=>'ponto_dlg_extrato'
 ,p_region_template_options=>'#DEFAULT#:js-dialog-autoheight:js-dialog-size720x480'
 ,p_plug_template=>2674150083631647148
 ,p_plug_display_sequence=>50
@@ -70775,6 +70780,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(42033678574317213)
 ,p_plug_name=>unistr('Espelho do m\00EAs')
 ,p_static_id=>'ponto_dlg_mes'
+,p_region_name=>'ponto_dlg_mes'
 ,p_region_template_options=>'#DEFAULT#:js-dialog-autoheight:js-dialog-size720x480'
 ,p_plug_template=>2674150083631647148
 ,p_plug_display_sequence=>40
@@ -70791,6 +70797,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(42032806794317205)
 ,p_plug_name=>'Espelho'
 ,p_static_id=>'ponto_espelho'
+,p_region_name=>'ponto_espelho'
 ,p_parent_plug_id=>wwv_flow_imp.id(42032687779317203)
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>4502917002193490937
@@ -70808,6 +70815,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(42033415317317211)
 ,p_plug_name=>'Sua jornada'
 ,p_static_id=>'ponto_jornada'
+,p_region_name=>'ponto_jornada'
 ,p_parent_plug_id=>wwv_flow_imp.id(42033140668317208)
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>4502917002193490937
@@ -70824,6 +70832,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(42033392439317210)
 ,p_plug_name=>unistr('Pend\00EAncias')
 ,p_static_id=>'ponto_pendencias'
+,p_region_name=>'ponto_pendencias'
 ,p_parent_plug_id=>wwv_flow_imp.id(42033140668317208)
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>4502917002193490937
@@ -70840,6 +70849,7 @@ wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(42032799786317204)
 ,p_plug_name=>unistr('Rel\00F3gio')
 ,p_static_id=>'ponto_relogio'
+,p_region_name=>'ponto_relogio'
 ,p_parent_plug_id=>wwv_flow_imp.id(42032687779317203)
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>4502917002193490937
@@ -71291,7 +71301,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_db_column_name=>'HORARIO'
 ,p_display_order=>50
 ,p_column_identifier=>'E'
-,p_column_label=>'Horario'
+,p_column_label=>unistr('Hor\00E1rio')
 ,p_column_type=>'STRING'
 ,p_heading_alignment=>'LEFT'
 ,p_use_as_row_header=>'N'
@@ -71323,10 +71333,9 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_db_column_name=>'PEDIDO'
 ,p_display_order=>40
 ,p_column_identifier=>'D'
-,p_column_label=>'Pedido em'
+,p_column_label=>'Pedido'
 ,p_column_type=>'STRING'
 ,p_heading_alignment=>'LEFT'
-,p_format_mask=>'DD/MM/YYYY HH24:MI'
 ,p_use_as_row_header=>'N'
 ,p_available_clientside=>'N'
 );
@@ -71335,9 +71344,10 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_db_column_name=>'PEDIDO_EM'
 ,p_display_order=>70
 ,p_column_identifier=>'G'
-,p_column_label=>'Pedido Em'
+,p_column_label=>'Pedido em'
 ,p_column_type=>'DATE'
 ,p_heading_alignment=>'LEFT'
+,p_format_mask=>'DD/MM/YYYY HH24:MI'
 ,p_tz_dependent=>'N'
 ,p_use_as_row_header=>'N'
 ,p_available_clientside=>'N'
@@ -71354,6 +71364,15 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_heading_alignment=>'LEFT'
 ,p_use_as_row_header=>'N'
 ,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_rpt(
+ p_id=>wwv_flow_imp.id(44220728640875680)
+,p_application_user=>'APXWS_DEFAULT'
+,p_report_seq=>10
+,p_report_alias=>'primary'
+,p_status=>'PUBLIC'
+,p_is_default=>'Y'
+,p_report_columns=>'ID_AJUSTE:COLABORADOR:DIA:PEDIDO:HORARIO:MOTIVO:PEDIDO_EM:RESPONDER'
 );
 wwv_flow_imp_page.create_page_da_event(
  p_id=>wwv_flow_imp.id(44208845478570318)
@@ -71405,6 +71424,7 @@ wwv_flow_imp_page.create_page_plug(
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>2127905476394690047
 ,p_plug_display_sequence=>70
+,p_plug_display_point=>'REGION_POSITION_03'
 ,p_plug_item_display_point=>'ABOVE'
 ,p_location=>null
 ,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
@@ -71437,7 +71457,7 @@ wwv_flow_imp_page.create_page_button(
 ,p_button_template_id=>4073839297780169708
 ,p_button_is_hot=>'Y'
 ,p_button_image_alt=>'Responder'
-,p_grid_new_row=>'Y'
+,p_button_position=>'NEXT'
 );
 wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(42036815234317245)
@@ -71521,7 +71541,6 @@ wwv_flow_imp_page.create_page_item(
 ,p_source_type=>'ALWAYS_NULL'
 ,p_display_as=>'NATIVE_RADIOGROUP'
 ,p_lov=>'STATIC:Aprovar;APROVADO,Recusar;RECUSADO'
-,p_lov_display_null=>'YES'
 ,p_field_template=>1610598304472262251
 ,p_item_template_options=>'#DEFAULT#'
 ,p_lov_display_extra=>'NO'
@@ -71569,7 +71588,7 @@ wwv_flow_imp_page.create_page_process(
 ,p_process_sequence=>10
 ,p_process_point=>'BEFORE_HEADER'
 ,p_process_type=>'NATIVE_PLSQL'
-,p_process_name=>'New'
+,p_process_name=>'Carregar'
 ,p_static_id=>'new'
 ,p_process_sql_clob=>wwv_flow_string.join(wwv_flow_t_varchar2(
 'begin',
@@ -71875,4 +71894,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:gBvnDl1fw3IhTOkMZCoWyRvsmEYwM+QrkCeZRX2O3j4=
+-- Application Checksum SH256:C3TPKsE02fD9M2sCGgPjuzUk/CREnra4PHMpfTSh7wU=

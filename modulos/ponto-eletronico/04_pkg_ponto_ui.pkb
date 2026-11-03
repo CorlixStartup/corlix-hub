@@ -42,7 +42,12 @@ create or replace package body pkg_ponto_ui as
   -- Colaborador informado ou o da conta logada; nulo se a conta não tem vínculo
   function id_ou_logado (p_id in number) return number is
   begin
-    return nvl(p_id, pkg_ponto.fn_colaborador_logado);
+    -- Sem nvl(): ele avalia os dois argumentos, e o id informado seria ignorado
+    -- quando a conta não tem colaborador (ou fora do APEX).
+    if p_id is not null then
+      return p_id;
+    end if;
+    return pkg_ponto.fn_colaborador_logado;
   exception
     when others then
       if sqlcode = -20060 then

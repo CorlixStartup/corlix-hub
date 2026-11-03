@@ -364,12 +364,22 @@ Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colabo
 - **Processos**: formInitialization; formAutoRowProcessing; `fechar-caixa-de-diálogo` (closeDialog quando CREATE,SAVE,DELETE).
 - **Pegadinhas**: LOVs não filtradas por empresa nem em cascata (departamento de outra empresa pode ser escolhido); criador escolhido manualmente (deveria ser o usuário logado); data de criação digitada manualmente. Mudança não commitada: botão Excluir ganhou `t-Button--danger`.
 
-### Páginas 30 a 33 — Ponto eletrônico (planejadas)
-Ainda não existem no app. São montadas pelo guia `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`, a partir do protótipo `pen_dev/Ponto eletrônico.png`:
+### Páginas 30 a 33 — Ponto eletrônico
+Montadas pelo guia `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`, a partir do protótipo `pen_dev/Ponto eletrônico.png`. A validação de 03/11/2026 deixou ajustes pendentes no Builder (a p30 está sem os HTML DOM IDs): `modulos/ponto-eletronico/Etapas-ajustes-validacao.md`.
 - **p30 Ponto eletrônico** (`COLABORADOR`): regiões Dynamic Content do `pkg_ponto_ui`, 4 diálogos e os Ajax Callbacks `REGISTRAR_MARCACAO`, `ASSINAR_ESPELHO` e `BAIXAR_ESPELHO`. Item `P30_COMPETENCIA` (mês, YYYYMM).
 - **p31 Solicitar ajuste** (modal, `COLABORADOR`): chama `pkg_ponto.solicitar_ajuste`.
 - **p32 Ajustes de ponto** (`APROVADOR_PONTO`): Interactive Report dos pedidos pendentes.
 - **p33 Responder ajuste** (modal, `APROVADOR_PONTO`): chama `pkg_ponto.responder_ajuste`.
+
+### Páginas 34 a 43 — Suporte TI (planejadas)
+Ainda não existem no app. São montadas pelo guia `modulos/suporte-ti/Etapas-suporte-ti.md`, a partir do protótipo `pen_dev/Suporte TI.png`:
+- **p34 Suporte TI** (`COLABORADOR`): regiões Dynamic Content do `pkg_suporte_ui` e os Ajax Callbacks `BUSCAR_ARTIGOS` e `CONFIRMAR_SOLUCAO`. A região `Meus chamados` precisa do HTML DOM ID `suporte_chamados`.
+- **p35 Abrir chamado** (modal, `COLABORADOR`): chama `pkg_suporte.abrir_chamado`, com anexo.
+- **p36 Chamado** (modal, `COLABORADOR`): conversa, `responder` e `reabrir`. Com o request `BAIXAR_ANEXO`, faz o download do anexo, inclusive para a p39.
+- **p37 Base de conhecimento** (`COLABORADOR`): artigos por assunto e leitura; `P37_ID_ARTIGO` soma um acesso.
+- **p38 Atendimento TI** (`SUPORTE_TI`): Interactive Report sobre `vw_suporte_fila`.
+- **p39 Atender chamado** (modal, `SUPORTE_TI`): chama `pkg_suporte.atender`.
+- **p40/p41 Status dos sistemas** e **p42/p43 Artigos** (`SUPORTE_TI`): lista + modal do assistente, sobre `suporte_sistema` e `suporte_artigo`.
 
 ### Página 9999 — Login (`p09999-login.apx`)
 - Página padrão gerada pelo APEX: `@/login`, `authentication: public`, title "CorlixHub - Log In".

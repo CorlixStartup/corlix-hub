@@ -3,7 +3,7 @@ page 30 (
     alias: PONTO-ELETRONICO
     title: Ponto eletrônico
     appearance {
-        pageTemplate: @/standard
+        pageTemplate: @corlix-standard-page
         templateOptions: #DEFAULT#
     }
     navigation {
@@ -162,7 +162,7 @@ page 30 (
         }
         layout {
             sequence: 10
-            slot: body
+            slot: breadcrumbBar
         }
         appearance {
             template: @/blank-with-attributes-no-grid
@@ -214,6 +214,9 @@ page 30 (
             template: @/blank-with-attributes
             templateOptions: #DEFAULT#
         }
+        advanced {
+            htmlDomId: ponto_banco
+        }
     )
 
     region ponto_dlg_assinatura (
@@ -233,6 +236,9 @@ page 30 (
                 js-dialog-autoheight
                 js-dialog-size720x480
             ]
+        }
+        advanced {
+            htmlDomId: ponto_dlg_assinatura
         }
     )
 
@@ -254,6 +260,9 @@ page 30 (
                 js-dialog-size720x480
             ]
         }
+        advanced {
+            htmlDomId: ponto_dlg_comprovantes
+        }
     )
 
     region ponto_dlg_extrato (
@@ -273,6 +282,9 @@ page 30 (
                 js-dialog-autoheight
                 js-dialog-size720x480
             ]
+        }
+        advanced {
+            htmlDomId: ponto_dlg_extrato
         }
     )
 
@@ -295,6 +307,9 @@ page 30 (
                 js-dialog-size720x480
             ]
         }
+        advanced {
+            htmlDomId: ponto_dlg_mes
+        }
     )
 
     region ponto_espelho (
@@ -313,6 +328,9 @@ page 30 (
             template: @/blank-with-attributes
             templateOptions: #DEFAULT#
         }
+        advanced {
+            htmlDomId: ponto_espelho
+        }
     )
 
     region ponto_jornada (
@@ -329,6 +347,9 @@ page 30 (
         appearance {
             template: @/blank-with-attributes
             templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: ponto_jornada
         }
     )
 
@@ -347,6 +368,9 @@ page 30 (
             template: @/blank-with-attributes
             templateOptions: #DEFAULT#
         }
+        advanced {
+            htmlDomId: ponto_pendencias
+        }
     )
 
     region ponto_relogio (
@@ -363,6 +387,9 @@ page 30 (
         appearance {
             template: @/blank-with-attributes
             templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: ponto_relogio
         }
     )
 

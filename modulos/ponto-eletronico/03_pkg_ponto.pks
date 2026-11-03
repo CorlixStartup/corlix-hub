@@ -9,7 +9,7 @@
 --   -20063 marcação repetida          -20071 competência inválida
 --   -20064 menos de 1 minuto          -20072 assinatura repetida
 --   -20065 pedido de ajuste inválido  -20073 colaborador de outra empresa
---   -20066 ajuste já respondido
+--   -20066 ajuste já respondido       -20074 assinatura com pedido em análise
 --   -20067 sem permissão para aprovar
 --------------------------------------------------------------------------------
 create or replace package pkg_ponto authid definer as
@@ -102,7 +102,8 @@ create or replace package pkg_ponto authid definer as
   -- 'S' se a conta logada é RH ou tem alguém sob sua gestão (autorização APROVADOR_PONTO).
   function fn_e_aprovador return varchar2;
 
-  -- Mês anterior ainda sem assinatura (1º dia do mês) ou nulo.
+  -- Mês mais antigo sem assinatura e ainda no prazo (1º dia do mês) ou nulo: o
+  -- retrasado até o dia 5 e, depois dele, o anterior.
   function fn_competencia_a_assinar (p_id_colaborador in number) return date;
 
   -- Prazo para assinar: dia 5 do segundo mês depois da competência.
