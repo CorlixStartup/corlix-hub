@@ -365,7 +365,7 @@ Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colabo
 - **Pegadinhas**: LOVs não filtradas por empresa nem em cascata (departamento de outra empresa pode ser escolhido); criador escolhido manualmente (deveria ser o usuário logado); data de criação digitada manualmente. Mudança não commitada: botão Excluir ganhou `t-Button--danger`.
 
 ### Páginas 30 a 33 — Ponto eletrônico
-Montadas pelo guia `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`, a partir do protótipo `pen_dev/Ponto eletrônico.png`. Os ajustes da validação de 03/11/2026 foram aplicados (`modulos/ponto-eletronico/Etapas-ajustes-validacao.md`). Falta testar na app a resposta do aprovador (p32/p33) e a assinatura do espelho.
+Montadas pelo guia `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`, a partir do protótipo `pen_dev/Ponto eletrônico.png`. Os ajustes da validação de 03/11/2026 foram aplicados (`modulos/ponto-eletronico/Etapas-ajustes-validacao.md`). Falta corrigir a hora de `Pedido em` na p32, que sai em UTC, e testar na app a aprovação e a assinatura do espelho.
 - **p30 Ponto eletrônico** (`COLABORADOR`): regiões Dynamic Content do `pkg_ponto_ui`, 4 diálogos e os Ajax Callbacks `REGISTRAR_MARCACAO`, `ASSINAR_ESPELHO` e `BAIXAR_ESPELHO`. Item `P30_COMPETENCIA` (mês, YYYYMM).
 - **p31 Solicitar ajuste** (modal, `COLABORADOR`): chama `pkg_ponto.solicitar_ajuste`.
 - **p32 Ajustes de ponto** (`APROVADOR_PONTO`): Interactive Report dos pedidos pendentes.

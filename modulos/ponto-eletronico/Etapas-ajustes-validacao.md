@@ -195,14 +195,26 @@ Conferido em 03/11/2026 na app publicada, com a conta `TESTE.RH` e o backup das 
 | Modal fecha e a página 30 recebe o evento | Certo |
 | Baixar espelho (CSV com BOM e colunas certas) | Certo |
 | Página 32 não mostra o pedido da própria conta | Certo |
+| Página 32 mostra o pedido ao gestor direto, com as colunas certas | Certo, menos a hora de `Pedido em` |
+| Página 33: dados do pedido, só Aprovar e Recusar, botões no rodapé | Certo |
+| Recusar sem mensagem | Recusado, como previsto |
+| Recusar com mensagem | Certo: "Resposta registrada", e o pedido saiu da fila |
 
 **Ainda não testado na app:**
 
-- colunas da página 32 com dados e modal da página 33, que precisam de um pedido e de uma conta que possa aprová-lo;
+- aprovação de um pedido (a recusa foi testada; a aprovação só nos testes locais);
 - assinatura do espelho, inclusive o bloqueio com pedido em análise;
 - seletor de mês e "Ver mês completo", que precisam de uma conta com mais dados.
 
-**Dado de teste que ficou no banco:** na conta `TESTE.RH`, o comprovante nº 3 (retorno de 03/11/2026 às 09:02), que não pode ser apagado, e um pedido de abono de 03/11/2026 com o motivo "Teste de validação", pendente.
+**Dado de teste que ficou no banco:** na conta `TESTE.RH`, o comprovante nº 3 (retorno de 03/11/2026 às 09:02), que não pode ser apagado, e um pedido de abono de 03/11/2026 com o motivo "Teste de validação", recusado pelo gestor com a mesma mensagem.
+
+**Bug a corrigir no Builder: hora de `Pedido em` em UTC.** Na página 32, o pedido enviado às 09:01 aparece como 12:01. O `cast(a.dh_pedido as date)` mantém o fuso em que a hora foi gravada, sem converter para o da empresa. Na região `Pedidos pendentes`, em **Source › SQL Query**, troque a linha `cast(a.dh_pedido as date) as pedido_em,` por:
+
+```sql
+pkg_historico_carreira.fn_data_local(a.id_empresa, a.dh_pedido) as pedido_em,
+```
+
+Depois, envie um pedido de teste e confira na página 32 se a hora é a local. A troca ainda não foi testada.
 
 **Detalhes de texto, ainda sem correção:**
 

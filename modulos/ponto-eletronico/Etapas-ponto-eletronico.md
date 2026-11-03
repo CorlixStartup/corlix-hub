@@ -608,7 +608,7 @@ select a.id_ajuste,
        end as pedido,
        to_char(a.dh_solicitada, 'HH24:MI') as horario,
        a.ds_motivo as motivo,
-       cast(a.dh_pedido as date) as pedido_em,
+       pkg_historico_carreira.fn_data_local(a.id_empresa, a.dh_pedido) as pedido_em,
        'Responder' as responder
   from ponto_ajuste a
   join colaborador c on c.id_colaborador = a.id_colaborador
