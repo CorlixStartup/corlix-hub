@@ -10,7 +10,7 @@ Faça as seções na ordem. A seção 1 muda o banco; as seções 2 a 4 mudam a 
 | Média | `pkg_ponto` | Saída de hoje aprovada sem entrada trava o registro; pendência de assinatura some antes do prazo | 1 |
 | Média | Página 32 | Duas colunas "Pedido em" e data sem o formato certo | 3 |
 | Média | Página 33 | Provável opção em branco em **Resposta** | 4.1 |
-| Baixa | Páginas 30, 32 e 33 | Ordem do cabeçalho, template, posição dos botões e nome do processo | 2.2, 3, 4.2 |
+| Baixa | Páginas 30 e 33 | Faixa do cabeçalho, posição dos botões e nome do processo | 2.2, 4.2 |
 
 ---
 
@@ -76,11 +76,14 @@ Na árvore **Rendering**, clique em cada região e preencha **Advanced › HTML 
 
 Deve voltar `[]`. Qualquer nome na lista é uma região que ficou sem o id.
 
-### 2.2 Ordem do cabeçalho
+### 2.2 Faixa do cabeçalho
 
-O `Cabeçalho` e a `Coluna principal` estão ambos em Body com **Sequence 10**. Clique na região `Cabeçalho` e mude **Layout › Sequence** para `5`, para ele ficar sempre em cima.
+Na tela, o título da página 30 fica solto no fundo cinza. O protótipo mostra uma faixa branca, que a página 32 já tem: ela usa o template `Corlix Standard Page` e o cabeçalho em Breadcrumb Bar. Faça a página 30 igual:
 
-Compare o resultado com `pen_dev/Ponto eletrônico.png`. Se o título não ficar na faixa do protótipo, mande um print antes de mudar mais alguma coisa.
+1. No nó **Page 30**, mude **Appearance › Page Template** para o mesmo da página 32 (`Corlix Standard Page`; confirmar o nome no 26.1.5).
+2. Mova a região `Cabeçalho` de Body para **Breadcrumb Bar**: clique nela e mude **Layout › Slot** (confirmar no 26.1.5).
+
+Compare o resultado com `pen_dev/Ponto eletrônico.png`. A troca de template ainda não foi testada na página 30: se o layout quebrar, volte os dois passos e mande um print antes de mudar mais alguma coisa.
 
 ---
 
@@ -95,8 +98,6 @@ Na região `Pedidos pendentes`, abra **Columns** e ajuste:
 | `HORARIO` | Heading › Heading | `Horário` |
 | `PEDIDO_EM` | Heading › Heading | `Pedido em` |
 | `PEDIDO_EM` | Appearance › Format Mask | `DD/MM/YYYY HH24:MI` |
-
-No nó **Page 32**, mude **Appearance › Page Template** para **Standard**, o mesmo da página 30.
 
 ---
 
@@ -114,13 +115,19 @@ Clique em `P33_ST_AJUSTE` e mude **List of Values › Display Null Value** para 
 
 ---
 
-## 5. Testar
+## 5. Atalho da Início (outro assunto)
+
+Na Início publicada, o atalho **Ponto eletrônico** mostra "Este atalho ainda não tem destino configurado", embora a página 30 já exista. Isso vem da versão de `pkg_home_ui` instalada no banco. No repositório, `modulos/home/pkg_home_ui.pkb` já não tem esse atalho (protótipo de 28/10/2026), então o aviso some quando a versão atual da Home for instalada. Se o time quiser um atalho para o ponto na Início, é um ajuste do módulo da Home.
+
+---
+
+## 6. Testar
 
 Use uma conta **de teste**, com colaborador e gestor. **Marcações reais não podem ser apagadas**, então não registre ponto em nome de outra pessoa nem em conta de uso real.
 
 **Página 30, sem gravar nada**
 
-1. Recarregue com Cmd+Shift+R. O cabeçalho aparece em cima, e o teste do console do passo 2.1 volta `[]`.
+1. Recarregue com Cmd+Shift+R. O título fica na faixa branca, e o teste do console do passo 2.1 volta `[]`.
 2. Troque o mês no seletor: espelho e rodapé mudam sem recarregar.
 3. Abra **Ver comprovantes**, **Ver mês completo** e **Ver extrato**: cada um abre o seu diálogo, sem `Region does not support being opened and closed`.
 4. Abra **Solicitar ajuste** e clique em **Cancelar**. Mude entre as duas opções antes: os campos **Marcação** e **Horário** somem no abono.
@@ -142,8 +149,8 @@ Use uma conta **de teste**, com colaborador e gestor. **Marcações reais não p
 
 No próximo backup:
 
-- `corlixhub/pages/p00030-*.apx`: as 9 regiões com `advanced { htmlDomId: ponto_... }`, e `Cabeçalho` com `sequence: 5`.
-- `corlixhub/pages/p00032-*.apx`: `pageTemplate: @/standard`, `PEDIDO` sem `formatMask`, `PEDIDO_EM` com `formatMask`.
+- `corlixhub/pages/p00030-*.apx`: as 9 regiões com `advanced { htmlDomId: ponto_... }`, `pageTemplate: @corlix-standard-page` e `Cabeçalho` com `slot: breadcrumbBar`.
+- `corlixhub/pages/p00032-*.apx`: `PEDIDO` sem `formatMask`, `PEDIDO_EM` com `formatMask`.
 - `corlixhub/pages/p00033-*.apx`: `displayNullValue: false` em `P33_ST_AJUSTE`, região `Botões` com `slot: dialogFooter`.
 - `database/ddl/09-plsql-corpos.sql`: `PKG_PONTO` com a procedure `exigir`.
 
@@ -157,4 +164,4 @@ No próximo backup:
 | Saída aprovada travou o botão com "Jornada concluída" e sem entrada | Pedido aprovado antes da correção | O gestor não consegue desfazer: o dia precisa de um ajuste de entrada, que o colaborador pede em **Solicitar ajuste** |
 | Colaborador não consegue assinar: "Este mês tem pedido de ajuste em análise" | Regra nova: há pedido pendente naquele mês | O gestor ou o RH responde na página 32, e depois o colaborador assina |
 | `ORA-20012` ao testar `render_*` no SQL Commands | O SQL Workshop é uma sessão APEX sem `G_ID_EMPRESA` | Teste no SQLcl (`docs/ai-context/09`) |
-| `Page Template` **Standard** deixou a página 32 sem o cabeçalho | O Cabeçalho está em Breadcrumb Bar | Mande um print da página e da árvore antes de mudar mais |
+| Layout da página 30 quebrou depois de trocar o template | Troca do passo 2.2 ainda não testada | Volte o template e o slot, e mande um print da página e da árvore |
