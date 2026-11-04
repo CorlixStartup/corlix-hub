@@ -44,9 +44,9 @@ function orgObterDrawer() {
 function orgCarregarFotos(raiz) {
   if (!raiz) return;
   raiz.querySelectorAll("img[data-org-foto]").forEach(function (img) {
-    const caminho = img.dataset.orgFoto.split("/").map(encodeURIComponent).join("/");
+    const nome = img.dataset.orgFoto.split("/").pop();
     img.removeAttribute("data-org-foto");
-    img.src = apex.env.APP_FILES + caminho;
+    img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
   });
 }
 
