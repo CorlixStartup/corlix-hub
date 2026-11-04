@@ -124,8 +124,8 @@ Conferido com colaborador comum, depois da aplicação, lendo a estrutura e os e
 - **OK, testes 1 a 5:** faixa do topo sem a barra antiga, abas no card, dados pessoais com cadeados, nota e alerta, nome real da empresa, gaveta de foto e links de gestor, colegas, Conversar e Organograma.
 - **OK:** o perfil do gestor e o de um colega abrem sem abas, sem nascimento e sem botão de foto. Depois disso, **Meu perfil** volta para a própria pessoa.
 - **OK:** lista de colegas limitada a 6, com "e mais 70 na equipe". Nenhum erro no console.
-- **Corrigido depois dessa conferência, a aplicar:** a trajetória só tinha "Entrada na Corlix", porque vinha de `COLABORADOR_TRAJETORIA`. Agora vem do histórico de carreira.
-- **Faltam:** os testes 6 e 7, o 9 (celular), a etiqueta de tipo do teste 8 e os testes 10 a 13.
+- **OK, trajetória vinda do histórico:** a conta mostra o cargo atual com **Atual**, área, período e duração, seguido de "Entrada na Corlix", e bate com o Histórico de carreira. O perfil de um colega continua sem trajetória.
+- **Faltam:** os testes 6 e 7, o 9 (celular), a etiqueta de tipo do teste 8 e os testes 11 a 13.
 
 ## De onde vem a trajetória
 
