@@ -2,7 +2,7 @@
 
 Este guia corrige a falha achada na auditoria de LGPD de 04/11/2026 ([CD-73](https://corlix.youtrack.cloud/issue/CD-73)): pelo organograma, "Ver perfil completo" mostra a qualquer colega a data de nascimento completa, o login, a admissão e a trajetória de outra pessoa. Os caminhos são do **APEX 26.1.5**.
 
-São dois passos: reinstalar um package e pôr uma autorização na página 2. Nenhuma tabela muda, e o JavaScript da página fica como está.
+São dois passos: reinstalar um package e ajustar a página 2 (autorização e armazenamento de um item). Nenhuma tabela muda, e o JavaScript da página fica como está.
 
 ## Quem vê o quê
 
@@ -36,7 +36,9 @@ select line, position, text from user_errors
  where name = 'PKG_PERFIL' order by sequence
 ```
 
-## 2. Builder: autorização da página 2
+## 2. Builder: página 2
+
+### 2.1 Autorização
 
 Em *App Builder › aplicação 100 › página 2 › Page Designer*, clique no nome da página, à esquerda, e ajuste:
 
@@ -44,7 +46,17 @@ Em *App Builder › aplicação 100 › página 2 › Page Designer*, clique no 
 |---|---|---|
 | Security | Authorization Scheme | **COLABORADOR** |
 
-Salve. Quem é `ADMIN_RH` também passa nesse esquema.
+Quem é `ADMIN_RH` também passa nesse esquema.
+
+### 2.2 "Meu perfil" voltar para a própria pessoa
+
+Hoje o `P2_ID_COLABORADOR` fica guardado na sessão. Depois de abrir o perfil de alguém, o menu **Meu perfil** e o link do menu do usuário continuam mostrando essa pessoa, porque não mandam ID nenhum. Clique no item `P2_ID_COLABORADOR`, à esquerda, e ajuste:
+
+| Grupo | Atributo | Valor |
+|---|---|---|
+| Session State | Storage | **Per Request (Memory Only)** |
+
+Salve. O link do organograma continua levando o ID na URL.
 
 ## 3. Testar
 
@@ -54,10 +66,11 @@ Use três contas: a pessoa consultada, um colega sem relação de gestão com el
 |---|---|---|---|
 | 1 | Colega | Abra o perfil de outra pessoa | Cabeçalho, gestor e colegas. Sem abas **Trajetória** e **Dados pessoais**, sem nascimento e sem login. Aparece o aviso "A trajetória e os dados pessoais ficam visíveis só para a própria pessoa, a gestão e o RH." |
 | 2 | Colega | Procure **Alterar foto** nesse perfil | Nem o botão nem a câmera aparecem |
-| 3 | Colega | Abra **Minha carreira › Meu perfil** | As duas abas e **Alterar foto** |
+| 3 | Colega | Logo depois do teste 1, abra **Minha carreira › Meu perfil** | O **próprio** perfil, com as duas abas e **Alterar foto** |
 | 4 | Colega | Clique em **Alterar foto** no próprio perfil | O painel abre com **Escolher foto**. Antes ele podia ficar carregando sem parar |
 | 5 | Gestor | Abra o perfil de alguém da equipe | As duas abas, sem **Alterar foto** |
 | 6 | RH | Abra o perfil de outra pessoa | As duas abas, sem **Alterar foto** |
+| 7 | Colega | Depois do teste 3, abra **Ver perfil completo** de outra pessoa de novo | O perfil dessa outra pessoa, e não o próprio |
 
 Não clique em **Salvar foto**: esse botão ainda não tem ação no código.
 
@@ -68,12 +81,23 @@ Não clique em **Salvar foto**: esse botão ainda não tem ação no código.
 | `PLS-00201` citando `PKG_HISTORICO_CARREIRA` ou `PKG_ORGANOGRAMA` | Package ausente neste schema | Instale o módulo correspondente e rode o §1 de novo |
 | Todo perfil diz "Colaborador não encontrado." | `G_ID_EMPRESA` vazio na sessão, ou o login não bate com `COLABORADOR.LOGIN_APEX` nessa empresa | Saia e entre de novo. Depois confira o login da conta |
 | Página 2 diz "Sua conta não está vinculada a um colaborador desta empresa." | A conta não tem colaborador na empresa da sessão, e o esquema do §2 a barrou | Corrija o `LOGIN_APEX` do colaborador |
+| **Meu perfil** mostra outra pessoa | O §2.2 não foi aplicado ou não foi salvo | Aplique o §2.2. Para a sessão atual, saia e entre de novo |
+| "Ver perfil completo" abre sempre o próprio perfil | O item em memória não recebeu o ID da URL | Volte o §2.2 para **Per Session (Persistent)**, ponha *Clear Cache* `2` no destino da entrada **Meu perfil** do menu e troque o link do menu do usuário na página 0 para um destino com checksum. Avise o resultado |
 | Colega ainda vê a aba **Dados pessoais** | O corpo novo não foi instalado, ou a conta tem `ADMIN_RH` ou é gestora da pessoa | Rode o §1 de novo e confira os papéis da conta |
 | Erro ao abrir o perfil, citando `-20012` ou "não está vinculada a uma empresa" | Sessão sem empresa | Saia e entre de novo |
 
 ## Voltar atrás
 
-O corpo anterior está em `database/ddl/09-plsql-corpos.sql`, entre `CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_PERFIL"` e `end pkg_perfil;`. Rode esse trecho e limpe a autorização do §2.
+O corpo anterior está em `database/ddl/09-plsql-corpos.sql`, entre `CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_PERFIL"` e `end pkg_perfil;`. Rode esse trecho e desfaça o §2.
+
+## Situação na app (04/11/2026)
+
+Conferido com colaborador comum, depois da instalação:
+
+- **OK:** no perfil de um colega, nenhuma aba, nascimento, login, trajetória ou botão de foto, nem no HTML da página. O aviso aparece.
+- **OK:** o painel de foto recusa o ID de outra pessoa e abre para o próprio ID (chamada direta ao processo).
+- **Falhou, corrigido pelo §2.2:** **Meu perfil** continuava mostrando o colega aberto antes.
+- **Faltam:** os testes 3, 4 e 7 depois do §2.2, e os testes 5 e 6.
 
 ## Fora deste guia
 
