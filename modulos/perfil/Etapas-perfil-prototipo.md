@@ -125,7 +125,9 @@ Conferido com colaborador comum, depois da aplicação, lendo a estrutura e os e
 - **OK:** o perfil do gestor e o de um colega abrem sem abas, sem nascimento e sem botão de foto. Depois disso, **Meu perfil** volta para a própria pessoa.
 - **OK:** lista de colegas limitada a 6, com "e mais 70 na equipe". Nenhum erro no console.
 - **OK, trajetória vinda do histórico:** a conta mostra o cargo atual com **Atual**, área, período e duração, seguido de "Entrada na Corlix", e bate com o Histórico de carreira. O perfil de um colega continua sem trajetória.
-- **Faltam:** os testes 6 e 7, o 9 (celular), a etiqueta de tipo do teste 8 e os testes 11 a 13.
+- **OK, testes 7, 8 e 11, com o RH:** em três pessoas com promoção (dados de demonstração), um item por cargo, etiquetas **Atual** e **Promoção** legíveis, o motivo aparece e o período anterior termina antes da promoção. As duas abas aparecem, sem **Alterar foto**.
+- **OK, teste 12, em parte:** a conta `TESTE.RH` tem reajuste por mérito no Histórico de carreira, e ele não aparece na trajetória. Afastamento só foi testado em banco descartável.
+- **Faltam:** os testes 6 e 9 (celular), o teste 13 em pessoa com promoção e o caso de afastamento na app.
 
 ## De onde vem a trajetória
 
