@@ -3,7 +3,8 @@
 -- Mantém a restrição de acesso de Etapas-perfil-privacidade.md.
 -- Guia: Etapas-perfil-prototipo.md
 -- Depende de: PKG_HISTORICO_CARREIRA, PKG_ORGANOGRAMA, VW_ORG_COLABORADOR,
--- COLABORADOR, COLABORADOR_TRAJETORIA, EMPRESA e do item G_ID_EMPRESA.
+-- COLABORADOR, CARGO, DEPARTAMENTO, EMPRESA, HISTORICO_CARREIRA, VW_MOVIMENTACAO_VALIDA
+-- e do item G_ID_EMPRESA.
 -- =============================================================================
 create or replace package body pkg_perfil as
 
@@ -210,34 +211,118 @@ create or replace package body pkg_perfil as
     return g_html;
   end render_cabecalho;
 
-  procedure render_trajetoria (p_c in vw_org_colaborador%rowtype, p_nome_curto in varchar2) is
+  -- Períodos de cargo e área vindos do histórico de carreira. Só entram movimentações
+  -- efetivadas, sem estorno e que mudam cargo ou área: reajuste, afastamento e retorno
+  -- nunca aparecem, e a view usada não tem salário.
+  procedure render_trajetoria (
+    p_c          in vw_org_colaborador%rowtype,
+    p_nome_curto in varchar2,
+    p_id_empresa in number
+  ) is
+    type t_periodo is record (
+      cargo  varchar2(400),
+      depto  varchar2(400),
+      tipo   varchar2(100),
+      motivo varchar2(1000),
+      ini    date,
+      fim    date,
+      atual  boolean
+    );
+    type t_periodos is table of t_periodo index by pls_integer;
+
+    l_hoje      constant date := pkg_historico_carreira.fn_hoje(p_id_empresa);
+    l_id        constant number := p_c.id_colaborador;
+    l_per       t_periodos;
+    l_n         pls_integer := 0;
+    l_aberto    boolean := false;
+    l_id_cargo  number;
+    l_id_depto  number;
+    l_nm_cargo  varchar2(400);
+    l_nm_depto  varchar2(400);
+    l_cargo_ini varchar2(400);
   begin
+    for r in (
+      select v.cd_tipo, v.ds_tipo, v.dt_efetiva, v.id_cargo_novo, v.id_departamento_novo,
+             cg.nome as nm_cargo, dp.nome as nm_depto, h.ds_motivo
+        from vw_movimentacao_valida v
+        join historico_carreira h on h.id_historico_carreira = v.id_historico_carreira
+        left join cargo cg on cg.id_cargo = v.id_cargo_novo
+        left join departamento dp on dp.id_departamento = v.id_departamento_novo
+       where v.id_colaborador = l_id
+         and v.id_empresa = p_id_empresa
+         and v.dt_efetiva <= l_hoje
+         and v.cd_tipo in ('ADMISSAO', 'PROMOCAO', 'MUDANCA_CARGO', 'TRANSFERENCIA_DEPTO', 'DESLIGAMENTO')
+       order by v.dt_efetiva, v.id_historico_carreira
+    ) loop
+      if r.cd_tipo = 'DESLIGAMENTO' then
+        if l_aberto then
+          l_per(l_n).fim := r.dt_efetiva;
+          l_aberto := false;
+        end if;
+      elsif r.cd_tipo = 'ADMISSAO'
+         or not l_aberto
+         or coalesce(r.id_cargo_novo, l_id_cargo) <> l_id_cargo
+         or coalesce(r.id_departamento_novo, l_id_depto) <> l_id_depto
+      then
+        if l_aberto then
+          -- O período anterior vai até a véspera da mudança
+          l_per(l_n).fim := greatest(r.dt_efetiva - 1, l_per(l_n).ini);
+        end if;
+
+        -- Transferência ou promoção pode não informar um dos dois: vale o que já estava
+        l_id_cargo := coalesce(r.id_cargo_novo, l_id_cargo);
+        l_id_depto := coalesce(r.id_departamento_novo, l_id_depto);
+        l_nm_cargo := coalesce(r.nm_cargo, l_nm_cargo);
+        l_nm_depto := coalesce(r.nm_depto, l_nm_depto);
+
+        l_n := l_n + 1;
+        l_per(l_n).cargo  := coalesce(l_nm_cargo, p_c.cargo);
+        l_per(l_n).depto  := coalesce(l_nm_depto, p_c.departamento);
+        l_per(l_n).tipo   := case when r.cd_tipo <> 'ADMISSAO' then r.ds_tipo end;
+        l_per(l_n).motivo := case when r.cd_tipo <> 'ADMISSAO' then substr(r.ds_motivo, 1, 1000) end;
+        l_per(l_n).ini    := r.dt_efetiva;
+        l_aberto := true;
+      end if;
+    end loop;
+
+    if l_aberto then
+      l_per(l_n).atual := true;
+    elsif l_n = 0 then
+      -- Quem ainda não tem histórico mostra o cargo atual, desde a admissão
+      l_n := 1;
+      l_per(1).cargo := p_c.cargo;
+      l_per(1).depto := p_c.departamento;
+      l_per(1).ini   := p_c.data_admissao;
+      l_per(1).atual := true;
+    end if;
+
+    l_cargo_ini := l_per(1).cargo;
+
     p('<div class="perfil-tab-conteudo is-active" id="tab-trajetoria" role="tabpanel">');
     p('<ul class="perfil-timeline">');
 
-    for t in (select * from colaborador_trajetoria
-               where id_colaborador = p_c.id_colaborador
-               order by data_inicio desc)
-    loop
+    for i in reverse 1 .. l_n loop
       p('<li class="perfil-timeline__item">');
-      p('<div class="perfil-timeline__ponto' || case when t.status_atual = 'S' then ' is-atual' end || '"></div>');
+      p('<div class="perfil-timeline__ponto' || case when l_per(i).atual then ' is-atual' end || '"></div>');
       p('<div class="perfil-timeline__corpo">');
       p('<div class="perfil-timeline__cab">');
-      p('<strong class="perfil-timeline__titulo">' || e(t.titulo_evento) || '</strong>');
-      if t.status_atual = 'S' then
+      p('<strong class="perfil-timeline__titulo">' || e(l_per(i).cargo) || '</strong>');
+      if l_per(i).atual then
         p('<span class="perfil-tag perfil-tag--atual">Atual</span>');
       end if;
-      if t.tipo_evento is not null then
-        p('<span class="perfil-tag">' || e(t.tipo_evento) || '</span>');
+      if l_per(i).tipo is not null then
+        p('<span class="perfil-tag">' || e(l_per(i).tipo) || '</span>');
       end if;
       p('</div>');
-      p('<p class="perfil-timeline__sub">'
-        || case when t.departamento is not null then e(t.departamento) || ' &middot; ' end
-        || mes_ano(t.data_inicio)
-        || case when t.data_fim is not null then ' &ndash; ' || mes_ano(t.data_fim) else ' &ndash; atual' end
-        || ' &middot; ' || duracao(t.data_inicio, t.data_fim) || '</p>');
-      if t.descricao is not null then
-        p('<p class="perfil-timeline__desc">' || e(t.descricao) || '</p>');
+      if l_per(i).ini is not null then
+        p('<p class="perfil-timeline__sub">'
+          || case when l_per(i).depto is not null then e(l_per(i).depto) || ' &middot; ' end
+          || mes_ano(l_per(i).ini)
+          || case when l_per(i).atual then ' &ndash; atual' else ' &ndash; ' || mes_ano(l_per(i).fim) end
+          || ' &middot; ' || duracao(l_per(i).ini, case when l_per(i).atual then l_hoje else l_per(i).fim end) || '</p>');
+      end if;
+      if l_per(i).motivo is not null then
+        p('<p class="perfil-timeline__desc">' || e(l_per(i).motivo) || '</p>');
       end if;
       p('</div>');
       p('</li>');
@@ -247,8 +332,10 @@ create or replace package body pkg_perfil as
     p('<div class="perfil-timeline__ponto"></div>');
     p('<div class="perfil-timeline__corpo">');
     p('<div class="perfil-timeline__cab"><strong class="perfil-timeline__titulo">Entrada na ' || e(p_nome_curto) || '</strong></div>');
-    p('<p class="perfil-timeline__sub">' || to_char(p_c.data_admissao, 'fmdd "de" month "de" yyyy', 'NLS_DATE_LANGUAGE=''BRAZILIAN PORTUGUESE''') || '</p>');
-    p('<p class="perfil-timeline__desc">Início como ' || e(p_c.cargo) || '.</p>');
+    if p_c.data_admissao is not null then
+      p('<p class="perfil-timeline__sub">' || to_char(p_c.data_admissao, 'fmdd "de" month "de" yyyy', 'NLS_DATE_LANGUAGE=''BRAZILIAN PORTUGUESE''') || '</p>');
+    end if;
+    p('<p class="perfil-timeline__desc">Início como ' || e(l_cargo_ini) || '.</p>');
     p('</div>');
     p('</li>');
 
@@ -344,7 +431,7 @@ create or replace package body pkg_perfil as
       p('<button type="button" class="perfil-tab-btn is-active" role="tab" data-tab="trajetoria">Trajetória</button>');
       p('<button type="button" class="perfil-tab-btn" role="tab" data-tab="dados-pessoais">Dados pessoais</button>');
       p('</div>');
-      render_trajetoria(l_c, l_nome_curto);
+      render_trajetoria(l_c, l_nome_curto, l_emp);
       render_dados(l_c, l_nome_empresa, case when l_tem_gestor then l_gestor.nome_completo end);
     else
       p('<p class="perfil-nota perfil-nota--bloco">' || c_ico_cadeado || '<span>A trajetória e os dados pessoais ficam visíveis só para a própria pessoa, a gestão e o RH.</span></p>');

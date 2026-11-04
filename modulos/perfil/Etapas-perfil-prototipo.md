@@ -12,12 +12,14 @@ Faça as três seções em sequência: entre a 1 e a 2, a página fica sem o cab
 |---|---|---|
 | Topo | Barra "Meu Perfil" e um card com o cabeçalho | Faixa branca de ponta a ponta, com avatar, nome, cargo, tempo de casa, e-mail e **Alterar foto** |
 | Abas | Fora do card, com o texto ativo em azul | Dentro do card, com o texto ativo escuro e a linha azul |
-| Trajetória | Sem etiqueta de tipo e sem duração | Etiquetas **Atual** e de tipo, período por extenso e duração |
+| Trajetória | Vinda de `COLABORADOR_TRAJETORIA`, sem etiqueta de tipo e sem duração | Vinda do histórico de carreira, com etiquetas **Atual** e de tipo, período por extenso e duração |
 | Dados pessoais | Rótulos em maiúsculas, sem aviso | Cadeado em nascimento e login, nota de visibilidade e alerta azul |
 | Empresa | "Corlix" fixo no código | Nome da empresa da sessão |
 | Gestor direto | Sem ações | Nome com link, **Conversar** e **Organograma** |
 | Colegas | Lista inteira | Até 6 pessoas, "e mais N na equipe" e rodapé |
 | Painel de foto | Janela central | Gaveta à direita, com alerta e botão **Salvar foto** escuro |
+
+> **Se você já aplicou este guia antes da trajetória vir do histórico:** rode só o `.pkb` do §1 e faça os testes 10 a 13 do §4.
 
 ## 1. Banco: reinstalar o package
 
@@ -93,6 +95,10 @@ Limpe o cache do navegador antes (`Cmd+Shift+R`). Compare com os protótipos e u
 | 7 | RH | Abra o perfil de outra pessoa | As duas abas, sem **Alterar foto** |
 | 8 | Qualquer uma | Confira a etiqueta de tipo e "Na … desde" | Texto legível, sem código como `PROMOCAO`, e o nome curto da empresa. Se vier estranho, mande um print |
 | 9 | Qualquer uma | Reduza a janela até a largura de um celular | Sem rolagem horizontal; os cards ficam um embaixo do outro |
+| 10 | Colega sem movimentações | Abra **Meu perfil** | Cargo atual com **Atual**, desde a admissão, e "Entrada na …" |
+| 11 | Quem tem promoção | Abra **Meu perfil** | Um item por cargo, com a etiqueta **Promoção** e o período anterior terminando no mês certo |
+| 12 | RH | Abra quem tem reajuste por mérito ou afastamento | Esses registros **não** aparecem na trajetória do perfil; continuam só no Histórico de carreira |
+| 13 | RH | Compare com o Histórico de carreira da mesma pessoa | Os cargos e as datas batem |
 
 Não clique em **Salvar foto**: esse botão ainda não tem ação no código.
 
@@ -118,8 +124,18 @@ Conferido com colaborador comum, depois da aplicação, lendo a estrutura e os e
 - **OK, testes 1 a 5:** faixa do topo sem a barra antiga, abas no card, dados pessoais com cadeados, nota e alerta, nome real da empresa, gaveta de foto e links de gestor, colegas, Conversar e Organograma.
 - **OK:** o perfil do gestor e o de um colega abrem sem abas, sem nascimento e sem botão de foto. Depois disso, **Meu perfil** volta para a própria pessoa.
 - **OK:** lista de colegas limitada a 6, com "e mais 70 na equipe". Nenhum erro no console.
-- **Não atende ao protótipo:** a trajetória dessa conta só tem "Entrada na Corlix", sem o cargo atual nem as etiquetas, porque ela não tem linhas em `COLABORADOR_TRAJETORIA`.
-- **Faltam:** os testes 6 e 7, o 9 (celular) e a etiqueta de tipo do teste 8, que não apareceu nessa conta.
+- **Corrigido depois dessa conferência, a aplicar:** a trajetória só tinha "Entrada na Corlix", porque vinha de `COLABORADOR_TRAJETORIA`. Agora vem do histórico de carreira.
+- **Faltam:** os testes 6 e 7, o 9 (celular), a etiqueta de tipo do teste 8 e os testes 10 a 13.
+
+## De onde vem a trajetória
+
+- **Fonte:** `VW_MOVIMENTACAO_VALIDA` e `HISTORICO_CARREIRA`. Só entram registros efetivados, sem estorno e já vigentes.
+- **O que vira item:** admissão, promoção, mudança de cargo e transferência de área, quando mudam o cargo ou a área. Desligamento encerra o período.
+- **O que fica de fora:** mérito, afastamento, retorno, jornada, efetivação de contrato e mudança de gestão. Nenhum valor de salário é lido.
+- **Quem vê:** a própria pessoa, a linha de gestão e o RH, a mesma regra do Histórico de carreira.
+- **Sem histórico:** aparece o cargo atual, desde a admissão.
+
+`COLABORADOR_TRAJETORIA` deixou de ser usada pela página e não foi apagada. Antes de apagá-la, confira se ela tem dados que não estão no histórico.
 
 ## O que fica diferente do protótipo
 
@@ -127,5 +143,5 @@ Conferido com colaborador comum, depois da aplicação, lendo a estrutura e os e
 - **Salvar foto:** o botão existe, mas continua sem ação. Depende da decisão sobre onde guardar as fotos (CD-73).
 - **Colegas:** o protótipo só mostra uma pessoa. Com equipes grandes, a lista para em 6.
 - **Conversar:** abre o Chat, como o atalho da Início, sem abrir a conversa com o gestor.
-- **Trajetória:** vem de `COLABORADOR_TRAJETORIA`, e não de `HISTORICO_CARREIRA`. Quem não tem linhas nessa tabela só vê "Entrada na …", mesmo com movimentações no Histórico de carreira.
+- **Descrição na trajetória:** o protótipo mostra uma descrição da função, que o sistema não guarda. No lugar dela aparece o motivo registrado pelo RH na movimentação, quando existe; muitas linhas ficam sem texto.
 - **Itens do menu:** Avaliações, Resultados 360, Plano de desenvolvimento e Feedbacks não fazem parte deste guia.
