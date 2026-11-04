@@ -187,7 +187,7 @@ Notas da tabela:
 ### Página 2 — Meu Perfil (`p00002-meu-perfil.apx`)
 Implementada: Dynamic Content `pkg_perfil.render(:P2_ID_COLABORADOR)` e processo Ajax `PERFIL_DRAWER_FOTO`. A descrição antiga, de placeholder, estava desatualizada.
 
-> **Correção pendente no Builder (auditoria de LGPD de 04/11/2026):** hoje qualquer colega vê a data de nascimento, o login e a trajetória de outra pessoa pelo link "Ver perfil completo" do organograma, e a página não tem autorização própria. Corrigir pelo `modulos/perfil/Etapas-perfil-privacidade.md`.
+> **Restrição de LGPD aplicada em 04/11/2026** (`modulos/perfil/Etapas-perfil-privacidade.md`): trajetória e dados pessoais só para a própria pessoa, a linha de gestão e o RH. `P2_ID_COLABORADOR` passou a *Per Request (Memory Only)*. Testado na app com colaborador, gestor e RH. A autorização `COLABORADOR` da página ainda não foi conferida no export.
 
 ### Página 3 — Organograma (`p00003-organograma.apx`)
 Placeholder idêntico à 2. O módulo real está sendo desenvolvido fora do app em `modulos/organograma/` (`organograma.sql/.js/.css`, `Etapas-organograma.md`, PNGs de redesign — tudo não commitado/modificado); ainda não há região/JS na página.

@@ -11,7 +11,7 @@
 | `modulos/historico-carreira/` | versionado | p. 13 `Histórico de carreira` (`p00013-historico-de-carreira.apx`) + páginas 18–23 | **Sim** (revalidado em 19/10/2026). Guia e checklist: `Etapas-historico-carreira.md` §1–§9 |
 | `modulos/home/` | versionado | p. 1 `Início` (o redesign foi montado direto na p. 1; a p. 28 não existe) | **Sim** até o §5 do guia (protótipo antigo). Protótipo de 28/10/2026: **não** ainda, montar pelo §6 do `Etapas-home.md` |
 | `modulos/dashboard-rh/` | versionado (27/10/2026) | p. 20 `Dashboard RH` (redesign na própria página) | **Não** ainda: montar pelo `Etapas-dashboard-rh.md` |
-| `modulos/perfil/` | versionado (04/11/2026) | p. 2 `Meu Perfil` | **Não** ainda: aplicar `Etapas-perfil-privacidade.md` | `01_pkg_perfil.pkb` |
+| `modulos/perfil/` | versionado (04/11/2026) | p. 2 `Meu Perfil` | **Sim** (04/11/2026), testado com colaborador, gestor e RH: `Etapas-perfil-privacidade.md` | `01_pkg_perfil.pkb` |
 | `modulos/tema/` | **untracked** | todas (tema global) | documentado em `04-tema-e-estilos.md` |
 | `modulos/perfis-acesso/` | versionado | p. 14 `Cadastro de Usuários` | **Sim** na app (papéis `colaborador`/`gestor`/`admin-rh`, authorization `ADMIN_RH`, processo e LOV de gestor na P14); SQL instalado no banco em 06/10/2026, com papéis vinculados à mão aos cargos antigos. Guia: `Etapas-perfis-acesso.md`; histórico: `Registro-implantacao.md` |
 | `modulos/empresas/` | versionado | p. 16 `Cadastro de Empresas` | **Sim** (01 e 02, confirmados no DDL do backup de 27/10/2026) | `01_data_criacao_opcional.sql`: `EMPRESA.DATA_CRIACAO` passa a aceitar NULL; `02_complemento_100.sql`: `EMPRESA.COMPLEMENTO` de 30 para 100 caracteres (idempotentes). Sem package nem página própria |

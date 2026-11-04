@@ -99,7 +99,10 @@ Conferido com colaborador comum, depois da instalação e do §2.2:
 - **OK, teste 7:** **Ver perfil completo** de outro colega abre a pessoa certa.
 - **OK:** o painel de foto recusa o ID de outra pessoa (chamada direta ao processo).
 - **OK, teste 6:** o RH vê as duas abas no perfil de outra pessoa, sem **Alterar foto**. O painel de foto recusa o ID dessa pessoa e abre para o próprio.
-- **Falta:** o teste 5 (gestor), até aqui só testado em banco descartável.
+- **OK, teste 5:** o gestor vê as duas abas no perfil de alguém da equipe, sem **Alterar foto**. O painel de foto recusa o ID dessa pessoa.
+- **OK, teste extra:** o gestor não vê os dados pessoais do próprio gestor.
+- **A confirmar:** a autorização do §2.1 aparecer no próximo backup, em `corlixhub/pages/p00002-meu-perfil.apx`.
+- **Sem teste na app:** conta de outra empresa (CD-61).
 
 ## Fora deste guia
 
