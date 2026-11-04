@@ -40,7 +40,7 @@ function orgObterDrawer() {
 }
 
 /* Fotos: o PL/SQL manda o caminho em data-org-foto ("Fotos Colaboradores/x.jpg");
-   aqui vira URL dos Static Application Files. Sem foto, ficam as iniciais. */
+   aqui vira URL da página 44, que entrega a foto do bucket privado. Sem foto, ficam as iniciais. */
 function orgCarregarFotos(raiz) {
   if (!raiz) return;
   raiz.querySelectorAll("img[data-org-foto]").forEach(function (img) {
