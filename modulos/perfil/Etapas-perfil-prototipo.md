@@ -111,6 +111,16 @@ Não clique em **Salvar foto**: esse botão ainda não tem ação no código.
 
 Rode `modulos/perfil/01_pkg_perfil.pkb` e a especificação anterior, em `database/ddl/08-plsql-especificacoes.sql`. Na página 2, apague a região do §3.1 e recrie a **Breadcrumb**. Restaure o CSS antigo a partir de `corlixhub/shared-components/static-files/`.
 
+## Situação na app
+
+Conferido com colaborador comum, depois da aplicação, lendo a estrutura e os estilos da página, sem comparar imagens:
+
+- **OK, testes 1 a 5:** faixa do topo sem a barra antiga, abas no card, dados pessoais com cadeados, nota e alerta, nome real da empresa, gaveta de foto e links de gestor, colegas, Conversar e Organograma.
+- **OK:** o perfil do gestor e o de um colega abrem sem abas, sem nascimento e sem botão de foto. Depois disso, **Meu perfil** volta para a própria pessoa.
+- **OK:** lista de colegas limitada a 6, com "e mais 70 na equipe". Nenhum erro no console.
+- **Não atende ao protótipo:** a trajetória dessa conta só tem "Entrada na Corlix", sem o cargo atual nem as etiquetas, porque ela não tem linhas em `COLABORADOR_TRAJETORIA`.
+- **Faltam:** os testes 6 e 7, o 9 (celular) e a etiqueta de tipo do teste 8, que não apareceu nessa conta.
+
 ## O que fica diferente do protótipo
 
 - **Recorte de foto:** o texto do protótipo promete ajustar o recorte quadrado. O recurso não existe, então a frase saiu.
