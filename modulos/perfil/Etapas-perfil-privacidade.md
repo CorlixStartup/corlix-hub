@@ -98,7 +98,8 @@ Conferido com colaborador comum, depois da instalação e do §2.2:
 - **OK, testes 3 e 4:** logo depois, **Meu perfil** volta para a própria pessoa, com as duas abas, e o painel de foto abre pelo botão.
 - **OK, teste 7:** **Ver perfil completo** de outro colega abre a pessoa certa.
 - **OK:** o painel de foto recusa o ID de outra pessoa (chamada direta ao processo).
-- **Faltam:** os testes 5 (gestor) e 6 (RH).
+- **OK, teste 6:** o RH vê as duas abas no perfil de outra pessoa, sem **Alterar foto**. O painel de foto recusa o ID dessa pessoa e abre para o próprio.
+- **Falta:** o teste 5 (gestor), até aqui só testado em banco descartável.
 
 ## Fora deste guia
 
