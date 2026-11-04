@@ -92,12 +92,13 @@ O corpo anterior está em `database/ddl/09-plsql-corpos.sql`, entre `CREATE OR R
 
 ## Situação na app (04/11/2026)
 
-Conferido com colaborador comum, depois da instalação:
+Conferido com colaborador comum, depois da instalação e do §2.2:
 
-- **OK:** no perfil de um colega, nenhuma aba, nascimento, login, trajetória ou botão de foto, nem no HTML da página. O aviso aparece.
-- **OK:** o painel de foto recusa o ID de outra pessoa e abre para o próprio ID (chamada direta ao processo).
-- **Falhou, corrigido pelo §2.2:** **Meu perfil** continuava mostrando o colega aberto antes.
-- **Faltam:** os testes 3, 4 e 7 depois do §2.2, e os testes 5 e 6.
+- **OK, testes 1 e 2:** no perfil de um colega, nenhuma aba, nascimento, login, trajetória ou botão de foto, nem no HTML da página. O aviso aparece.
+- **OK, testes 3 e 4:** logo depois, **Meu perfil** volta para a própria pessoa, com as duas abas, e o painel de foto abre pelo botão.
+- **OK, teste 7:** **Ver perfil completo** de outro colega abre a pessoa certa.
+- **OK:** o painel de foto recusa o ID de outra pessoa (chamada direta ao processo).
+- **Faltam:** os testes 5 (gestor) e 6 (RH).
 
 ## Fora deste guia
 
