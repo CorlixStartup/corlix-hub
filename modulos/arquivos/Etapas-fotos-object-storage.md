@@ -36,13 +36,14 @@ Depois de criar, confira:
 O acesso é de um usuário técnico que só lê esse bucket.
 
 1. Em *Identity & Security › Domains › (seu domínio)*, crie:
-   - o usuário `corlix-hub-fotos`, sem acesso ao Console, se a tela oferecer essa opção;
+   - o usuário `corlix-hub-fotos`, com **Use the email address as the username** desligado e um e-mail do time. Depois de criar, em **Edit user capabilities**, deixe ligado só **API keys**;
    - o grupo `corlix-hub-fotos`, com esse usuário dentro.
-2. Em *Identity & Security › Policies*, crie uma policy no compartimento do bucket, trocando `<compartimento>`:
+2. Em *Identity & Security › Policies › Create Policy*, preencha **Name** e **Description**, escolha em **Compartment** o mesmo compartimento do bucket e clique em **Show manual editor**. Cole uma destas linhas:
 
-   ```text
-   Allow group corlix-hub-fotos to read objects in compartment <compartimento> where target.bucket.name = 'corlix-fotos'
-   ```
+   | Onde está o bucket | Linha |
+   |---|---|
+   | No compartimento raiz (root) | `Allow group corlix-hub-fotos to read objects in tenancy where target.bucket.name = 'corlix-fotos'` |
+   | Em outro compartimento | `Allow group corlix-hub-fotos to read objects in compartment <compartimento> where target.bucket.name = 'corlix-fotos'` |
 
    Se o grupo estiver num domínio que não seja o padrão, escreva `'<domínio>'/'corlix-hub-fotos'`.
 3. No usuário, em *API Keys › Add API Key*, gere o par de chaves e baixe a chave privada. Anote o **User OCID**, o **Tenancy OCID** e o **Fingerprint** que aparecem no final.
