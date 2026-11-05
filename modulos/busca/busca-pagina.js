@@ -7,12 +7,12 @@
 // ---- BLOCO 1 · Function and Global Variable Declaration ---------------------
 
 // O pkg_busca_ui manda as fotos como data-cx-foto="Fotos Colaboradores/x.jpg".
-// Aqui o caminho vira URL da pasta de arquivos do app (#APP_FILES#).
+// Aqui o nome vira URL da página 44, que entrega a foto do bucket privado.
 function cxBuscaCarregarFotos(raiz) {
   (raiz || document).querySelectorAll("img[data-cx-foto]").forEach(function (img) {
-    const caminho = img.dataset.cxFoto.split("/").map(encodeURIComponent).join("/");
+    const nome = img.dataset.cxFoto.split("/").pop();
     img.removeAttribute("data-cx-foto");
-    img.src = apex.env.APP_FILES + caminho;
+    img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
   });
 }
 
