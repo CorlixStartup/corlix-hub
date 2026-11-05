@@ -292,6 +292,9 @@ dialog.org-drawer::backdrop { background: rgba(0, 0, 0, .4); }
 }
 .perfil-modal-instrucoes { margin: 8px 0 0; font-size: .875rem; color: var(--cx-texto-2, #57534F); }
 .perfil-modal-arquivo { display: none; }
+.perfil-modal-status { min-height: 1.25rem; margin: 0; font-size: .875rem; color: var(--cx-texto-2, #57534F); }
+.perfil-modal-status.is-erro { color: var(--cx-alerta, #B3261E); }
+.perfil-btn:disabled { opacity: .55; cursor: not-allowed; }
 .perfil-modal-corpo .perfil-alerta { align-self: stretch; margin-top: 12px; }
 .perfil-modal-rodape {
   display: flex;
