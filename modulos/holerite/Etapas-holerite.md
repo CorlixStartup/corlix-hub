@@ -25,10 +25,17 @@ Como nos outros guias, a mudança é feita no Builder. O backup diário traz o r
 | Números | `2,875.44` (formato do idioma técnico da app) | `2.875,44` |
 | Acesso | Sem autorização própria | **COLABORADOR** na página e no menu, como nas páginas 13 e 30 |
 | Geração da folha | Ao abrir a página, com gravação e `COMMIT`, para qualquer mês escolhido | Fora da página: carga única e job mensal (§1.2 e §1.3) |
+| Quando o holerite aparece | Em qualquer data | **A partir do dia 25 do mês** (veja abaixo) |
 
 ### Por que a geração saiu da página
 
 O `pkg_holerite.render` chama `gerar_folha_mensal` quando o mês escolhido não tem nenhum holerite. Na prática, qualquer pessoa logada que escolhesse um mês vazio gerava a folha de **todos** os colaboradores, inclusive de meses futuros, como dezembro de 2027. O `pkg_holerite_ui` só lê. `pkg_holerite.gerar_folha_mensal` continua igual, e `pkg_holerite.render` fica no banco para o caso de voltar atrás.
+
+### A regra do dia 25
+
+O holerite do mês aparece a partir do dia 25. Em 24/11, o mais recente é o de outubro; em 25/11, entra o de novembro.
+
+A regra vale em dois lugares, com o mesmo valor: `c_dia_liberacao` em `pkg_holerite_ui` e em `prc_gerar_holerites_pendentes`. Se o dia mudar, altere os dois e o horário do job. A data de "hoje" da tela usa o fuso da empresa (`pkg_historico_carreira.fn_hoje`). O job roda às 06:00 no fuso do banco, então o holerite pode levar algumas horas para aparecer no dia 25.
 
 ### Arquivos do módulo
 
@@ -46,6 +53,8 @@ Não há tabela nova.
 ---
 
 ## 1. Banco
+
+> **Se você já rodou este §1 antes da regra do dia 25:** instale de novo a procedure e o package (§1.1). Se a carga única já rodou, ela pode ter criado o mês atual: confira com a consulta do §1.2 e apague esse mês antes do dia 25, como explicado lá, para que o job o gere com os valores do dia.
 
 ### 1.1 Instalar
 
@@ -94,7 +103,7 @@ begin prc_gerar_holerites_pendentes; end;
 
 O padrão começa em junho de 2026. Para começar em outro mês, use `p_inicio => date '2026-01-01'`.
 
-A consulta acima pode mostrar meses futuros criados pela geração antiga. A página **não mostra** esses meses, então nada precisa ser apagado agora. Eles passam a aparecer quando o mês chegar, com os valores gravados naquela data. Se preferir que sejam recalculados, apague-os antes: `delete from colaborador_holerite where ano_referencia * 100 + mes_referencia > to_number(to_char(sysdate, 'YYYYMM'))`. Os itens saem junto, em cascata.
+A carga vai até o último mês liberado: antes do dia 25, para no mês anterior. A consulta acima pode mostrar o mês atual ou meses futuros criados pela geração antiga. A página **não mostra** esses meses antes do dia 25 de cada um, então nada precisa ser apagado agora. Eles passam a aparecer nessa data, com os valores gravados na época. Como o job não refaz um mês que já tem folha, é melhor apagá-los para que sejam recalculados no dia 25. Confira antes o que será apagado e rode em um dia anterior ao 25: `delete from colaborador_holerite where ano_referencia * 100 + mes_referencia >= to_number(to_char(sysdate, 'YYYYMM'))`. Os itens saem junto, em cascata.
 
 ### 1.3 Criar o job mensal
 
@@ -230,8 +239,10 @@ Limpe o cache do navegador antes (`Cmd+Shift+R`). Compare com o protótipo.
 | 13 | Conta sem colaborador | Abra a página pela URL | Acesso negado, com "Sua conta não está vinculada a um colaborador desta empresa." |
 | 14 | Colaborador com holerites | Abra a página e confira, antes e depois, o `count(*)` de `colaborador_holerite` | O total não muda |
 | 15 | Qualquer uma | Reduza a janela até a largura de um celular | Sem rolagem horizontal; a lista desce para baixo do detalhamento, e a coluna Referência some |
+| 16 | Colaborador com holerites, antes do dia 25 | Abra **Holerite**, mesmo que o mês atual já tenha folha gravada | O mais recente é o do mês anterior; o mês atual não está na lista |
+| 17 | A mesma, a partir do dia 25 | Abra **Holerite** depois da execução do job | O mês atual aparece primeiro, com o selo **Pagamento agendado** |
 
-O selo **Pagamento agendado** só aparece entre a geração e a data de pagamento, ou seja, a partir do dia 25. Fora desse período, a tela mostra **Pago**.
+O selo **Pagamento agendado** só aparece do dia 25 até a véspera da data de pagamento. Depois disso, a tela mostra **Pago**.
 
 ## Se não funcionar
 
@@ -239,6 +250,7 @@ O selo **Pagamento agendado** só aparece entre a geração e a data de pagament
 |---|---|---|
 | `PLS-00201` citando `PKG_HOLERITE` ou `PKG_HISTORICO_CARREIRA` | Package ausente neste schema | Instale o que falta e rode o §1.1 de novo |
 | `ORA-27486` ao criar o job | O schema não tem o privilégio `CREATE JOB` | Peça ao administrador do banco o `grant create job`, ou crie uma *Automation* no APEX que chame `prc_gerar_holerites_pendentes` |
+| O holerite do mês não apareceu no dia 25 | O job ainda não rodou, ou falhou | Confira `user_scheduler_job_run_details` e, se preciso, rode `begin prc_gerar_holerites_pendentes; end;` |
 | Lista com poucos meses | O §1.2 não foi feito, ou a pessoa foi admitida no meio do período | Rode o §1.2. Meses anteriores à admissão não aparecem de propósito |
 | Página sem estilo | CSS não enviado, ou nome diferente | Confira o §2 e `Cmd+Shift+R` |
 | Faixa branca sem título | Região do §3.3 ausente ou fora de **Breadcrumb Bar** | Confira o §3.3 |
