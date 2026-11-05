@@ -185,7 +185,9 @@ Notas da tabela:
   - Após fechar o modal 17 não há DA `apexafterclosedialog` para atualizar a lista de comunicados (e a 17 nem fecha o diálogo — ver página 17).
 
 ### Página 2 — Meu Perfil (`p00002-meu-perfil.apx`)
-Placeholder: só região `breadcrumb` (type breadcrumb, `@breadcrumb`, slot breadcrumbBar, @/title-bar com `t-BreadcrumbRegion--useBreadcrumbTitle`). Template @/standard. Nada mais.
+Implementada: Dynamic Content `pkg_perfil.render(:P2_ID_COLABORADOR)` e processo Ajax `PERFIL_DRAWER_FOTO`. A descrição antiga, de placeholder, estava desatualizada.
+
+> **Restrição de LGPD aplicada em 04/11/2026** (`modulos/perfil/Etapas-perfil-privacidade.md`): trajetória e dados pessoais só para a própria pessoa, a linha de gestão e o RH. `P2_ID_COLABORADOR` passou a *Per Request (Memory Only)*. Testado na app com colaborador, gestor e RH. A autorização `COLABORADOR` da página ainda não foi conferida no export.
 
 ### Página 3 — Organograma (`p00003-organograma.apx`)
 Placeholder idêntico à 2. O módulo real está sendo desenvolvido fora do app em `modulos/organograma/` (`organograma.sql/.js/.css`, `Etapas-organograma.md`, PNGs de redesign — tudo não commitado/modificado); ainda não há região/JS na página.

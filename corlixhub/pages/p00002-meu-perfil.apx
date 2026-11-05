@@ -85,29 +85,24 @@ page 2 (
         fileUrls: #APP_FILES#Meu Perfil#MIN#.css
     }
     security {
+        authorizationScheme: @colaborador
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
 
-    region breadcrumb (
-        name: Breadcrumb
-        type: breadcrumb
+    region cabeçalho-do-perfil (
+        name: Cabeçalho do perfil
+        type: dynamicContent
         source {
-            breadcrumb: @breadcrumb
+            plsqlFunctionBody: return pkg_perfil.render_cabecalho(to_number(:P2_ID_COLABORADOR default null on conversion error));
+            pageItemsToSubmit: P2_ID_COLABORADOR
         }
         layout {
-            sequence: 10
+            sequence: 20
             slot: breadcrumbBar
         }
         appearance {
-            template: @/title-bar
-            templateOptions: [
-                #DEFAULT#
-                t-BreadcrumbRegion--useBreadcrumbTitle
-            ]
-        }
-        componentAppearance {
-            breadcrumbTemplate: @/breadcrumb
+            template: @/blank-with-attributes
             templateOptions: #DEFAULT#
         }
     )
@@ -137,6 +132,9 @@ page 2 (
         layout {
             sequence: 10
             slot: body
+        }
+        sessionState {
+            storage: request
         }
     )
 
