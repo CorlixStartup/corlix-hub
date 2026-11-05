@@ -822,6 +822,15 @@ Constantes de navegação: `c_pagina_organograma = 3` / `P3_ID_FOCO`; `c_pagina_
 Lê: `COLABORADOR`, `EMPRESA`, `CARGO`, `DEPARTAMENTO`, `HISTORICO_CARREIRA`, `TIPO_MOVIMENTACAO`, `FORMACAO_COLABORADOR`, `CONFIG_CARREIRA`, `SOLICITACAO_CORRECAO`, `VW_MOVIMENTACAO_VALIDA`, `VW_SITUACAO_ATUAL_COLABORADOR`. Não escreve.
 Regras de exibição: **nunca exibe salário**; eventos `MERITO` só para o próprio colaborador e RH (fora do APEX = RH); motivo de `AFASTAMENTO`/`RETORNO` oculto para quem não é o próprio nem RH; marcos de tempo de casa gerados por `connect by level` a cada 12 meses; escapa tudo com `apex_escape.html`/`html_attribute`.
 
+## 10A. Holerite (`COLABORADOR_HOLERITE`, `HOLERITE_ITENS`, `PKG_HOLERITE`, `modulos/holerite/`)
+
+`COLABORADOR_HOLERITE`: um holerite por colaborador e competência (`UK_HOLERITE_REF`), com data de pagamento e totais. `HOLERITE_ITENS`: itens com `TIPO` `P`/`D`, referência e valor; saem em cascata. Não há banco, conta, matrícula nem cargo da época.
+
+- `PKG_HOLERITE.gerar_folha_mensal(p_mes, p_ano)`: apaga e recria a competência com o salário atual do cargo; só admitidos a partir de 01/06/2026, sem filtro por empresa ou situação; faz `COMMIT`.
+- `PKG_HOLERITE.render`: versão antiga da p9; gera a folha quando o mês está vazio.
+- `PRC_GERAR_HOLERITES_PENDENTES(p_inicio default 01/06/2026)`: gera só os meses sem nenhum holerite, até o mês atual. Chamada pelo job `JOB_FOLHA_MENSAL` (dia 25, 06:00).
+- `PKG_HOLERITE_UI` (`authid definer`, só leitura): `render_cabecalho`, `render_pagina(p_competencia)`. Sem `p_id_colaborador`, usa o colaborador da conta logada na empresa da sessão; a página nunca passa esse parâmetro. Esconde meses futuros e anteriores à admissão. Lê também `COLABORADOR`, `EMPRESA`, `CARGO`, `pkg_historico_carreira.fn_hoje` e `fn_empresa_contexto`.
+
 ## 11. Package `PKG_ORGANOGRAMA` (`organograma.sql`, invoker padrão = definer)
 
 | Rotina | Assinatura | Faz |
