@@ -134,8 +134,8 @@ create or replace package body pkg_holerite_ui as
   end icone;
 
   -- Holerites que a pessoa pode ver, do mais recente para o mais antigo. Ficam de
-  -- fora o mês atual antes do dia 25, os meses futuros e os anteriores à admissão,
-  -- que a geração antiga criava.
+  -- fora o mês atual antes do dia 25, os meses futuros, os anteriores à admissão, que
+  -- a geração antiga criava, e tudo enquanto a data de admissão não chegar.
   function holerites_de (p_id_colaborador in number, p_hoje in date) return t_holerites is
     l_lista  t_holerites;
     l_ultimo constant date := case when to_number(to_char(p_hoje, 'DD')) >= c_dia_liberacao
@@ -150,6 +150,7 @@ create or replace package body pkg_holerite_ui as
       join colaborador c on c.id_colaborador = h.id_colaborador
      where h.id_colaborador = p_id_colaborador
        and to_date(to_char(h.ano_referencia * 100 + h.mes_referencia) || '01', 'YYYYMMDD') <= l_ultimo
+       and (c.data_admissao is null or c.data_admissao <= p_hoje)
        and (c.data_admissao is null
             or to_date(to_char(h.ano_referencia * 100 + h.mes_referencia) || '01', 'YYYYMMDD') >= trunc(c.data_admissao, 'MM'))
      order by h.ano_referencia desc, h.mes_referencia desc;

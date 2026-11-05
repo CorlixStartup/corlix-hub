@@ -323,12 +323,13 @@ Redesign da página 9 conforme `pen_dev/Holerite digital.png`, na própria pági
 
 | Arquivo | Conteúdo |
 |---|---|
-| `01_prc_gerar_holerites_pendentes.sql` | gera os meses sem holerite, com o mês atual só a partir do dia 25; a página deixa de gerar ao abrir |
+| `00_pkg_holerite.pks` / `.pkb` | cálculo da folha, sem o corte de 01/06/2026 e com `gerar_holerite` por pessoa |
+| `01_prc_gerar_holerites_pendentes.sql` | gera, por pessoa, o que falta desde a admissão, com o mês atual só a partir do dia 25; a página deixa de gerar ao abrir |
 | `02_pkg_holerite_ui.pks` / `.pkb` | `render_cabecalho`, `render_pagina(p_competencia)`; só leitura; o holerite do mês só aparece a partir do dia 25 |
-| `03_job_folha_mensal.sql` | job `JOB_FOLHA_MENSAL`, todo dia 25 |
+| `03_job_folha_mensal.sql` | job `JOB_FOLHA_MENSAL`, todo dia às 06:00 |
 | `holerite.css` / `.min.css` | classes `cx-hol-*`, inclusive `@media print` para "Baixar PDF" |
 | `holerite-pagina.js` | "Ocultar valores" (`localStorage`), `window.print()`, seletor de ano e mensagem do modal |
-| `instalar.sql` | instala a procedure e o package; não gera folha nem cria o job |
+| `instalar.sql` | instala os packages e a procedure; não gera folha nem cria o job |
 
 Meses → p9 com `P9_COMPETENCIA`; "Solicitar correção" → p22 com `P22_DS_MENSAGEM` = `Holerite-MM/YYYY` (sem tabela nova; o pedido cai na fila do RH da p20). Ambos com `apex_page.get_url`.
 
