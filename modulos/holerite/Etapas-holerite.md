@@ -26,10 +26,11 @@ Como nos outros guias, a mudança é feita no Builder. O backup diário traz o r
 | Acesso | Sem autorização própria | **COLABORADOR** na página e no menu, como nas páginas 13 e 30 |
 | Geração da folha | Ao abrir a página, com gravação e `COMMIT`, para qualquer mês escolhido | Fora da página: carga única e job mensal (§1.2 e §1.3) |
 | Quando o holerite aparece | Em qualquer data | **A partir do dia 25 do mês** (veja abaixo) |
+| Desde quando há holerites | Só para admitidos a partir de 01/06/2026 | **Para todos, desde o mês da admissão** (veja abaixo) |
 
 ### Por que a geração saiu da página
 
-O `pkg_holerite.render` chama `gerar_folha_mensal` quando o mês escolhido não tem nenhum holerite. Na prática, qualquer pessoa logada que escolhesse um mês vazio gerava a folha de **todos** os colaboradores, inclusive de meses futuros, como dezembro de 2027. O `pkg_holerite_ui` só lê. `pkg_holerite.gerar_folha_mensal` continua igual, e `pkg_holerite.render` fica no banco para o caso de voltar atrás.
+O `pkg_holerite.render` chama `gerar_folha_mensal` quando o mês escolhido não tem nenhum holerite. Na prática, qualquer pessoa logada que escolhesse um mês vazio gerava a folha de **todos** os colaboradores, inclusive de meses futuros, como dezembro de 2027. O `pkg_holerite_ui` só lê. `pkg_holerite.render` fica no banco para o caso de voltar atrás.
 
 ### A regra do dia 25
 
@@ -37,14 +38,28 @@ O holerite do mês aparece a partir do dia 25. Em 24/11, o mais recente é o de 
 
 A regra vale em dois lugares, com o mesmo valor: `c_dia_liberacao` em `pkg_holerite_ui` e em `prc_gerar_holerites_pendentes`. Se o dia mudar, altere os dois e o horário do job. A data de "hoje" da tela usa o fuso da empresa (`pkg_historico_carreira.fn_hoje`). O job roda às 06:00 no fuso do banco, então o holerite pode levar algumas horas para aparecer no dia 25.
 
+### A regra da admissão
+
+Cada pessoa tem holerites desde o mês em que foi admitida, seja qual for a data da admissão. Nada aparece antes da data de admissão chegar.
+
+| Admissão | Primeiro holerite | Aparece em |
+|---|---|---|
+| 10/03/2024 | Março de 2024 | Depois da carga única (§1.2) |
+| 15/11/2026 | Novembro de 2026 | 25/11/2026 |
+| 28/11/2026 | Novembro de 2026 | 28/11/2026, depois do job das 06:00 |
+| 01/12/2026 | Dezembro de 2026 | 25/12/2026 |
+
+O primeiro mês sai com o salário cheio ("30 dias"): a geração não calcula valor proporcional.
+
 ### Arquivos do módulo
 
 | Arquivo | O que é |
 |---|---|
-| `01_prc_gerar_holerites_pendentes.sql` | Procedure que gera os meses sem nenhum holerite, sem tocar nos que já existem |
+| `00_pkg_holerite.pks` / `.pkb` | Cálculo da folha: mesmas contas, sem o corte de 01/06/2026 e com `gerar_holerite` por pessoa. Substitui o package do banco |
+| `01_prc_gerar_holerites_pendentes.sql` | Procedure que gera, por pessoa, os holerites que faltam desde a admissão, sem tocar nos que já existem |
 | `02_pkg_holerite_ui.pks` / `.pkb` | Package que devolve o HTML (`render_cabecalho`, `render_pagina`) |
-| `03_job_folha_mensal.sql` | Job que chama a procedure todo dia 25 |
-| `instalar.sql` | Instala a procedure e o package pelo SQLcl |
+| `03_job_folha_mensal.sql` | Job que chama a procedure todo dia |
+| `instalar.sql` | Instala os packages e a procedure pelo SQLcl |
 | `holerite.css` / `holerite.min.css` | Estilos da página (classes `cx-hol-*`); sobem como Static Application Files |
 | `holerite-pagina.js` | "Ocultar valores", "Baixar PDF", seletor de ano e mensagem do modal |
 
@@ -54,7 +69,7 @@ Não há tabela nova.
 
 ## 1. Banco
 
-> **Se você já rodou este §1 antes da regra do dia 25:** instale de novo a procedure e o package (§1.1). Se a carga única já rodou, ela pode ter criado o mês atual: confira com a consulta do §1.2 e apague esse mês antes do dia 25, como explicado lá, para que o job o gere com os valores do dia.
+> **Se você já rodou este §1 antes da regra do dia 25 e da regra da admissão:** instale tudo de novo (§1.1), rode a carga única (§1.2) e recrie o job (§1.3). Se a carga antiga já rodou, ela pode ter criado o mês atual: confira com a consulta do §1.2 e apague esse mês antes do dia 25, como explicado lá, para que o job o gere com os valores do dia.
 
 ### 1.1 Instalar
 
@@ -62,27 +77,29 @@ Não há tabela nova.
 
 **Pelo SQL Workshop:** em *SQL Workshop › SQL Scripts › Upload*, envie e rode um arquivo por vez, nesta ordem:
 
-1. `01_prc_gerar_holerites_pendentes.sql`
-2. `02_pkg_holerite_ui.pks`
-3. `02_pkg_holerite_ui.pkb`
+1. `00_pkg_holerite.pks`
+2. `00_pkg_holerite.pkb`
+3. `01_prc_gerar_holerites_pendentes.sql`
+4. `02_pkg_holerite_ui.pks`
+5. `02_pkg_holerite_ui.pkb`
 
 Depois, no SQL Commands, sem `;` no final:
 
 ```sql
 select object_name, object_type, status from user_objects
- where object_name in ('PKG_HOLERITE_UI', 'PRC_GERAR_HOLERITES_PENDENTES') order by 1, 2
+ where object_name in ('PKG_HOLERITE', 'PKG_HOLERITE_UI', 'PRC_GERAR_HOLERITES_PENDENTES') order by 1, 2
 ```
 
-Os três devem estar `VALID`. Se algum estiver `INVALID`:
+Os cinco devem estar `VALID`. Se algum estiver `INVALID`:
 
 ```sql
 select name, line, position, text from user_errors
- where name in ('PKG_HOLERITE_UI', 'PRC_GERAR_HOLERITES_PENDENTES') order by name, sequence
+ where name in ('PKG_HOLERITE', 'PKG_HOLERITE_UI', 'PRC_GERAR_HOLERITES_PENDENTES') order by name, sequence
 ```
 
-### 1.2 Gerar os meses que faltam (uma vez só)
+### 1.2 Gerar os holerites que faltam (uma vez só)
 
-Antes, um mês só existia se alguém o tivesse aberto. Agora a lista mostra apenas o que já foi gerado, então é preciso preencher os meses que faltam.
+Antes, um mês só existia se alguém o tivesse aberto, e só para admitidos a partir de 01/06/2026. Agora a lista mostra apenas o que já foi gerado, então é preciso preencher o que falta, de cada pessoa, desde a admissão.
 
 **Veja primeiro o que já existe:**
 
@@ -93,7 +110,14 @@ select ano_referencia, mes_referencia, count(*) holerites
  order by 1, 2
 ```
 
-**Atenção aos dados:** os meses preenchidos agora usam o salário de hoje do cargo, e a geração só inclui quem foi admitido a partir de 01/06/2026 (regra atual de `gerar_folha_mensal`). Se isso não servir para os seus dados, combine com o time antes de rodar.
+**Atenção aos dados:** os meses preenchidos agora usam o salário de hoje do cargo e as faixas fixas de INSS e IRRF, mesmo em anos antigos. Quem tem muitos anos de casa ganha um holerite por mês, então confira o volume antes:
+
+```sql
+select count(*) colaboradores, min(data_admissao) mais_antiga,
+       sum(months_between(trunc(sysdate, 'MM'), trunc(data_admissao, 'MM')) + 1) holerites_no_maximo
+  from colaborador
+ where data_admissao <= sysdate
+```
 
 Depois, em SQL Commands:
 
@@ -101,20 +125,18 @@ Depois, em SQL Commands:
 begin prc_gerar_holerites_pendentes; end;
 ```
 
-O padrão começa em junho de 2026. Para começar em outro mês, use `p_inicio => date '2026-01-01'`.
+A carga vai até o último mês liberado: antes do dia 25, para no mês anterior. Rodar de novo só gera o que ainda falta. A consulta acima pode mostrar o mês atual ou meses futuros criados pela geração antiga. A página **não mostra** esses meses antes do dia 25 de cada um, então nada precisa ser apagado agora. Eles passam a aparecer nessa data, com os valores gravados na época. Como o job não refaz um mês que já tem folha, é melhor apagá-los para que sejam recalculados no dia 25. Confira antes o que será apagado e rode em um dia anterior ao 25: `delete from colaborador_holerite where ano_referencia * 100 + mes_referencia >= to_number(to_char(sysdate, 'YYYYMM'))`. Os itens saem junto, em cascata.
 
-A carga vai até o último mês liberado: antes do dia 25, para no mês anterior. A consulta acima pode mostrar o mês atual ou meses futuros criados pela geração antiga. A página **não mostra** esses meses antes do dia 25 de cada um, então nada precisa ser apagado agora. Eles passam a aparecer nessa data, com os valores gravados na época. Como o job não refaz um mês que já tem folha, é melhor apagá-los para que sejam recalculados no dia 25. Confira antes o que será apagado e rode em um dia anterior ao 25: `delete from colaborador_holerite where ano_referencia * 100 + mes_referencia >= to_number(to_char(sysdate, 'YYYYMM'))`. Os itens saem junto, em cascata.
+### 1.3 Criar o job
 
-### 1.3 Criar o job mensal
-
-Sem o job, nenhum mês novo aparece. Em *SQL Scripts › Upload*, envie e rode `03_job_folha_mensal.sql`. Ele roda todo dia 25, às 06:00, no fuso do banco. Confira:
+Sem o job, nenhum mês novo aparece. Em *SQL Scripts › Upload*, envie e rode `03_job_folha_mensal.sql`. Ele roda todo dia, às 06:00, no fuso do banco, e só gera o que falta. O holerite do mês entra no dia 25, e quem for admitido depois disso entra na primeira execução a partir da data de admissão. Confira:
 
 ```sql
 select job_name, enabled, to_char(next_run_date, 'DD/MM/YYYY HH24:MI') proxima
   from user_scheduler_jobs where job_name = 'JOB_FOLHA_MENSAL'
 ```
 
-Deve mostrar `TRUE` e o próximo dia 25.
+Deve mostrar `TRUE` e as próximas 06:00.
 
 ### 1.4 Testar no SQL Commands
 
@@ -235,12 +257,13 @@ Limpe o cache do navegador antes (`Cmd+Shift+R`). Compare com o protótipo.
 | 9 | A mesma | Complete o texto e envie | O modal fecha e aparece "Pedido enviado ao RH." |
 | 10 | RH | Abra o Dashboard RH | O pedido aparece em **Solicitações de correção**, com o mês |
 | 11 | Colega | Compare com a conta do teste 1 | Cada pessoa só vê os próprios valores |
-| 12 | Admitido antes de 01/06/2026 | Abra **Holerite** | "Nenhum holerite disponível ainda.", sem os botões |
+| 12 | Admitido antes de 01/06/2026 | Abra **Holerite** e escolha o ano da admissão | Holerites desde o mês da admissão, e nenhum antes dele |
 | 13 | Conta sem colaborador | Abra a página pela URL | Acesso negado, com "Sua conta não está vinculada a um colaborador desta empresa." |
 | 14 | Colaborador com holerites | Abra a página e confira, antes e depois, o `count(*)` de `colaborador_holerite` | O total não muda |
 | 15 | Qualquer uma | Reduza a janela até a largura de um celular | Sem rolagem horizontal; a lista desce para baixo do detalhamento, e a coluna Referência some |
 | 16 | Colaborador com holerites, antes do dia 25 | Abra **Holerite**, mesmo que o mês atual já tenha folha gravada | O mais recente é o do mês anterior; o mês atual não está na lista |
 | 17 | A mesma, a partir do dia 25 | Abra **Holerite** depois da execução do job | O mês atual aparece primeiro, com o selo **Pagamento agendado** |
+| 18 | Colaborador com admissão futura | Abra **Holerite** | "Nenhum holerite disponível ainda.", sem os botões |
 
 O selo **Pagamento agendado** só aparece do dia 25 até a véspera da data de pagamento. Depois disso, a tela mostra **Pago**.
 
@@ -251,7 +274,8 @@ O selo **Pagamento agendado** só aparece do dia 25 até a véspera da data de p
 | `PLS-00201` citando `PKG_HOLERITE` ou `PKG_HISTORICO_CARREIRA` | Package ausente neste schema | Instale o que falta e rode o §1.1 de novo |
 | `ORA-27486` ao criar o job | O schema não tem o privilégio `CREATE JOB` | Peça ao administrador do banco o `grant create job`, ou crie uma *Automation* no APEX que chame `prc_gerar_holerites_pendentes` |
 | O holerite do mês não apareceu no dia 25 | O job ainda não rodou, ou falhou | Confira `user_scheduler_job_run_details` e, se preciso, rode `begin prc_gerar_holerites_pendentes; end;` |
-| Lista com poucos meses | O §1.2 não foi feito, ou a pessoa foi admitida no meio do período | Rode o §1.2. Meses anteriores à admissão não aparecem de propósito |
+| Lista com poucos meses | O §1.2 não foi feito, ou `DATA_ADMISSAO` está errada ou vazia | Rode o §1.2 e confira a data. Meses anteriores à admissão não aparecem de propósito, e quem não tem data de admissão não gera holerite |
+| `PLS-00302` citando `GERAR_HOLERITE` em `prc_gerar_holerites_pendentes` | O `pkg_holerite` antigo continua no banco | Instale os arquivos `00_` e rode o §1.1 na ordem |
 | Página sem estilo | CSS não enviado, ou nome diferente | Confira o §2 e `Cmd+Shift+R` |
 | Faixa branca sem título | Região do §3.3 ausente ou fora de **Breadcrumb Bar** | Confira o §3.3 |
 | Clicar num mês sempre volta ao mais recente | Item `P9_COMPETENCIA` com outro nome, ou a região não recebeu o item | Confira o §3.2 e o código do §3.4 |
@@ -263,7 +287,7 @@ O selo **Pagamento agendado** só aparece do dia 25 até a véspera da data de p
 
 ## Voltar atrás
 
-Recrie a página a partir de `corlixhub/pages/p00009-holerite-digital.apx` no commit `21f03a5`. `pkg_holerite.render` não foi alterado. Se não quiser a geração automática, desligue o job com `begin dbms_scheduler.drop_job('JOB_FOLHA_MENSAL'); end;`. O package e a procedure podem ficar no banco, ou saem com `drop package pkg_holerite_ui` e `drop procedure prc_gerar_holerites_pendentes`.
+Recrie a página a partir de `corlixhub/pages/p00009-holerite-digital.apx` no commit `21f03a5`. Para o cálculo antigo, recrie `pkg_holerite` a partir de `database/ddl/08-plsql-especificacoes.sql` e `09-plsql-corpos.sql`, no commit `21f03a5`; `render` não foi alterado. Se não quiser a geração automática, desligue o job com `begin dbms_scheduler.drop_job('JOB_FOLHA_MENSAL'); end;`. O package e a procedure podem ficar no banco, ou saem com `drop package pkg_holerite_ui` e `drop procedure prc_gerar_holerites_pendentes`.
 
 ## O que fica diferente do protótipo
 
@@ -279,8 +303,9 @@ Recrie a página a partir de `corlixhub/pages/p00009-holerite-digital.apx` no co
 Nenhum destes itens foi alterado por este guia:
 
 - **Valores simulados:** `gerar_folha_mensal` é um cálculo simplificado. As faixas de INSS e IRRF estão fixas no código e parecem ser de 2024 (salário mínimo de R$ 1.412,00). A base de IRRF não considera dependentes.
-- **Quem entra na folha:** só admitidos a partir de 01/06/2026, sem filtro por empresa ou por situação do colaborador. Quem foi desligado continua recebendo holerite.
-- **Admissão depois do dia 25:** o mês já gerado não é refeito. A pessoa só aparece a partir da folha seguinte.
+- **Quem entra na folha:** todos os admitidos, sem filtro por empresa ou por situação do colaborador. Quem foi desligado continua recebendo holerite.
+- **Primeiro mês:** sai cheio, mesmo com admissão no meio do mês.
+- **Anos antigos:** usam o salário de hoje e as mesmas faixas de INSS e IRRF.
 - **Cargo:** o holerite não guarda o cargo da época. Meses antigos mostram o cargo de hoje.
 - **FGTS e bases:** são calculados na tela, a 8% do bruto, e não vêm de valores gravados.
 - **RH:** o texto diz que o RH tem acesso, mas ainda não há tela para o RH consultar o holerite de outra pessoa.

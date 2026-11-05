@@ -826,10 +826,11 @@ Regras de exibição: **nunca exibe salário**; eventos `MERITO` só para o pró
 
 `COLABORADOR_HOLERITE`: um holerite por colaborador e competência (`UK_HOLERITE_REF`), com data de pagamento e totais. `HOLERITE_ITENS`: itens com `TIPO` `P`/`D`, referência e valor; saem em cascata. Não há banco, conta, matrícula nem cargo da época.
 
-- `PKG_HOLERITE.gerar_folha_mensal(p_mes, p_ano)`: apaga e recria a competência com o salário atual do cargo; só admitidos a partir de 01/06/2026, sem filtro por empresa ou situação; faz `COMMIT`.
+- `PKG_HOLERITE.gerar_holerite(p_id_colaborador, p_mes, p_ano)`: apaga e recria o holerite de uma pessoa no mês com o salário atual do cargo; não faz `COMMIT`. Até aplicar `modulos/holerite/00_pkg_holerite.*`, o banco só tem a versão antiga, sem este procedimento e com corte em admitidos a partir de 01/06/2026.
+- `PKG_HOLERITE.gerar_folha_mensal(p_mes, p_ano)`: chama `gerar_holerite` para todos os admitidos até o fim do mês, sem filtro por empresa ou situação; faz `COMMIT`.
 - `PKG_HOLERITE.render`: versão antiga da p9; gera a folha quando o mês está vazio.
-- `PRC_GERAR_HOLERITES_PENDENTES(p_inicio default 01/06/2026)`: gera só os meses sem nenhum holerite, até o último mês liberado (o mês atual só a partir do dia 25). Chamada pelo job `JOB_FOLHA_MENSAL` (dia 25, 06:00).
-- `PKG_HOLERITE_UI` (`authid definer`, só leitura): `render_cabecalho`, `render_pagina(p_competencia)`. Sem `p_id_colaborador`, usa o colaborador da conta logada na empresa da sessão; a página nunca passa esse parâmetro. Esconde o mês atual antes do dia 25 (`c_dia_liberacao`), os meses futuros e os anteriores à admissão. Lê também `COLABORADOR`, `EMPRESA`, `CARGO`, `pkg_historico_carreira.fn_hoje` e `fn_empresa_contexto`.
+- `PRC_GERAR_HOLERITES_PENDENTES(p_hoje default sysdate)`: gera, por pessoa, os holerites que faltam, do mês da admissão até o último mês liberado (o mês atual só a partir do dia 25). Chamada pelo job `JOB_FOLHA_MENSAL` (todo dia, 06:00).
+- `PKG_HOLERITE_UI` (`authid definer`, só leitura): `render_cabecalho`, `render_pagina(p_competencia)`. Sem `p_id_colaborador`, usa o colaborador da conta logada na empresa da sessão; a página nunca passa esse parâmetro. Esconde o mês atual antes do dia 25 (`c_dia_liberacao`), os meses futuros e os anteriores à admissão; nada aparece antes da data de admissão. Lê também `COLABORADOR`, `EMPRESA`, `CARGO`, `pkg_historico_carreira.fn_hoje` e `fn_empresa_contexto`.
 
 ## 11. Package `PKG_ORGANOGRAMA` (`organograma.sql`, invoker padrão = definer)
 
