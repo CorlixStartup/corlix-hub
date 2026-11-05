@@ -7,7 +7,8 @@
 -- URL, e é isso que garante que cada pessoa veja apenas os próprios valores.
 --
 -- p_competencia é o mês em YYYYMM (P9_COMPETENCIA). Vazio, inválido ou de um mês
--- sem holerite = holerite mais recente.
+-- sem holerite = holerite mais recente. O holerite do mês só aparece a partir do
+-- dia 25.
 --------------------------------------------------------------------------------
 create or replace package pkg_holerite_ui authid definer as
 

@@ -828,8 +828,8 @@ Regras de exibição: **nunca exibe salário**; eventos `MERITO` só para o pró
 
 - `PKG_HOLERITE.gerar_folha_mensal(p_mes, p_ano)`: apaga e recria a competência com o salário atual do cargo; só admitidos a partir de 01/06/2026, sem filtro por empresa ou situação; faz `COMMIT`.
 - `PKG_HOLERITE.render`: versão antiga da p9; gera a folha quando o mês está vazio.
-- `PRC_GERAR_HOLERITES_PENDENTES(p_inicio default 01/06/2026)`: gera só os meses sem nenhum holerite, até o mês atual. Chamada pelo job `JOB_FOLHA_MENSAL` (dia 25, 06:00).
-- `PKG_HOLERITE_UI` (`authid definer`, só leitura): `render_cabecalho`, `render_pagina(p_competencia)`. Sem `p_id_colaborador`, usa o colaborador da conta logada na empresa da sessão; a página nunca passa esse parâmetro. Esconde meses futuros e anteriores à admissão. Lê também `COLABORADOR`, `EMPRESA`, `CARGO`, `pkg_historico_carreira.fn_hoje` e `fn_empresa_contexto`.
+- `PRC_GERAR_HOLERITES_PENDENTES(p_inicio default 01/06/2026)`: gera só os meses sem nenhum holerite, até o último mês liberado (o mês atual só a partir do dia 25). Chamada pelo job `JOB_FOLHA_MENSAL` (dia 25, 06:00).
+- `PKG_HOLERITE_UI` (`authid definer`, só leitura): `render_cabecalho`, `render_pagina(p_competencia)`. Sem `p_id_colaborador`, usa o colaborador da conta logada na empresa da sessão; a página nunca passa esse parâmetro. Esconde o mês atual antes do dia 25 (`c_dia_liberacao`), os meses futuros e os anteriores à admissão. Lê também `COLABORADOR`, `EMPRESA`, `CARGO`, `pkg_historico_carreira.fn_hoje` e `fn_empresa_contexto`.
 
 ## 11. Package `PKG_ORGANOGRAMA` (`organograma.sql`, invoker padrão = definer)
 
