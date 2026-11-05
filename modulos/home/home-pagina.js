@@ -12,7 +12,7 @@ function cxHomeCarregarFotos(raiz) {
   (raiz || document).querySelectorAll("img[data-cx-foto]").forEach(function (img) {
     const nome = img.dataset.cxFoto.split("/").pop();
     img.removeAttribute("data-cx-foto");
-    img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
+    img.src = location.pathname.replace(/[^/]*$/, "") + "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
   });
 }
 

@@ -46,7 +46,7 @@ function orgCarregarFotos(raiz) {
   raiz.querySelectorAll("img[data-org-foto]").forEach(function (img) {
     const nome = img.dataset.orgFoto.split("/").pop();
     img.removeAttribute("data-org-foto");
-    img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
+    img.src = location.pathname.replace(/[^/]*$/, "") + "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
   });
 }
 

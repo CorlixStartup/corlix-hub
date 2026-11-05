@@ -63,6 +63,8 @@ Em *App Builder › Workspace Utilities › Web Credentials › Create* (confirm
 | OCI Public Key Fingerprint | Fingerprint do §2 |
 | Valid for URLs | `https://objectstorage.sa-saopaulo-1.oraclecloud.com/n/<namespace>/b/corlix-fotos/` |
 
+Cole cada valor sem espaço nem quebra de linha no começo ou no fim. A chave vai inteira, com as linhas `BEGIN` e `END`, sem a linha `OCI_API_KEY`, se ela existir no arquivo.
+
 Depois de salvar, apague a chave `.pem` da pasta de downloads, ou guarde-a num cofre de senhas.
 
 ## 4. Banco: instalar e configurar
@@ -96,9 +98,11 @@ select id_empresa, count(*) from colaborador
 
 ## 5. OCI: enviar as fotos
 
-Cada foto fica em `empresa/<id_empresa>/fotos/<arquivo>`. Se a consulta do §4 mostrou só a empresa 1, no **Cloud Shell** ou na **OCI CLI**, a partir de uma cópia do repositório:
+Cada foto fica em `empresa/<id_empresa>/fotos/<arquivo>`. Se a consulta do §4 mostrou só a empresa 1, no **Cloud Shell**, com um usuário que possa gravar no bucket:
 
 ```bash
+git clone --depth 1 -b DEV https://github.com/CorlixStartup/corlix-hub.git
+cd corlix-hub
 oci os object bulk-upload \
   --bucket-name corlix-fotos \
   --src-dir "corlixhub/shared-components/static-files/Fotos Colaboradores" \
@@ -135,6 +139,7 @@ Em *Processing › Pre-Rendering › Before Header*, crie um processo:
 |---|---|
 | Name | `Entregar foto` |
 | Type | **Execute Code** |
+| Execution › Point | **Before Header** |
 | PL/SQL Code | `pkg_arquivos.entregar_foto(apex_application.g_x01);` |
 
 O nome do arquivo vem em `x01`, que não tem checksum. Isso é seguro aqui porque quem pode ver o organograma já vê as fotos dos colegas, e o package recusa qualquer foto que não seja da empresa da sessão. **Não use esse padrão para documentos confidenciais.**
@@ -162,7 +167,7 @@ Por estas, nesta ordem e sem mexer na linha `removeAttribute` que fica entre ela
 const nome = img.dataset.cxFoto.split("/").pop();
 ```
 ```javascript
-img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
+img.src = location.pathname.replace(/[^/]*$/, "") + "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
 ```
 
 Na **página 3**, use `img.dataset.orgFoto` no lugar de `img.dataset.cxFoto`.
@@ -178,7 +183,7 @@ img.src = base + "Fotos Colaboradores/" + encodeURIComponent(nome);
 Por:
 
 ```javascript
-img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
+img.src = location.pathname.replace(/[^/]*$/, "") + "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
 ```
 
 ### 6.5 Trocar o avatar do cabeçalho
@@ -230,6 +235,8 @@ Com tudo certo, apague a pasta **Fotos Colaboradores** em *Shared Components ›
 | Sintoma | Causa provável | Correção |
 |---|---|---|
 | A URL do §6.2 responde 404 para toda foto | Falta a linha em `ARQUIVO_CONFIG`, credencial errada ou arquivo fora do prefixo | Confira o §4, o Static ID e o caminho do objeto |
+| `AUTHENTICATION_FAILED` com `ORA-29273` e `ORA-29261: bad argument` | Valor inválido na Web Credential, como um espaço ou uma quebra de linha num OCID ou no fingerprint, ou chave em formato inesperado | Digite de novo cada campo do §3, sem espaços. Se continuar, gere outra API Key |
+| Toda foto dá 404 e o endereço abre em `/ords/foto` | JavaScript antigo, com endereço relativo: a app define a base das páginas em `/ords/` | Use a linha do §6.3 |
 | Erro citando `ORA-24247` ou ACL | A saída HTTPS do banco está bloqueada | Mande a mensagem completa. Pode exigir um ajuste de rede no banco |
 | Status 401 ou 404 do OCI, mesmo com o arquivo lá | Policy ou API Key incorretas | Confira o §2. O Object Storage responde 404 quando não há permissão |
 | Algumas fotos não aparecem | `FOTO_URL` com nome diferente do arquivo no bucket | Compare o nome exato, com maiúsculas e minúsculas |
