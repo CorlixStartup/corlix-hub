@@ -363,6 +363,20 @@ end pkg_historico_carreira_ui;
 END pkg_holerite;
 /
 
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_HOLERITE_UI" authid definer as
+
+  -- Título, descrição e botões "Ocultar valores" e "Baixar PDF"
+  function render_cabecalho (p_id_colaborador in number default null) return clob;
+
+  -- Resumo, detalhamento, lista de holerites e "Algo errado neste holerite?"
+  function render_pagina (
+    p_competencia    in varchar2 default null,
+    p_id_colaborador in number default null
+  ) return clob;
+
+end pkg_holerite_ui;
+/
+
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_HOME_UI" authid definer as
 
   function mes_atual return varchar2;
@@ -617,6 +631,35 @@ end pkg_ponto;
   procedure ajax_baixar_espelho (p_competencia in varchar2);
 
 end pkg_ponto_ui;
+/
+
+  CREATE OR REPLACE EDITIONABLE PROCEDURE "PRC_GERAR_HOLERITES_PENDENTES" (
+  p_inicio in date default date '2026-06-01',
+  p_hoje   in date default sysdate
+) authid definer as
+  c_dia_liberacao constant pls_integer := 25;
+  l_mes    date := trunc(p_inicio, 'MM');
+  l_ultimo constant date := case when to_number(to_char(p_hoje, 'DD')) >= c_dia_liberacao
+                                 then trunc(p_hoje, 'MM')
+                                 else add_months(trunc(p_hoje, 'MM'), -1) end;
+  l_qtd    number;
+begin
+  while l_mes <= l_ultimo loop
+    select count(*)
+      into l_qtd
+      from colaborador_holerite
+     where ano_referencia = to_number(to_char(l_mes, 'YYYY'))
+       and mes_referencia = to_number(to_char(l_mes, 'MM'));
+
+    if l_qtd = 0 then
+      pkg_holerite.gerar_folha_mensal(
+        p_mes => to_number(to_char(l_mes, 'MM')),
+        p_ano => to_number(to_char(l_mes, 'YYYY')));
+    end if;
+
+    l_mes := add_months(l_mes, 1);
+  end loop;
+end prc_gerar_holerites_pendentes;
 /
 
   CREATE OR REPLACE EDITIONABLE PROCEDURE "PRC_SEED_TIPO_MOVIMENTACAO" (
