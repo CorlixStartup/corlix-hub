@@ -40,7 +40,7 @@ appProcess app-user-foto (
                        OR C.foto_url = '#APP_FILES#Fotos Colaboradores/' THEN
                     NULL
                   ELSE
-                    'Fotos Colaboradores/' || C.foto_url
+                    apex_page.get_url(p_page => 44, p_x01 => regexp_substr(trim(C.foto_url), '[^/]+$'))
                 END,
                 UPPER(
                   SUBSTR(TRIM(NVL(C.primeiro_nome, C.nome_completo)), 1, 1) ||

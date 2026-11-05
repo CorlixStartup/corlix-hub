@@ -55,6 +55,15 @@ end fn_carreira_ve_salario;
 end;
 /
 
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_ARQUIVOS" as
+
+  -- Entrega a foto ao navegador, se ela for de alguém da empresa da sessão.
+  -- Sem permissão, nome inválido ou arquivo ausente: HTTP 404, e a tela mostra as iniciais.
+  procedure entregar_foto (p_nome in varchar2);
+
+end pkg_arquivos;
+/
+
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_BUSCA_UI" authid definer as
 
   -- Página de resultados e item que recebe o termo pela URL
