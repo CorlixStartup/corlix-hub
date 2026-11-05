@@ -1,0 +1,32 @@
+page 44 (
+    name: Foto
+    alias: FOTO
+    title: Foto
+    appearance {
+        pageTemplate: @corlix-standard-page
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @colaborador
+        formAutoComplete: false
+    }
+
+    process entregar-foto (
+        name: Entregar foto
+        type: executeCode
+        source {
+            plsqlCode: pkg_arquivos.entregar_foto(apex_application.g_x01);
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 44209108923570321
+        }
+    )
+
+)
+

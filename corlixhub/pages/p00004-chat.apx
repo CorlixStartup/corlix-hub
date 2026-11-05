@@ -552,7 +552,7 @@ page 4 (
                        case
                          when trim(c.foto_url) is null
                               or c.foto_url = '#APP_FILES#Fotos Colaboradores/' then null
-                         else 'Fotos Colaboradores/' || c.foto_url
+                         else apex_page.get_url(p_page => 44, p_x01 => regexp_substr(trim(c.foto_url), '[^/]+$'))
                        end                              as foto_url,
                        upper(
                          substr(trim(nvl(c.primeiro_nome, c.nome_completo)), 1, 1) ||
@@ -774,32 +774,44 @@ page 4 (
             type: sqlQuery
             sqlQuery:
                 ```sql
-                select m.corpo,
-                       to_char(m.data_envio, 'hh24:mi') as hora,
+                with ultimas as (
+                  -- as 200 mensagens mais recentes (o Number of Rows da região também é 200)
+                  select m.id_canal_mensagem,
+                         m.id_colaborador,
+                         m.corpo,
+                         m.data_envio
+                  from   canal_mensagem m
+                  where  m.id_canal = :P4_CANAL_ID
+                  and    nvl(m.excluida, false) = false
+                  -- só exibe canais dos quais o usuário logado participa
+                  and    exists (
+                           select 1
+                           from   canal_participante cp
+                           join   colaborador eu on eu.id_colaborador = cp.id_colaborador
+                           where  cp.id_canal = m.id_canal
+                           and    upper(eu.login_apex) = upper(:APP_USER)
+                         )
+                  order  by m.data_envio desc, m.id_canal_mensagem desc
+                  fetch  first 200 rows only
+                )
+                select u.corpo,
+                       to_char(u.data_envio, 'hh24:mi') as hora,
                        case when upper(col.login_apex) = upper(:APP_USER) then 'out' else 'in' end as lado,
                        case when row_number() over (
-                                   partition by trunc(m.data_envio)
-                                   order by m.data_envio
+                                   partition by trunc(u.data_envio)
+                                   order by u.data_envio, u.id_canal_mensagem
                                  ) = 1
                             then '<div class="ch-sep"><span>' ||
-                                 case when trunc(m.data_envio) = trunc(sysdate) then 'HOJE'
-                                      when trunc(m.data_envio) = trunc(sysdate)-1 then 'ONTEM'
-                                      else to_char(m.data_envio, 'dd/mm/yyyy') end ||
+                                 case when trunc(u.data_envio) = trunc(sysdate) then 'HOJE'
+                                      when trunc(u.data_envio) = trunc(sysdate)-1 then 'ONTEM'
+                                      else to_char(u.data_envio, 'dd/mm/yyyy') end ||
                                  '</span></div>'
-                       end as sep_dia
-                from   canal_mensagem m
-                join   colaborador col on col.id_colaborador = m.id_colaborador
-                where  m.id_canal = :P4_CANAL_ID
-                and    nvl(m.excluida, false) = false
-                -- só exibe canais dos quais o usuário logado participa
-                and    exists (
-                         select 1
-                         from   canal_participante cp
-                         join   colaborador eu on eu.id_colaborador = cp.id_colaborador
-                         where  cp.id_canal = m.id_canal
-                         and    upper(eu.login_apex) = upper(:APP_USER)
-                       )
-                order  by m.data_envio
+                       end as sep_dia,
+                       -- usado pelo polling (data-id no template Chat Mensagens)
+                       u.id_canal_mensagem as id_msg
+                from   ultimas u
+                join   colaborador col on col.id_colaborador = u.id_colaborador
+                order  by u.data_envio, u.id_canal_mensagem
                 ```
         }
         layout {
@@ -844,6 +856,22 @@ page 4 (
             }
             layout {
                 sequence: 20
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column ID_MSG (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Id Msg
+                alignment: end
+            }
+            layout {
+                sequence: 50
+                columnAlignment: end
             }
             sorting {
                 sortable: false

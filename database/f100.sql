@@ -36,11 +36,11 @@ prompt APPLICATION 100 - Corlix Hub
 --   Exported By:     WKSP_CORLIXHUB
 --   Flashback:       0
 --   Export Type:     Application Export
---     Pages:                     31
+--     Pages:                     32
 --       Items:                  121
 --       Computations:             4
 --       Validations:             16
---       Processes:               50
+--       Processes:               51
 --       Regions:                 88
 --       Buttons:                 38
 --       Dynamic Actions:         26
@@ -117,7 +117,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461349232731
-,p_version_scn=>'47050316510611'
+,p_version_scn=>'47050321208839'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -59981,7 +59981,7 @@ wwv_flow_imp_shared.create_flow_process(
 '           OR C.foto_url = ''#APP_FILES#Fotos Colaboradores/'' THEN',
 '        NULL',
 '      ELSE',
-'        ''Fotos Colaboradores/'' || C.foto_url',
+'        apex_page.get_url(p_page => 44, p_x01 => regexp_substr(trim(C.foto_url), ''[^/]+$''))',
 '    END,',
 '    UPPER(',
 '      SUBSTR(TRIM(NVL(C.primeiro_nome, C.nome_completo)), 1, 1) ||',
@@ -59997,7 +59997,7 @@ wwv_flow_imp_shared.create_flow_process(
 '    :APP_USER_INICIAIS := UPPER(SUBSTR(:APP_USER, 1, 1));',
 'END;'))
 ,p_process_clob_language=>'PLSQL'
-,p_version_scn=>'SH256:Yi9qYeTGZOHZsbieGSdW5dU_MhnZcPCXNnuLasweX-A'
+,p_version_scn=>'SH256:I9_S51FPIJCkrZ3wTEmq8Lj01jmfY3AW6xZf7tZ0Gqs'
 );
 end;
 /
@@ -61178,7 +61178,7 @@ unistr('     aria-label="Notifica\00E7\00F5es" title="Notifica\00E7\00F5es">'),
 '  <span class="corlix-header__divisor" aria-hidden="true"></span>',
 '  <button type="button" class="corlix-header__user" popovertarget="cx-menu-usuario"',
 unistr('          aria-haspopup="menu" aria-label="Menu do usu\00E1rio">'),
-'    <img src="#APP_FILES#&APP_USER_FOTO." alt="" class="corlix-header__avatar"',
+'    <img src="&APP_USER_FOTO!ATTR." alt="" class="corlix-header__avatar"',
 '         onerror="this.onerror=null; this.style.display=''none''; this.nextElementSibling.style.display='''';" />',
 '    <span class="corlix-header__avatar cx-avatar-iniciais" aria-hidden="true" style="display:none">&APP_USER_INICIAIS.</span>',
 '    <span class="corlix-header__user-name">&G_NOME_USUARIO.</span>',
@@ -61219,9 +61219,9 @@ wwv_flow_imp_page.create_page(
 '// Aqui o caminho vira URL da pasta de arquivos do app (#APP_FILES#).',
 'function cxHomeCarregarFotos(raiz) {',
 '  (raiz || document).querySelectorAll("img[data-cx-foto]").forEach(function (img) {',
-'    const caminho = img.dataset.cxFoto.split("/").map(encodeURIComponent).join("/");',
+'    const nome = img.dataset.cxFoto.split("/").pop();',
 '    img.removeAttribute("data-cx-foto");',
-'    img.src = apex.env.APP_FILES + caminho;',
+'    img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);',
 '  });',
 '}'))
 ,p_javascript_code_onload=>wwv_flow_string.join(wwv_flow_t_varchar2(
@@ -61516,7 +61516,7 @@ unistr('// Fun\00E7\00E3o nativa do perfil para resolver os arquivos est\00E1tic
 '  el.querySelectorAll("img[data-perfil-foto]").forEach(img => {',
 '    const nome = img.getAttribute("data-perfil-foto");',
 '    if (nome) {',
-'      img.src = base + "Fotos Colaboradores/" + encodeURIComponent(nome);',
+'      img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);',
 '      img.removeAttribute("data-perfil-foto");',
 '    }',
 '  });',
@@ -61666,9 +61666,9 @@ unistr('    // Fallback para regi\00F5es Dynamic Content sem chave registrada'),
 'function orgCarregarFotos(raiz) {',
 '  if (!raiz) return;',
 '  raiz.querySelectorAll("img[data-org-foto]").forEach(function (img) {',
-'    const caminho = img.dataset.orgFoto.split("/").map(encodeURIComponent).join("/");',
+'    const nome = img.dataset.cxFoto.split("/").pop();',
 '    img.removeAttribute("data-org-foto");',
-'    img.src = apex.env.APP_FILES + caminho;',
+'    img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);',
 '  });',
 '}',
 '',
@@ -62502,7 +62502,7 @@ wwv_flow_imp_page.create_report_region(
 '       case',
 '         when trim(c.foto_url) is null',
 '              or c.foto_url = ''#APP_FILES#Fotos Colaboradores/'' then null',
-'         else ''Fotos Colaboradores/'' || c.foto_url',
+'         else apex_page.get_url(p_page => 44, p_x01 => regexp_substr(trim(c.foto_url), ''[^/]+$''))',
 '       end                              as foto_url,',
 '       upper(',
 '         substr(trim(nvl(c.primeiro_nome, c.nome_completo)), 1, 1) ||',
@@ -62680,32 +62680,44 @@ wwv_flow_imp_page.create_report_region(
 ,p_source_type=>'NATIVE_SQL_REPORT'
 ,p_query_type=>'SQL'
 ,p_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'select m.corpo,',
-'       to_char(m.data_envio, ''hh24:mi'') as hora,',
+'with ultimas as (',
+unistr('  -- as 200 mensagens mais recentes (o Number of Rows da regi\00E3o tamb\00E9m \00E9 200)'),
+'  select m.id_canal_mensagem,',
+'         m.id_colaborador,',
+'         m.corpo,',
+'         m.data_envio',
+'  from   canal_mensagem m',
+'  where  m.id_canal = :P4_CANAL_ID',
+'  and    nvl(m.excluida, false) = false',
+unistr('  -- s\00F3 exibe canais dos quais o usu\00E1rio logado participa'),
+'  and    exists (',
+'           select 1',
+'           from   canal_participante cp',
+'           join   colaborador eu on eu.id_colaborador = cp.id_colaborador',
+'           where  cp.id_canal = m.id_canal',
+'           and    upper(eu.login_apex) = upper(:APP_USER)',
+'         )',
+'  order  by m.data_envio desc, m.id_canal_mensagem desc',
+'  fetch  first 200 rows only',
+')',
+'select u.corpo,',
+'       to_char(u.data_envio, ''hh24:mi'') as hora,',
 '       case when upper(col.login_apex) = upper(:APP_USER) then ''out'' else ''in'' end as lado,',
 '       case when row_number() over (',
-'                   partition by trunc(m.data_envio)',
-'                   order by m.data_envio',
+'                   partition by trunc(u.data_envio)',
+'                   order by u.data_envio, u.id_canal_mensagem',
 '                 ) = 1',
 '            then ''<div class="ch-sep"><span>'' ||',
-'                 case when trunc(m.data_envio) = trunc(sysdate) then ''HOJE''',
-'                      when trunc(m.data_envio) = trunc(sysdate)-1 then ''ONTEM''',
-'                      else to_char(m.data_envio, ''dd/mm/yyyy'') end ||',
+'                 case when trunc(u.data_envio) = trunc(sysdate) then ''HOJE''',
+'                      when trunc(u.data_envio) = trunc(sysdate)-1 then ''ONTEM''',
+'                      else to_char(u.data_envio, ''dd/mm/yyyy'') end ||',
 '                 ''</span></div>''',
-'       end as sep_dia',
-'from   canal_mensagem m',
-'join   colaborador col on col.id_colaborador = m.id_colaborador',
-'where  m.id_canal = :P4_CANAL_ID',
-'and    nvl(m.excluida, false) = false',
-unistr('-- s\00F3 exibe canais dos quais o usu\00E1rio logado participa'),
-'and    exists (',
-'         select 1',
-'         from   canal_participante cp',
-'         join   colaborador eu on eu.id_colaborador = cp.id_colaborador',
-'         where  cp.id_canal = m.id_canal',
-'         and    upper(eu.login_apex) = upper(:APP_USER)',
-'       )',
-'order  by m.data_envio'))
+'       end as sep_dia,',
+'       -- usado pelo polling (data-id no template Chat Mensagens)',
+'       u.id_canal_mensagem as id_msg',
+'from   ultimas u',
+'join   colaborador col on col.id_colaborador = u.id_colaborador',
+'order  by u.data_envio, u.id_canal_mensagem'))
 ,p_ajax_enabled=>'Y'
 ,p_lazy_loading=>false
 ,p_query_row_template=>wwv_flow_imp.id(26409233953242067)
@@ -62734,6 +62746,17 @@ wwv_flow_imp_page.create_report_columns(
 ,p_column_display_sequence=>20
 ,p_column_heading=>'Hora'
 ,p_heading_alignment=>'LEFT'
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(9292781059503235)
+,p_query_column_id=>5
+,p_column_alias=>'ID_MSG'
+,p_column_display_sequence=>50
+,p_column_heading=>'Id Msg'
+,p_column_alignment=>'RIGHT'
+,p_heading_alignment=>'RIGHT'
 ,p_derived_column=>'N'
 ,p_include_in_export=>'Y'
 );
@@ -70503,9 +70526,9 @@ wwv_flow_imp_page.create_page(
 '// Aqui o caminho vira URL da pasta de arquivos do app (#APP_FILES#).',
 'function cxBuscaCarregarFotos(raiz) {',
 '  (raiz || document).querySelectorAll("img[data-cx-foto]").forEach(function (img) {',
-'    const caminho = img.dataset.cxFoto.split("/").map(encodeURIComponent).join("/");',
+'    const nome = img.dataset.cxFoto.split("/").pop();',
 '    img.removeAttribute("data-cx-foto");',
-'    img.src = apex.env.APP_FILES + caminho;',
+'    img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);',
 '  });',
 '}'))
 ,p_javascript_code_onload=>'cxBuscaCarregarFotos();'
@@ -71693,6 +71716,33 @@ wwv_flow_imp_page.create_page_process(
 );
 end;
 /
+prompt --application/pages/page_00044
+begin
+wwv_flow_imp_page.create_page(
+ p_id=>44
+,p_name=>'Foto'
+,p_alias=>'FOTO'
+,p_step_title=>'Foto'
+,p_autocomplete_on_off=>'OFF'
+,p_step_template=>wwv_flow_imp.id(19815602566775266)
+,p_page_template_options=>'#DEFAULT#'
+,p_required_role=>wwv_flow_imp.id(30607785537919512)
+,p_page_component_map=>'11'
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(44209108923570321)
+,p_process_sequence=>10
+,p_process_point=>'AFTER_SUBMIT'
+,p_process_type=>'NATIVE_PLSQL'
+,p_process_name=>'Entregar foto'
+,p_static_id=>'entregar-foto'
+,p_process_sql_clob=>'pkg_arquivos.entregar_foto(apex_application.g_x01);'
+,p_process_clob_language=>'PLSQL'
+,p_error_display_location=>'INLINE_IN_NOTIFICATION'
+,p_internal_uid=>44209108923570321
+);
+end;
+/
 prompt --application/pages/page_09999
 begin
 wwv_flow_imp_page.create_page(
@@ -71945,4 +71995,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:87klrzNdFaXSYoBq2aBSZJeBTj/fFR+e80evuv26LPM=
+-- Application Checksum SH256:vwR4A9B8DBERrMTStSZktOpj5lNX2P4ZW3POrIuuFNY=

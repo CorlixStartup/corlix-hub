@@ -16,9 +16,9 @@ page 29 (
             // Aqui o caminho vira URL da pasta de arquivos do app (#APP_FILES#).
             function cxBuscaCarregarFotos(raiz) {
               (raiz || document).querySelectorAll("img[data-cx-foto]").forEach(function (img) {
-                const caminho = img.dataset.cxFoto.split("/").map(encodeURIComponent).join("/");
+                const nome = img.dataset.cxFoto.split("/").pop();
                 img.removeAttribute("data-cx-foto");
-                img.src = apex.env.APP_FILES + caminho;
+                img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
               });
             }
             ```

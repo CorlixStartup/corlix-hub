@@ -52,7 +52,7 @@ page 2 (
               el.querySelectorAll("img[data-perfil-foto]").forEach(img => {
                 const nome = img.getAttribute("data-perfil-foto");
                 if (nome) {
-                  img.src = base + "Fotos Colaboradores/" + encodeURIComponent(nome);
+                  img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
                   img.removeAttribute("data-perfil-foto");
                 }
               });
