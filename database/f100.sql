@@ -117,7 +117,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461349232731
-,p_version_scn=>'47050321208839'
+,p_version_scn=>'47050321629802'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -61035,7 +61035,7 @@ wwv_flow_imp_shared.create_row_template(
 '#CAB_DEPT#',
 '<a href="javascript:void(0)" class="ch-contact" data-id="#ID_COLABORADOR#">',
 '  <span class="ch-avatar-wrap">',
-'    <span class="ch-avatar" aria-hidden="true">#INICIAIS#<img src="#APP_FILES##FOTO_URL#" alt="" loading="lazy" onerror="this.remove()"></span>',
+'    <span class="ch-avatar" aria-hidden="true">#INICIAIS#<img src="#FOTO_URL#" alt="" loading="lazy" onerror="this.remove()"></span>',
 '    <i class="ch-dot ch-dot--#PRESENCA#"></i>',
 '  </span>',
 '  <span class="ch-contact-txt">',
@@ -61067,7 +61067,7 @@ wwv_flow_imp_shared.create_row_template(
 ,p_static_id=>'chat-mensagens'
 ,p_row_template1=>wwv_flow_string.join(wwv_flow_t_varchar2(
 '#SEP_DIA#',
-'<div class="ch-msg ch-msg--#LADO#">',
+'<div class="ch-msg ch-msg--#LADO#" data-id="#ID_MSG#">',
 '  <div class="ch-bubble">',
 '    <span class="ch-txt">#CORPO#</span>',
 '    <span class="ch-time">#HORA#</span>',
@@ -62721,7 +62721,7 @@ unistr('  -- s\00F3 exibe canais dos quais o usu\00E1rio logado participa'),
 ,p_ajax_enabled=>'Y'
 ,p_lazy_loading=>false
 ,p_query_row_template=>wwv_flow_imp.id(26409233953242067)
-,p_query_num_rows=>15
+,p_query_num_rows=>200
 ,p_query_options=>'DERIVED_REPORT_COLUMNS'
 ,p_query_no_data_found=>'Nenhuma mensagem nesta conversa ainda.'
 ,p_csv_output=>'N'
@@ -71732,13 +71732,12 @@ wwv_flow_imp_page.create_page(
 wwv_flow_imp_page.create_page_process(
  p_id=>wwv_flow_imp.id(44209108923570321)
 ,p_process_sequence=>10
-,p_process_point=>'AFTER_SUBMIT'
+,p_process_point=>'BEFORE_HEADER'
 ,p_process_type=>'NATIVE_PLSQL'
 ,p_process_name=>'Entregar foto'
 ,p_static_id=>'entregar-foto'
 ,p_process_sql_clob=>'pkg_arquivos.entregar_foto(apex_application.g_x01);'
 ,p_process_clob_language=>'PLSQL'
-,p_error_display_location=>'INLINE_IN_NOTIFICATION'
 ,p_internal_uid=>44209108923570321
 );
 end;
@@ -71995,4 +71994,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:vwR4A9B8DBERrMTStSZktOpj5lNX2P4ZW3POrIuuFNY=
+-- Application Checksum SH256:ELxqH89+u5EqstfGz/eXqMyWJ9aqHQno+MJnoHKZdGE=
