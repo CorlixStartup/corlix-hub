@@ -227,7 +227,8 @@ Nota com cadeado: "Visível só para você, sua linha de gestão e a administra�
 Alerta info: "**Esses dados são mantidos pela administração.** Encontrou algo errado? Fale com o RH. A foto pode ser alterada por você, pelo avatar."
 **APEX**: itens Display Only com template "Floating"/"Stacked" ou região Static Content; Alert region (info).
 
-### 4.12 Meu perfil · Foto de perfil (Drawer) — `Meu perfil · foto de perfil (Drawer).png` → não implementada
+### 4.12 Meu perfil · Foto de perfil (Drawer) — `Meu perfil · foto de perfil (Drawer).png` → p00002-meu-perfil
+> **Envio:** `modulos/arquivos/Etapas-upload-foto-perfil.md`. O recorte é sempre o centro da imagem, sem ajuste manual.
 **Drawer** "Foto de perfil" + ×. Corpo centralizado: avatar grande (prévia, iniciais "RN"); texto "JPG ou PNG, até 5 MB. Depois de escolher, você ajusta o recorte quadrado. A foto aparece no cabeçalho, em Colaboradores, no Organograma e em Aniversariantes."; botão secundário "📷 **Escolher foto**"; alerta info "**Nome, cargo, departamento e e-mail são mantidos pela administração.** Encontrou algo errado? Fale com o RH." Rodapé: "Cancelar" + "**Salvar foto**".
 **APEX**: Modal Dialog (Drawer) com **Image Upload** (Cropping, aspect ratio 1:1, tamanho máx. via Application Setting); grava BLOB na tabela de colaboradores.
 

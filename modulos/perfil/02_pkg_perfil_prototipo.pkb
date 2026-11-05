@@ -521,15 +521,16 @@ create or replace package body pkg_perfil as
     p('<div class="perfil-modal-avatar">');
     p(avatar_perfil(l_c.nome_completo, l_c.foto_url, 'xl'));
     p('</div>');
-    p('<p class="perfil-modal-instrucoes">JPG ou PNG, até 5 MB. A foto aparece no cabeçalho, em Colaboradores, no Organograma e em Aniversariantes.</p>');
+    p('<p class="perfil-modal-instrucoes">JPG ou PNG, até 5 MB. A foto fica quadrada, com o centro da imagem, e aparece no cabeçalho, em Colaboradores, no Organograma e em Aniversariantes.</p>');
     p('<label for="input-foto-upload" class="perfil-btn">' || c_ico_camera || '<span>Escolher foto</span></label>');
     p('<input type="file" id="input-foto-upload" accept="image/png, image/jpeg" class="perfil-modal-arquivo">');
+    p('<p id="perfil-foto-status" class="perfil-modal-status" role="status" aria-live="polite"></p>');
     p('<div class="perfil-alerta">' || c_ico_info || '<div><strong>Nome, cargo, departamento e e-mail são mantidos pela administração.</strong><br>Encontrou algo errado? Fale com o RH.</div></div>');
     p('</div>');
 
     p('<footer class="perfil-modal-rodape">');
     p('<button type="button" class="perfil-btn" data-acao="fechar-foto">Cancelar</button>');
-    p('<button type="button" class="perfil-btn perfil-btn--primario">Salvar foto</button>');
+    p('<button type="button" class="perfil-btn perfil-btn--primario" data-acao="salvar-foto" disabled>Salvar foto</button>');
     p('</footer>');
     p('</div>');
 

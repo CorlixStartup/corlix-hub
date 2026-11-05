@@ -10,6 +10,164 @@ page 4 (
     navigation {
         cursorFocus: doNotFocusCursor
     }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            // Polling do chat: a cada 1 s pergunta ao servidor (CH_VERIFICAR_MSGS) qual é a
+            // assinatura da conversa aberta e só recarrega a região Mensagens quando ela é
+            // diferente da que está na tela. Ver modulos/chat/Etapas-chat.md §1.
+            const chChat = (function () {
+                const REGIAO_ID         = "msgs"; // Static ID da região Mensagens (passo 1.1, item 4)
+                const INTERVALO_MS      = 1000;  // 1 s
+                const INTERVALO_ERRO_MS = 5000;  // depois de um erro de rede, espera mais
+                const FOLGA_FIM_PX      = 40;    // "está no fim" = a menos de 40 px do fim
+                const LIMITE_REFRESH_MS = 10000; // destrava se um refresh nunca terminar
+            
+                let timer          = null;
+                let consultando    = false; // há uma chamada ao CH_VERIFICAR_MSGS em andamento
+                let atualizandoDes = 0;     // quando começou o refresh da região (0 = nenhum)
+                let forcarFim      = false; // próximo refresh rola até o fim (envio de mensagem)
+                let irAoFim        = true;
+                let topoSalvo      = 0;
+                let canalNaTela    = null;  // canal cujas mensagens estão renderizadas
+            
+                function canalAtual() {
+                    return apex.item("P4_CANAL_ID").getValue();
+                }
+            
+                // Elemento da região Mensagens. Usa o Static ID "msgs" se ele vier no HTML;
+                // senão, sobe a partir do relatório (report_<id>_catch) até o id interno R<id>.
+                // Assim o polling funciona mesmo que o Static ID não chegue à página.
+                function regiaoEl() {
+                    const porId = document.getElementById(REGIAO_ID);
+                    if (porId) {
+                        return porId;
+                    }
+                    const relatorio = document.querySelector(".ch-chat [id^='report_'][id$='_catch']");
+                    return relatorio ? relatorio.closest("[id^='R']") : null;
+                }
+            
+                function lista() {
+                    const el = regiaoEl();
+                    return el ? el.querySelector(".ch-msgs") : null;
+                }
+            
+                function atualizando() {
+                    return atualizandoDes > 0 && Date.now() - atualizandoDes < LIMITE_REFRESH_MS;
+                }
+            
+                // mesma regra do CH_VERIFICAR_MSGS: "<id da última mensagem>:<quantidade>"
+                function assinaturaNaTela() {
+                    const el     = regiaoEl();
+                    const msgs   = el ? el.querySelectorAll(".ch-msg[data-id]") : [];
+                    const ultima = msgs.length ? msgs[msgs.length - 1].dataset.id : "0";
+                    return ultima + ":" + msgs.length;
+                }
+            
+                function recarregar() {
+                    const el = regiaoEl();
+                    if (!el) {
+                        console.warn("chChat: região Mensagens não encontrada na página");
+                        return;
+                    }
+                    apex.region(el.id).refresh();
+                }
+            
+                function agendar(ms) {
+                    clearTimeout(timer);
+                    timer = setTimeout(verificar, ms === undefined ? INTERVALO_MS : ms);
+                }
+            
+                function verificar() {
+                    const canal = canalAtual();
+            
+                    // sem conversa aberta, aba escondida ou algo já em andamento: só reagenda
+                    if (!canal || document.hidden || consultando || atualizando()) {
+                        agendar();
+                        return;
+                    }
+            
+                    consultando = true;
+                    let espera = INTERVALO_MS;
+            
+                    apex.server.process("CH_VERIFICAR_MSGS", { x01: canal }, { dataType: "json" })
+                        .done(function (resp) {
+                            // trocou de conversa enquanto a resposta vinha, ou já há refresh: ignora
+                            if (canal !== canalAtual() || atualizando()) {
+                                return;
+                            }
+                            if (resp && resp.assinatura !== assinaturaNaTela()) {
+                                // try/catch: um erro aqui não pode impedir o .always de liberar o ciclo
+                                try {
+                                    recarregar();
+                                } catch (e) {
+                                    console.error("chChat: falha ao atualizar a conversa", e);
+                                }
+                            }
+                        })
+                        .fail(function () {
+                            espera = INTERVALO_ERRO_MS;
+                        })
+                        .always(function () {
+                            consultando = false;
+                            agendar(espera);
+                        });
+                }
+            
+                // vale para qualquer refresh da região: polling, abrir contato e enviar
+                function antesDoRefresh() {
+                    atualizandoDes = Date.now();
+                    const l = lista();
+                    const outraConversa = canalNaTela !== canalAtual();
+                    irAoFim = forcarFim || outraConversa || !l ||
+                              l.scrollHeight - l.scrollTop - l.clientHeight < FOLGA_FIM_PX;
+                    topoSalvo = l ? l.scrollTop : 0;
+                }
+            
+                function depoisDoRefresh() {
+                    const l = lista();
+                    if (l) {
+                        l.scrollTop = irAoFim ? l.scrollHeight : topoSalvo;
+                    }
+                    canalNaTela    = canalAtual();
+                    forcarFim      = false;
+                    atualizandoDes = 0;
+                    agendar(); // a próxima verificação conta a partir de agora
+                }
+            
+                // só reage aos eventos da região Mensagens (a lista de contatos também é relatório).
+                // "contains" e não "===": o relatório dispara o evento num elemento DENTRO da
+                // região (report_<id>_catch), e ele sobe até o document.
+                function daRegiao(evento) {
+                    const el = regiaoEl();
+                    return !!el && el.contains(evento.target);
+                }
+            
+                function iniciar() {
+                    // ligado no document: funciona com qualquer id que a região tenha
+                    apex.jQuery(document)
+                        .on("apexbeforerefresh", function (e) { if (daRegiao(e)) { antesDoRefresh(); } })
+                        .on("apexafterrefresh",  function (e) { if (daRegiao(e)) { depoisDoRefresh(); } });
+            
+                    // voltou para a aba: verifica na hora em vez de esperar o próximo ciclo
+                    document.addEventListener("visibilitychange", function () {
+                        if (!document.hidden) {
+                            agendar(0);
+                        }
+                    });
+            
+                    agendar();
+                }
+            
+                return {
+                    iniciar: iniciar,
+                    // chamado pela DA "Enviar Mensagem": quem envia quer ver a própria mensagem
+                    irParaFim: function () { forcarFim = true; }
+                };
+            })();
+            ```
+        executeWhenPageLoads: chChat.iniciar();
+    }
     css {
         inline:
             ```css
@@ -1106,40 +1264,10 @@ page 4 (
                     }
                     
                     apex.item("P4_MENSAGEM").setValue(texto);
+                    chChat.irParaFim();
                     // limpa já, para um segundo clique não reenviar a mesma mensagem
                     campo.value = "";
                     campo.focus();
-                    ```
-            }
-            execution {
-                sequence: 10
-                fireOnInit: false
-            }
-        )
-
-    )
-
-    dynamicAction rolar-para-a-última-mensagem (
-        name: Rolar para a última mensagem
-        execution {
-            sequence: 40
-        }
-        when {
-            event: apexafterrefresh
-            selectionType: region
-            region: @msgs
-        }
-
-        action rolar-para-o-fim (
-            name: Rolar para o fim
-            action: executeJsCode
-            settings {
-                jsCode:
-                    ```javascript-browser
-                    const lista = document.querySelector(".ch-msgs");
-                    if (lista) {
-                        lista.scrollTop = lista.scrollHeight;
-                    }
                     ```
             }
             execution {
@@ -1258,6 +1386,50 @@ page 4 (
             }
         )
 
+    )
+
+    process ch-verificar-msgs (
+        name: CH_VERIFICAR_MSGS
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                  l_canal  number := to_number(apex_application.g_x01 default null on conversion error);
+                  l_ultima canal_mensagem.id_canal_mensagem%type;
+                  l_qtd    number;
+                begin
+                  -- mesma regra da região Mensagens: só canais de que o usuário logado participa.
+                  -- "última" = a mais recente pela mesma ordem da região (data_envio, id).
+                  select max(m.id_canal_mensagem) keep (dense_rank last order by m.data_envio, m.id_canal_mensagem),
+                         count(*)
+                  into   l_ultima, l_qtd
+                  from   canal_mensagem m
+                  where  m.id_canal = l_canal
+                  and    nvl(m.excluida, false) = false
+                  and    exists (
+                           select 1
+                           from   canal_participante cp
+                           join   colaborador eu on eu.id_colaborador = cp.id_colaborador
+                           where  cp.id_canal = m.id_canal
+                           and    upper(eu.login_apex) = upper(:APP_USER)
+                         );
+                
+                  -- mesmo formato que o JS monta a partir da tela: "<última>:<quantidade>".
+                  -- A quantidade é limitada a 200, o Number of Rows da região.
+                  apex_json.open_object;
+                  apex_json.write('assinatura', nvl(l_ultima, 0) || ':' || least(l_qtd, 200));
+                  apex_json.close_object;
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 9292820097503236
+        }
     )
 
 )
