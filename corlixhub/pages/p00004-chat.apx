@@ -826,6 +826,9 @@ page 4 (
         advanced {
             customAttributes: class="ch-msgs-wrap"
         }
+        reportLayout {
+            numberOfRows: 200
+        }
         componentAppearance {
             template: @chat-mensagens
             templateOptions: #DEFAULT#

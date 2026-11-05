@@ -10,6 +10,9 @@ create or replace package body pkg_holerite_ui as
   c_item_competencia constant varchar2(30) := 'P9_COMPETENCIA';
   c_item_mensagem    constant varchar2(30) := 'P22_DS_MENSAGEM';
   c_aliquota_fgts   constant number       := 0.08;
+  -- O holerite do mês aparece a partir deste dia. A mesma regra está em
+  -- prc_gerar_holerites_pendentes.
+  c_dia_liberacao   constant pls_integer  := 25;
 
   type t_holerite is record (
     id_holerite     colaborador_holerite.id_holerite%type,
@@ -131,9 +134,13 @@ create or replace package body pkg_holerite_ui as
   end icone;
 
   -- Holerites que a pessoa pode ver, do mais recente para o mais antigo. Ficam de
-  -- fora os meses futuros e os anteriores à admissão, que a geração antiga criava.
+  -- fora o mês atual antes do dia 25, os meses futuros e os anteriores à admissão,
+  -- que a geração antiga criava.
   function holerites_de (p_id_colaborador in number, p_hoje in date) return t_holerites is
-    l_lista t_holerites;
+    l_lista  t_holerites;
+    l_ultimo constant date := case when to_number(to_char(p_hoje, 'DD')) >= c_dia_liberacao
+                                   then trunc(p_hoje, 'MM')
+                                   else add_months(trunc(p_hoje, 'MM'), -1) end;
   begin
     select h.id_holerite,
            to_date(to_char(h.ano_referencia * 100 + h.mes_referencia) || '01', 'YYYYMMDD'),
@@ -142,7 +149,7 @@ create or replace package body pkg_holerite_ui as
       from colaborador_holerite h
       join colaborador c on c.id_colaborador = h.id_colaborador
      where h.id_colaborador = p_id_colaborador
-       and to_date(to_char(h.ano_referencia * 100 + h.mes_referencia) || '01', 'YYYYMMDD') <= trunc(p_hoje, 'MM')
+       and to_date(to_char(h.ano_referencia * 100 + h.mes_referencia) || '01', 'YYYYMMDD') <= l_ultimo
        and (c.data_admissao is null
             or to_date(to_char(h.ano_referencia * 100 + h.mes_referencia) || '01', 'YYYYMMDD') >= trunc(c.data_admissao, 'MM'))
      order by h.ano_referencia desc, h.mes_referencia desc;

@@ -323,8 +323,8 @@ Redesign da página 9 conforme `pen_dev/Holerite digital.png`, na própria pági
 
 | Arquivo | Conteúdo |
 |---|---|
-| `01_prc_gerar_holerites_pendentes.sql` | gera os meses sem holerite; a página deixa de gerar ao abrir |
-| `02_pkg_holerite_ui.pks` / `.pkb` | `render_cabecalho`, `render_pagina(p_competencia)`; só leitura |
+| `01_prc_gerar_holerites_pendentes.sql` | gera os meses sem holerite, com o mês atual só a partir do dia 25; a página deixa de gerar ao abrir |
+| `02_pkg_holerite_ui.pks` / `.pkb` | `render_cabecalho`, `render_pagina(p_competencia)`; só leitura; o holerite do mês só aparece a partir do dia 25 |
 | `03_job_folha_mensal.sql` | job `JOB_FOLHA_MENSAL`, todo dia 25 |
 | `holerite.css` / `.min.css` | classes `cx-hol-*`, inclusive `@media print` para "Baixar PDF" |
 | `holerite-pagina.js` | "Ocultar valores" (`localStorage`), `window.print()`, seletor de ano e mensagem do modal |
