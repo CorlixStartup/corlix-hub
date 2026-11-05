@@ -42,7 +42,15 @@ create or replace package body pkg_arquivos as
       return;
     end if;
 
-    select * into l_cfg from arquivo_config where id_config = 1;
+    begin
+      select * into l_cfg from arquivo_config where id_config = 1;
+    exception
+      when no_data_found then
+        -- Sem configuração, não há o que entregar. Erros da chamada ao OCI, como
+        -- credencial não encontrada, seguem visíveis e não viram 404.
+        nao_encontrado;
+        return;
+    end;
 
     apex_web_service.set_request_headers(
       p_name_01  => 'Accept',          p_value_01 => '*/*',
@@ -80,9 +88,6 @@ create or replace package body pkg_arquivos as
   exception
     when apex_application.e_stop_apex_engine then
       raise;
-    when no_data_found then
-      -- ARQUIVO_CONFIG sem a linha de configuração
-      nao_encontrado;
   end entregar_foto;
 
 end pkg_arquivos;

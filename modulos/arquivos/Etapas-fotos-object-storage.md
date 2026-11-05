@@ -45,7 +45,7 @@ O acesso é de um usuário técnico que só lê esse bucket.
    | No compartimento raiz (root) | `Allow group corlix-hub-fotos to read objects in tenancy where target.bucket.name = 'corlix-fotos'` |
    | Em outro compartimento | `Allow group corlix-hub-fotos to read objects in compartment <compartimento> where target.bucket.name = 'corlix-fotos'` |
 
-   Se o grupo estiver num domínio que não seja o padrão, escreva `'<domínio>'/'corlix-hub-fotos'`.
+   Se o grupo estiver num domínio que não seja o `Default`, escreva `'<domínio>'/'corlix-hub-fotos'`. O `oci iam domain list --compartment-id "$OCI_TENANCY" --all --query 'data[]."display-name"'` lista os domínios.
 3. No usuário, em *API Keys › Add API Key*, gere o par de chaves e baixe a chave privada. Anote o **User OCID**, o **Tenancy OCID** e o **Fingerprint** que aparecem no final.
 
 ## 3. APEX: criar a Web Credential
@@ -235,6 +235,8 @@ Com tudo certo, apague a pasta **Fotos Colaboradores** em *Shared Components ›
 | Sintoma | Causa provável | Correção |
 |---|---|---|
 | A URL do §6.2 responde 404 para toda foto | Falta a linha em `ARQUIVO_CONFIG`, credencial errada ou arquivo fora do prefixo | Confira o §4, o Static ID e o caminho do objeto |
+| `ORA-01403` em `WWV_FLOW_CREDENTIAL`, ou 404 em toda foto com a versão anterior do package | O **Static ID** da credencial é diferente de `ARQUIVO_CONFIG.CD_CREDENCIAL`, comum ao recriar a credencial | Deixe os dois iguais, com as mesmas maiúsculas |
+| `BucketNotFound` com o bucket existindo | A policy não vale para o usuário. Com mais de um domínio, o grupo precisa ser citado com o domínio | Use `'<domínio>'/'corlix-hub-fotos'` na policy e confira o grupo e a API Key |
 | `AUTHENTICATION_FAILED` com `ORA-29273` e `ORA-29261: bad argument` | Valor inválido na Web Credential, como um espaço ou uma quebra de linha num OCID ou no fingerprint, ou chave em formato inesperado | Digite de novo cada campo do §3, sem espaços. Se continuar, gere outra API Key |
 | Toda foto dá 404 e o endereço abre em `/ords/foto` | JavaScript antigo, com endereço relativo: a app define a base das páginas em `/ords/` | Use a linha do §6.3 |
 | Erro citando `ORA-24247` ou ACL | A saída HTTPS do banco está bloqueada | Mande a mensagem completa. Pode exigir um ajuste de rede no banco |
