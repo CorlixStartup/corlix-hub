@@ -67,7 +67,7 @@
 - **p0 Global**: a busca global do cabeçalho não tem comportamento até aplicar `modulos/busca/Etapas-busca.md` (região "Barra de Busca" vira Dynamic Content do `pkg_busca_ui`). Os links do header usam o caminho fixo `r/corlixhub/...` até aplicar `modulos/tema/Etapas-header-e-menu.md` §4.
 - **Gráficos (JET) com mais de uma série**: o APEX junta os rótulos de todas as séries e os ordena **como texto**, ignorando o `order by` da query. Rótulo de mês em `mm/yyyy` sai fora de ordem ("01/2026" antes de "11/2025"). Use um rótulo que ordene certo como texto, como `to_char(mes, 'yyyy/mm')` (ex.: turnover da p20, `Etapas-historico-carreira.md` §5.2).
 
-- **p9 Holerite**: até aplicar `modulos/holerite/Etapas-holerite.md`, abrir um mês vazio gera a folha de todos os colaboradores, com `COMMIT`, inclusive de meses futuros (`pkg_holerite.render`), e a página não tem autorização própria. Depois do guia, a folha vem do job `JOB_FOLHA_MENSAL`; se o job parar, nenhum mês novo aparece.
+- **p9 Holerite**: até aplicar `modulos/holerite/Etapas-holerite.md`, abrir um mês vazio gera a folha de todos os colaboradores, com `COMMIT`, inclusive de meses futuros (`pkg_holerite.render`), e a página não tem autorização própria. Depois do guia, a folha vem do job `JOB_FOLHA_MENSAL`; se o job parar, nenhum holerite novo aparece. Cada pessoa tem holerites desde o mês da admissão, e o do mês atual só a partir do dia 25.
 
 ### Arquivos e tema
 - As fotos ficam em `static-files/Fotos Colaboradores/` (`nome_sobrenome.jpg`, ~291 fotos fictícias) e são montadas como `#APP_FILES#Fotos Colaboradores/<foto_url>`. Sem foto, o avatar mostra as iniciais (`.cx-avatar-iniciais`, ver 04); a SQL precisa devolver a foto **nula** nesse caso.
