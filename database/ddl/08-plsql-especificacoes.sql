@@ -424,12 +424,18 @@ end pkg_organograma;
 
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_PERFIL" as
 
-  -- Renderiza o conteúdo completo do Perfil
+  -- Faixa do topo: avatar, nome, cargo, tempo de casa, e-mail e Alterar foto.
+  -- Região na Breadcrumb Bar.
+  function render_cabecalho (
+    p_id_colaborador in number default null
+  ) return clob;
+
+  -- Abas (Trajetória e Dados pessoais) e cards de gestor e colegas.
   function render (
     p_id_colaborador in number default null
   ) return clob;
 
-  -- Renderiza a modal/drawer de alteração de foto
+  -- Conteúdo do painel de alteração de foto
   function render_drawer_foto (
     p_id_colaborador in number
   ) return clob;
