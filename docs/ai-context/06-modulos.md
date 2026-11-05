@@ -11,6 +11,7 @@
 | `modulos/historico-carreira/` | versionado | p. 13 `Histórico de carreira` (`p00013-historico-de-carreira.apx`) + páginas 18–23 | **Sim** (revalidado em 19/10/2026). Guia e checklist: `Etapas-historico-carreira.md` §1–§9 |
 | `modulos/home/` | versionado | p. 1 `Início` (o redesign foi montado direto na p. 1; a p. 28 não existe) | **Sim** até o §5 do guia (protótipo antigo). Protótipo de 28/10/2026: **não** ainda, montar pelo §6 do `Etapas-home.md` |
 | `modulos/dashboard-rh/` | versionado (27/10/2026) | p. 20 `Dashboard RH` (redesign na própria página) | **Não** ainda: montar pelo `Etapas-dashboard-rh.md` |
+| `modulos/holerite/` | versionado (04/11/2026) | p. 9 `Holerite Digital` (redesign na própria página) | **Não** ainda: montar pelo `Etapas-holerite.md` |
 | `modulos/arquivos/` | versionado (05/11/2026) | p. 44 `Foto` e as telas com foto | **Não** ainda: aplicar `Etapas-fotos-object-storage.md` | `01_ddl_arquivos.sql`, `02_pkg_arquivos` |
 | `modulos/perfil/` | versionado (04/11/2026) | p. 2 `Meu Perfil` | **Sim** (04/11/2026), testado com colaborador, gestor e RH: `Etapas-perfil-privacidade.md` | `01_pkg_perfil.pkb` |
 | `modulos/tema/` | **untracked** | todas (tema global) | documentado em `04-tema-e-estilos.md` |
@@ -315,6 +316,21 @@ Redesign da página 20 conforme `pen_dev/Dashboard RH.png`, na própria página 
 | `instalar.sql` | instala o package |
 
 "Responder" → p23 e nome da formação → p19, ambos com `apex_page.get_url`. A DA de fechamento da p23 escuta `document` (mesmo padrão da p13).
+
+## 2D. Holerite digital (`modulos/holerite/`)
+
+Redesign da página 9 conforme `pen_dev/Holerite digital.png`, na própria página, no padrão "Dynamic Content com package". Guia: `modulos/holerite/Etapas-holerite.md`.
+
+| Arquivo | Conteúdo |
+|---|---|
+| `01_prc_gerar_holerites_pendentes.sql` | gera os meses sem holerite; a página deixa de gerar ao abrir |
+| `02_pkg_holerite_ui.pks` / `.pkb` | `render_cabecalho`, `render_pagina(p_competencia)`; só leitura |
+| `03_job_folha_mensal.sql` | job `JOB_FOLHA_MENSAL`, todo dia 25 |
+| `holerite.css` / `.min.css` | classes `cx-hol-*`, inclusive `@media print` para "Baixar PDF" |
+| `holerite-pagina.js` | "Ocultar valores" (`localStorage`), `window.print()`, seletor de ano e mensagem do modal |
+| `instalar.sql` | instala a procedure e o package; não gera folha nem cria o job |
+
+Meses → p9 com `P9_COMPETENCIA`; "Solicitar correção" → p22 com `P22_DS_MENSAGEM` = `Holerite-MM/YYYY` (sem tabela nova; o pedido cai na fila do RH da p20). Ambos com `apex_page.get_url`.
 
 ## 2B. Busca na intranet (`modulos/busca/`)
 
