@@ -10,7 +10,7 @@
 - **App:** ID `100`, alias `CORLIXHUB`, workspace/schema `WKSP_CORLIXHUB`, autenticação por contas APEX, idioma da UI pt-BR (idioma primário técnico `en`).
 - **Fonte da app:** `corlixhub/` em formato **APEXlang** (`.apx`), **somente leitura** para agentes (ver regra 1 abaixo). `database/f100.sql` é o mesmo app num export SQL de 12 MB: use só para consultar, nunca edite.
 - **Banco:** o DDL das tabelas base (`COLABORADOR`, `CARGO`, `DEPARTAMENTO`, `EMPRESA`, `COMUNICADO`, `EQUIPE`, chat, logs…) está em `database/corlix-hub.sql`. É um snapshot só de estrutura, **sem dados**, e não serve como instalador. O módulo de histórico de carreira tem DDL próprio em `modulos/historico-carreira/`. Dados exportados ficam em `database/dados/` (hoje só `departamento.xlsx`: 6 departamentos da empresa 1).
-- **Em andamento:** redesign visual (tokens `--cx-*` em `corlix-tema.css`), módulo de Organograma (`modulos/organograma`, página 3), Histórico de carreira integrado nas páginas 13 e 18–23 (guia `modulos/historico-carreira/Etapas-historico-carreira.md`), redesign da Home numa página nova, a 28, sem apagar a 1 (`modulos/home`, guia `Etapas-home.md`, branch `feature/redesign-home`), redesign do Dashboard RH na própria página 20 (`modulos/dashboard-rh`, guia `Etapas-dashboard-rh.md`) e ~28 telas-alvo em `pen_dev/`.
+- **Em andamento:** redesign visual (tokens `--cx-*` em `corlix-tema.css`), módulo de Organograma (`modulos/organograma`, página 3), Histórico de carreira integrado nas páginas 13 e 18–23 (guia `modulos/historico-carreira/Etapas-historico-carreira.md`), redesign da Home numa página nova, a 28, sem apagar a 1 (`modulos/home`, guia `Etapas-home.md`, branch `feature/redesign-home`), redesign do Dashboard RH na própria página 20 (`modulos/dashboard-rh`, guia `Etapas-dashboard-rh.md`), redesign do Holerite na própria página 9 (`modulos/holerite`, guia `Etapas-holerite.md`) e ~28 telas-alvo em `pen_dev/`.
 
 ## Documentos
 
@@ -50,6 +50,7 @@
 | 5 / 8 | Notificações (duplicadas) | Placeholder / vazia |
 | 6 | Configurações | Placeholder |
 | 7 | Monitor de Logs | Implementada (sem authorization!) |
+| 9 | Holerite digital | Implementada; redesign pelo `modulos/holerite/Etapas-holerite.md`, com geração da folha fora da página |
 | 11 | Comunicados Oficiais | Placeholder |
 | 12 | Colaboradores | Placeholder |
 | 13 | Histórico de carreira | Implementada (módulo `modulos/historico-carreira`, §2 do guia) |
@@ -66,6 +67,7 @@
 | 29 | Busca (resultados da busca do header) | Em montagem pelo `modulos/busca/Etapas-busca.md` |
 | 30 a 33 | Ponto eletrônico, Solicitar ajuste (modal), Ajustes de ponto, Responder ajuste (modal) | Implementadas; ajustes da validação aplicados em 03/11/2026. Ajustes de `Etapas-meus-pedidos.md` também aplicados. Validadas na app, com dados de demonstração no ambiente DEV (`modulos/ponto-eletronico/Etapas-ajustes-validacao.md`, "Resultado na app") |
 | 34 a 43 | Suporte TI, Abrir chamado e Chamado (modais), Base de conhecimento, Atendimento TI e Atender chamado (modal), Status dos sistemas e Artigos (lista + modal) | Planejadas: `modulos/suporte-ti/Etapas-suporte-ti.md` |
+| 44 | Foto (entrega a foto do bucket privado, sem navegação) | Planejada: `modulos/arquivos/Etapas-fotos-object-storage.md` |
 | 9999 | Login | Implementada |
 
 ## Regras de ouro (resumo do 08)

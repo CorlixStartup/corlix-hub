@@ -102,6 +102,7 @@
 | 6 | Configurações | CONFIGURACOES | p00006-configuracoes.apx | @corlix-standard-page | normal | nenhuma | Placeholder (breadcrumb) |
 | 7 | Monitor de Logs | MONITOR_LOGS | p00007-monitor-logs.apx | @corlix-standard-page | normal | nenhuma / nenhuma (!) | Implementada (3 IRs em abas) |
 | 8 | Notificações | NOTIFICAÇÕES | p00008-notificações.apx | @/standard | normal | nenhuma | Vazia (nem breadcrumb) — duplicata da 5 |
+| 9 | Holerite Digital | HOLERITE-DIGITAL | p00009-holerite-digital.apx | @corlix-standard-page | normal | hoje nenhuma; @colaborador depois do guia | Implementada (`pkg_holerite.render`, que grava ao abrir). Redesign do protótipo: `modulos/holerite/Etapas-holerite.md` |
 | 11 | Comunicados Oficiais | COMUNICADOS-OFICIAIS | p00011-comunicados-oficiais.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (breadcrumb) |
 | 12 | Colaboradores | COLABORADORES | p00012-colaboradores.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (breadcrumb) |
 | 13 | Histórico de carreira | HISTORICO-DE-CARREIRA | p00013-historico-de-carreira.apx | @/standard | normal | @colaborador / menu: @colaborador | Implementada (linha do tempo do módulo `modulos/historico-carreira/`; barra e lançamentos do RH com @admin-rh) |
@@ -242,6 +243,10 @@ Placeholder: só breadcrumb `navegação-estrutural`. Template `@corlix-standard
 
 ### Página 8 — Notificações (`p00008-notificações.apx`)
 Página **vazia** (sem regiões, sem breadcrumb), alias com caracteres não-ASCII `NOTIFICAÇÕES`, template @/standard. Duplicata da página 5; não referenciada por menu/breadcrumb/links. Candidata a remoção (ou a 5 deveria ser a única).
+
+### Página 9 — Holerite Digital (`p00009-holerite-digital.apx`)
+
+Hoje: filtros `P9_MES`/`P9_ANO` e região Dynamic Content com `pkg_holerite.render`, que gera a folha de todos ao abrir um mês vazio. O redesign (`modulos/holerite/Etapas-holerite.md`) troca por duas regiões Dynamic Content do `pkg_holerite_ui` (`render_cabecalho` no Breadcrumb Bar e `render_pagina(:P9_COMPETENCIA)` no Body), item oculto `P9_COMPETENCIA` (YYYYMM, Per Request) e autorização `@colaborador`. Os meses são links com `apex_page.get_url`; "Solicitar correção" abre a p22.
 
 ### Página 11 — Comunicados Oficiais (`p00011-comunicados-oficiais.apx`)
 Placeholder (só `breadcrumb`). Template @/standard. No menu como "Comunicados" (seq 40). A listagem real de comunicados hoje só existe na Home (top 3).

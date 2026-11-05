@@ -40,13 +40,13 @@ function orgObterDrawer() {
 }
 
 /* Fotos: o PL/SQL manda o caminho em data-org-foto ("Fotos Colaboradores/x.jpg");
-   aqui vira URL dos Static Application Files. Sem foto, ficam as iniciais. */
+   aqui vira URL da página 44, que entrega a foto do bucket privado. Sem foto, ficam as iniciais. */
 function orgCarregarFotos(raiz) {
   if (!raiz) return;
   raiz.querySelectorAll("img[data-org-foto]").forEach(function (img) {
-    const caminho = img.dataset.orgFoto.split("/").map(encodeURIComponent).join("/");
+    const nome = img.dataset.orgFoto.split("/").pop();
     img.removeAttribute("data-org-foto");
-    img.src = apex.env.APP_FILES + caminho;
+    img.src = "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
   });
 }
 

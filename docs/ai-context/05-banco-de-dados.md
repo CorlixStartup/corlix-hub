@@ -822,6 +822,15 @@ Constantes de navegação: `c_pagina_organograma = 3` / `P3_ID_FOCO`; `c_pagina_
 Lê: `COLABORADOR`, `EMPRESA`, `CARGO`, `DEPARTAMENTO`, `HISTORICO_CARREIRA`, `TIPO_MOVIMENTACAO`, `FORMACAO_COLABORADOR`, `CONFIG_CARREIRA`, `SOLICITACAO_CORRECAO`, `VW_MOVIMENTACAO_VALIDA`, `VW_SITUACAO_ATUAL_COLABORADOR`. Não escreve.
 Regras de exibição: **nunca exibe salário**; eventos `MERITO` só para o próprio colaborador e RH (fora do APEX = RH); motivo de `AFASTAMENTO`/`RETORNO` oculto para quem não é o próprio nem RH; marcos de tempo de casa gerados por `connect by level` a cada 12 meses; escapa tudo com `apex_escape.html`/`html_attribute`.
 
+## 10A. Holerite (`COLABORADOR_HOLERITE`, `HOLERITE_ITENS`, `PKG_HOLERITE`, `modulos/holerite/`)
+
+`COLABORADOR_HOLERITE`: um holerite por colaborador e competência (`UK_HOLERITE_REF`), com data de pagamento e totais. `HOLERITE_ITENS`: itens com `TIPO` `P`/`D`, referência e valor; saem em cascata. Não há banco, conta, matrícula nem cargo da época.
+
+- `PKG_HOLERITE.gerar_folha_mensal(p_mes, p_ano)`: apaga e recria a competência com o salário atual do cargo; só admitidos a partir de 01/06/2026, sem filtro por empresa ou situação; faz `COMMIT`.
+- `PKG_HOLERITE.render`: versão antiga da p9; gera a folha quando o mês está vazio.
+- `PRC_GERAR_HOLERITES_PENDENTES(p_inicio default 01/06/2026)`: gera só os meses sem nenhum holerite, até o mês atual. Chamada pelo job `JOB_FOLHA_MENSAL` (dia 25, 06:00).
+- `PKG_HOLERITE_UI` (`authid definer`, só leitura): `render_cabecalho`, `render_pagina(p_competencia)`. Sem `p_id_colaborador`, usa o colaborador da conta logada na empresa da sessão; a página nunca passa esse parâmetro. Esconde meses futuros e anteriores à admissão. Lê também `COLABORADOR`, `EMPRESA`, `CARGO`, `pkg_historico_carreira.fn_hoje` e `fn_empresa_contexto`.
+
 ## 11. Package `PKG_ORGANOGRAMA` (`organograma.sql`, invoker padrão = definer)
 
 | Rotina | Assinatura | Faz |
@@ -865,6 +874,7 @@ Não existe seed de `EMPRESA`/`COLABORADOR` etc. no repo (o `seed_corlixhub.sql`
 - **Multi-tenant:** sem VPD. Isolamento por `ID_EMPRESA` em 3 camadas (planejado): queries das páginas filtram por `:G_ID_EMPRESA`; o package valida que cargo/depto/gestor/tipo são da empresa do colaborador; em sessão APEX o package compara a empresa do registro com `G_ID_EMPRESA` (sessão sem empresa é bloqueada, -20012). Fora do APEX, `definir_empresa_contexto` simula o tenant (testes).
   - **Atenção:** queries do núcleo **não filtram por empresa** hoje: P1 (aniversariantes e últimos comunicados de todas as empresas), P4 (contatos de todas as empresas), P14 (LOV de gestor), LOVs compartilhadas, `VW_ORG_COLABORADOR`.
 - **Ligação usuário ↔ colaborador:** `upper(trim(COLABORADOR.LOGIN_APEX)) = upper(trim(:APP_USER))` (autenticação = Oracle APEX Accounts; P14 cria a conta com `APEX_UTIL.CREATE_USER`).
+- **Fotos (a aplicar):** `ARQUIVO_CONFIG` e `PKG_ARQUIVOS` (`modulos/arquivos/`) levam as fotos dos Static Files, que abrem sem login, para um bucket privado. A página 44 confere a sessão e a empresa. Documentos de RH têm requisitos próprios em `modulos/arquivos/Requisitos-documentos-rh.md`.
 - **Salário:** colunas `VL_SALARIO_*` só via `VW_HISTORICO_CARREIRA`, mascaradas por `FN_CARREIRA_VE_SALARIO` (só `ADMIN_RH` em sessão APEX; falha = não mostra). Timeline, situação atual, UI e comunicados não têm salário. Toda exibição deve chamar `registrar_acesso_salarial` (P13 planejada: processo Before Header com autorização `ADMIN_RH`). Na tabela base, o salário é visível para quem consulta como dono do schema.
 - **Perfil:** `PKG_PERFIL` (`modulos/perfil/01_pkg_perfil.pkb`, aplicado em 04/11/2026): trajetória e dados pessoais só para a pessoa, a linha de gestão e o RH, pela `fn_pode_ver_colaborador`; outra empresa recebe "Colaborador não encontrado."; troca de foto só para a própria pessoa.
 - **Autorização:** o package depende de um *Authorization Scheme* chamado exatamente `ADMIN_RH` (e o guia prevê `GESTOR` e `COLABORADOR`). **Hoje a app só tem** os esquemas `Equipe Corlix Hub`, `Publicador de Conteudo`, `Somente Diretoria` e os papéis `Diretoria`, `Equipe do Corlix Hub`, `Publicador de Conteúdo`.
