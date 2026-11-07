@@ -318,7 +318,8 @@ Conferido em 07/11/2026 com a conta `TESTE.RH`, admitida em 07/10/2026, pela pá
 - **OK, regra da admissão nesta conta:** a lista mostra só outubro de 2026, o mês da admissão, e o seletor de ano só tem 2026.
 - **OK:** nenhum erro no console e sem rolagem horizontal na largura da janela.
 - **OK, teste 2 e regra da admissão, com `Rafael Nunes`, admitido em 01/06/2026:** a lista vai de junho a outubro de 2026, sem nenhum mês anterior à admissão. Os 23 valores abrem ocultos. Com os valores visíveis, clicar em **Junho** abre o mês marcado na lista, sem erro de checksum e com os valores ainda visíveis. Bruto 4.200,00 − descontos 1.273,08 = líquido 2.926,92. Nenhum erro no console.
-- **Faltam:** o teste 4 (as duas contas só têm 2026), 9 a 11 e 13 a 18, e o 12 na tela, com uma conta admitida antes de 01/06/2026, como `DEMO.CARREIRA.1.1`, que também cobre o 4. No banco, o 12 já confere (veja abaixo).
+- **OK, testes 4 e 12, com `DEMO.CARREIRA.1.1`, admitida em 07/09/2023 (conta criada para o teste, cargo `[DEMO] Analista II`):** o seletor de ano tem 2026, 2025, 2024 e 2023, e a página abre em outubro de 2026, com os 28 valores ocultos. Com os valores visíveis, trocar para 2023 abre dezembro de 2023, sem erro de checksum e com os valores ainda visíveis. A lista de 2023 vai de setembro a dezembro, sem nenhum mês antes da admissão. Bruto 6.000,00 − descontos 1.772,92 = líquido 4.227,08. Nenhum erro no console.
+- **Faltam:** os testes 9 a 11 e 13 a 18.
 
 ### Banco, conferido no SQL Commands em 07/11/2026
 
