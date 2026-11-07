@@ -50,7 +50,7 @@
 | 5 / 8 | Notificações (duplicadas) | Placeholder / vazia |
 | 6 | Configurações | Placeholder |
 | 7 | Monitor de Logs | Implementada (sem authorization!) |
-| 9 | Holerite digital | Implementada; redesign pelo `modulos/holerite/Etapas-holerite.md`, com geração da folha fora da página |
+| 9 | Holerite digital | Redesign aplicado e conferido na app em 07/11/2026, com valores ocultos ao abrir e geração da folha fora da página; testes que faltam em `modulos/holerite/Etapas-holerite.md`, "Situação na app" |
 | 11 | Comunicados Oficiais | Placeholder |
 | 12 | Colaboradores | Placeholder |
 | 13 | Histórico de carreira | Implementada (módulo `modulos/historico-carreira`, §2 do guia) |
