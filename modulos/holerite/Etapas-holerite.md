@@ -336,6 +336,19 @@ Conferido em 07/11/2026 com a conta `TESTE.RH`, admitida em 07/10/2026, pela pá
 - **Carga única, depois dos salários:** gerou 513 holerites, o número esperado. As 309 pessoas com admissão têm todos os meses até outubro de 2026, desde o mês da admissão; a mais antiga começa em janeiro de 2010. Os outubros que já existiam ficaram como estavam (3.500,00), porque a carga não refaz um holerite gravado.
 - **Meses gravados pela geração antiga:** novembro de 2026 foi apagado antes da carga e gerado de novo em 07/11/2026, para o teste 16, com os salários atuais. O job não o refaz em 25/11: se o salário de algum cargo mudar até lá, apague novembro e rode a geração de novo. Continuam no banco 873 holerites de meses anteriores à admissão, em pessoas admitidas a partir de junho; a página não os mostra, e eles podem sair a qualquer momento com o `delete` do §1.2.
 
+### Pendências depois dos testes de 07/11/2026
+
+Testes 1 a 16 e 18 conferidos na app. Fica para depois:
+
+| # | Pendência | Quando | Como fechar |
+|---|---|---|---|
+| 1 | **Teste 17** | A partir de 25/11/2026 | Abra **Holerite** com qualquer conta. Novembro de 2026 aparece primeiro, com **Pagamento agendado**; a partir de 30/11, com **Pago**. Registre o resultado acima |
+| 2 | Pedido de correção do teste 9 (`[DEMO] Ana Lima`, "teste do guia do holerite, pode ignorar") | Quando quiser | Responda ou feche no Dashboard RH |
+| 3 | Contas criadas só para os testes: `DEMO.CARREIRA.1.1` e a conta sem colaborador do teste 13 | Depois do teste 17 | Apague em *Administration › Manage Users and Groups*. O colaborador `DEMO.CARREIRA.1.1` é dado de demonstração e pode ficar |
+| 4 | Salários dos 37 cargos são de demonstração | Antes de usar dados reais | Troque pelos salários de verdade e, se for o caso, apague e gere de novo os holerites afetados |
+| 5 | Outubro de 2026 das 17 pessoas admitidas antes de junho e de `TESTE.RH` com 3.500,00, gravado por outra carga | Se incomodar na demonstração | Apague o outubro dessas pessoas e rode `begin prc_gerar_holerites_pendentes; end;` para gerá-lo com o salário do cargo |
+| 6 | 873 holerites de meses anteriores à admissão | Quando quiser | Não aparecem na tela. Saem com o `delete` do §1.2 |
+
 ## O que fica diferente do protótipo
 
 - **Banco e conta ("Itaú, conta ••••5678"):** o sistema não guarda dados bancários. A linha mostra só "Crédito em 31/10/2026".
