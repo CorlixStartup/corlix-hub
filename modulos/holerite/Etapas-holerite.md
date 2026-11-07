@@ -324,10 +324,10 @@ Conferido em 07/11/2026 com a conta `TESTE.RH`, admitida em 07/10/2026, pela pá
 - **OK, teste 15:** com `TESTE.RH`, numa janela de 378 px úteis, a página mede 363 px, sem rolagem horizontal e sem elemento fora da tela. **Mostrar valores** e **Baixar PDF** ficam lado a lado sob a descrição, a lista **Holerites** desce para baixo do detalhamento e das bases, e a coluna Referência some.
 - **OK, teste 14:** antes e depois de abrir, com `DEMO.CARREIRA.1.1`, os 38 meses e as 4 páginas de ano, `colaborador_holerite` ficou com 2.859 linhas (maior id 9471) e `holerite_itens` com 11.436 (maior id 47762). Para não derrubar a sessão, as contagens no SQL Commands e a app foram abertas em momentos separados.
 - **OK, teste 13:** com uma conta APEX criada para o teste, sem linha em `COLABORADOR`, a app mostra "sem empresa vinculada" no lugar do nome da empresa, e a página do holerite, aberta pelo endereço, responde com acesso negado. Apague essa conta em *Manage Users and Groups* quando não precisar mais dela.
+- **OK, teste 18:** a página 14 não aceita admissão futura, então o caso só acontece com a data mudada no banco ou numa importação. Para testar, a admissão de `DEMO.CARREIRA.1.1` foi mudada para 01/12/2026 no SQL Commands. Com a conta, a página mostrou "Nenhum holerite disponível ainda.", sem lista e sem **Mostrar valores** e **Baixar PDF**, mesmo com os 38 holerites gravados. Depois, a data voltou para 07/09/2023, e os 38 holerites continuam no banco.
 - **Faltam:**
   - **16, em parte:** antes do dia 25, outubro é o mês mais recente em todas as contas. Novembro foi apagado (veja abaixo), então o caso "mês atual gravado e escondido" não foi visto na tela.
   - **17:** a partir de 25/11, depois do job.
-  - **18:** não há colaborador com admissão futura.
 
 ### Banco, conferido no SQL Commands em 07/11/2026
 
