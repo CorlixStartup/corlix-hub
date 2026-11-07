@@ -305,6 +305,19 @@ O selo **Pagamento agendado** só aparece do dia 25 até a véspera da data de p
 
 Recrie a página a partir de `corlixhub/pages/p00009-holerite-digital.apx` no commit `21f03a5`. Para o cálculo antigo, recrie `pkg_holerite` a partir de `database/ddl/08-plsql-especificacoes.sql` e `09-plsql-corpos.sql`, no commit `21f03a5`; `render` não foi alterado. Se não quiser a geração automática, desligue o job com `begin dbms_scheduler.drop_job('JOB_FOLHA_MENSAL'); end;`. O package e a procedure podem ficar no banco, ou saem com `drop package pkg_holerite_ui` e `drop procedure prc_gerar_holerites_pendentes`.
 
+## Situação na app
+
+Conferido em 07/11/2026 com a conta `TESTE.RH`, admitida em 07/10/2026, pela página e pelo console do navegador, sem comparar imagens:
+
+- **Aplicado:** o backup de 07/11/2026 às 16:09 tem a página 9, o menu e os dois CSS como no §2 e no §3, e `pkg_holerite`, `prc_gerar_holerites_pendentes` e `pkg_holerite_ui` iguais aos arquivos do módulo.
+- **OK, testes 1 e 3:** outubro de 2026 abre como mês mais recente, no formato `2.875,44`. Bruto 3.500,00 − descontos 624,56 = líquido 2.875,44; Base IRRF 3.181,18 (bruto − INSS) e FGTS 280,00 (8%).
+- **OK, testes 5, 6 e 19:** os 19 valores abrem como `••••••`, com a barra cinza e **Mostrar valores**. Mostrar e ocultar funcionam; os valores continuam visíveis ao clicar no mês da lista, sem erro de checksum, e voltam ocultos ao recarregar e ao sair e voltar pela Início.
+- **OK, teste 7, em parte:** com a tela oculta, os eventos de impressão trocam a máscara pelos valores e depois voltam a ocultar. O diálogo de impressão e o PDF gerado não foram abertos.
+- **OK, teste 8:** **Solicitar correção** abre o modal com `Holerite-10/2026`. O pedido não foi enviado, então os testes 9 e 10 ficam para depois.
+- **OK, regra da admissão nesta conta:** a lista mostra só outubro de 2026, o mês da admissão, e o seletor de ano só tem 2026.
+- **OK:** nenhum erro no console e sem rolagem horizontal na largura da janela.
+- **Faltam:** os testes 2 e 4 (a conta só tem um mês), 9 a 11, 13 a 18 e o 12, que precisa de alguém admitido antes de 01/06/2026 para confirmar que a carga única (§1.2) rodou. O backup não traz jobs, então o job do §1.3 também não foi conferido; veja-o em `user_scheduler_jobs`.
+
 ## O que fica diferente do protótipo
 
 - **Banco e conta ("Itaú, conta ••••5678"):** o sistema não guarda dados bancários. A linha mostra só "Crédito em 31/10/2026".
