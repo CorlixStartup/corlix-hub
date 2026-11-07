@@ -289,6 +289,7 @@ O selo **Pagamento agendado** só aparece do dia 25 até a véspera da data de p
 | `ORA-27486` ao criar o job | O schema não tem o privilégio `CREATE JOB` | Peça ao administrador do banco o `grant create job`, ou crie uma *Automation* no APEX que chame `prc_gerar_holerites_pendentes` |
 | O holerite do mês não apareceu no dia 25 | O job ainda não rodou, ou falhou | Confira `user_scheduler_job_run_details` e, se preciso, rode `begin prc_gerar_holerites_pendentes; end;` |
 | Lista com poucos meses | O §1.2 não foi feito, ou `DATA_ADMISSAO` está errada ou vazia | Rode o §1.2 e confira a data. Meses anteriores à admissão não aparecem de propósito, e quem não tem data de admissão não gera holerite |
+| A carga do §1.2 roda sem erro e gera 0 holerites | O cargo da pessoa está sem `SALARIO_BASE`. Sem salário, `gerar_holerite` não grava nada | Preencha o salário do cargo. O job do dia seguinte gera os meses que faltam, ou rode `begin prc_gerar_holerites_pendentes; end;`. Para ver quem está nessa situação: `select c.login_apex, car.nome from colaborador c join cargo car on car.id_cargo = c.id_cargo where nvl(car.salario_base, 0) <= 0` |
 | `PLS-00302` citando `GERAR_HOLERITE` em `prc_gerar_holerites_pendentes` | O `pkg_holerite` antigo continua no banco | Instale os arquivos `00_` e rode o §1.1 na ordem |
 | Página sem estilo | CSS não enviado, ou nome diferente | Confira o §2 e `Cmd+Shift+R` |
 | Faixa branca sem título | Região do §3.3 ausente ou fora de **Breadcrumb Bar** | Confira o §3.3 |
@@ -316,7 +317,16 @@ Conferido em 07/11/2026 com a conta `TESTE.RH`, admitida em 07/10/2026, pela pá
 - **OK, teste 8:** **Solicitar correção** abre o modal com `Holerite-10/2026`. O pedido não foi enviado, então os testes 9 e 10 ficam para depois.
 - **OK, regra da admissão nesta conta:** a lista mostra só outubro de 2026, o mês da admissão, e o seletor de ano só tem 2026.
 - **OK:** nenhum erro no console e sem rolagem horizontal na largura da janela.
-- **Faltam:** os testes 2 e 4 (a conta só tem um mês), 9 a 11, 13 a 18 e o 12, que precisa de alguém admitido antes de 01/06/2026 para confirmar que a carga única (§1.2) rodou. O backup não traz jobs, então o job do §1.3 também não foi conferido; veja-o em `user_scheduler_jobs`.
+- **OK, teste 2 e regra da admissão, com `Rafael Nunes`, admitido em 01/06/2026:** a lista vai de junho a outubro de 2026, sem nenhum mês anterior à admissão. Os 23 valores abrem ocultos. Com os valores visíveis, clicar em **Junho** abre o mês marcado na lista, sem erro de checksum e com os valores ainda visíveis. Bruto 4.200,00 − descontos 1.273,08 = líquido 2.926,92. Nenhum erro no console.
+- **Faltam:** o teste 4 (as duas contas só têm 2026), 9 a 11 e 13 a 18, e o 12 na tela, com uma conta admitida antes de 01/06/2026, como `DEMO.CARREIRA.1.1`, que também cobre o 4. No banco, o 12 já confere (veja abaixo).
+
+### Banco, conferido no SQL Commands em 07/11/2026
+
+- **Job:** estava na versão mensal antiga (dia 25) e nunca tinha rodado. Foi recriado pelo §1.3: diário, às 06:00, próxima execução em 08/11/2026.
+- **Carga única (§1.2):** na primeira vez, gerou 0 holerites: as 17 pessoas admitidas antes de 01/06/2026 (a conta `EDUARDOMARINS`, de 2010, e as `DEMO.CARREIRA.*`) estavam em cargos **sem salário**, que a geração ignora. Eram 37 cargos sem `SALARIO_BASE`, 9 deles com gente.
+- **Salários preenchidos (dados de demonstração):** os 37 cargos receberam um salário inventado, de acordo com o cargo e o mercado, seguindo a escala dos cargos que já tinham salário. Os principais: assistentes de 3.200 a 5.000; analistas de 4.500 a 6.500 (`[DEMO] Analista I` 4.500, `[DEMO] Analista II` 6.000); Desenvolvedor(a) 9.000; coordenadores de 9.000 a 9.500; gerentes e Tech Lead de 16.000 a 18.000; Chefe de Gabinete 15.000; diretores de 30.000 a 35.000; Presidente (CEO) 45.000. Antes de usar dados reais, substitua pelos salários de verdade.
+- **Carga única, depois dos salários:** gerou 513 holerites, o número esperado. As 309 pessoas com admissão têm todos os meses até outubro de 2026, desde o mês da admissão; a mais antiga começa em janeiro de 2010. Os outubros que já existiam ficaram como estavam (3.500,00), porque a carga não refaz um holerite gravado.
+- **Meses gravados pela geração antiga:** novembro de 2026 foi apagado antes da carga, então o job o gera em 25/11 com os salários atuais. Continuam no banco 873 holerites de meses anteriores à admissão, em pessoas admitidas a partir de junho; a página não os mostra, e eles podem sair a qualquer momento com o `delete` do §1.2.
 
 ## O que fica diferente do protótipo
 
