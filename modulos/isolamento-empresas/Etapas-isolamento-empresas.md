@@ -6,7 +6,7 @@ Este guia corrige o que a auditoria de 07/11/2026 achou na CD-61: telas que most
 |---|---|---|---|
 | **Alta** | Organograma (página 3) e perfil (página 2) | O painel de detalhe aceita o ID de qualquer pessoa e devolve nome, cargo, área, e-mail, admissão e aniversário. A busca lista pessoas de todas as empresas. Sem foco válido, o organograma abre pela raiz do banco inteiro | 2 |
 | **Alta** | Central de Equipes e Nova Equipe (páginas 26 e 27) | Lista equipes, pessoas, departamentos e empresas de todas as empresas, e deixa criar ou editar equipe em qualquer uma | 3 e 4 |
-| Média | Monitor de Logs (página 7) | O RH de uma empresa vê os logs da app inteira | 5 |
+| Média | Monitor de Logs (página 7) | Tela técnica, com logs de todas as empresas, liberada para o RH. Passa a ser só da equipe do Corlix Hub, que tem o conhecimento técnico para ler os logs | 5 |
 | Média | Movimentação e Formação (páginas 18 e 21) | O formulário carrega o registro só pelo ID; hoje quem protege é o checksum da URL | 6 |
 
 O que já estava isolado e não muda: Início, Busca, Holerite, Ponto, Histórico de carreira, Dashboard RH, Chat, Cadastro de usuários e Meu perfil (dados pessoais).
