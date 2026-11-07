@@ -354,13 +354,19 @@ end pkg_historico_carreira;
 end pkg_historico_carreira_ui;
 /
 
-  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_HOLERITE" AS
-    -- Processa o cálculo mensal para colaboradores ativos com admissão a partir de 01/06/2026
-    PROCEDURE gerar_folha_mensal(p_mes IN NUMBER, p_ano IN NUMBER);
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_HOLERITE" as
 
-    -- Função que gera o código HTML estruturado para renderização direta na Página 9
-    FUNCTION render(p_mes IN NUMBER, p_ano IN NUMBER) RETURN CLOB;
-END pkg_holerite;
+  -- Apaga e recria o holerite de uma pessoa no mês, com o salário atual do cargo.
+  -- Não faz commit. Sem cargo ou com salário zerado, não gera nada.
+  procedure gerar_holerite (p_id_colaborador in number, p_mes in number, p_ano in number);
+
+  -- Gera o mês para todos os colaboradores já admitidos até o fim dele
+  procedure gerar_folha_mensal (p_mes in number, p_ano in number);
+
+  -- Versão antiga da página 9. Só fica aqui para o caso de voltar atrás.
+  function render (p_mes in number, p_ano in number) return clob;
+
+end pkg_holerite;
 /
 
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_HOLERITE_UI" authid definer as
@@ -634,31 +640,36 @@ end pkg_ponto_ui;
 /
 
   CREATE OR REPLACE EDITIONABLE PROCEDURE "PRC_GERAR_HOLERITES_PENDENTES" (
-  p_inicio in date default date '2026-06-01',
-  p_hoje   in date default sysdate
+  p_hoje in date default sysdate
 ) authid definer as
   c_dia_liberacao constant pls_integer := 25;
-  l_mes    date := trunc(p_inicio, 'MM');
   l_ultimo constant date := case when to_number(to_char(p_hoje, 'DD')) >= c_dia_liberacao
                                  then trunc(p_hoje, 'MM')
                                  else add_months(trunc(p_hoje, 'MM'), -1) end;
-  l_qtd    number;
 begin
-  while l_mes <= l_ultimo loop
-    select count(*)
-      into l_qtd
-      from colaborador_holerite
-     where ano_referencia = to_number(to_char(l_mes, 'YYYY'))
-       and mes_referencia = to_number(to_char(l_mes, 'MM'));
-
-    if l_qtd = 0 then
-      pkg_holerite.gerar_folha_mensal(
-        p_mes => to_number(to_char(l_mes, 'MM')),
-        p_ano => to_number(to_char(l_mes, 'YYYY')));
-    end if;
-
-    l_mes := add_months(l_mes, 1);
+  for r in (
+    select c.id_colaborador, m.competencia
+      from colaborador c
+     cross join lateral (
+             select add_months(trunc(c.data_admissao, 'MM'), level - 1) as competencia
+               from dual
+            connect by level <= months_between(l_ultimo, trunc(c.data_admissao, 'MM')) + 1
+           ) m
+     where c.data_admissao <= p_hoje
+       and trunc(c.data_admissao, 'MM') <= l_ultimo
+       and not exists (
+             select 1
+               from colaborador_holerite h
+              where h.id_colaborador = c.id_colaborador
+                and h.ano_referencia = to_number(to_char(m.competencia, 'YYYY'))
+                and h.mes_referencia = to_number(to_char(m.competencia, 'MM')))
+  ) loop
+    pkg_holerite.gerar_holerite(
+      p_id_colaborador => r.id_colaborador,
+      p_mes            => to_number(to_char(r.competencia, 'MM')),
+      p_ano            => to_number(to_char(r.competencia, 'YYYY')));
   end loop;
+  commit;
 end prc_gerar_holerites_pendentes;
 /
 
