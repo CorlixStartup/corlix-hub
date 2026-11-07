@@ -2928,6 +2928,8 @@ END pkg_holerite;
   -- O holerite do mês aparece a partir deste dia. A mesma regra está em
   -- prc_gerar_holerites_pendentes.
   c_dia_liberacao   constant pls_integer  := 25;
+  -- Mesma máscara do holerite-pagina.js
+  c_mascara         constant varchar2(30) := '••••••';
 
   type t_holerite is record (
     id_holerite     colaborador_holerite.id_holerite%type,
@@ -2998,10 +3000,11 @@ END pkg_holerite;
                         else 'NLS_NUMERIC_CHARACTERS='',.''' end);
   end pct;
 
-  -- Valor que o botão "Ocultar valores" esconde
+  -- Valor que o botão "Mostrar valores" revela. A página abre com a máscara já no HTML,
+  -- para o valor não aparecer nem por um instante antes do JavaScript rodar.
   function v_oculto (p_txt in varchar2) return varchar2 is
   begin
-    return '<span data-cx-hol-valor>' || e(p_txt) || '</span>';
+    return '<span data-cx-hol-valor data-cx-hol-original="' || a(p_txt) || '">' || c_mascara || '</span>';
   end v_oculto;
 
   function mes_nome (p_dt in date) return varchar2 is
@@ -3049,8 +3052,8 @@ END pkg_holerite;
   end icone;
 
   -- Holerites que a pessoa pode ver, do mais recente para o mais antigo. Ficam de
-  -- fora o mês atual antes do dia 25, os meses futuros e os anteriores à admissão,
-  -- que a geração antiga criava.
+  -- fora o mês atual antes do dia 25, os meses futuros, os anteriores à admissão, que
+  -- a geração antiga criava, e tudo enquanto a data de admissão não chegar.
   function holerites_de (p_id_colaborador in number, p_hoje in date) return t_holerites is
     l_lista  t_holerites;
     l_ultimo constant date := case when to_number(to_char(p_hoje, 'DD')) >= c_dia_liberacao
@@ -3065,6 +3068,7 @@ END pkg_holerite;
       join colaborador c on c.id_colaborador = h.id_colaborador
      where h.id_colaborador = p_id_colaborador
        and to_date(to_char(h.ano_referencia * 100 + h.mes_referencia) || '01', 'YYYYMMDD') <= l_ultimo
+       and (c.data_admissao is null or c.data_admissao <= p_hoje)
        and (c.data_admissao is null
             or to_date(to_char(h.ano_referencia * 100 + h.mes_referencia) || '01', 'YYYYMMDD') >= trunc(c.data_admissao, 'MM'))
      order by h.ano_referencia desc, h.mes_referencia desc;
@@ -3108,10 +3112,10 @@ END pkg_holerite;
       l_lista := holerites_de(l_id, pkg_historico_carreira.fn_hoje(pkg_historico_carreira.fn_empresa_contexto));
       if l_lista.count > 0 then
         p('<div class="cx-cabecalho-pagina__acoes">');
-        p('<button type="button" class="t-Button cx-hol-botao" data-cx-hol-ocultar aria-pressed="false">');
-        p('<span data-cx-hol-icone-ocultar>' || icone('olho-fechado') || '</span>');
-        p('<span data-cx-hol-icone-mostrar hidden>' || icone('olho') || '</span>');
-        p('<span class="t-Button-label" data-cx-hol-ocultar-texto>Ocultar valores</span></button>');
+        p('<button type="button" class="t-Button cx-hol-botao" data-cx-hol-ocultar aria-pressed="true">');
+        p('<span data-cx-hol-icone-ocultar hidden>' || icone('olho-fechado') || '</span>');
+        p('<span data-cx-hol-icone-mostrar>' || icone('olho') || '</span>');
+        p('<span class="t-Button-label" data-cx-hol-ocultar-texto>Mostrar valores</span></button>');
         p('<button type="button" class="t-Button cx-hol-botao cx-hol-botao--escuro" data-cx-hol-imprimir>'
           || icone('download') || '<span class="t-Button-label">Baixar PDF</span></button>');
         p('</div>');
@@ -3163,7 +3167,7 @@ END pkg_holerite;
     p('<div><dt>Descontos</dt><dd>' || v_oculto('– R$ ' || num(p_h.total_descontos)) || '</dd></div>');
     p('</dl></div>');
 
-    p('<div class="cx-hol-barra" aria-hidden="true" data-cx-hol-barra>');
+    p('<div class="cx-hol-barra is-oculta" aria-hidden="true" data-cx-hol-barra>');
     p('<span class="cx-hol-barra__liquido" style="width:' || pct(l_pct_liq, true) || '%"></span>');
     p('<span class="cx-hol-barra__descontos" style="width:' || pct(l_pct_des, true) || '%"></span></div>');
     p('<ul class="cx-hol-legenda">');

@@ -53,6 +53,16 @@ file historico-carreira.min.css (
     charSet: utf-8
 )
 
+file holerite.css (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file holerite.min.css (
+    mimeType: text/css
+    charSet: utf-8
+)
+
 file home-hero.jpg (
     mimeType: image/jpeg
     charSet: utf-8

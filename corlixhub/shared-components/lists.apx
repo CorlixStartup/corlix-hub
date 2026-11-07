@@ -242,6 +242,9 @@ list navigation-menu (
                 page: 9
             }
         }
+        security {
+            authorizationScheme: @colaborador
+        }
     )
 
     entry início (
