@@ -104,7 +104,7 @@
 | 8 | Notificações | NOTIFICAÇÕES | p00008-notificações.apx | @/standard | normal | nenhuma | Vazia (nem breadcrumb) — duplicata da 5 |
 | 9 | Holerite Digital | HOLERITE-DIGITAL | p00009-holerite-digital.apx | @corlix-standard-page | normal | hoje nenhuma; @colaborador depois do guia | Implementada (`pkg_holerite.render`, que grava ao abrir). Redesign do protótipo: `modulos/holerite/Etapas-holerite.md` |
 | 11 | Comunicados Oficiais | COMUNICADOS-OFICIAIS | p00011-comunicados-oficiais.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (breadcrumb) |
-| 12 | Colaboradores | COLABORADORES | p00012-colaboradores.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (breadcrumb) |
+| 12 | Colaboradores | COLABORADORES | p00012-colaboradores.apx | @/standard | normal | nenhuma / nenhuma | Em montagem pelo `modulos/colaboradores/Etapas-colaboradores.md` (Faceted Search + Classic Report fiel ao protótipo `Colaboradores · visão de administração.png`) |
 | 13 | Histórico de carreira | HISTORICO-DE-CARREIRA | p00013-historico-de-carreira.apx | @/standard | normal | @colaborador / menu: @colaborador | Implementada (linha do tempo do módulo `modulos/historico-carreira/`; barra e lançamentos do RH com @admin-rh) |
 | 14 | Cadastro de Usuários | CADASTROS-DE-USUARIOS | p00014-cadastros-de-usuarios.apx | @/standard | normal | @admin-rh / menu: @admin-rh | Implementada (form COLABORADOR + cria usuário APEX + admissão no histórico) |
 | 18 | Movimentação | MOVIMENTACAO | p00018-movimentacao.apx | @/modal-dialog | modal | @admin-rh | Implementada (rascunho, efetivar, estornar, excluir; guia §3) |
@@ -253,7 +253,22 @@ Hoje: filtros `P9_MES`/`P9_ANO` e região Dynamic Content com `pkg_holerite.rend
 Placeholder (só `breadcrumb`). Template @/standard. No menu como "Comunicados" (seq 40). A listagem real de comunicados hoje só existe na Home (top 3).
 
 ### Página 12 — Colaboradores (`p00012-colaboradores.apx`)
-Placeholder (só `breadcrumb`). Template @/standard.
+Em montagem pelo guia `modulos/colaboradores/Etapas-colaboradores.md` com base no protótipo `pen_dev/Colaboradores · visão de administração.png`.
+- **Propósito**: Diretório e gestão de pessoas, vínculos e perfis de acesso da intranet.
+- **Cabeçalho**: Dynamic Content no `breadcrumbBar` com título "Colaboradores", descrição e botão escuro "+ Novo colaborador" condicionado a perfis de administração/RH (`ADMIN_RH` ou `administration-rights`) ou à equipe da plataforma (`G_ID_EMPRESA is null`), direcionando para a p14.
+- **Filtros (Faceted Search)**: região `Filtros` à esquerda (col 1, col-span 3) com 5 facetas:
+  1. `P12_SEARCH` (Search): busca sobre `NOME_COMPLETO, LOGIN_APEX, EMAIL` com placeholder "Nome, login ou e-mail".
+  2. `P12_SITUACAO` (Checkbox Group): `Ativa` / `Inativa` com contagens.
+  3. `P12_EMPRESA` (Checkbox Group): empresas cadastradas e `Sem vínculo` com contagens.
+  4. `P12_DEPARTAMENTO` (Checkbox Group): departamentos cadastrados com contagens.
+  5. `P12_PERFIL` (Checkbox Group): `Administrador`, `Publicador de conteúdo` e `Colaborador` com contagens.
+- **Resultados (Classic Report)**: região `Colaboradores` (col 4, col-span 9, classe `cx-relatorio`) sobre a view `VW_COLABORADORES_LISTA`:
+  - `Pessoa`: avatar circular com foto ou iniciais (`cx-avatar`), nome em link azul para edição na p14 com `P14_ID_COLABORADOR`, e e-mail corporativo abaixo.
+  - `Login`: plain text (`login_apex`).
+  - `Vínculo`: Empresa · Departamento na linha 1 e Cargo na linha 2. Usuários sem vínculo mostram alerta âmbar `⚠ Sem vínculo` com subtítulo `Cadastro incompleto`.
+  - `Perfil`: etiqueta cinza neutra (`cx-etiqueta`) para `Administrador` e `Publicador de conteúdo`; texto para `Colaborador`.
+  - `Situação`: badge com ponto colorido (`cx-badge cx-badge--sucesso` para Ativa, `cx-badge cx-badge--neutro` para Inativa).
+  - Paginação: `Row Ranges X to Y of Z`.
 
 ### Página 13 — Histórico de carreira (`p00013-historico-de-carreira.apx`)
 Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colaborador`. Regiões: `hc_barra_rh` "Barra do RH" (seletor de colaborador e botões, só `@admin-rh`), `historico_carreira` (Dynamic Content gerado por `pkg_historico_carreira_ui`, com o JS e o CSS do módulo) e `lançamentos-rh` (botões "Formações" e "Nova movimentação", também com `@admin-rh` nos botões). Alias sem acento desde 19/10/2026. Passo a passo e checklist no guia `modulos/historico-carreira/Etapas-historico-carreira.md` (§2 e §8); as páginas 18 a 23 do módulo estão na tabela acima.
