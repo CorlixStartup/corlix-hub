@@ -246,7 +246,7 @@ Página **vazia** (sem regiões, sem breadcrumb), alias com caracteres não-ASCI
 
 ### Página 9 — Holerite Digital (`p00009-holerite-digital.apx`)
 
-Hoje: filtros `P9_MES`/`P9_ANO` e região Dynamic Content com `pkg_holerite.render`, que gera a folha de todos ao abrir um mês vazio. O redesign (`modulos/holerite/Etapas-holerite.md`) troca por duas regiões Dynamic Content do `pkg_holerite_ui` (`render_cabecalho` no Breadcrumb Bar e `render_pagina(:P9_COMPETENCIA)` no Body), item oculto `P9_COMPETENCIA` (YYYYMM, Per Request) e autorização `@colaborador`. Os meses são links com `apex_page.get_url`; "Solicitar correção" abre a p22.
+Hoje: filtros `P9_MES`/`P9_ANO` e região Dynamic Content com `pkg_holerite.render`, que gera a folha de todos ao abrir um mês vazio. O redesign (`modulos/holerite/Etapas-holerite.md`) troca por duas regiões Dynamic Content do `pkg_holerite_ui` (`render_cabecalho` no Breadcrumb Bar e `render_pagina(:P9_COMPETENCIA)` no Body), item oculto `P9_COMPETENCIA` (YYYYMM, Per Request) e autorização `@colaborador`. Os meses são links com `apex_page.get_url`; "Solicitar correção" abre a p22. Os valores abrem sempre ocultos (`••••••`) e só aparecem com **Mostrar valores**.
 
 ### Página 11 — Comunicados Oficiais (`p00011-comunicados-oficiais.apx`)
 Placeholder (só `breadcrumb`). Template @/standard. No menu como "Comunicados" (seq 40). A listagem real de comunicados hoje só existe na Home (top 3).

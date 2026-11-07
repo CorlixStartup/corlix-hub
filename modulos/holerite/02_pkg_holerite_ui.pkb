@@ -13,6 +13,8 @@ create or replace package body pkg_holerite_ui as
   -- O holerite do mês aparece a partir deste dia. A mesma regra está em
   -- prc_gerar_holerites_pendentes.
   c_dia_liberacao   constant pls_integer  := 25;
+  -- Mesma máscara do holerite-pagina.js
+  c_mascara         constant varchar2(30) := '••••••';
 
   type t_holerite is record (
     id_holerite     colaborador_holerite.id_holerite%type,
@@ -83,10 +85,11 @@ create or replace package body pkg_holerite_ui as
                         else 'NLS_NUMERIC_CHARACTERS='',.''' end);
   end pct;
 
-  -- Valor que o botão "Ocultar valores" esconde
+  -- Valor que o botão "Mostrar valores" revela. A página abre com a máscara já no HTML,
+  -- para o valor não aparecer nem por um instante antes do JavaScript rodar.
   function v_oculto (p_txt in varchar2) return varchar2 is
   begin
-    return '<span data-cx-hol-valor>' || e(p_txt) || '</span>';
+    return '<span data-cx-hol-valor data-cx-hol-original="' || a(p_txt) || '">' || c_mascara || '</span>';
   end v_oculto;
 
   function mes_nome (p_dt in date) return varchar2 is
@@ -194,10 +197,10 @@ create or replace package body pkg_holerite_ui as
       l_lista := holerites_de(l_id, pkg_historico_carreira.fn_hoje(pkg_historico_carreira.fn_empresa_contexto));
       if l_lista.count > 0 then
         p('<div class="cx-cabecalho-pagina__acoes">');
-        p('<button type="button" class="t-Button cx-hol-botao" data-cx-hol-ocultar aria-pressed="false">');
-        p('<span data-cx-hol-icone-ocultar>' || icone('olho-fechado') || '</span>');
-        p('<span data-cx-hol-icone-mostrar hidden>' || icone('olho') || '</span>');
-        p('<span class="t-Button-label" data-cx-hol-ocultar-texto>Ocultar valores</span></button>');
+        p('<button type="button" class="t-Button cx-hol-botao" data-cx-hol-ocultar aria-pressed="true">');
+        p('<span data-cx-hol-icone-ocultar hidden>' || icone('olho-fechado') || '</span>');
+        p('<span data-cx-hol-icone-mostrar>' || icone('olho') || '</span>');
+        p('<span class="t-Button-label" data-cx-hol-ocultar-texto>Mostrar valores</span></button>');
         p('<button type="button" class="t-Button cx-hol-botao cx-hol-botao--escuro" data-cx-hol-imprimir>'
           || icone('download') || '<span class="t-Button-label">Baixar PDF</span></button>');
         p('</div>');
@@ -249,7 +252,7 @@ create or replace package body pkg_holerite_ui as
     p('<div><dt>Descontos</dt><dd>' || v_oculto('– R$ ' || num(p_h.total_descontos)) || '</dd></div>');
     p('</dl></div>');
 
-    p('<div class="cx-hol-barra" aria-hidden="true" data-cx-hol-barra>');
+    p('<div class="cx-hol-barra is-oculta" aria-hidden="true" data-cx-hol-barra>');
     p('<span class="cx-hol-barra__liquido" style="width:' || pct(l_pct_liq, true) || '%"></span>');
     p('<span class="cx-hol-barra__descontos" style="width:' || pct(l_pct_des, true) || '%"></span></div>');
     p('<ul class="cx-hol-legenda">');

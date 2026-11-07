@@ -328,7 +328,7 @@ Redesign da página 9 conforme `pen_dev/Holerite digital.png`, na própria pági
 | `02_pkg_holerite_ui.pks` / `.pkb` | `render_cabecalho`, `render_pagina(p_competencia)`; só leitura; o holerite do mês só aparece a partir do dia 25 |
 | `03_job_folha_mensal.sql` | job `JOB_FOLHA_MENSAL`, todo dia às 06:00 |
 | `holerite.css` / `.min.css` | classes `cx-hol-*`, inclusive `@media print` para "Baixar PDF" |
-| `holerite-pagina.js` | "Ocultar valores" (`localStorage`), `window.print()`, seletor de ano e mensagem do modal |
+| `holerite-pagina.js` | "Mostrar/Ocultar valores": a página sempre abre com os valores ocultos (máscara já no HTML do package, valor em `data-cx-hol-original`); o "mostrar" só sobrevive à troca de mês/ano, via `sessionStorage`; `window.print()`, seletor de ano e mensagem do modal |
 | `instalar.sql` | instala os packages e a procedure; não gera folha nem cria o job |
 
 Meses → p9 com `P9_COMPETENCIA`; "Solicitar correção" → p22 com `P22_DS_MENSAGEM` = `Holerite-MM/YYYY` (sem tabela nova; o pedido cai na fila do RH da p20). Ambos com `apex_page.get_url`.

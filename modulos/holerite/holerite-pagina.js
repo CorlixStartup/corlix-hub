@@ -1,22 +1,34 @@
 // =============================================================================
 // Corlix Hub · Holerite digital (página 9)
 // Cole em Page › JavaScript › Execute when Page Loads.
-// "Ocultar valores" troca o texto de verdade, para que os valores também saiam do
-// leitor de tela. A escolha fica no navegador e sobrevive à troca de mês.
+// Os valores chegam ocultos do package e a página sempre abre assim. "Mostrar valores"
+// troca o texto de verdade, para que os valores também saiam do leitor de tela, e só
+// vale enquanto a pessoa troca de mês ou de ano dentro da própria página.
 // =============================================================================
 
 (function () {
-  const CHAVE = "cx-holerite-ocultar";
+  const CHAVE = "cx-holerite-mostrar";
   const MASCARA = "••••••";
-  let oculto = false;
+  let oculto = true;
 
-  function lerPreferencia() {
-    try { return window.localStorage.getItem(CHAVE) === "S"; } catch (erro) { return false; }
+  // Lê e apaga: o "mostrar" vale só para a próxima carga, a da troca de mês
+  function veioDaTrocaDeMesComValores() {
+    try {
+      const valor = window.sessionStorage.getItem(CHAVE) === "S";
+      window.sessionStorage.removeItem(CHAVE);
+      return valor;
+    } catch (erro) { return false; }
   }
 
-  function gravarPreferencia(valor) {
-    try { window.localStorage.setItem(CHAVE, valor ? "S" : "N"); } catch (erro) { /* só não lembra */ }
+  function lembrarParaATrocaDeMes() {
+    try {
+      if (oculto) { window.sessionStorage.removeItem(CHAVE); }
+      else { window.sessionStorage.setItem(CHAVE, "S"); }
+    } catch (erro) { /* só não lembra */ }
   }
+
+  // A versão anterior guardava a escolha para sempre neste navegador
+  try { window.localStorage.removeItem("cx-holerite-ocultar"); } catch (erro) { /* nada a limpar */ }
 
   function aplicarValores(esconder) {
     document.querySelectorAll("[data-cx-hol-valor]").forEach(function (el) {
@@ -43,12 +55,14 @@
     aplicarBotao(valor);
   }
 
-  definirOculto(lerPreferencia());
+  definirOculto(!veioDaTrocaDeMesComValores());
 
   $(document).on("click", "[data-cx-hol-ocultar]", function () {
     definirOculto(!oculto);
-    gravarPreferencia(oculto);
   });
+
+  // Clique num mês da lista lateral
+  $(document).on("click", ".cx-hol-lista__item", lembrarParaATrocaDeMes);
 
   // O PDF sai sempre com os valores, mesmo com a tela oculta. Os eventos também
   // cobrem quem imprime pelo menu do navegador.
@@ -61,6 +75,7 @@
 
   // Seletor de ano: cada opção traz o link com checksum do mês mais recente daquele ano
   $(document).on("change", "[data-cx-hol-ano]", function () {
+    lembrarParaATrocaDeMes();
     apex.navigation.redirect(this.value);
   });
 
