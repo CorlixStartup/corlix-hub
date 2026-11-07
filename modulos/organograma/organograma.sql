@@ -19,11 +19,14 @@ select c.id_colaborador,
        cg.nome as cargo,
        d.nome  as departamento,
        c.foto_url,
-       case when c.imagem_perfil is not null then 'S' else 'N' end as tem_imagem
+       case when c.imagem_perfil is not null then 'S' else 'N' end as tem_imagem,
+       c.id_empresa
   from colaborador  c
   join cargo        cg on cg.id_cargo       = c.id_cargo
   join departamento d  on d.id_departamento = c.id_departamento
- where c.status = true;   -- STATUS nulo ou FALSE = conta inativa (não aparece)
+ where c.status = true   -- STATUS nulo ou FALSE = conta inativa (não aparece)
+   -- Só a empresa da sessão (ver modulos/isolamento-empresas/01_vw_org_colaborador_empresa.sql)
+   and c.id_empresa = (select to_number(v('G_ID_EMPRESA') default null on conversion error) from dual);
 
 
 --------------------------------------------------------------------------------

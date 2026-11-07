@@ -12,6 +12,7 @@
 | `modulos/home/` | versionado | p. 1 `Início` (o redesign foi montado direto na p. 1; a p. 28 não existe) | **Sim** até o §5 do guia (protótipo antigo). Protótipo de 28/10/2026: **não** ainda, montar pelo §6 do `Etapas-home.md` |
 | `modulos/dashboard-rh/` | versionado (27/10/2026) | p. 20 `Dashboard RH` (redesign na própria página) | **Não** ainda: montar pelo `Etapas-dashboard-rh.md` |
 | `modulos/holerite/` | versionado (04/11/2026) | p. 9 `Holerite Digital` (redesign na própria página) | **Não** ainda: montar pelo `Etapas-holerite.md` |
+| `modulos/isolamento-empresas/` | versionado (07/11/2026) | p. 2, 3, 7, 18, 21, 26 e 27 | **Não** ainda: aplicar `Etapas-isolamento-empresas.md` | `01_vw_org_colaborador_empresa.sql` |
 | `modulos/arquivos/` | versionado (05/11/2026) | p. 44 `Foto` e as telas com foto | **Não** ainda: aplicar `Etapas-fotos-object-storage.md` | `01_ddl_arquivos.sql`, `02_pkg_arquivos`; envio da foto: `Etapas-upload-foto-perfil.md`, `03_ddl_foto_escrita.sql`, `04_pkg_foto_perfil`, `foto-perfil.js` (a aplicar) |
 | `modulos/perfil/` | versionado (04/11/2026) | p. 2 `Meu Perfil` | **Sim** (04/11/2026), testado com colaborador, gestor e RH: `Etapas-perfil-privacidade.md` | `01_pkg_perfil.pkb` |
 | `modulos/tema/` | **untracked** | todas (tema global) | documentado em `04-tema-e-estilos.md` |
