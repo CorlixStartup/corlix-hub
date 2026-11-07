@@ -90,9 +90,10 @@ Salve as duas páginas.
 
 ## 5. Builder: Monitor de Logs
 
-Na página 7, clique no nome da página e mude **Security › Authorization Scheme** para **EQUIPE_CORLIX_HUB**.
+Os logs são da app inteira, de todas as empresas, mostram usuários e IDs de sessão e exigem conhecimento técnico para ler. Por isso, ficam com a equipe do Corlix Hub, e o RH deixa de ver essa página.
 
-Os logs são da app inteira, de todas as empresas, e mostram usuários e IDs de sessão. Por isso, ficam com a equipe do Corlix Hub. O RH perde o acesso a essa página.
+1. Na página 7, clique no nome da página e mude **Security › Authorization Scheme** para **EQUIPE_CORLIX_HUB**.
+2. Em *Shared Components › Navigation Menu*, abra a entrada **Monitor de logs** e mude **Authorization Scheme** para **EQUIPE_CORLIX_HUB**. Sem isso, o RH continua vendo o link no menu e recebe acesso negado ao clicar.
 
 ## 6. Builder: formulários das páginas 18 e 21
 
@@ -117,7 +118,7 @@ Precisa de uma segunda empresa com pelo menos dois colaboradores e uma conta par
 | 4 | Empresa 1 | Abra o perfil de um colega e veja o card de gestor e colegas | Só pessoas da empresa 1 |
 | 5 | Empresa 2 | Abra a Central de Equipes | Só equipes da empresa 2 |
 | 6 | Empresa 2 | Abra **Nova Equipe** | As listas mostram só pessoas, departamentos e a empresa 2 |
-| 7 | RH da empresa 1 | Abra o Monitor de Logs | Acesso negado |
+| 7 | RH da empresa 1 | Procure **Monitor de logs** no menu e abra a página pelo endereço | O link não aparece, e o endereço dá acesso negado |
 | 8 | Equipe do Corlix Hub | Abra o Monitor de Logs | Abre normalmente |
 | 9 | RH da empresa 1 | Abra uma movimentação e uma formação pelos links | Abrem normalmente |
 
