@@ -317,13 +317,15 @@ Conferido em 07/11/2026 com a conta `TESTE.RH`, admitida em 07/10/2026, pela pá
 - **OK, teste 8:** **Solicitar correção** abre o modal com `Holerite-10/2026`. O pedido não foi enviado, então os testes 9 e 10 ficam para depois.
 - **OK, regra da admissão nesta conta:** a lista mostra só outubro de 2026, o mês da admissão, e o seletor de ano só tem 2026.
 - **OK:** nenhum erro no console e sem rolagem horizontal na largura da janela.
-- **Faltam:** os testes 2 e 4 (a conta só tem um mês), 9 a 11 e 13 a 18.
+- **Faltam:** os testes 2 e 4 (a conta só tem um mês), 9 a 11 e 13 a 18, e o 12 na tela, com uma conta admitida antes de 01/06/2026, como `DEMO.CARREIRA.1.1`. No banco, o 12 já confere (veja abaixo).
 
 ### Banco, conferido no SQL Commands em 07/11/2026
 
 - **Job:** estava na versão mensal antiga (dia 25) e nunca tinha rodado. Foi recriado pelo §1.3: diário, às 06:00, próxima execução em 08/11/2026.
-- **Carga única (§1.2):** rodou sem erro e gerou 0 holerites. As 17 pessoas admitidas antes de 01/06/2026 (a conta `EDUARDOMARINS`, de 2010, e as `DEMO.CARREIRA.*`) estão em 9 cargos **sem salário**, então a geração as ignora. Elas só têm outubro de 2026, com 3.500,00, gravado por outra carga. **O teste 12 fica bloqueado** até o salário desses cargos ser preenchido; depois disso, o job do dia seguinte gera os meses que faltam.
-- **Meses gravados pela geração antiga, ainda no banco:** novembro de 2026 em 291 pessoas, gravado antes do dia 25, e 873 holerites de meses anteriores à admissão. A página não mostra nenhum dos dois. Novembro precisa sair antes de 25/11 para ser recalculado pelo job (§1.2); os anteriores à admissão podem sair a qualquer momento. Nenhum dos dois foi apagado.
+- **Carga única (§1.2):** na primeira vez, gerou 0 holerites: as 17 pessoas admitidas antes de 01/06/2026 (a conta `EDUARDOMARINS`, de 2010, e as `DEMO.CARREIRA.*`) estavam em cargos **sem salário**, que a geração ignora. Eram 37 cargos sem `SALARIO_BASE`, 9 deles com gente.
+- **Salários preenchidos (dados de demonstração):** os 37 cargos receberam um salário inventado, de acordo com o cargo e o mercado, seguindo a escala dos cargos que já tinham salário. Os principais: assistentes de 3.200 a 5.000; analistas de 4.500 a 6.500 (`[DEMO] Analista I` 4.500, `[DEMO] Analista II` 6.000); Desenvolvedor(a) 9.000; coordenadores de 9.000 a 9.500; gerentes e Tech Lead de 16.000 a 18.000; Chefe de Gabinete 15.000; diretores de 30.000 a 35.000; Presidente (CEO) 45.000. Antes de usar dados reais, substitua pelos salários de verdade.
+- **Carga única, depois dos salários:** gerou 513 holerites, o número esperado. As 309 pessoas com admissão têm todos os meses até outubro de 2026, desde o mês da admissão; a mais antiga começa em janeiro de 2010. Os outubros que já existiam ficaram como estavam (3.500,00), porque a carga não refaz um holerite gravado.
+- **Meses gravados pela geração antiga:** novembro de 2026 foi apagado antes da carga, então o job o gera em 25/11 com os salários atuais. Continuam no banco 873 holerites de meses anteriores à admissão, em pessoas admitidas a partir de junho; a página não os mostra, e eles podem sair a qualquer momento com o `delete` do §1.2.
 
 ## O que fica diferente do protótipo
 
