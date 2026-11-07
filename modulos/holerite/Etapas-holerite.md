@@ -4,7 +4,7 @@ Este guia deixa a página 9 igual ao protótipo [`pen_dev/Holerite digital.png`]
 
 Como nos outros guias, a mudança é feita no Builder. O backup diário traz o resultado para `corlixhub/pages/p00009-holerite-digital.apx` na `DEV`; editar o `.apx` do repositório não muda o app e é desfeito no próximo backup.
 
-> **Estado do código:** o package foi compilado e testado em um Oracle 23ai local, com 41 verificações, e a tela foi renderizada em navegador com o CSS real do tema. Esse banco **não tem APEX**: as APIs do APEX foram simuladas. A página real, os links com checksum e o modal só são testados ao seguir este guia (§4).
+> **Estado do código:** o package foi compilado e testado em um Oracle 23ai local, com 69 verificações, e a tela foi renderizada em navegador com o CSS real do tema. Esse banco **não tem APEX**: as APIs do APEX foram simuladas. A página real, os links com checksum e o modal só são testados ao seguir este guia (§4).
 
 ### Como ler os caminhos deste guia (APEX 26.1.5)
 
@@ -16,7 +16,7 @@ Como nos outros guias, a mudança é feita no Builder. O backup diário traz o r
 
 | Parte | Hoje | Depois |
 |---|---|---|
-| Topo | Barra com breadcrumb | Faixa branca com título, descrição, **Ocultar valores** e **Baixar PDF** |
+| Topo | Barra com breadcrumb | Faixa branca com título, descrição, **Mostrar valores** e **Baixar PDF** |
 | Escolha do mês | Selects de mês e ano, que recarregam a página | Lista **Holerites** à direita, com seletor de ano. Só mostra meses que existem |
 | Resumo | Totais numa linha, no fim | Líquido em destaque, bruto, descontos, selo de situação e barra de proporção |
 | Itens | Tabela com colunas de proventos e descontos | Grupos **Proventos** e **Descontos**, com explicação e referência em cada item |
@@ -27,6 +27,7 @@ Como nos outros guias, a mudança é feita no Builder. O backup diário traz o r
 | Geração da folha | Ao abrir a página, com gravação e `COMMIT`, para qualquer mês escolhido | Fora da página: carga única e job mensal (§1.2 e §1.3) |
 | Quando o holerite aparece | Em qualquer data | **A partir do dia 25 do mês** (veja abaixo) |
 | Desde quando há holerites | Só para admitidos a partir de 01/06/2026 | **Para todos, desde o mês da admissão** (veja abaixo) |
+| Valores ao abrir a página | Visíveis | **Ocultos** (`••••••`), até a pessoa clicar em **Mostrar valores** (veja abaixo) |
 
 ### Por que a geração saiu da página
 
@@ -51,6 +52,16 @@ Cada pessoa tem holerites desde o mês em que foi admitida, seja qual for a data
 
 O primeiro mês sai com o salário cheio ("30 dias"): a geração não calcula valor proporcional.
 
+### Valores ocultos ao abrir
+
+Toda vez que a pessoa entra na página, os valores chegam ocultos: o líquido, os totais, os itens, as bases, os percentuais e os valores da lista de meses aparecem como `••••••`, e a barra de proporção fica cinza. O botão do topo começa como **Mostrar valores**.
+
+- **Mostrar valores** revela tudo até a pessoa sair da página. Ao trocar de mês ou de ano pela própria página, os valores continuam visíveis.
+- **Recarregar a página, voltar a ela pelo menu ou abrir em outra aba** começa oculto de novo.
+- **Baixar PDF** sai sempre com os valores, mesmo com a tela oculta.
+
+A máscara já vem pronta no HTML do `pkg_holerite_ui`, então o valor não aparece nem por um instante antes do JavaScript rodar. O valor real fica no atributo `data-cx-hol-original` do elemento, como antes ficava no texto, porque o JavaScript precisa dele para mostrar sem recarregar a página.
+
 ### Arquivos do módulo
 
 | Arquivo | O que é |
@@ -61,7 +72,7 @@ O primeiro mês sai com o salário cheio ("30 dias"): a geração não calcula v
 | `03_job_folha_mensal.sql` | Job que chama a procedure todo dia |
 | `instalar.sql` | Instala os packages e a procedure pelo SQLcl |
 | `holerite.css` / `holerite.min.css` | Estilos da página (classes `cx-hol-*`); sobem como Static Application Files |
-| `holerite-pagina.js` | "Ocultar valores", "Baixar PDF", seletor de ano e mensagem do modal |
+| `holerite-pagina.js` | "Mostrar/Ocultar valores" (a página abre oculta), "Baixar PDF", seletor de ano e mensagem do modal |
 
 Não há tabela nova.
 
@@ -69,6 +80,8 @@ Não há tabela nova.
 
 ## 1. Banco
 
+> **Se você já aplicou este guia antes dos valores ocultos ao abrir:** rode só `02_pkg_holerite_ui.pkb` (no SQL Scripts, ou `@02_pkg_holerite_ui.pkb` no SQLcl), cole de novo o JavaScript do §3.1 e faça os testes 5 a 7 e 19 do §4. O resto não muda.
+>
 > **Se você já rodou este §1 antes da regra do dia 25 e da regra da admissão:** instale tudo de novo (§1.1), rode a carga única (§1.2) e recrie o job (§1.3). Se a carga antiga já rodou, ela pode ter criado o mês atual: confira com a consulta do §1.2 e apague esse mês antes do dia 25, como explicado lá, para que o job o gere com os valores do dia.
 
 ### 1.1 Instalar
@@ -250,8 +263,8 @@ Limpe o cache do navegador antes (`Cmd+Shift+R`). Compare com o protótipo.
 | 2 | A mesma | Clique em outro mês na lista | O mês abre, marcado na lista, sem erro de checksum |
 | 3 | A mesma | Confira as contas | Líquido = bruto − descontos; Base IRRF = bruto − INSS; FGTS = 8% do bruto |
 | 4 | Quem tem holerites em dois anos | Troque o ano no seletor | Abre o mês mais recente daquele ano |
-| 5 | Qualquer uma | Clique em **Ocultar valores** | Todos os valores viram `••••••`, a barra fica cinza e o botão vira **Mostrar valores** |
-| 6 | A mesma | Troque de mês e recarregue a página | Os valores continuam ocultos |
+| 5 | Qualquer uma | Abra **Holerite** no menu | Todos os valores aparecem como `••••••`, sem mostrar o número nem por um instante, a barra fica cinza e o botão é **Mostrar valores** |
+| 6 | A mesma | Clique em **Mostrar valores**, depois troque de mês e de ano | Os valores aparecem, o botão vira **Ocultar valores** e os valores continuam visíveis nos outros meses |
 | 7 | A mesma, com os valores ocultos | Clique em **Baixar PDF** | O diálogo de impressão abre com os valores, o nome da pessoa e sem menu nem lista. Escolha *Salvar como PDF*. O documento deve caber em uma página, e a tela volta oculta ao fechar |
 | 8 | Qualquer uma | Clique em **Solicitar correção** | O modal abre com `Holerite-10/2026` (o mês aberto) já no campo, sem erro de checksum |
 | 9 | A mesma | Complete o texto e envie | O modal fecha e aparece "Pedido enviado ao RH." |
@@ -264,6 +277,7 @@ Limpe o cache do navegador antes (`Cmd+Shift+R`). Compare com o protótipo.
 | 16 | Colaborador com holerites, antes do dia 25 | Abra **Holerite**, mesmo que o mês atual já tenha folha gravada | O mais recente é o do mês anterior; o mês atual não está na lista |
 | 17 | A mesma, a partir do dia 25 | Abra **Holerite** depois da execução do job | O mês atual aparece primeiro, com o selo **Pagamento agendado** |
 | 18 | Colaborador com admissão futura | Abra **Holerite** | "Nenhum holerite disponível ainda.", sem os botões |
+| 19 | A do teste 6, com os valores visíveis | Recarregue a página (`F5`), e depois saia e volte pelo menu | Nas duas vezes, os valores voltam ocultos |
 
 O selo **Pagamento agendado** só aparece do dia 25 até a véspera da data de pagamento. Depois disso, a tela mostra **Pago**.
 
@@ -281,7 +295,9 @@ O selo **Pagamento agendado** só aparece do dia 25 até a véspera da data de p
 | Clicar num mês sempre volta ao mais recente | Item `P9_COMPETENCIA` com outro nome, ou a região não recebeu o item | Confira o §3.2 e o código do §3.4 |
 | Erro de checksum ao trocar de mês | Link gerado fora do package | Confira se o `.pkb` novo está instalado |
 | Erro de checksum em **Solicitar correção** | `get_url` tratou o valor de um jeito inesperado | Mande um print. O texto inicial vem de `correcao` no `.pkb` e pode sair sem afetar o resto |
-| Botões **Ocultar** e **PDF** não respondem | JavaScript não colado | Confira o §3.1 |
+| Botões **Mostrar valores** e **PDF** não respondem | JavaScript não colado | Confira o §3.1 |
+| Valores visíveis ao abrir a página | `.pkb` antigo no banco | Rode `02_pkg_holerite_ui.pkb` de novo (§1.1) |
+| Valores ocultos e **Mostrar valores** não revela nada | `.pkb` novo com o JavaScript antigo | Cole de novo o `holerite-pagina.js` no §3.1 |
 | Menu ou cabeçalho do app saem no PDF | O tema usa uma classe que o CSS de impressão não conhece | Mande um print. O ajuste é no §8 do `holerite.css` |
 | Conta legítima recebe "acesso negado" | Conta sem o papel COLABORADOR ou sem vínculo em `LOGIN_APEX` | Veja `modulos/perfis-acesso/Registro-implantacao.md` |
 
