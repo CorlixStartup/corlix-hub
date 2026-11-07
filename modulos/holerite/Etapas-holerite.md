@@ -318,7 +318,16 @@ Conferido em 07/11/2026 com a conta `TESTE.RH`, admitida em 07/10/2026, pela pá
 - **OK, regra da admissão nesta conta:** a lista mostra só outubro de 2026, o mês da admissão, e o seletor de ano só tem 2026.
 - **OK:** nenhum erro no console e sem rolagem horizontal na largura da janela.
 - **OK, teste 2 e regra da admissão, com `Rafael Nunes`, admitido em 01/06/2026:** a lista vai de junho a outubro de 2026, sem nenhum mês anterior à admissão. Os 23 valores abrem ocultos. Com os valores visíveis, clicar em **Junho** abre o mês marcado na lista, sem erro de checksum e com os valores ainda visíveis. Bruto 4.200,00 − descontos 1.273,08 = líquido 2.926,92. Nenhum erro no console.
-- **Faltam:** o teste 4 (as duas contas só têm 2026), 9 a 11 e 13 a 18, e o 12 na tela, com uma conta admitida antes de 01/06/2026, como `DEMO.CARREIRA.1.1`, que também cobre o 4. No banco, o 12 já confere (veja abaixo).
+- **OK, testes 4 e 12, com `DEMO.CARREIRA.1.1`, admitida em 07/09/2023 (conta criada para o teste, cargo `[DEMO] Analista II`):** o seletor de ano tem 2026, 2025, 2024 e 2023, e a página abre em outubro de 2026, com os 28 valores ocultos. Com os valores visíveis, trocar para 2023 abre dezembro de 2023, sem erro de checksum e com os valores ainda visíveis. A lista de 2023 vai de setembro a dezembro, sem nenhum mês antes da admissão. Bruto 6.000,00 − descontos 1.772,92 = líquido 4.227,08. Nenhum erro no console.
+- **OK, testes 9 e 10:** com `DEMO.CARREIRA.1.1` (`[DEMO] Ana Lima`), o pedido `Holerite-10/2026 – teste do guia do holerite, pode ignorar` foi enviado; o modal fechou com "Pedido enviado ao RH.". Com `TESTE.RH`, ele aparece no Dashboard RH, em **Solicitações de correção abertas**, aberto em 07/11/2026 às 16:41. O pedido ficou sem resposta; responda ou feche como teste.
+- **OK, teste 11:** o endereço da página com `p9_competencia` e sem checksum, ou com checksum falso, é recusado com "Session state protection violation" (HTTP 400). A página não recebe identificador de pessoa, e as contas `TESTE.RH`, `Rafael Nunes` e `DEMO.CARREIRA.1.1` mostraram só os próprios valores (3.500,00, 4.200,00 e 6.000,00 de bruto).
+- **Faltam:**
+  - **15 (celular):** a janela do Chrome usada no teste estava maximizada e não mudou de tamanho, e a app não abre em quadro. Reduza a janela à mão.
+  - **13:** precisa de uma conta da app sem colaborador vinculado.
+  - **14:** precisa do SQL Commands com a app fechada no mesmo navegador. Com as duas abertas, a sessão do Builder e a da app caíram.
+  - **16, em parte:** antes do dia 25, outubro é o mês mais recente em todas as contas. Novembro foi apagado (veja abaixo), então o caso "mês atual gravado e escondido" não foi visto na tela.
+  - **17:** a partir de 25/11, depois do job.
+  - **18:** não há colaborador com admissão futura.
 
 ### Banco, conferido no SQL Commands em 07/11/2026
 
