@@ -2748,9 +2748,9 @@ end pkg_historico_carreira;
 end pkg_historico_carreira_ui;
 /
 
-  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_HOLERITE" AS
+  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_HOLERITE" as
 
-    PROCEDURE gerar_folha_mensal(p_mes IN NUMBER, p_ano IN NUMBER) IS
+    PROCEDURE gerar_holerite(p_id_colaborador IN NUMBER, p_mes IN NUMBER, p_ano IN NUMBER) IS
         v_salario_base NUMBER(10,2);
         v_inss         NUMBER(10,2);
         v_irrf         NUMBER(10,2);
@@ -2758,64 +2758,72 @@ end pkg_historico_carreira_ui;
         v_tot_desc     NUMBER(10,2);
         v_liquido      NUMBER(10,2);
         v_id_holerite  NUMBER;
+        v_base_irrf    NUMBER;
+    BEGIN
+        SELECT NVL(car.salario_base, 0)
+          INTO v_salario_base
+          FROM colaborador col
+          JOIN cargo car ON col.id_cargo = car.id_cargo
+         WHERE col.id_colaborador = p_id_colaborador;
+
+        IF v_salario_base <= 0 THEN
+            RETURN;
+        END IF;
+
+        IF v_salario_base <= 1412 THEN v_inss := v_salario_base * 0.075;
+        ELSIF v_salario_base <= 2666.68 THEN v_inss := (1412 * 0.075) + ((v_salario_base - 1412) * 0.09);
+        ELSIF v_salario_base <= 4000.03 THEN v_inss := (1412 * 0.075) + ((2666.68 - 1412) * 0.09) + ((v_salario_base - 2666.68) * 0.12);
+        ELSE v_inss := 908.85;
+        END IF;
+
+        v_vt := v_salario_base * 0.06;
+
+        v_base_irrf := v_salario_base - v_inss;
+        IF v_base_irrf <= 2259.20 THEN v_irrf := 0;
+        ELSIF v_base_irrf <= 2826.65 THEN v_irrf := (v_base_irrf * 0.075) - 169.44;
+        ELSIF v_base_irrf <= 3751.05 THEN v_irrf := (v_base_irrf * 0.15) - 381.44;
+        ELSIF v_base_irrf <= 4664.68 THEN v_irrf := (v_base_irrf * 0.225) - 662.77;
+        ELSE v_irrf := (v_base_irrf * 0.275) - 896.00;
+        END IF;
+
+        IF v_irrf < 0 THEN v_irrf := 0; END IF;
+
+        v_tot_desc := ROUND(v_inss + v_irrf + v_vt, 2);
+        v_liquido  := ROUND(v_salario_base - v_tot_desc, 2);
+
+        DELETE FROM colaborador_holerite
+         WHERE id_colaborador = p_id_colaborador
+           AND mes_referencia = p_mes
+           AND ano_referencia = p_ano;
+
+        INSERT INTO colaborador_holerite (id_colaborador, mes_referencia, ano_referencia, data_pagamento, salario_base, total_proventos, total_descontos, valor_liquido)
+        VALUES (p_id_colaborador, p_mes, p_ano, LAST_DAY(TO_DATE('01/' || p_mes || '/' || p_ano, 'DD/MM/YYYY')), v_salario_base, v_salario_base, v_tot_desc, v_liquido)
+        RETURNING id_holerite INTO v_id_holerite;
+
+        INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
+        VALUES (v_id_holerite, 'P', 'Salário Base', '30 dias', v_salario_base);
+
+        INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
+        VALUES (v_id_holerite, 'D', 'INSS', 'Tabela Oficial', v_inss);
+
+        IF v_irrf > 0 THEN
+            INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
+            VALUES (v_id_holerite, 'D', 'IRRF', 'Tabela Oficial', v_irrf);
+        END IF;
+
+        INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
+        VALUES (v_id_holerite, 'D', 'Vale Transporte', '6,00%', v_vt);
+    END gerar_holerite;
+
+    PROCEDURE gerar_folha_mensal(p_mes IN NUMBER, p_ano IN NUMBER) IS
+        v_fim_mes CONSTANT DATE := ADD_MONTHS(TO_DATE('01/' || p_mes || '/' || p_ano, 'DD/MM/YYYY'), 1);
     BEGIN
         FOR c IN (
-            SELECT col.id_colaborador, col.nome_completo,
-                   NVL(car.salario_base, 0) AS salario_base
-            FROM colaborador col
-            JOIN cargo car ON col.id_cargo = car.id_cargo
-            WHERE col.data_admissao >= TO_DATE('01/06/2026', 'DD/MM/YYYY')
+            SELECT col.id_colaborador
+              FROM colaborador col
+             WHERE col.data_admissao < v_fim_mes
         ) LOOP
-            v_salario_base := c.salario_base;
-
-            IF v_salario_base > 0 THEN
-                IF v_salario_base <= 1412 THEN v_inss := v_salario_base * 0.075;
-                ELSIF v_salario_base <= 2666.68 THEN v_inss := (1412 * 0.075) + ((v_salario_base - 1412) * 0.09);
-                ELSIF v_salario_base <= 4000.03 THEN v_inss := (1412 * 0.075) + ((2666.68 - 1412) * 0.09) + ((v_salario_base - 2666.68) * 0.12);
-                ELSE v_inss := 908.85;
-                END IF;
-
-                v_vt := v_salario_base * 0.06;
-
-                DECLARE
-                    v_base_irrf NUMBER := v_salario_base - v_inss;
-                BEGIN
-                    IF v_base_irrf <= 2259.20 THEN v_irrf := 0;
-                    ELSIF v_base_irrf <= 2826.65 THEN v_irrf := (v_base_irrf * 0.075) - 169.44;
-                    ELSIF v_base_irrf <= 3751.05 THEN v_irrf := (v_base_irrf * 0.15) - 381.44;
-                    ELSIF v_base_irrf <= 4664.68 THEN v_irrf := (v_base_irrf * 0.225) - 662.77;
-                    ELSE v_irrf := (v_base_irrf * 0.275) - 896.00;
-                    END IF;
-                END;
-
-                IF v_irrf < 0 THEN v_irrf := 0; END IF;
-
-                v_tot_desc := ROUND(v_inss + v_irrf + v_vt, 2);
-                v_liquido  := ROUND(v_salario_base - v_tot_desc, 2);
-
-                DELETE FROM colaborador_holerite
-                 WHERE id_colaborador = c.id_colaborador
-                   AND mes_referencia = p_mes
-                   AND ano_referencia = p_ano;
-
-                INSERT INTO colaborador_holerite (id_colaborador, mes_referencia, ano_referencia, data_pagamento, salario_base, total_proventos, total_descontos, valor_liquido)
-                VALUES (c.id_colaborador, p_mes, p_ano, LAST_DAY(TO_DATE('01/' || p_mes || '/' || p_ano, 'DD/MM/YYYY')), v_salario_base, v_salario_base, v_tot_desc, v_liquido)
-                RETURNING id_holerite INTO v_id_holerite;
-
-                INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
-                VALUES (v_id_holerite, 'P', 'Salário Base', '30 dias', v_salario_base);
-
-                INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
-                VALUES (v_id_holerite, 'D', 'INSS', 'Tabela Oficial', v_inss);
-
-                IF v_irrf > 0 THEN
-                    INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
-                    VALUES (v_id_holerite, 'D', 'IRRF', 'Tabela Oficial', v_irrf);
-                END IF;
-
-                INSERT INTO holerite_itens (id_holerite, tipo, descricao, referencia, valor)
-                VALUES (v_id_holerite, 'D', 'Vale Transporte', '6,00%', v_vt);
-            END IF;
+            gerar_holerite(c.id_colaborador, p_mes, p_ano);
         END LOOP;
         COMMIT;
     END gerar_folha_mensal;
@@ -2915,7 +2923,7 @@ end pkg_historico_carreira_ui;
         RETURN v_html;
     END render;
 
-END pkg_holerite;
+end pkg_holerite;
 /
 
   CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_HOLERITE_UI" as
