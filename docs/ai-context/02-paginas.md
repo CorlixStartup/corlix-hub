@@ -100,7 +100,7 @@
 | 4 | Chat | CHAT | p00004-chat.apx | @corlix-standard-page | normal | nenhuma / nenhuma | Implementada parcialmente (envio funciona; sem polling/presença) |
 | 5 | Notificações | NOTIFICACOES | p00005-notificacoes.apx | @corlix-standard-page | normal | nenhuma | Placeholder (breadcrumb) |
 | 6 | Configurações | CONFIGURACOES | p00006-configuracoes.apx | @corlix-standard-page | normal | nenhuma | Placeholder (breadcrumb) |
-| 7 | Monitor de Logs | MONITOR_LOGS | p00007-monitor-logs.apx | @corlix-standard-page | normal | nenhuma / nenhuma (!) | Implementada (3 IRs em abas) |
+| 7 | Monitor de Logs | MONITOR_LOGS | p00007-monitor-logs.apx | @corlix-standard-page | normal | `ADMIN_RH` / `ADMIN_RH`; vai para `EQUIPE_CORLIX_HUB` | Implementada (3 IRs em abas) |
 | 8 | Notificações | NOTIFICAÇÕES | p00008-notificações.apx | @/standard | normal | nenhuma | Vazia (nem breadcrumb) — duplicata da 5 |
 | 9 | Holerite Digital | HOLERITE-DIGITAL | p00009-holerite-digital.apx | @corlix-standard-page | normal | hoje nenhuma; @colaborador depois do guia | Implementada (`pkg_holerite.render`, que grava ao abrir). Redesign do protótipo: `modulos/holerite/Etapas-holerite.md` |
 | 11 | Comunicados Oficiais | COMUNICADOS-OFICIAIS | p00011-comunicados-oficiais.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (breadcrumb) |
@@ -232,7 +232,8 @@ Placeholder: só `navegação-estrutural` (breadcrumb). Template `@corlix-standa
 Placeholder: só breadcrumb `navegação-estrutural`. Template `@corlix-standard-page`. Destino da engrenagem do header e do link rápido "Ponto Eletrônico".
 
 ### Página 7 — Monitor de Logs (`p00007-monitor-logs.apx`)
-- **Propósito**: tela técnica de observabilidade.
+> **Isolamento (CD-61, a aplicar):** tela técnica, com logs de todas as empresas, e por isso só da equipe do Corlix Hub. Hoje a página e a entrada do menu exigem `ADMIN_RH`. As duas passam para `EQUIPE_CORLIX_HUB` (`modulos/isolamento-empresas/Etapas-isolamento-empresas.md` §5).
+- **Propósito**: tela técnica de observabilidade, para a equipe do Corlix Hub: ler os logs exige conhecimento técnico. O RH não usa esta página.
 - **Regiões**: `navegação-estrutural` (breadcrumb); `logs` "Logs da aplicação" (staticContent, @/tabs-container, `js-useLocalStorage t-TabsRegion-mod--simple`) com 3 IRs (@/interactive-report, header escondido, paginação `rowRangesXToY`, saved report primário 50 linhas, sort DATA_HORA desc) no slot `tabs`:
   1. `app_log` "Log da aplicação" (seq 10): `select id, log_ts at time zone 'America/Sao_Paulo' as data_hora, nivel, nivel_css (ERRO→u-danger, AVISO→u-warning, INFO→u-info, senão u-normal), app_id, page_id, apex_user, session_id, origem, mensagem, detalhe from app_log`. NIVEL com HTML expression `<span class="t-Badge #NIVEL_CSS#">#NIVEL#</span>`; DETALHE (CLOB) em `<details class="log-detalhe"><summary>Ver detalhes</summary><pre>#DETALHE#</pre></details>`, sem filtro/sort/agregação. Header: "Erros capturados automaticamente e mensagens gravadas pelo código com `log_pkg`" + tags "Automático", "Histórico de 30 dias".
   2. `apex_workspace_activity_log` "Erros de página (APEX)" (seq 20): view `apex_workspace_activity_log where error_message is not null`, data convertida de UTC para São Paulo; colunas app, pagina, nome_pagina, usuario, erro, tipo_componente, componente.
@@ -356,6 +357,7 @@ Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colabo
   - P17_TITULO usa `@/optional-floating` apesar de `valueRequired: true`.
 
 ### Página 26 — Central de Equipes (`p00026-central-de-equipes.apx`)
+> **Isolamento (CD-61, a aplicar):** hoje lista equipes de todas as empresas. Correção: Where Clause e listas filtradas (`modulos/isolamento-empresas/Etapas-isolamento-empresas.md` §3 e §4).
 - **Propósito**: listar equipes e abrir modal de criação/edição.
 - **Regiões**: `navegação-estrutural` (breadcrumb); `central-de-equipes` (classicReport sobre **tabela** `EQUIPE`, @/standard `t-Region--noPadding`, report @/standard com `t-Report--stretch/staticRowColors/rowHighlight/inline/hideNoPagination`). Colunas: ID_EQUIPE (link ícone `fa-edit` → página 27 com `P27_ID_EQUIPE=#ID_EQUIPE#`), ID_EMPRESA (LOV `@empresa-nome`), ID_DEPARTAMENTO (`@departamento-nome`), ID_CRIADOR (`@colaborador-nome-completo`), NOME, DESCRICAO, DATA_CRIACAO, STATUS (`@boolean`). Cabeçalhos são os gerados ("Id Empresa", "Data Criacao" etc.).
 - **Botão**: `create` ("Criar", slot `edit`) → página 27 `clearCache: 27`.
@@ -364,6 +366,7 @@ Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colabo
 - **Pegadinhas**: sem filtro por empresa (multi-tenant); sem autorização; rótulos não traduzidos/polidos.
 
 ### Página 27 — Nova Equipe (`p00027-nova-equipe.apx`)
+> **Isolamento (CD-61, a aplicar):** hoje permite escolher qualquer empresa, departamento e criador, e editar equipe de outra empresa. Correção no §4 do mesmo guia.
 - **Propósito**: modal CRUD de EQUIPE.
 - **Regiões**: `nova-equipe` (form EQUIPE, add/update/delete); `botões` (dialogFooter).
 - **Itens**: P27_ID_EQUIPE (hidden PK); P27_ID_EMPRESA (selectList `@empresa-nome`, req); P27_ID_DEPARTAMENTO (selectList `@departamento-nome`, opc); P27_ID_CRIADOR (selectList `@colaborador-nome-completo`, req); P27_NOME (req, 150); P27_DESCRICAO (textarea, 500); P27_DATA_CRIACAO (datePicker, req, maxLength 255); P27_STATUS (switch boolean, req). Labels alinhados à direita, nomes técnicos ("Id Criador").

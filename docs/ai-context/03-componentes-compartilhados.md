@@ -150,7 +150,7 @@ Pegadinhas:
 | 110 | `empresas-cadastradas` | Empresas Cadastradas | `fa-building-o` | p15 | 15, 16 | `@administration-rights` |
 | 160 | `central-de-equipes` | Central de Equipes | `fa-table` | p26 | 26, 27 | — |
 | 170 | `chat` | Chat | `fa-comments-o` | p4 | 4 | — |
-| 190 | `terminal` | Monitor de Logs | `fa-terminal` | p7 | 7 | **nenhuma** |
+| 190 | `terminal` | Monitor de Logs | `fa-terminal` | p7 | 7 | **nenhuma** (hoje `ADMIN_RH`; vai para `EQUIPE_CORLIX_HUB`, ver `modulos/isolamento-empresas/Etapas-isolamento-empresas.md` §5) |
 | 10000 | `sair` | Sair | `fa-box-arrow-out-east` | URL `&LOGOUT_URL.` | — | — |
 
 Fora do menu: p5 (Notificações, acessada pelo sino do cabeçalho), p6 (Configurações, engrenagem), p8 (`NOTIFICAÇÕES`, página vazia/duplicada), p9999 (login). `custom.css` empurra o último item do menu para o rodapé (§9). Ícones são Font APEX (`icons.library: fontApex`), classes `fa-*`.
@@ -299,7 +299,7 @@ Fonte em `database/corlix-hub.sql` (spec + body). `gravar` usa `pragma autonomou
 ## 12. Pegadinhas e inconsistências (resumo)
 1. **Ordem dos CSS diverge** entre APEXlang (`corlix-tema` → `custom`) e `database/f100.sql` atual (`custom` → `corlix-tema`, linhas ~140–142). O correto, pelo comentário do próprio `corlix-tema.css`, é tema primeiro.
 2. README aponta para `database/ddl/` e `database/seed/`, que não existem; o DDL base está em `database/corlix-hub.sql`.
-3. Authorizations só no menu; páginas restritas (7, 14, 15, 16, 17) acessíveis por URL. Monitor de Logs sem authorization alguma.
+3. Authorizations só no menu; páginas restritas (7, 14, 15, 16, 17) acessíveis por URL. Monitor de Logs sem authorization alguma. (Hoje exige `ADMIN_RH`; vai para `EQUIPE_CORLIX_HUB`.)
 4. ~~Caminho de foto `#APP_FILES#fotos/`~~: corrigido em 13/10/2026 (tudo usa `Fotos Colaboradores/`).
 5. 4 app processes sem condição em Before Header (custo por página, rodam no login). `APP_USER_NOME` órfão. `G_NOME_USUARIO` usa usuários do workspace, os demais usam `COLABORADOR.login_apex`.
 6. Lista `emitir-comunicado` não é usada e aponta para p18/p19, que hoje são páginas do histórico de carreira (18–23 são do módulo). Pode ser apagada.
