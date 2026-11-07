@@ -317,7 +317,8 @@ Conferido em 07/11/2026 com a conta `TESTE.RH`, admitida em 07/10/2026, pela pá
 - **OK, teste 8:** **Solicitar correção** abre o modal com `Holerite-10/2026`. O pedido não foi enviado, então os testes 9 e 10 ficam para depois.
 - **OK, regra da admissão nesta conta:** a lista mostra só outubro de 2026, o mês da admissão, e o seletor de ano só tem 2026.
 - **OK:** nenhum erro no console e sem rolagem horizontal na largura da janela.
-- **Faltam:** os testes 2 e 4 (a conta só tem um mês), 9 a 11 e 13 a 18, e o 12 na tela, com uma conta admitida antes de 01/06/2026, como `DEMO.CARREIRA.1.1`. No banco, o 12 já confere (veja abaixo).
+- **OK, teste 2 e regra da admissão, com `Rafael Nunes`, admitido em 01/06/2026:** a lista vai de junho a outubro de 2026, sem nenhum mês anterior à admissão. Os 23 valores abrem ocultos. Com os valores visíveis, clicar em **Junho** abre o mês marcado na lista, sem erro de checksum e com os valores ainda visíveis. Bruto 4.200,00 − descontos 1.273,08 = líquido 2.926,92. Nenhum erro no console.
+- **Faltam:** o teste 4 (as duas contas só têm 2026), 9 a 11 e 13 a 18, e o 12 na tela, com uma conta admitida antes de 01/06/2026, como `DEMO.CARREIRA.1.1`, que também cobre o 4. No banco, o 12 já confere (veja abaixo).
 
 ### Banco, conferido no SQL Commands em 07/11/2026
 
