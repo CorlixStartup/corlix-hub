@@ -49,7 +49,7 @@
 | 4 | Chat | Parcial (leitura, sem envio) |
 | 5 / 8 | Notificações (duplicadas) | Placeholder / vazia |
 | 6 | Configurações | Placeholder |
-| 7 | Monitor de Logs | Implementada (sem authorization!) |
+| 7 | Monitor de Logs | Implementada; hoje exige `ADMIN_RH`. Passa a ser só da equipe do Corlix Hub (`EQUIPE_CORLIX_HUB`): `modulos/isolamento-empresas/Etapas-isolamento-empresas.md` §5 |
 | 9 | Holerite digital | Redesign aplicado e conferido na app em 07/11/2026, com valores ocultos ao abrir e geração da folha fora da página; testes que faltam em `modulos/holerite/Etapas-holerite.md`, "Situação na app" |
 | 11 | Comunicados Oficiais | Placeholder |
 | 12 | Colaboradores | Placeholder |
