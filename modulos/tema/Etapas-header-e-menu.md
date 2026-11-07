@@ -74,7 +74,7 @@ Em cada entrada: **Parent List Entry**, **Sequence**, **Image/Class** (ícone), 
 | 62 | Cadastro de usuários (era "Cadastro de Usuários") | Administração | (vazio) | página 14 | 14 | `ADMIN_RH` (já tem) |
 | 63 | Dashboard RH | Administração | (vazio) | página 20 | 20 | `ADMIN_RH` (já tem) |
 | 64 | Central de equipes (era "Central de Equipes") | Administração | (vazio) | página 26 | 26:27 | |
-| 65 | Monitor de logs (era "Monitor de Logs") | Administração | (vazio) | página 7 | 7 | **`ADMIN_RH`** (nova: a página 7 já exige `ADMIN_RH`, e sem ela o item aparecia para todos e dava erro de acesso) |
+| 65 | Monitor de logs (era "Monitor de Logs") | Administração | (vazio) | página 7 | 7 | **`ADMIN_RH`** (nova: a página 7 já exige `ADMIN_RH`, e sem ela o item aparecia para todos e dava erro de acesso). **Atualização de 07/11/2026:** passa para `EQUIPE_CORLIX_HUB`, junto com a página (`modulos/isolamento-empresas/Etapas-isolamento-empresas.md` §5) |
 | 66 | **Configurações** (nova) | Administração | (vazio) | página 6 | 6 | |
 
 **Apague** duas entradas:
@@ -159,7 +159,7 @@ Saia e entre de novo (os itens de aplicação são preenchidos no login), recarr
 
 1. **Menu:** abre expandido; ordem Início, Comunicados, Chat, Pessoas, Minha carreira, Administração. Os grupos abrem e fecham; os subitens não têm ícone. Na Início, o item Início tem fundo cinza, barra azul à esquerda e negrito.
 2. **Menu recolhido:** o ☰ deixa só os ícones; clicar de novo expande.
-3. **Permissões:** com um usuário sem `ADMIN_RH`, Cadastro de usuários, Dashboard RH e Monitor de logs não aparecem; sem `EQUIPE_CORLIX_HUB`, Empresas não aparece.
+3. **Permissões:** com um usuário sem `ADMIN_RH`, Cadastro de usuários e Dashboard RH não aparecem; sem `EQUIPE_CORLIX_HUB`, Empresas e Monitor de logs não aparecem.
 4. **Header:** sino, divisor, avatar (foto ou iniciais), nome e ▾. Sem engrenagem e sem cargo.
 5. **Menu do usuário:** clique no nome: abre o menu com nome, "login · empresa" (login em minúsculas), Meu perfil e Sair. Esc ou clique fora fecham. Meu perfil abre a página 2; Sair faz logout.
 6. **Usuário sem empresa:** a segunda linha mostra "login · sem empresa vinculada".
@@ -176,4 +176,4 @@ Saia e entre de novo (os itens de aplicação são preenchidos no login), recarr
 | Menu do usuário abre colado no topo, por cima do header, ou com fundo transparente | CSS do passo 1 não carregou | Passo 1 e Ctrl+Shift+R |
 | Segunda linha "login · " sem a empresa | `G_NOME_EMPRESA` vazio na sessão | Saia e entre de novo |
 | Item de grupo (Pessoas, Minha carreira, Administração) leva a uma página | A entrada de grupo ficou com Target | Passo 3: deixe sem target |
-| Monitor de logs abre "Access denied" para quem vê o item | Falta `ADMIN_RH` na entrada do menu | Passo 3, linha 65 |
+| Monitor de logs abre "Access denied" para quem vê o item | A entrada do menu e a página têm autorizações diferentes | As duas devem usar `EQUIPE_CORLIX_HUB` (passo 3, linha 65) |
