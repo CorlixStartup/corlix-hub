@@ -248,6 +248,22 @@ O guia monta a página 13 antes das páginas 18 e 19. O botão "Nova movimentaç
 
 **Prevenção:** depois de criar uma região editável, procure `edit {` no export APEXlang da página. Sem ele, a região é só leitura.
 
+### 4.9 `Column heading sorting can't be used when query contains "ORDER BY" clause`
+**Sintoma:** no Page Designer ao marcar **Sorting › Sortable = Yes** numa coluna de Classic Report (ex.: `NOME_COMPLETO` na p12), aparece a mensagem de erro:
+`Column -> <COLUNA> -> Sorting -> Sortable`
+`Column heading sorting can't be used when query contains "ORDER BY" clause.`
+
+**Causa:** a consulta SQL da região Classic Report contém uma cláusula `ORDER BY` explícita. No APEX, quando a ordenação de cabeçalho está ligada, o próprio APEX anexa e manipula a cláusula `ORDER BY` dinamicamente conforme os cliques do usuário. Se a query contiver um `ORDER BY` no nível externo, o motor de relatórios do APEX não consegue compor a ordenação e rejeita a configuração.
+
+**Correção:**
+1. Remova a linha `order by ...` do SQL da região (ex.: em *Source › SQL Query*).
+2. Para definir a ordenação inicial da página ao carregar sem precisar de `ORDER BY` no SQL, configure na coluna desejada:
+   - *Sorting › Sortable*: **Yes**
+   - *Sorting › Default Sequence*: **1**
+   - *Sorting › Default Direction*: **Ascending** (ou *Descending*)
+
+**Prevenção:** nunca coloque cláusula `ORDER BY` no SQL de um Classic Report que vá utilizar ordenação de cabeçalhos (*Column Heading Sorting*).
+
 ## 5. Checklist antes de entregar SQL/PL/SQL
 
 - [ ] Nenhum `unistr()` em SQL sem `to_char` (2.1).

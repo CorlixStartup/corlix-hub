@@ -252,8 +252,9 @@ Na árvore *Rendering*, clique com o botão direito na região **Breadcrumb** (s
             situacao,
             situacao_classe
        from vw_colaboradores_lista
-      order by nome_completo
      ```
+     > [!IMPORTANT]
+     > **Não inclua cláusula `ORDER BY` no SQL da região.** O APEX gerencia a ordenação dinamicamente quando a ordenação de colunas (*Sorting*) está ligada. Se a query contiver `ORDER BY`, o APEX impede a ordenação de cabeçalho com o erro: `Column heading sorting can't be used when query contains "ORDER BY" clause.`
 3. Nos atributos do relatório (*Attributes* na árvore sob a região):
    - *Pagination › Type*: **Row Ranges X to Y of Z**
    - *Pagination › Number of Rows*: `15`
@@ -265,7 +266,7 @@ Selecione cada coluna da região em *Columns* e configure:
 
 | Coluna | Type | Heading | Propriedades e Formatação |
 |---|---|---|---|
-| `NOME_COMPLETO` | **Link** | `Pessoa` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Link › Target**: Page `14`<br>**Link › Set Items**: `P14_ID_COLABORADOR` = `#ID_COLABORADOR#`<br>**Link › Clear Cache**: `14`<br>**Column Formatting › HTML Expression**:<br>`<div class="cx-colab-pessoa"><span class="cx-avatar"><img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS#</span><div class="cx-colab-pessoa__info"><a href="&LINK." class="cx-colab-pessoa__nome">#NOME_COMPLETO#</a><span class="cx-colab-pessoa__email">#EMAIL#</span></div></div>` |
+| `NOME_COMPLETO` | **Link** | `Pessoa` | **Sortable**: Yes<br>**Default Sequence**: 1<br>**Default Direction**: Ascending<br>**Escape Special Characters**: No<br>**Link › Target**: Page `14`<br>**Link › Set Items**: `P14_ID_COLABORADOR` = `#ID_COLABORADOR#`<br>**Link › Clear Cache**: `14`<br>**Column Formatting › HTML Expression**:<br>`<div class="cx-colab-pessoa"><span class="cx-avatar"><img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS#</span><div class="cx-colab-pessoa__info"><a href="&LINK." class="cx-colab-pessoa__nome">#NOME_COMPLETO#</a><span class="cx-colab-pessoa__email">#EMAIL#</span></div></div>` |
 | `LOGIN_APEX` | **Plain Text** | `Login` | **Sortable**: Yes |
 | `VINCULO_LINHA1` | **Plain Text** | `Vínculo` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`<div class="cx-colab-vinculo #CLASSE_VINCULO#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO##VINCULO_LINHA1#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2#</span></div>` |
 | `PERFIL` | **Plain Text** | `Perfil` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`#PERFIL_HTML#` |
@@ -380,3 +381,14 @@ Compare com `pen_dev/Colaboradores · visão de administração.png`:
   - [ ] **Perfil**: Perfis especiais exibem a etiqueta neutra cinza (`Publicador de conteúdo`, `Administrador`) e os demais como texto simples `Colaborador`.
   - [ ] **Situação**: Badge com ponto verde para `Ativa` e ponto cinza para `Inativa`.
 - [ ] **Paginação**: Formato `1 – 8 de 8` no rodapé à direita.
+
+---
+
+## 9. Se não funcionar
+
+| Sintoma | Causa | Correção |
+|---|---|---|
+| `Column heading sorting can't be used when query contains "ORDER BY" clause.` ao marcar **Sortable: Yes** em `NOME_COMPLETO` | A consulta SQL da região Classic Report contém uma cláusula `ORDER BY` explícita (`order by nome_completo`). No APEX, a ordenação dinâmica dos cabeçalhos conflita com `ORDER BY` fixo na query da região | No SQL da região **Colaboradores** (passo 5), remova a linha final `order by nome_completo`. Para ordenar por nome ao carregar a página, configure a propriedade da coluna `NOME_COMPLETO`: *Sorting › Default Sequence* = `1` e *Default Direction* = `Ascending` |
+| Link da Pessoa não abre a página 14 | Falta de checksum ou target configurado incorretamente | Use o Link Builder nativo da coluna `NOME_COMPLETO` com Target Page 14 e Set Items `P14_ID_COLABORADOR = #ID_COLABORADOR#`, e mantenha a referência `&LINK.` na tag `<a>` |
+| Fotos não aparecem | Arquivo de imagem não encontrado em `#APP_FILES#Fotos Colaboradores/` | O fallback para as iniciais entra automaticamente via `onerror="this.remove()"` |
+
