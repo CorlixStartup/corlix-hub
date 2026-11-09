@@ -520,3 +520,28 @@ Compare novamente com o protótipo, considerando a largura da janela:
 - navegação e filtros funcionando após cada ajuste.
 
 Registre no Registro-implantacao.md quais passos foram aplicados, prints/export e testes executados. Esta seção oferece ajustes de Builder e uma proposta de CSS para validação; não declara a página pronta nem implementa a barra pendente.
+
+### 11.7 Mensagens confirmadas na documentação APEX 26.1
+
+Em Shared Components → Globalization → Text Messages, criar/editar as mensagens abaixo (confirmar agrupamento no Builder 26.1.5). Usar o idioma efetivo da sessão: a configuração técnica atual do projeto é en, portanto os overrides em português devem ser cadastrados em English (en) enquanto esse for o idioma efetivo. Se a sessão usar pt-br, cadastrar nesse idioma. Não alterar idioma global apenas para corrigir esta tela.
+
+| Name | Text |
+|---|---|
+| APEX.FS.TOTAL_ROW_COUNT_LABEL | Total de colaboradores |
+| APEX.FS.CLEAR | Limpar |
+| APEX.FS.CLEAR_ALL | Limpar filtros |
+| APEX.FS.SHOW_MORE | Mostrar mais |
+| APEX.FS.SHOW_LESS | Mostrar menos |
+| PAGINATION.NEXT | Próxima |
+| PAGINATION.PREVIOUS | Anterior |
+| PAGINATION.NEXT_SET | Próximo conjunto |
+| PAGINATION.PREVIOUS_SET | Conjunto anterior |
+| WWV_RENDER_REPORT3.X_Y_OF_Z | %0–%1 de %2 |
+| WWV_RENDER_REPORT3.X_Y_OF_Z_2 | %0–%1 de %2 |
+| WWV_RENDER_REPORT3.X_Y_OF_MORE_THAN_Z | %0–%1 de mais de %2 |
+
+Para mensagens APEX.FS usadas no cliente, marcar Used in JavaScript = Yes (confirmar rótulo no Builder). Preservar os placeholders. As mensagens são da aplicação: TOTAL_ROW_COUNT_LABEL pode aparecer em outras páginas com facetas; se houver listagens de outros assuntos, preferir “Total de registros”. Isso traduz o rótulo no local atual, não cria a barra do protótipo.
+
+No Classic Report, localizar Pagination no painel e usar Row Ranges X to Y of Z com paginação (confirmar rótulo); export rowRangesXToYOfZWithPagination. Number of Rows = 15; Display Position = Bottom Right e Partial Page Refresh = Yes se disponíveis (confirmar no 26.1.5). Salvar, recarregar a página inteira e testar navegação/filtros. Não há necessidade de ORDER BY fixo na SQL.
+
+Fontes: [mensagens das facetas](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/search-and-smart-filters-messages-requiring-translation.html), [mensagens internas](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/internal-messages-requiring-translation.html). As chaves antes pendentes de identificação no §11.5 foram confirmadas; cadastro e teste no Builder continuam pendentes.

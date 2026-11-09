@@ -145,3 +145,7 @@ Escopo: validação, sem alteração da app ou CSS. Verificação documental: di
 A auditoria foi convertida no §11 do guia: correção pontual de PERFIL, inspeção de CSS/DOM, proposta de card e distribuição de colunas baseada nos tokens do Ponto, rótulo das facetas, paginação e investigação de mensagens. Separadas as dependências ainda não implementadas (barra sincronizada de contagem/ordenação e identificação das chaves de tradução).
 
 Verificação documental: diff, links locais e reindexação. Nenhum CSS foi publicado ou executado no navegador. O bloco CSS é proposta para teste, não resultado homologado. Próximo passo: corrigir a etiqueta, confirmar DOM/CSS e testar a apresentação antes de consolidar estilos no módulo. Package/cabeçalho e posição dos filtros não precisam ser refeitos.
+
+## Tradução e paginação — 09/11/2026
+
+Consultadas listas oficiais de mensagens APEX 26.1 e identificadas APEX.FS.TOTAL_ROW_COUNT_LABEL, PAGINATION.* e WWV_RENDER_REPORT3.X_Y_OF_Z/_2/X_Y_OF_MORE_THAN_Z. Guia §11.7 atualizado com overrides, idioma efetivo en, uso em JavaScript, abrangência por aplicação e configuração de paginação com navegação. Verificação: documentação oficial, diff e reindexação; cadastro de mensagens e execução no Builder não realizados. Próximo passo: aplicar e testar total, intervalo e navegação com filtros.
