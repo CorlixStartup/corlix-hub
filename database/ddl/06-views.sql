@@ -113,6 +113,109 @@ select f.id_empresa,
        end                                              as ds_situacao
   from formacao_colaborador f;
 
+  CREATE OR REPLACE FORCE EDITIONABLE VIEW "VW_COLABORADORES_LISTA" ("ID_COLABORADOR", "NOME_COMPLETO", "EMAIL", "LOGIN_APEX", "PRIMEIRO_NOME", "ULTIMO_NOME", "FOTO_URL", "TEM_IMAGEM", "INICIAIS", "ID_EMPRESA", "EMPRESA", "ID_DEPARTAMENTO", "DEPARTAMENTO", "ID_CARGO", "CARGO", "VINCULO_LINHA1", "VINCULO_LINHA2", "FL_SEM_VINCULO", "CLASSE_VINCULO", "ICONE_VINCULO", "PERFIL", "PERFIL_HTML", "SITUACAO", "SITUACAO_CLASSE") AS
+  select c.id_colaborador,
+       c.nome_completo,
+       c.email,
+       c.login_apex,
+       c.primeiro_nome,
+       c.ultimo_nome,
+       c.foto_url,
+       case
+         when c.imagem_perfil is not null then 'S'
+         else 'N'
+       end as tem_imagem,
+       -- Iniciais para o avatar circular
+       upper(
+         substr(coalesce(trim(c.primeiro_nome), trim(c.nome_completo), 'C'), 1, 1) ||
+         coalesce(
+           substr(trim(c.ultimo_nome), 1, 1),
+           substr(trim(substr(c.nome_completo, instr(c.nome_completo, ' ', -1) + 1)), 1, 1),
+           ''
+         )
+       ) as iniciais,
+       -- Empresa
+       c.id_empresa,
+       nvl(e.nome_fantasia, 'Sem vínculo') as empresa,
+       -- Departamento
+       c.id_departamento,
+       nvl(d.nome, 'Sem departamento') as departamento,
+       -- Cargo
+       c.id_cargo,
+       nvl(cg.nome, 'Sem cargo') as cargo,
+       -- Vínculo formatado em duas linhas
+       case
+         when c.id_empresa is not null and c.id_departamento is not null then
+           e.nome_fantasia || ' · ' || d.nome
+         when c.id_empresa is not null then
+           e.nome_fantasia
+         else
+           'Sem vínculo'
+       end as vinculo_linha1,
+       case
+         when c.id_empresa is not null and c.id_cargo is not null then
+           cg.nome
+         else
+           'Cadastro incompleto'
+       end as vinculo_linha2,
+       case
+         when c.id_empresa is null or c.id_departamento is null or c.id_cargo is null then
+           'S'
+         else
+           'N'
+       end as fl_sem_vinculo,
+       case
+         when c.id_empresa is null or c.id_departamento is null or c.id_cargo is null then
+           'cx-colab-vinculo--alerta'
+         else
+           ''
+       end as classe_vinculo,
+       case
+         when c.id_empresa is null or c.id_departamento is null or c.id_cargo is null then
+           '<span class="fa fa-warning" aria-hidden="true"></span> '
+         else
+           ''
+       end as icone_vinculo,
+       -- Perfil de acesso (para faceta do Faceted Search)
+       case
+         when exists (
+           select 1 from cargo_papel cp
+            where cp.id_cargo = c.id_cargo
+              and cp.cd_papel in ('equipe-do-corlix-hub', 'admin-rh', 'diretoria')
+         ) or (fn_colab_tem_papel(c.login_apex, 'equipe-do-corlix-hub', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'admin-rh', to_number(v('APP_ID') default 100 on conversion error)) = 1) then 'Administrador'
+         when exists (
+           select 1 from cargo_papel cp
+            where cp.id_cargo = c.id_cargo
+              and cp.cd_papel in ('publicador-de-conteudo', 'publicador-de-conteúdo')
+         ) or (fn_colab_tem_papel(c.login_apex, 'publicador-de-conteudo', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'publicador-de-conteúdo', to_number(v('APP_ID') default 100 on conversion error)) = 1) then 'Publicador de conteúdo'
+         else 'Colaborador'
+       end as perfil,
+       -- HTML do perfil (etiqueta cinza ou texto simples para o relatório)
+       case
+         when exists (
+           select 1 from cargo_papel cp
+            where cp.id_cargo = c.id_cargo
+              and cp.cd_papel in ('equipe-do-corlix-hub', 'admin-rh', 'diretoria')
+         ) or (fn_colab_tem_papel(c.login_apex, 'equipe-do-corlix-hub', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'admin-rh', to_number(v('APP_ID') default 100 on conversion error)) = 1) then '<span class="cx-etiqueta">Administrador</span>'
+         when exists (
+           select 1 from cargo_papel cp
+            where cp.id_cargo = c.id_cargo
+              and cp.cd_papel in ('publicador-de-conteudo', 'publicador-de-conteúdo')
+         ) or (fn_colab_tem_papel(c.login_apex, 'publicador-de-conteudo', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'publicador-de-conteúdo', to_number(v('APP_ID') default 100 on conversion error)) = 1) then '<span class="cx-etiqueta">Publicador de conteúdo</span>'
+         else 'Colaborador'
+       end as perfil_html,
+       -- Situação
+       case when c.status = true then 'Ativa' else 'Inativa' end as situacao,
+       case when c.status = true then 'sucesso' else 'neutro' end as situacao_classe
+  from colaborador c
+  left join empresa e      on e.id_empresa = c.id_empresa
+  left join departamento d on d.id_departamento = c.id_departamento
+  left join cargo cg       on cg.id_cargo = c.id_cargo
+ where (
+   v('G_ID_EMPRESA') is null
+   or c.id_empresa = to_number(v('G_ID_EMPRESA') default null on conversion error)
+ );
+
   CREATE OR REPLACE FORCE EDITIONABLE VIEW "VW_HISTORICO_CARREIRA" ("ID_HISTORICO_CARREIRA", "ID_EMPRESA", "ID_COLABORADOR", "NM_COLABORADOR", "ID_TIPO_MOVIMENTACAO", "CD_TIPO", "DS_TIPO", "DS_ICONE", "DS_COR", "DT_EFETIVA", "ID_CARGO_ANTERIOR", "NM_CARGO_ANTERIOR", "ID_DEPARTAMENTO_ANTERIOR", "NM_DEPARTAMENTO_ANTERIOR", "ID_GESTOR_ANTERIOR", "NM_GESTOR_ANTERIOR", "ID_CARGO_NOVO", "NM_CARGO_NOVO", "ID_DEPARTAMENTO_NOVO", "NM_DEPARTAMENTO_NOVO", "ID_GESTOR_NOVO", "NM_GESTOR_NOVO", "VL_SALARIO_ANTERIOR", "VL_SALARIO_NOVO", "DS_MOTIVO", "DS_OBSERVACAO", "ST_REGISTRO", "ID_REGISTRO_ESTORNADO", "FL_ESTORNO", "ID_APROVADOR", "NM_APROVADOR", "DT_EFETIVACAO", "USR_EFETIVACAO", "DT_CRIACAO", "USR_CRIACAO", "DT_ALTERACAO", "USR_ALTERACAO") AS
   select h.id_historico_carreira,
        h.id_empresa,
