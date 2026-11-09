@@ -48,6 +48,7 @@ Banco de dados (COLABORADOR, CARGO, DEPARTAMENTO, EMPRESA, CARGO_PAPEL)
 
 | Arquivo | Descrição |
 |---|---|
+| `00_fn_colab_tem_papel.sql` | Função de consulta de papéis via APEX_ACL; executar antes da view |
 | `01_vw_colaboradores_lista.sql` | View `VW_COLABORADORES_LISTA` que alimenta o relatório e as facetas |
 | `instalar.sql` | Script instalador para SQLcl ou SQL Workshop |
 | `colaboradores.css` / `.min.css` | Estilos específicos para avatares, pessoa, vínculo e tabela |
@@ -57,5 +58,5 @@ Banco de dados (COLABORADOR, CARGO, DEPARTAMENTO, EMPRESA, CARGO_PAPEL)
 
 ## 4. Como instalar e montar
 
-1. Execute o script `instalar.sql` no banco de dados (ou suba o arquivo `01_vw_colaboradores_lista.sql` no *SQL Workshop* do APEX).
+1. Execute o script `instalar.sql` no banco de dados (ou execute `00_fn_colab_tem_papel.sql` e depois `01_vw_colaboradores_lista.sql` no *SQL Workshop* do APEX).
 2. Siga as instruções do guia [`Etapas-colaboradores.md`](./Etapas-colaboradores.md) no App Builder.
