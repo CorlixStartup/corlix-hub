@@ -189,3 +189,9 @@ Comparados guia, export e DDL do backup 571499e. Aplicados na app: view, package
 Pendências encontradas: branch "Limpar formulário" em BEFORE_PROCESSING sem condição, antes de todos os processos (AFTER_SUBMIT), o que impede o branch de retorno e pode impedir o salvamento; Barra da lista sem Static ID, com CSS por #cx-colab-barra; relatório em Region Body e barra em Sub Regions; item automático P12_ORDER_BY sobrando.
 
 Correção: a justificativa anterior de que o template Standard não tinha posição de ordenação estava errada. O export mostra a posição sortOrder no relatório; o template do tema não aparece no f100.sql. A região própria segue porque o protótipo põe total e seletor na mesma linha. O caminho de criação de P12_ORDEM no guia foi corrigido conforme o export. Próximo passo: aplicar os ajustes do §12.0 e executar §12.9.
+
+## Revalidação do export colado da página 12 — 09/11/2026
+
+Base: export da p12 enviado pelo usuário, mais novo que o backup 571499e. Confirmados os ajustes 2, 3 e 4 do §12.0: Barra da lista com identificador cx-colab-barra, relatório em Sub Regions e P12_ORDER_BY removido. O ajuste 1 (branch da p14) não pôde ser confirmado: a p14 não veio no export colado e o último backup ainda o mostra em processing.
+
+O usuário informou que a página segue diferente do protótipo. Sem captura ou DOM: a tentativa de abrir a página parou no login, sem digitar credenciais. Diferenças identificáveis no export: linhas alternadas (t-Report--altRowsDefault), página em @/standard fora do padrão E1, "Ordenar por" com rótulo flutuante, rótulo visível na busca e colunas sem ordenação pelo cabeçalho (sem a seta de Pessoa). Contagens à direita e menus das facetas seguem sem CSS validado; o seletor .a-FS-facetList nunca foi conferido no DOM. Não foi escrito CSS novo sem o DOM (§11.4). Próximo passo: obter captura atual e DOM das facetas.
