@@ -229,3 +229,11 @@ Resposta do servidor (POST wwv_flow.accept, status 200): redirectURL para a pág
 Não comprovado: ausência de conta e admissão novas, pois a contagem anterior ao teste não foi obtida. Achado: a mensagem de sucesso inclui o texto padrão em inglês "Row updated.". O ambiente informou versão 26.1.6 em wwv_flow.js_messages, enquanto os guias citam 26.1.5. Pendência: restaurar por SQL a data de nascimento nula do registro 315.
 
 Conclusão do teste de edição em 09/11/2026: usuário salvou manualmente o registro 315 e restaurou por SQL a data de nascimento nula, confirmada em novo carregamento, com nome e demais campos originais. Consulta informada pelo usuário após os salvamentos: contas = 0 e historico = 3. Sem conta APEX para DEMO.CARREIRA.1.4, o CREATE_USER não rodou na edição (a carga demo insere em COLABORADOR sem criar conta; a expectativa anterior de contas = 1 estava errada). Os 3 lançamentos são compatíveis com a carga 09_dados_demo_dashboard.sql (admissão, promoção e desligamento), sem indício de admissão nova. O usuário não informou se a tela voltou à lista no salvamento manual.
+
+## Decisões de acesso e confirmação do retorno — 09/11/2026
+
+Usuário confirmou a mensagem de sucesso no salvamento manual da edição; o não redirecionamento visto antes era da aba automatizada.
+
+Decisões: equipe do Corlix Hub vê todas as empresas e os perfis; RH edita; gestores e diretoria só leem; data de nascimento segue obrigatória. Versionado: view com liberação explícita pelo papel equipe-do-corlix-hub, reutilizando fn_colab_tem_papel, e código da autorização no §12.2. Interpretação registrada: a equipe é somente leitura na lista, sem link de edição, pois apenas o RH foi citado como editor.
+
+Não compilado nem aplicado; sem teste com conta da equipe. Risco a observar: nova chamada de função no predicado, a validar nas contagens das facetas. Próximo passo: aplicar o bloco do §12.0 e testar 4A.

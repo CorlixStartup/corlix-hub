@@ -503,7 +503,7 @@ Fontes: [mensagens das facetas](https://docs.oracle.com/en/database/oracle/apex/
 
 ## 12. Acesso da liderança e correções da validação de 09/11/2026
 
-Decisão do time em 09/11/2026: **a lista é vista por RH, gestores, CEO e diretores**. Criar e editar continuam só com o RH (`ADMIN_RH`). Cada pessoa vê apenas a própria empresa.
+Decisão do time em 09/11/2026: **a lista é vista por RH, gestores, CEO, diretores e pela equipe do Corlix Hub**. Só o RH (`ADMIN_RH`) cria e edita; os demais apenas leem. A equipe do Corlix Hub, dona do produto, vê todas as empresas; os outros perfis, só a própria. A data de nascimento é obrigatória.
 
 Passos conferidos no export e na documentação oficial; nada aqui foi executado na app. Faça na ordem. Caminho marcado "(confirmar no 26.1.5)" que não existir na sua tela: pare e envie um print.
 
@@ -524,7 +524,17 @@ Validado no navegador com a conta de RH, sem gravar dados, e no backup `4633d7a`
 
 **Diferenças aceitas em relação ao protótipo:** seta "Pessoa ↑" (a ordenação é pelo seletor), linhas mais altas quando nomes reais quebram em duas linhas, opção "Sem vínculo" ausente (isolamento por empresa), menu lateral e, nas facetas, ausência do filtro interno de valores, removido junto com o menu de três pontos.
 
-**Decisões em aberto:** equipe do Corlix Hub na lista (hoje fora), e se gestor e situação ficam só leitura na edição (hoje editáveis, e a alteração não entra no histórico). A página continua em `@/standard`, divergência registrada no [11 · Padrões de páginas](../../docs/ai-context/11-padroes-de-paginas.md), §6.
+**Falta aplicar: acesso da equipe do Corlix Hub**
+
+1. Em **SQL Commands**, execute [`01_vw_colaboradores_lista.sql`](./01_vw_colaboradores_lista.sql) atualizado e confira `VALID` na consulta do Item 1 do §12.1.
+2. Abra **Shared Components › Security › Authorization Schemes › VER_LISTA_COLABORADORES** e troque o código pelo do §12.2.
+3. Clique em **Apply Changes**. Quem estiver logado precisa sair e entrar de novo.
+
+**Confira:** com conta da equipe, a faceta Empresa lista as empresas cadastradas, inclusive "Sem vínculo" se houver, e o nome aparece sem link, sem o botão Novo colaborador. Com conta de RH, continua só a própria empresa.
+
+Fotos de outras empresas podem aparecer como iniciais, porque a página 44 confere a empresa de quem está logado.
+
+**Decisão em aberto:** se gestor e situação ficam só leitura na edição (hoje editáveis, e a alteração não entra no histórico). A data de nascimento continua obrigatória: registros sem ela precisam ser completados para salvar uma edição. A página continua em `@/standard`, divergência registrada no [11 · Padrões de páginas](../../docs/ai-context/11-padroes-de-paginas.md), §6.
 
 ### 12.1 Banco e arquivos (itens 1, 2 e 3)
 
@@ -548,7 +558,7 @@ Validado no navegador com a conta de RH, sem gravar dados, e no backup `4633d7a`
     order by type, sequence
    ```
 
-> A view agora só devolve a empresa da sessão. Em SQL Commands `G_ID_EMPRESA` é nulo, então `select * from vw_colaboradores_lista` volta **vazio**: é o esperado. A lista só mostra dados dentro da app. Colaboradores sem empresa não aparecem para ninguém, e a opção "Sem vínculo" da faceta Empresa some. O alerta "Cadastro incompleto" continua para quem tem empresa, mas não tem departamento ou cargo.
+> A view agora só devolve a empresa da sessão. Em SQL Commands `G_ID_EMPRESA` é nulo, então `select * from vw_colaboradores_lista` volta **vazio**: é o esperado. A lista só mostra dados dentro da app. Colaboradores sem empresa só aparecem para a equipe do Corlix Hub; para os demais, a opção "Sem vínculo" da faceta Empresa some. O alerta "Cadastro incompleto" continua para quem tem empresa, mas não tem departamento ou cargo.
 
 #### Item 2 · Publicar os arquivos CSS
 
@@ -583,6 +593,7 @@ Faça só depois do item 2.
 4. Em **PL/SQL Function Body**, cole:
    ```plsql
    return apex_authorization.is_authorized('ADMIN_RH')
+       or apex_authorization.is_authorized('EQUIPE_CORLIX_HUB')
        or apex_authorization.is_authorized('SOMENTE_DIRETORIA')
        or apex_authorization.is_authorized('GESTOR')
        or apex_acl.has_user_role(
@@ -871,6 +882,7 @@ Departamento e cargo ficam só leitura na edição porque a mudança precisa pas
 | 2 | CEO ou diretor(a) sem papel de RH | Menu e lista visíveis; nome sem link; sem botão |
 | 3 | Gestor pelo papel e gestor só com subordinados | Iguais ao teste 2 |
 | 4 | Colaborador comum | Sem item no menu; URL direta da p12 mostra acesso restrito |
+| 4A | Equipe do Corlix Hub | Lista de todas as empresas; nome sem link; sem botão Novo colaborador |
 | 5 | Linha com cadastro incompleto | Ícone de alerta, sem tags visíveis |
 | 6 | Departamento de teste com `<b>&` no nome | Texto literal, sem negrito |
 | 7 | Colaborador com foto e sem foto | Foto real; sem foto, iniciais |
