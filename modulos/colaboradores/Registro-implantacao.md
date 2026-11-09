@@ -273,3 +273,7 @@ Validação da trava de Gestor e Situação, 09/11/2026, conta TESTE.RH, sem sal
 Teste de salvar com Situação travada, 09/11/2026, conta TESTE.RH, autorizado pelo usuário no [DEMO] Ana Lima (id 312, Ativa), com data de nascimento preenchida por SQL para o teste. Salvo sem alterar valores: a página voltou à lista com "Row updated. Alterações salvas."; a situação segue Ativa, e nome, nascimento, admissão, e-mail e login ficaram iguais em novo carregamento. Trava aprovada. Desta vez o redirecionamento ocorreu também na aba automatizada. Pendência: restaurar por SQL a data de nascimento nula do registro 312.
 
 Decisão do usuário, 09/11/2026: as decisões sobre funcionários acontecem fora do sistema e o RH as registra; não há edição pela diretoria nem fluxo de aprovação de gestores a implementar. Usuário informou a restauração da data de nascimento nula do registro 312. Pendências das páginas 12 e 14: merge do PR, testes de gestor, colaborador comum, criação, caracteres especiais e tela estreita, além dos ajustes visuais opcionais.
+
+## Ajustes visuais finais — 09/11/2026
+
+Versionados no §13 do guia: sufixo do total por JS e attr, nome azul só em link, mensagem do processo em lugar de "Row updated.", rótulos da Situação e ajuda neutra do Gestor. A página de mensagens internas do 26.1 não trouxe chave para "Row updated", e o efeito da mensagem no processo depende de teste. CSS: seletores do .css e .min conferidos. Não aplicado nem testado.

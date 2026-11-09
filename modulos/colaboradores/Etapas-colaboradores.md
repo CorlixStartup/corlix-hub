@@ -944,3 +944,54 @@ Departamento, cargo, gestor e situação ficam só leitura na edição porque a 
 - **Gestor:** vê a empresa inteira, não só a própria equipe, conforme a decisão acima.
 
 Fontes: [Order By Item](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/managing-sorting-with-order-by-item.html), [total em seletor](https://docs.oracle.com/en/database/oracle/apex/26.1/apxdc/showing-filter-chips-and-total-row-count.html), [SET_EMAIL](https://docs.oracle.com/en/database/oracle/apex/26.1/aeapi/SET_EMAIL-Procedure.html) e [LOCK_ACCOUNT](https://docs.oracle.com/en/database/oracle/apex/26.1/aeapi/LOCK_ACCOUNT-Procedure.html).
+
+---
+
+## 13. Ajustes visuais finais
+
+Nada aqui altera regras de acesso. **Estado: proposto, ainda não aplicado nem testado.** Referência: padrão `*-pagina.js` do Holerite e do Ponto.
+
+### 13.1 Publicar o CSS e o script (singular e nome sem link)
+
+Corrige "1 colaboradores" e deixa o nome azul só para quem tem link.
+
+1. Publique `colaboradores.css` e `colaboradores.min.css` desta pasta, como no Item 2 do §12.1.
+2. Página 12 › nó **Page 12: Colaboradores** › **JavaScript › Execute when Page Loads**: cole o conteúdo de [`colaboradores-pagina.js`](./colaboradores-pagina.js).
+3. Clique em **Save** e recarregue com Ctrl+F5.
+
+Faça os dois passos juntos: sem o script, o sufixo "colaboradores" não aparece.
+
+**Confira:** com filtro de um resultado, a barra mostra "1 colaborador". Com conta de RH, o nome é azul e sublinha ao passar o mouse. Com conta somente leitura, o nome fica na cor do texto.
+
+### 13.2 Trocar "Row updated."
+
+A documentação do 26.1 não lista uma chave de tradução para esse texto. Por isso, a mensagem vai no próprio processo (confirmar o efeito no teste).
+
+1. Página 14 › aba **Processing** › processo **Salvar Dados Colaborador**.
+2. Em **Success Message › Success Message**, informe `Dados salvos.`
+3. Apague o processo **Confirmar alteração**, para não exibir duas mensagens.
+4. Clique em **Save**.
+
+**Confira:** ao salvar uma edição, aparece só "Dados salvos.". Ao criar, "Dados salvos. Colaborador cadastrado com sucesso!". Se "Row updated." continuar, envie um print e não crie outro processo.
+
+### 13.3 Situação travada com "Off"
+
+1. Página 14 › item `P14_STATUS`.
+2. Em **Settings**, desligue **Use Defaults** e preencha:
+
+   | Propriedade | Valor |
+   |---|---|
+   | **On Value** | `Y` |
+   | **On Label** | `Ativa` |
+   | **Off Value** | `N` |
+   | **Off Label** | `Inativa` |
+
+3. Clique em **Save**.
+
+**Confira:** a edição mostra "Ativa" ou "Inativa", conforme o título. **Teste criar ou salvar com registro de teste:** a coluna é booleana, e os valores acima são os padrão da app; a situação não pode mudar.
+
+### 13.4 Ajuda do Gestor
+
+1. Página 14 › item `P14_GESTOR`.
+2. Em **Help › Inline Help Text**, informe `Quem está no topo da hierarquia (ex.: CEO) não tem gestor.`
+3. Clique em **Save**.
