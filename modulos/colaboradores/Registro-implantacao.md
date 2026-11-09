@@ -203,3 +203,11 @@ Usuário autenticou no Chrome (conta Teste Rh); nenhuma credencial digitada e na
 Causas das diferenças: região Barra da lista sem Static ID no DOM (id gerado), logo o CSS por #cx-colab-barra não aplicava; seletor flutuante em largura total; contagens com parênteses por pseudo-elemento; menu de faceta com a única ação Filter. Corrigido: apontamentos anteriores de linhas alternadas e rótulo visível da busca eram falsos na tela.
 
 CSS novo testado por estilo temporário na própria aba, sem persistência, e incorporado aos arquivos do módulo. Falta publicar, aplicar a classe e o ajuste de Clear; salvar na p14 não foi testado, e o branch segue em processing no último backup. Testes de contas de outros perfis pendentes.
+
+## Validação visual final da página 12 — 09/11/2026
+
+Usuário autenticou no Chrome (conta Teste Rh); nenhuma credencial digitada e nenhum dado gravado. Backup 4633d7a confirma classe da barra, APEX.FS.CLEAR em JavaScript e branch da p14 em After Processing; o CSS foi publicado depois desse backup e conferido na execução.
+
+Resultado em desktop (1488 px): barra em linha única com total à esquerda e Ordenar por à direita; contagens à direita, sem parênteses; menu de três pontos oculto; filtro Inativa levou o total de 309 a 4 e exibiu "Limpar"; sem erros de console. Layout considerado fiel ao protótipo, com as diferenças aceitas listadas no §12.0.
+
+Pendências: testes de salvar na p14 (grava dados), contas de diretor, gestor e colaborador comum, caracteres especiais e tela estreita. Próximo passo: executar esses testes e decidir os itens em aberto do §12.0.
