@@ -53,9 +53,9 @@
 | 7 | Monitor de Logs | Implementada; hoje exige `ADMIN_RH`. Passa a ser só da equipe do Corlix Hub (`EQUIPE_CORLIX_HUB`): `modulos/isolamento-empresas/Etapas-isolamento-empresas.md` §5 |
 | 9 | Holerite digital | Redesign aplicado e testado na app em 07/11/2026 (testes 1 a 16 e 18), com valores ocultos ao abrir e geração da folha fora da página. Falta o teste 17, a partir de 25/11/2026; pendências em `modulos/holerite/Etapas-holerite.md`, "Situação na app" |
 | 11 | Comunicados Oficiais | Placeholder |
-| 12 | Colaboradores | Em montagem pelo `modulos/colaboradores/Etapas-colaboradores.md` (Faceted Search + Classic Report) |
+| 12 | Colaboradores | Implementada e validada na app em 09/11/2026 (Faceted Search + Classic Report; guia `modulos/colaboradores/Etapas-colaboradores.md`). Pendências para o final: `modulos/colaboradores/Pendencias.md` |
 | 13 | Histórico de carreira | Implementada (módulo `modulos/historico-carreira`, §2 do guia) |
-| 14 | Cadastro de Usuários (cria usuário APEX e a admissão no histórico) | Implementada (`ADMIN_RH`) |
+| 14 | Cadastro de Usuários (cria usuário APEX e a admissão no histórico) | Implementada (`ADMIN_RH`); edição validada em 09/11/2026. Criar pelo RH falha (`CREATE_USER` exige admin do workspace): `modulos/colaboradores/Pendencias.md` §1 |
 | 18 | Movimentação (modal do histórico de carreira) | Implementada (§3 do guia) |
 | 19 / 21 | Formações e certificações (lista) / Formação (modal) | Implementadas (§4 do guia) |
 | 20 | Dashboard RH | Implementada (§5 do guia); redesign pelo `modulos/dashboard-rh/Etapas-dashboard-rh.md` |

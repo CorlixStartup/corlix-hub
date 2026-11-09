@@ -949,7 +949,7 @@ Fontes: [Order By Item](https://docs.oracle.com/en/database/oracle/apex/26.1/htm
 
 ## 13. Ajustes visuais finais
 
-Nada aqui altera regras de acesso. **Estado: proposto, ainda não aplicado nem testado.** Referência: padrão `*-pagina.js` do Holerite e do Ponto.
+Nada aqui altera regras de acesso. **Estado: aplicado e testado na app em 09/11/2026** (§13.1 a §13.5; detalhes em `Registro-implantacao.md`). Referência: padrão `*-pagina.js` do Holerite e do Ponto.
 
 ### 13.1 Publicar o CSS e o script (singular e nome sem link)
 
@@ -995,3 +995,57 @@ A documentação do 26.1 não lista uma chave de tradução para esse texto. Por
 1. Página 14 › item `P14_GESTOR`.
 2. Em **Help › Inline Help Text**, informe `Quem está no topo da hierarquia (ex.: CEO) não tem gestor.`
 3. Clique em **Save**.
+
+### 13.5 Gestor exibido como número
+
+Na edição, o Gestor aparecia como ID (ex.: `48`) quando o gestor gravado não tinha cargo com o papel `gestor` em `CARGO_PAPEL`: a LOV não o encontrava e o APEX exibia o valor de retorno. Casos encontrados em 09/11/2026: cargo 403, Supervisor de Vendas (João Oliveira e Ricardo Freitas, 60 liderados), e cargo 506, Técnico de Logística (Eduardo Vieira, 7 liderados; 147 ocupantes no cargo).
+
+Não incluir o papel no cargo só para corrigir a exibição: `CARGO_PAPEL` também concede o papel do APEX a todos os ocupantes. A correção mantém o gestor já gravado na LOV, sem mudar acesso:
+
+1. Página 14 › item `P14_GESTOR` › **List of Values › SQL Query**:
+
+   ```sql
+   SELECT c.NOME_COMPLETO d,
+          c.ID_COLABORADOR r
+     FROM COLABORADOR c
+    WHERE c.ID_EMPRESA = :P14_EMPRESA
+      AND (c.ID_COLABORADOR = :P14_GESTOR
+           OR EXISTS (SELECT 1
+                        FROM CARGO_PAPEL cp
+                       WHERE cp.ID_CARGO = c.ID_CARGO
+                         AND cp.CD_PAPEL = 'gestor'))
+    ORDER BY c.NOME_COMPLETO
+   ```
+
+2. Clique em **Save**.
+
+**Confira:** Aline Alves e Aline Silva mostram Ricardo Freitas; Aline Barbosa e Aline Nunes, Joao Oliveira. Na criação, as opções continuam só com cargos que têm o papel `gestor`.
+
+Pendências fora da página: o time decide se o cargo 403 recebe o papel `gestor` (só 2 ocupantes, ambos líderes); o RH confere o cargo de Eduardo Vieira (id 272), técnico que lidera 7 pessoas. Não inclua o papel no cargo 506.
+
+Para achar outros casos:
+
+```sql
+select g.id_cargo, cg.nome cargo,
+       count(distinct g.id_colaborador) gestores,
+       count(*) liderados,
+       (select count(*) from colaborador x where x.id_cargo = g.id_cargo) ocupantes
+  from colaborador s
+  join colaborador g on g.id_colaborador = s.id_gestor
+  join cargo cg on cg.id_cargo = g.id_cargo
+ where not exists (select 1 from cargo_papel cp
+                    where cp.id_cargo = g.id_cargo and cp.cd_papel = 'gestor')
+ group by g.id_cargo, cg.nome
+ order by liderados desc
+```
+
+### 13.6 Se não funcionar
+
+| Sintoma | Causa / verificação | Ação |
+|---|---|---|
+| Barra mostra só o número, sem "colaboradores" | Script do §13.1 não salvo na p12 | Conferir **Execute when Page Loads** da página 12 e recarregar com Ctrl+F5 |
+| Gestor aparece como número | Gestor gravado fora da LOV (cargo sem papel `gestor`) | Aplicar o §13.5; não mudar `CARGO_PAPEL` só por isso |
+| `ORA-00904: "DATA_NASCIMENTO"` ao preparar teste | A coluna se chama `DATA_DE_NASCIMENTO` | Usar `data_de_nascimento` |
+| `ORA-03049` no SQL Commands | Update e `commit` colados juntos | Rodar só o update, com **Autocommit** marcado |
+| Conta inativa ainda entra no sistema | Inativar não bloqueia a conta APEX (§12.11) | Pendente de definição; não é efeito do §13 |
+| `User TESTE.RH requires ADMIN privilege to perform this operation.` ao criar colaborador | `APEX_UTIL.CREATE_USER` (processo "Criar usuário APEX") só roda dentro da app se o usuário logado for administrador do workspace; o RH é usuário final | Nada fica gravado: a consulta por login e e-mail não retornou linhas. Não torne o RH administrador do workspace (daria acesso ao Builder). Criação com conta está pendente de decisão do time (ver `Registro-implantacao.md`, 09/11/2026) |
