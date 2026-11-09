@@ -419,3 +419,5 @@ Checklist:
 O [registro de implantação](../../modulos/colaboradores/Registro-implantacao.md) consolida o diagnóstico das facetas, correções instaladas, recomendações revistas e o botão ainda pendente. Novas orientações devem seguir a regra 14 do [08](./08-convencoes-e-pegadinhas.md), comparando Histórico de carreira, Holerite e Ponto eletrônico antes de propor componentes.
 
 O guia de Colaboradores foi revisto para ações no cabeçalho seguindo Holerite/Ponto, sem restringir toda a lista ao RH. A revisão é documental e os testes na app continuam pendentes; encerramentos seguem a regra 15 do 08.
+
+Correção arquitetural: os módulos de referência centralizam HTML em packages de UI com render_* retornando CLOB. O cabeçalho inline proposto para Colaboradores não encerra essa adequação; pkg_colaboradores_ui ainda precisa ser implementado, conforme o registro de implantação.

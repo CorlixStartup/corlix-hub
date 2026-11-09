@@ -75,6 +75,9 @@ Somente se ainda houver o breadcrumb antigo duplicado: na árvore Rendering, rem
 
 ### 4.2 Configurar o cabeçalho com a ação no mesmo contêiner
 
+> **Revisão arquitetural:** o bloco inline abaixo documenta a proposta anterior e não é a implementação final recomendada. O padrão confirmado nos módulos é um package de UI. Antes de reaplicar este bloco, preparar `pkg_colaboradores_ui.render_cabecalho return clob`, com spec/body e instalação, e então configurar a região com `return pkg_colaboradores_ui.render_cabecalho;`. Esse package ainda não foi criado nesta tarefa; não colar a chamada antes de sua instalação. A revisão da arquitetura completa da listagem deve preservar a fonte SQL exigida pelo Faceted Search ou justificar e implementar sua substituição. Não remover relatório/facetas apenas para adotar Dynamic Content.
+
+
 Na página existente, selecione Cabeçalho e substitua a função abaixo. Se criou o botão nativo NOVO_COLABORADOR na tentativa anterior, remova apenas esse botão depois de conferir sua identificação, para evitar duplicação. Não remova ações de outros módulos.
 
 Para instalação nova:

@@ -93,3 +93,11 @@ Pedido: alinhar o guia aos módulos existentes e exigir documentação no encerr
 - Verificação documental: diff e links locais verificados; índice de casos atualizado. Nenhuma aplicação ou execução no Builder nesta tarefa.
 
 Pendências: aplicar/conferir cabeçalho, validar visualmente o botão e testar autorização, escape, paginação, facetas, isolamento e edição. Próximo passo: conferir o cabeçalho atual no Builder e seguir §4 do guia, registrando o resultado antes de outra alteração. PR de documentação: #130, atualizado nesta continuação; a revisão corrente substitui as orientações conflitantes do #129, que ainda requer conciliação pelo time.
+
+## Conferência do padrão de packages de UI
+
+Após a observação do usuário, foram inspecionados os packages e as chamadas nas páginas 9, 13 e 30. Confirmação: Holerite usa pkg_holerite_ui.render_cabecalho e render_pagina; Ponto usa pkg_ponto_ui.render_cabecalho e funções por seção; Histórico usa pkg_historico_carreira_ui.render. As regiões retornam o CLOB do package. HTML, helpers de CLOB, escape e ícones ficam centralizados no código do módulo; CSS/JS e processos APEX integram a apresentação.
+
+A revisão anterior apenas reutilizou o contêiner do cabeçalho e manteve HTML inline, sem seguir a arquitetura. O guia agora marca essa proposta como anterior e registra a necessidade do package de Colaboradores antes da chamada no Builder. A regra 14 foi explicitada para exigir arquitetura de packages, além de reaproveitamento visual.
+
+Escopo concluído: inspeção do padrão e correção documental. Validação: comparação das funções e chamadas nos exports, diff documental. Não houve criação/compilação de package nem aplicação no Builder. Próximo passo: implementar a UI de Colaboradores com spec/body, instalação e estratégia de integração com a fonte SQL do Faceted Search; depois validar o botão e as demais pendências. Não existe ainda pkg_colaboradores_ui instalado por esta tarefa.
