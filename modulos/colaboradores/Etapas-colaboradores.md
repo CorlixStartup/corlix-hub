@@ -509,203 +509,361 @@ Passos conferidos no export e na documentação oficial; nada aqui foi executado
 
 Referências reutilizadas: autorização `COLABORADOR` (composição por `apex_authorization.is_authorized`), foto do Chat (p. 4, página 44), `pkg_holerite_ui`/`pkg_ponto_ui` (`render_*` com chamada curta) e `render_cabecalho` deste módulo.
 
-### 12.1 Atualizar banco e arquivos
+### 12.0 Situação na app (backup de 09/11/2026 às 13:11)
 
-1. Em **SQL Commands**, execute, um por vez e sem a `/` isolada: [`01_vw_colaboradores_lista.sql`](./01_vw_colaboradores_lista.sql), [`02_pkg_colaboradores_ui.pks`](./02_pkg_colaboradores_ui.pks) e [`02_pkg_colaboradores_ui.pkb`](./02_pkg_colaboradores_ui.pkb).
-2. Confirme a compilação:
+Conferido no export e no DDL do backup `a6d16f1`, que registra "Sem mudanças na app nem no DDL" em relação ao das 12:06. O job só exporta o banco PRD: alteração feita em outro ambiente, ou não salva, não aparece aqui. Leitura de export não prova o funcionamento na tela.
+
+**Já está na app; não refaça:** cabeçalho pelo package, filtros à esquerda e relatório à direita, paginação de 15 linhas com links, escape da coluna Pessoa, `!RAW` em Perfil, rótulo "Perfil de acesso" e traduções.
+
+**Falta fazer, nesta ordem:**
+
+| # | Ajuste | Onde | Estado no backup |
+|---|---|---|---|
+| 1 | Instalar view e package | §12.1 | View ainda libera empresa nula; package sem `render_cabecalho_cadastro` |
+| 2 | Publicar `.css` e `.min.css` | §12.1 | Arquivos da app diferentes dos desta pasta |
+| 3 | **Apagar o CSS Inline da p12** | §12.1 | Bloco inline ainda na página |
+| 4 | Criar `VER_LISTA_COLABORADORES` | §12.2 | Não existe |
+| 5 | Aplicar na página e no menu | §12.3 | Página com `ADMIN_RH`; menu sem autorização |
+| 6 | Trocar a consulta do relatório | §12.4 | Sem `NOME_SEM_LINK` e sem foto pela página 44 |
+| 7 | Ajustar as colunas | §12.5 | Pessoa sem classe de situação; Vínculo e Situação sem filtros de escape |
+| 8 | Barra de total e ordenação | §12.6 | Sem regiões Resultados e Barra da lista; total nas facetas; sem `P12_ORDEM` |
+| 9 | Rótulo da busca | §12.7 | Ainda `Search` |
+| 10 | Separar criação e edição na p14 | §12.8 | Sem nenhum dos ajustes; `CREATE_USER` sem condição |
+| 11 | Testar | §12.9 | Não executado |
+
+Faça o item 10 antes de liberar o uso do link da p12 pelo RH. Ao terminar, rode o backup: o export deve mostrar `VER_LISTA_COLABORADORES`, `NOME_SEM_LINK`, `SALVAR_ALTERACOES` e `render_cabecalho_cadastro`.
+
+### 12.1 Banco e arquivos (itens 1, 2 e 3)
+
+#### Item 1 · Instalar view e package
+
+1. Abra **SQL Workshop › SQL Commands**.
+2. Abra [`01_vw_colaboradores_lista.sql`](./01_vw_colaboradores_lista.sql), copie tudo, cole e clique em **Run**. Esperado: `View created`.
+3. Limpe a tela e repita com [`02_pkg_colaboradores_ui.pks`](./02_pkg_colaboradores_ui.pks), **sem a última linha com a `/` isolada**.
+4. Limpe a tela e repita com [`02_pkg_colaboradores_ui.pkb`](./02_pkg_colaboradores_ui.pkb), também sem a `/` final.
+5. Rode a conferência:
    ```sql
    select object_name, object_type, status
      from user_objects
-    where object_name in ('VW_COLABORADORES_LISTA', 'PKG_COLABORADORES_UI');
+    where object_name in ('VW_COLABORADORES_LISTA', 'PKG_COLABORADORES_UI')
    ```
-   Esperado: tudo `VALID`.
-3. Em *Shared Components › Static Application Files*, substitua `modulos/colaboradores/colaboradores.css` e `colaboradores.min.css` pelas versões desta pasta.
+   **Esperado:** três linhas com `VALID`. Se houver `INVALID`, pare e rode:
+   ```sql
+   select name, type, line, position, text
+     from user_errors
+    where name = 'PKG_COLABORADORES_UI'
+    order by type, sequence
+   ```
 
-> A view agora só devolve a empresa da sessão. Fora da app (SQL Commands), `G_ID_EMPRESA` é nulo e a consulta volta **vazia**: isso é esperado. Colaboradores sem empresa deixam de aparecer para todos, portanto a opção "Sem vínculo" da faceta Empresa some. O alerta "Cadastro incompleto" continua para quem tem empresa, mas não tem departamento ou cargo.
+> A view agora só devolve a empresa da sessão. Em SQL Commands `G_ID_EMPRESA` é nulo, então `select * from vw_colaboradores_lista` volta **vazio**: é o esperado. A lista só mostra dados dentro da app. Colaboradores sem empresa não aparecem para ninguém, e a opção "Sem vínculo" da faceta Empresa some. O alerta "Cadastro incompleto" continua para quem tem empresa, mas não tem departamento ou cargo.
 
-### 12.2 Criar a autorização
+#### Item 2 · Publicar os arquivos CSS
 
-Em *Shared Components › Authorization Schemes › Create › From Scratch*:
+1. Abra **Shared Components › Static Application Files**.
+2. Clique em **Create File** (confirmar no 26.1.5).
+3. Em **Directory**, informe `modulos/colaboradores`.
+4. Selecione [`colaboradores.css`](./colaboradores.css) e [`colaboradores.min.css`](./colaboradores.min.css) e confirme, substituindo os arquivos com o mesmo nome.
+5. **Confira:** na lista, as datas dos dois arquivos devem ter mudado.
 
-| Propriedade | Valor |
-|---|---|
-| **Name** | `VER_LISTA_COLABORADORES` |
-| **Scheme Type** | PL/SQL Function Returning Boolean |
-| **Error Message** | `Acesso restrito ao RH e à liderança.` |
-| **Evaluation Point** | Once per session |
+#### Item 3 · Apagar o CSS Inline da página 12
 
-```plsql
-return apex_authorization.is_authorized('ADMIN_RH')
-    or apex_authorization.is_authorized('SOMENTE_DIRETORIA')
-    or apex_authorization.is_authorized('GESTOR')
-    or apex_acl.has_user_role(
-         p_application_id => :APP_ID,
-         p_user_name      => :APP_USER,
-         p_role_static_id => 'gestor');
-```
+Faça só depois do item 2.
+
+1. Abra a **página 12** no Page Designer e clique no nó **Page 12: Colaboradores**, no topo da árvore.
+2. Em **CSS › File URLs**, confirme `#APP_FILES#modulos/colaboradores/colaboradores#MIN#.css`.
+3. Em **CSS › Inline**, selecione tudo e apague.
+4. Clique em **Save**.
+5. **Confira:** abra a página, recarregue com Ctrl+F5 (Cmd+Shift+R no Mac). A tabela continua no card branco, com divisórias horizontais.
+
+### 12.2 Item 4 · Criar a autorização
+
+1. Abra **Shared Components › Security › Authorization Schemes**.
+2. Clique em **Create**, escolha **From Scratch** e **Next**.
+3. Preencha:
+
+   | Campo | Valor |
+   |---|---|
+   | **Name** | `VER_LISTA_COLABORADORES` |
+   | **Scheme Type** | PL/SQL Function Returning Boolean |
+   | **Error Message** | `Acesso restrito ao RH e à liderança.` |
+
+4. Em **PL/SQL Function Body**, cole:
+   ```plsql
+   return apex_authorization.is_authorized('ADMIN_RH')
+       or apex_authorization.is_authorized('SOMENTE_DIRETORIA')
+       or apex_authorization.is_authorized('GESTOR')
+       or apex_acl.has_user_role(
+            p_application_id => :APP_ID,
+            p_user_name      => :APP_USER,
+            p_role_static_id => 'gestor');
+   ```
+5. Em **Validate authorization scheme**, escolha **Once per session** (confirmar no 26.1.5).
+6. Clique em **Create Authorization Scheme**.
+7. **Confira:** o esquema aparece na lista.
 
 CEO e diretores têm o papel `diretoria` pelo cargo. A autorização `GESTOR` cobre quem tem subordinados, e o papel `gestor` cobre quem lidera pelo cargo.
 
-### 12.3 Aplicar na página e no menu
+### 12.3 Item 5 · Aplicar na página e no menu
 
-1. Página 12 › **Security › Authorization Scheme**: `VER_LISTA_COLABORADORES`.
-2. *Shared Components › Navigation Menu › Colaboradores* › **Authorization Scheme**: `VER_LISTA_COLABORADORES`.
-3. Página 14: não altere; continua `ADMIN_RH`.
+**Na página:**
 
-### 12.4 Nova consulta do relatório
+1. Página 12 › clique no nó **Page 12: Colaboradores**.
+2. Em **Security › Authorization Scheme**, troque para `VER_LISTA_COLABORADORES`.
+3. Clique em **Save**.
 
-Na região **Colaboradores**, em **Source › SQL Query**, use:
+**No menu:**
 
-```sql
-select id_colaborador,
-       nome_completo,
-       nome_completo as nome_sem_link,
-       email,
-       login_apex,
-       primeiro_nome,
-       ultimo_nome,
-       case
-         when trim(foto_url) is null
-              or foto_url = '#APP_FILES#Fotos Colaboradores/' then null
-         else apex_page.get_url(p_page => 44, p_x01 => regexp_substr(trim(foto_url), '[^/]+$'))
-       end as foto_url,
-       tem_imagem,
-       iniciais,
-       id_empresa,
-       empresa,
-       id_departamento,
-       departamento,
-       id_cargo,
-       cargo,
-       vinculo_linha1,
-       vinculo_linha2,
-       fl_sem_vinculo,
-       classe_vinculo,
-       icone_vinculo,
-       perfil,
-       perfil_html,
-       situacao,
-       situacao_classe
-  from vw_colaboradores_lista
-```
+4. Abra **Shared Components › Navigation › Navigation Menu** e a lista do menu.
+5. Clique na entrada **Colaboradores**.
+6. Em **Authorization › Authorization Scheme**, escolha `VER_LISTA_COLABORADORES` (confirmar no 26.1.5).
+7. Clique em **Apply Changes**.
 
-Salve: a coluna `NOME_SEM_LINK` aparece na árvore.
+Não altere a página 14: ela continua com `ADMIN_RH`.
 
-### 12.5 Colunas
+**Confira:** saia e entre de novo. Uma conta de RH vê o item no menu; uma conta comum, não.
+
+### 12.4 Item 6 · Trocar a consulta do relatório
+
+1. Página 12 › na árvore, clique na região **Colaboradores**.
+2. Em **Source › SQL Query**, abra o editor, apague tudo e cole:
+   ```sql
+   select id_colaborador,
+          nome_completo,
+          nome_completo as nome_sem_link,
+          email,
+          login_apex,
+          primeiro_nome,
+          ultimo_nome,
+          case
+            when trim(foto_url) is null
+                 or foto_url = '#APP_FILES#Fotos Colaboradores/' then null
+            else apex_page.get_url(p_page => 44, p_x01 => regexp_substr(trim(foto_url), '[^/]+$'))
+          end as foto_url,
+          tem_imagem,
+          iniciais,
+          id_empresa,
+          empresa,
+          id_departamento,
+          departamento,
+          id_cargo,
+          cargo,
+          vinculo_linha1,
+          vinculo_linha2,
+          fl_sem_vinculo,
+          classe_vinculo,
+          icone_vinculo,
+          perfil,
+          perfil_html,
+          situacao,
+          situacao_classe
+     from vw_colaboradores_lista
+   ```
+3. Clique em **OK** e em **Save**.
+4. **Confira:** a coluna `NOME_SEM_LINK` aparece em **Columns**, na árvore.
+
+### 12.5 Item 7 · Ajustar as colunas
+
+Selecione cada coluna em **Colaboradores › Columns**. Salve no final.
 
 **`NOME_COMPLETO`** (só o RH vê o link):
 
-- **Security › Authorization Scheme**: `ADMIN_RH`.
-- **Link › Link Text**:
-  ```html
-  <span class="cx-colab-pessoa"><span class="cx-avatar cx-avatar--situacao-#SITUACAO_CLASSE!ATTR#"><img src="#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>
-  ```
+1. Em **Security › Authorization Scheme**, escolha `ADMIN_RH`.
+2. Em **Link › Link Text**, troque por:
+   ```html
+   <span class="cx-colab-pessoa"><span class="cx-avatar cx-avatar--situacao-#SITUACAO_CLASSE!ATTR#"><img src="#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>
+   ```
 
 **`NOME_SEM_LINK`** (gestores, CEO e diretores):
 
-| Propriedade | Valor |
-|---|---|
-| **Type** | Plain Text |
-| **Heading** | `Pessoa` |
-| **Sequence** | Logo depois de `NOME_COMPLETO` |
-| **Escape Special Characters** | No |
-| **Security › Authorization Scheme** | `{Not ADMIN_RH}` (confirmar no 26.1.5) |
+3. Preencha:
 
-**HTML Expression** de `NOME_SEM_LINK`:
+   | Propriedade | Valor |
+   |---|---|
+   | **Identification › Type** | Plain Text |
+   | **Heading › Heading** | `Pessoa` |
+   | **Layout › Sequence** | `21` |
+   | **Security › Escape Special Characters** | Off |
+   | **Security › Authorization Scheme** | `{Not ADMIN_RH}` (confirmar no 26.1.5) |
 
-```html
-<span class="cx-colab-pessoa"><span class="cx-avatar cx-avatar--situacao-#SITUACAO_CLASSE!ATTR#"><img src="#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_SEM_LINK!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>
-```
+4. Em **Column Formatting › HTML Expression**, cole:
+   ```html
+   <span class="cx-colab-pessoa"><span class="cx-avatar cx-avatar--situacao-#SITUACAO_CLASSE!ATTR#"><img src="#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_SEM_LINK!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>
+   ```
 
 O nome usa a própria coluna, porque o valor de `NOME_COMPLETO` não deve ser considerado disponível para quem não passa na autorização dela.
 
-**`VINCULO_LINHA1`** › **HTML Expression**:
+**`VINCULO_LINHA1`:**
 
-```html
-<div class="cx-colab-vinculo #CLASSE_VINCULO!ATTR#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO!RAW##VINCULO_LINHA1!HTML#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2!HTML#</span></div>
-```
+5. Em **Column Formatting › HTML Expression**, troque por:
+   ```html
+   <div class="cx-colab-vinculo #CLASSE_VINCULO!ATTR#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO!RAW##VINCULO_LINHA1!HTML#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2!HTML#</span></div>
+   ```
 
-**`SITUACAO`** › **HTML Expression**:
+**`SITUACAO`:**
 
-```html
-<span class="cx-badge cx-badge--#SITUACAO_CLASSE!ATTR#">#SITUACAO!HTML#</span>
-```
+6. Em **Column Formatting › HTML Expression**, troque por:
+   ```html
+   <span class="cx-badge cx-badge--#SITUACAO_CLASSE!ATTR#">#SITUACAO!HTML#</span>
+   ```
 
-### 12.6 Barra com total e ordenação
+7. Clique em **Save**.
 
-O template `Standard` deste export não tem o marcador `#ORDER_BY_ITEM#`, presente só no `Cards Container`. Por isso o seletor fica numa região própria.
+**Confira:** com conta de RH aparece uma única coluna Pessoa, com link. Pessoas inativas ficam com avatar cinza.
 
-1. Crie a região **Resultados** no slot Body:
+### 12.6 Item 8 · Barra de total e ordenação
+
+O template `Standard` deste export não tem o marcador `#ORDER_BY_ITEM#`; por isso o seletor fica numa região própria. A [documentação](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/managing-sorting-with-order-by-item.html) confirma que o item pode ser posicionado em qualquer lugar da página.
+
+**Criar a região Resultados:**
+
+1. Na árvore, clique com o botão direito em **Body** e escolha **Create Region**.
+2. Preencha:
 
    | Propriedade | Valor |
    |---|---|
-   | **Type** | Static Content, sem texto |
-   | **Template** | Blank with Attributes (No Grid) |
-   | **Sequence** | 20 |
-   | **Start New Row** | No |
-   | **Column / Column Span** | 4 / 9 |
+   | **Identification › Name** | `Resultados` |
+   | **Identification › Type** | Static Content |
+   | **Source › HTML Code** | vazio |
+   | **Layout › Sequence** | `20` |
+   | **Layout › Start New Row** | Off |
+   | **Layout › Column** | `4` |
+   | **Layout › Column Span** | `9` |
+   | **Appearance › Template** | Blank with Attributes |
 
-2. Em **Colaboradores**, defina **Parent Region** = `Resultados` e **Sequence** = 20. Se houver coluna ou span definidos, volte para Automatic.
-3. Crie a sub-região **Barra da lista** com **Parent Region** = `Resultados`, **Sequence** = 10, **Template** = Blank with Attributes (No Grid), **Static ID** = `cx-colab-barra` e este texto em **Source › HTML Code**:
+**Mover o relatório:**
+
+3. Clique na região **Colaboradores** e preencha:
+
+   | Propriedade | Valor |
+   |---|---|
+   | **Layout › Parent Region** | `Resultados` |
+   | **Layout › Sequence** | `20` |
+   | **Layout › Start New Row** | On |
+   | **Layout › Column** | Automatic |
+   | **Layout › Column Span** | Automatic |
+
+**Criar a barra:**
+
+4. Clique com o botão direito em **Resultados** e escolha **Create Sub Region**.
+5. Preencha:
+
+   | Propriedade | Valor |
+   |---|---|
+   | **Identification › Name** | `Barra da lista` |
+   | **Identification › Type** | Static Content |
+   | **Layout › Sequence** | `10` |
+   | **Appearance › Template** | Blank with Attributes (No Grid) |
+   | **Advanced › Static ID** | `cx-colab-barra` |
+
+6. Em **Source › HTML Code**, cole:
    ```html
    <div id="cx-colab-total" class="cx-colab-barra__total" aria-live="polite"></div>
    ```
-4. Na região **Filtros**, ajuste **Settings › Show Total Row Count** = `Selector` e **Total Row Count Selector** = `#cx-colab-total` (confirmar nome no 26.1.5). O rótulo da faceta não é usado nesse modo.
-5. Em **Colaboradores**, em **Order By › Type** = Item (confirmar no 26.1.5), crie as opções:
 
-   | Key | Display | Clause |
-   |---|---|---|
-   | `NOME` | Nome | `nome_completo` |
-   | `LOGIN` | Login | `login_apex, nome_completo` |
-   | `DEPARTAMENTO` | Departamento | `departamento, nome_completo` |
+**Levar o total para a barra:**
 
-   Use o item `P12_ORDEM`, com **Label** `Ordenar por`, valor padrão `NOME`.
-6. Coloque `P12_ORDEM` na região **Barra da lista**. **Se o Builder não permitir mover o item, pare aqui e envie um print das propriedades dele**, sem criar `ORDER BY` na consulta.
+7. Clique na região **Filtros**.
+8. Em **Settings › Show Total Row Count** (ou no grupo equivalente), escolha **Selector** e informe `#cx-colab-total` no campo que aparecer (confirmar nome no 26.1.5).
 
-Limitação: o sufixo vem do CSS, então um único resultado aparece como "1 colaboradores".
+**Criar a ordenação:**
 
-### 12.7 Rótulo da busca
+9. Clique na região **Colaboradores**.
+10. Em **Order By › Type**, escolha **Item**.
+11. Em **Order By › Item**, clique em **No Order By Item**.
+12. No diálogo, em **Order By Clauses**, cadastre:
 
-Faceta `P12_SEARCH` › **Label**: `Buscar`.
+    | Clause | Key | Display |
+    |---|---|---|
+    | `nome_completo` | `NOME` | Nome |
+    | `login_apex, nome_completo` | `LOGIN` | Login |
+    | `departamento, nome_completo` | `DEPARTAMENTO` | Departamento |
 
-### 12.8 Página 14: separar criação e edição
+13. No campo **Item**, informe `P12_ORDEM` e clique em **OK**.
+14. Na árvore, clique no item `P12_ORDEM` e preencha:
 
-Hoje `CREATE_USER` roda em todo envio, então salvar um colaborador existente tenta criar a conta de novo. **Mantenha a p14 assim só até concluir esta seção; o link da p12 depende dela.**
+    | Propriedade | Valor |
+    |---|---|
+    | **Label › Label** | `Ordenar por` |
+    | **Layout › Region** | `Barra da lista` |
+    | **Default › Type** | Static |
+    | **Default › Static Value** | `NOME` |
 
-**Botões**
+15. Clique em **Save** e execute a página.
 
-1. `SALVAR_USUARIO` › **Server-side Condition**: Item is NULL, `P14_ID_COLABORADOR`.
-2. Duplique o botão. Na cópia:
+**Se o item não puder ser movido, ou aparecer em outro lugar, pare e envie um print das propriedades dele.** Não crie `ORDER BY` na consulta.
+
+**Confira:** acima da tabela aparecem "N colaboradores" à esquerda e "Ordenar por" à direita, e os filtros continuam ao lado. O sufixo vem do CSS, então um único resultado aparece como "1 colaboradores".
+
+### 12.7 Item 9 · Rótulo da busca
+
+1. Na região **Filtros**, clique na faceta `P12_SEARCH`.
+2. Em **Label › Label**, troque `Search` por `Buscar`.
+3. Clique em **Save**.
+
+### 12.8 Item 10 · Página 14: separar criação e edição
+
+Hoje `CREATE_USER` roda em todo envio, então salvar um colaborador existente tenta criar a conta de novo. Depois desta seção, o link da p12 passa a editar. Abra a **página 14** no Page Designer e salve a cada grupo.
+
+**Passo A · Botões**
+
+1. Clique em `SALVAR_USUARIO`. Em **Server-side Condition**: **Type** = Item is NULL e **Item** = `P14_ID_COLABORADOR`.
+2. Clique com o botão direito em `SALVAR_USUARIO` e escolha **Duplicate**.
+3. Na cópia, preencha:
 
    | Propriedade | Valor |
    |---|---|
-   | **Button Name** | `SALVAR_ALTERACOES` |
-   | **Label** | `Salvar alterações` |
-   | **Database Action** | SQL UPDATE action |
-   | **Requires Confirmation** | No |
-   | **Server-side Condition** | Item is NOT NULL, `P14_ID_COLABORADOR` |
+   | **Identification › Button Name** | `SALVAR_ALTERACOES` |
+   | **Identification › Label** | `Salvar alterações` |
+   | **Behavior › Database Action** | SQL UPDATE action |
+   | **Behavior › Requires Confirmation** | Off |
+   | **Server-side Condition › Type** | Item is NOT NULL |
+   | **Server-side Condition › Item** | `P14_ID_COLABORADOR` |
 
-**Campos**
+**Passo B · Campos**
 
-3. `P14_SENHA` e `P14_CONFIRMAR_SENHA` › **Server-side Condition**: Item is NULL, `P14_ID_COLABORADOR`.
-4. `P14_LOGIN`, `P14_EMPRESA`, `P14_DEPARTAMENTO` e `P14_CARGO` › **Read Only › Type**: Item is NOT NULL, `P14_ID_COLABORADOR`. Em `P14_LOGIN`, **Inline Help Text**: `O login não pode ser alterado.`
+4. Em `P14_SENHA` e em `P14_CONFIRMAR_SENHA`: **Server-side Condition › Type** = Item is NULL e **Item** = `P14_ID_COLABORADOR`.
+5. Em cada um destes: `P14_LOGIN`, `P14_EMPRESA`, `P14_DEPARTAMENTO` e `P14_CARGO`: **Read Only › Type** = Item is NOT NULL e **Item** = `P14_ID_COLABORADOR`.
+6. Em `P14_LOGIN`, **Help › Inline Help Text** = `O login não pode ser alterado.`
 
-**Validação e processos**
+**Passo C · Validação e processos**
 
-5. Em cada item abaixo, **Server-side Condition › Type** = When Button Pressed, botão `SALVAR_USUARIO`:
+7. Na aba **Processing**, em cada item abaixo, defina **Server-side Condition › When Button Pressed** = `SALVAR_USUARIO`. **Não altere o Type** que já existir:
    - validação **Validar Confirmação de Senha**;
    - processo **Registrar admissão**;
    - processo **Criar usuário APEX**;
    - processo **Atribuir papéis do cargo**.
-6. Crie o processo **Confirmar alteração**: Type Execute Code, código `null;`, Sequence 40, **Success Message** `Alterações salvas.`, When Button Pressed `SALVAR_ALTERACOES`.
 
-**Saída e cabeçalho**
+**Passo D · Mensagem e retorno à lista**
 
-7. Crie um **Branch** em Processing: Sequence 5, destino página 12, When Button Pressed `SALVAR_ALTERACOES`.
-8. Na região **Cabeçalho** da p14, troque **PL/SQL Function Body** por:
-   ```plsql
-   return pkg_colaboradores_ui.render_cabecalho_cadastro(to_number(:P14_ID_COLABORADOR));
-   ```
+8. Em **Processes**, clique com o botão direito e escolha **Create Process**:
+
+   | Propriedade | Valor |
+   |---|---|
+   | **Identification › Name** | `Confirmar alteração` |
+   | **Identification › Type** | Execute Code |
+   | **Source › PL/SQL Code** | `null;` |
+   | **Execution › Sequence** | `40` |
+   | **Success Message › Success Message** | `Alterações salvas.` |
+   | **Server-side Condition › When Button Pressed** | `SALVAR_ALTERACOES` |
+
+9. Em **After Processing**, clique com o botão direito e escolha **Create Branch**:
+
+   | Propriedade | Valor |
+   |---|---|
+   | **Identification › Name** | `Voltar à lista após editar` |
+   | **Execution › Sequence** | `5` |
+   | **Behavior › Target** | Page `12` |
+   | **Server-side Condition › When Button Pressed** | `SALVAR_ALTERACOES` |
+
+**Passo E · Cabeçalho**
+
+10. Na aba **Rendering**, clique na região **Cabeçalho** e troque todo o PL/SQL por:
+    ```plsql
+    return pkg_colaboradores_ui.render_cabecalho_cadastro(to_number(:P14_ID_COLABORADOR));
+    ```
+11. Clique em **Save**.
+
+**Confira:** abra pelo botão Novo colaborador: título "Novo colaborador", campos de senha e botão "Salvar colaborador". Abra pelo nome de alguém: título com o nome e a situação, sem senha, login bloqueado e botão "Salvar alterações". Faça o teste de salvar só com registro de teste (§12.9, testes 11 e 12).
 
 Departamento e cargo ficam só leitura na edição porque a mudança precisa passar por **Histórico de carreira › Movimentação**, que registra o evento e atualiza o colaborador. É uma diferença consciente em relação ao protótipo.
 

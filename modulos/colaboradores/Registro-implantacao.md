@@ -171,3 +171,13 @@ Decisão do usuário: a lista é vista por RH, gestores, CEO e diretores; criar 
 Versionado: §12 do guia, view com isolamento estrito por G_ID_EMPRESA, render_cabecalho_cadastro no package e CSS da barra e do avatar inativo. Decisões: departamento e cargo só leitura na edição, para passar pela Movimentação; sincronização da conta APEX fora do guia, pois SET_EMAIL e LOCK_ACCOUNT exigem administrador do workspace; Order By Item em região própria, porque o template Standard não tem #ORDER_BY_ITEM#.
 
 Verificação: export e documentação oficial do APEX 26.1 conferidos, git diff --check. Não houve compilação Oracle, aplicação no Builder nem teste em execução; os itens marcados no guia dependem de confirmação no 26.1.5. Próximo passo: executar §12 na ordem e os testes do §12.9.
+
+## Validação do §12 no backup das 13:11 — 09/11/2026
+
+Pedido: identificar o que já foi aplicado e o que falta. Comparados §12 do guia, export e DDL do backup a6d16f1 (corlixhub-prd-20261109-160916), cujo commit registra ausência de mudanças em relação ao de 12:06. Resultado: nenhum item do §12 consta como aplicado no banco PRD, único ambiente exportado pelo job. O usuário relatou ter feito boa parte; hipóteses a confirmar: alterações anteriores às 12:06, não salvas ou em outro ambiente.
+
+Registrada a situação no §12.0, com a ordem do que falta, e incluída a remoção do CSS Inline no §12.1. Verificação: comparação de export/DDL e git diff --check. Revisão estática, sem execução da app. Próximo passo: aplicar os itens do §12.0 e rodar novo backup.
+
+## Passo a passo detalhado do §12 — 09/11/2026
+
+§12.1 a §12.8 reescritos por item, com caminho de cada propriedade, valores e conferência. Corrigido: "When Button Pressed" é propriedade própria de Server-side Condition, não opção de Type. Confirmado na documentação do 26.1 que o item de Order By pode ser posicionado em qualquer lugar da página. Referência: export a6d16f1 e documentação oficial. Alteração só documental, sem execução no Builder; caminhos não conferidos seguem marcados.
