@@ -135,11 +135,25 @@
 }
 
 /* Ordem das cinco colunas visíveis: Pessoa, Login, Vínculo, Perfil, Situação. */
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(1) { width: 30%; }
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(2) { width: 15%; }
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(3) { width: 25%; }
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(4) { width: 18%; }
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(5) { width: 12%; }
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(1) {
+    width: 30%;
+}
+
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(2) {
+    width: 15%;
+}
+
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(3) {
+    width: 25%;
+}
+
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(4) {
+    width: 18%;
+}
+
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(5) {
+    width: 12%;
+}
 
 .cx-colaboradores-pagina .cx-colab-pessoa {
     display: flex;

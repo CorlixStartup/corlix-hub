@@ -2,6 +2,7 @@ textMessage APEX.FS.CLEAR (
     message {
         text: Limpar
         language: en
+        usedInJavaScript: true
     }
 )
 
