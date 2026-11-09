@@ -302,3 +302,17 @@ Achados fora do §13: o usuário entrou com a conta `DEMO.CARREIRA.1.4`, do Dieg
 O usuário informou a restauração da data de nascimento nula do registro 315 após o teste.
 
 Pendências: decidir se o cargo 403 recebe o papel `gestor`; RH conferir o cargo do id 272; definir o bloqueio de conta inativa; testes de gestor, colaborador comum pelo menu, criação, caracteres especiais e tela estreita.
+
+## Teste de colaborador comum — 09/11/2026
+
+Conta `DEMO.CARREIRA.1.4` ([DEMO] Diego Alves, só o papel colaborador), login feito pelo usuário, sem gravar dados.
+
+| Verificação | Resultado |
+|---|---|
+| Menu | OK: Pessoas mostra só Organograma, e Administração só Central de equipes e Configurações; sem Colaboradores e sem Cadastro de usuários |
+| p12 por URL, na sessão ativa | OK: "Acesso restrito ao RH e à liderança.", autorização `VER_LISTA_COLABORADORES` |
+| p14 por URL, na sessão ativa | OK: "Acesso restrito ao RH.", autorização `ADMIN_RH` |
+
+O bloqueio é da página, não só do menu. A tela de erro exibiu "Technical Info", que o APEX mostra só a desenvolvedores; a sessão do Builder estava aberta no mesmo navegador. A tentativa anterior, por link sem sessão, caiu no login e não serviu como evidência. Teste "colaborador comum" concluído.
+
+Pendências: teste de criação de colaborador (aguarda autorização para criar um registro [DEMO] com conta APEX); gestor, caracteres especiais e tela estreita podem seguir como acompanhamento; decisões do cargo 403, do id 272 e do bloqueio de conta inativa.
