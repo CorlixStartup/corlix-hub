@@ -12,8 +12,65 @@ page 12 (
     }
     css {
         fileUrls: #APP_FILES#modulos/colaboradores/colaboradores#MIN#.css
+        inline:
+            ```css
+            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report {
+                width: 100%;
+                table-layout: fixed;
+                border-collapse: separate;
+                border-spacing: 0;
+                border: 1px solid var(--cx-borda);
+                border-radius: var(--cx-raio-card);
+                background: var(--cx-superficie);
+                box-shadow: none;
+            }
+            
+            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th,
+            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report td {
+                border: 0;
+                border-bottom: 1px solid var(--cx-borda);
+                padding: 12px;
+                vertical-align: middle;
+                white-space: normal;
+                overflow-wrap: anywhere;
+            }
+            
+            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report tr:last-child td {
+                border-bottom: 0;
+            }
+            
+            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:first-child {
+                border-top-left-radius: var(--cx-raio-card);
+            }
+            
+            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:last-child {
+                border-top-right-radius: var(--cx-raio-card);
+            }
+            
+            /* Ordem das cinco colunas visíveis: Pessoa, Login, Vínculo, Perfil, Situação. */
+            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(1) { width: 30%; }
+            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(2) { width: 15%; }
+            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(3) { width: 25%; }
+            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(4) { width: 18%; }
+            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(5) { width: 12%; }
+            
+            .cx-colaboradores-pagina .cx-colab-pessoa {
+                display: flex;
+                min-width: 0;
+                max-width: 100%;
+            }
+            
+            .cx-colaboradores-pagina .cx-colab-pessoa__info {
+                min-width: 0;
+            }
+            
+            .cx-colaboradores-pagina .cx-colab-pessoa__email {
+                overflow-wrap: anywhere;
+            }
+            ```
     }
     security {
+        authorizationScheme: @admin-rh
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
@@ -22,29 +79,10 @@ page 12 (
         name: Cabeçalho
         type: dynamicContent
         source {
-            plsqlFunctionBody:
-                ```plsql
-                return '<div class="cx-cabecalho-pagina cx-cabecalho-pagina--acoes">'
-                    || '<div class="cx-cabecalho-pagina__texto">'
-                    || '<h1 class="cx-cabecalho-pagina__titulo">Colaboradores</h1>'
-                    || '<p class="cx-cabecalho-pagina__descricao">Encontre pessoas e gerencie contas, vínculos e perfis de acesso.</p>'
-                    || '</div>'
-                    || '<div class="cx-cabecalho-pagina__acoes">'
-                    || case
-                         when apex_authorization.is_authorized('admin-rh')
-                           or apex_authorization.is_authorized('administration-rights')
-                           or v('G_ID_EMPRESA') is null then
-                              '<a class="t-Button t-Button--hot t-Button--iconLeft" href="'
-                           || apex_escape.html_attribute(apex_page.get_url(p_page => 14, p_clear_cache => '14'))
-                           || '"><span class="t-Icon t-Icon--left fa fa-plus" aria-hidden="true"></span>'
-                           || '<span class="t-Button-label">Novo colaborador</span></a>'
-                       end
-                    || '</div>'
-                    || '</div>';
-                ```
+            plsqlFunctionBody: " return pkg_colaboradores_ui.render_cabecalho;"
         }
         layout {
-            sequence: 10
+            sequence: 30
             slot: breadcrumbBar
         }
         appearance {
@@ -89,7 +127,7 @@ page 12 (
                 ```
         }
         layout {
-            sequence: 10
+            sequence: 20
             slot: body
             startNewRow: false
             column: 4
@@ -115,7 +153,7 @@ page 12 (
             ]
         }
         pagination {
-            type: rowRangesXToYOfZNoPagination
+            type: rowRangesXToYOfZWithPagination
         }
         messages {
             whenNoDataFound: Nenhum colaborador encontrado.
@@ -267,7 +305,7 @@ page 12 (
                     }
                     clearCache: 14
                 }
-                linkText: <span class="cx-colab-pessoa"><span class="cx-avatar"><img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_COMPLETO#</span><span class="cx-colab-pessoa__email">#EMAIL#</span></span></span>
+                linkText: <span class="cx-colab-pessoa">   <span class="cx-avatar">     <img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL!ATTR#"          alt="" onerror="this.remove();" loading="lazy">     #INICIAIS!HTML#   </span>   <span class="cx-colab-pessoa__info">     <span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span>     <span class="cx-colab-pessoa__email">#EMAIL!HTML#</span>   </span> </span>
             }
             sorting {
                 defaultSequence: 1
@@ -287,7 +325,7 @@ page 12 (
                 sequence: 210
             }
             columnFormatting {
-                htmlExpression: #PERFIL_HTML#
+                htmlExpression: #PERFIL_HTML!RAW#
             }
             security {
                 escapeSpecialChars: false
@@ -392,7 +430,7 @@ page 12 (
             filteredRegion: @colaboradores
         }
         layout {
-            sequence: 20
+            sequence: 10
             slot: body
             column: 1
             columnSpan: 3
@@ -455,7 +493,7 @@ page 12 (
         facet P12_PERFIL (
             type: checkboxGroup
             label {
-                label: Perfil
+                label: Perfil de acesso
             }
             lov {
                 type: staticValues
