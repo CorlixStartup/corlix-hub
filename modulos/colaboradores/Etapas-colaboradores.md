@@ -509,54 +509,48 @@ Passos conferidos no export e na documentação oficial; nada aqui foi executado
 
 Referências reutilizadas: autorização `COLABORADOR` (composição por `apex_authorization.is_authorized`), foto do Chat (p. 4, página 44), `pkg_holerite_ui`/`pkg_ponto_ui` (`render_*` com chamada curta) e `render_cabecalho` deste módulo.
 
-### 12.0 Situação na app (backup de 09/11/2026 às 14:10)
+### 12.0 Situação na app (validada na tela em 09/11/2026)
 
-Conferido no export e no DDL do backup `571499e`. Leitura de export não prova o funcionamento: os testes do §12.9 ainda não foram executados.
+Validado com a conta de RH, no navegador, sem salvar nada; export da p12 enviado pelo usuário e backup `571499e`.
 
-**Já aplicado; não refaça:** view com isolamento estrito, package com `render_cabecalho_cadastro`, CSS publicado (mesmas regras do módulo), CSS Inline removido, `VER_LISTA_COLABORADORES` na página e no menu, consulta nova, colunas `NOME_COMPLETO`, `NOME_SEM_LINK`, `VINCULO_LINHA1` e `SITUACAO`, regiões Resultados e Barra da lista, total por seletor, `P12_ORDEM` ligado ao relatório, rótulo da busca e, na p14, botões, campos, condições dos processos, processo de confirmação, branch de retorno e cabeçalho.
+**Funciona na tela:** layout de filtros e relatório, total acompanhando o filtro, "Ordenar por", avatar cinza de inativos, etiquetas e badges, paginação em português e, na edição da p14, título com nome e situação, sem campos de senha, com login, empresa, departamento e cargo bloqueados e botão "Salvar alterações".
 
 **Falta fazer, nesta ordem:**
 
-| # | Ajuste | Por quê | Como |
-|---|---|---|---|
-| 1 | **Mudar o momento do branch "Limpar formulário" na p14** | Está em `Before Processing`, sem condição, antes dos processos. Pode impedir o salvamento, e impede o retorno à lista | Abaixo |
-| 2 | Definir o Static ID da Barra da lista | O CSS usa `#cx-colab-barra`, mas no export só existe a classe | Abaixo |
-| 3 | Mover o relatório para a mesma posição da barra | Barra em `Sub Regions` e relatório em `Region Body`; pela estrutura do template, a tabela tende a vir antes da barra | Abaixo |
-| 4 | Apagar o item `P12_ORDER_BY` | Item automático que sobrou; a ordenação usa `P12_ORDEM` | Abaixo |
-| 5 | Testar | Nada foi executado | §12.9 |
+| # | Ajuste | Por quê |
+|---|---|---|
+| 1 | Publicar `colaboradores.css` e `.min.css` novos | Trazem a barra, as contagens à direita e a remoção do menu de três pontos |
+| 2 | Colocar a classe na região Barra da lista | O CSS usa classe; o Static ID não apareceu no HTML, que usa id gerado |
+| 3 | Marcar `APEX.FS.CLEAR` para uso em JavaScript | O botão "Clear" segue em inglês |
+| 4 | **Conferir o branch "Limpar formulário" da p14** | No último backup segue antes dos processos; sem o ajuste, salvar a edição não volta à lista e pode não gravar |
+| 5 | Testar | §12.9, sobretudo salvar (11 e 12) e os perfis (1 a 4) |
 
-**Ajuste 1 · Branch da página 14**
+**Ajuste 1 · Publicar o CSS**
 
-1. Página 14 › aba **Processing** › clique no branch **Limpar formulário após carregamento**.
-2. Em **Execution › Point**, escolha **After Processing**.
-3. Mantenha **Sequence** = `10`. O branch "Voltar à lista após editar" tem Sequence `5` e é avaliado antes dele.
-4. Clique em **Save**.
+Siga o Item 2 do §12.1 com os dois arquivos atuais desta pasta.
 
-Faça este ajuste antes dos testes 11 e 12. **Confira:** ao salvar uma edição, a tela volta para a lista com "Alterações salvas.". Ao criar, a p14 volta limpa com "Colaborador cadastrado com sucesso!".
-
-**Ajuste 2 · Static ID da barra**
+**Ajuste 2 · Classe da barra**
 
 1. Página 12 › clique na região **Barra da lista**.
-2. Em **Advanced › Static ID**, informe `cx-colab-barra`.
-3. A classe em **Appearance › CSS Classes** pode ficar. Clique em **Save**.
-
-**Ajuste 3 · Posição do relatório**
-
-1. Página 12 › clique na região **Colaboradores**.
-2. Em **Layout › Position** (ou **Slot**), escolha **Sub Regions** (confirmar nome no 26.1.5). Mantenha **Parent Region** = `Resultados` e **Sequence** = `20`.
+2. Em **Appearance › CSS Classes**, informe `cx-colab-barra`.
 3. Clique em **Save**.
 
-**Confira:** a barra aparece acima da tabela, com o total à esquerda e "Ordenar por" à direita.
+**Confira (com Ctrl+F5):** "N colaboradores" à esquerda e "Ordenar por" com o seletor compacto à direita, na mesma linha. Nas facetas, contagens à direita, sem parênteses e sem os três pontos.
 
-**Ajuste 4 · Item que sobrou**
+**Ajuste 3 · Tradução do Clear**
 
-1. Página 12 › na região **Colaboradores**, encontre o item `P12_ORDER_BY`.
-2. Clique com o botão direito e escolha **Delete**.
-3. Em **Colaboradores › Order By › Item**, confirme que continua `P12_ORDEM`. Clique em **Save**.
+1. Abra **Shared Components › Globalization › Text Messages**.
+2. Abra `APEX.FS.CLEAR` e ligue **Used in JavaScript** (confirmar no 26.1.5).
+3. Salve e, na p12, marque um filtro: o botão deve mostrar "Limpar".
 
-Se o Builder impedir a exclusão ou a ordenação parar de funcionar, envie um print.
+**Ajuste 4 · Branch da página 14**
 
-**Depois dos testes**, se o rótulo flutuante de "Ordenar por" ficar diferente do protótipo, troque o **Template** de `P12_ORDEM` para `Optional - Above`.
+1. Página 14 › aba **Processing** › branch **Limpar formulário após carregamento**.
+2. Em **Execution › Point**, confirme **After Processing**; se estiver diferente, troque e clique em **Save**.
+
+**Confira:** ao salvar uma edição de teste, a tela volta para a lista com "Alterações salvas.".
+
+**Diferenças aceitas em relação ao protótipo:** seta "Pessoa ↑" (a ordenação é pelo seletor), linhas mais altas quando nomes reais quebram em duas linhas, opção "Sem vínculo" ausente (isolamento por empresa) e menu lateral, que depende dos módulos existentes.
 
 **Decisões em aberto:** equipe do Corlix Hub na lista (hoje fora), e se gestor e situação ficam só leitura na edição (hoje editáveis, e a alteração não entra no histórico).
 
@@ -781,7 +775,7 @@ O APEX cria o seletor por padrão na posição de ordenação do próprio relat�
    | **Identification › Type** | Static Content |
    | **Layout › Sequence** | `10` |
    | **Appearance › Template** | Blank with Attributes (No Grid) |
-   | **Advanced › Static ID** | `cx-colab-barra` |
+   | **Appearance › CSS Classes** | `cx-colab-barra` |
 
 6. Em **Source › HTML Code**, cole:
    ```html

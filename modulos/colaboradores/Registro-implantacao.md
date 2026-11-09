@@ -195,3 +195,11 @@ Correção: a justificativa anterior de que o template Standard não tinha posi�
 Base: export da p12 enviado pelo usuário, mais novo que o backup 571499e. Confirmados os ajustes 2, 3 e 4 do §12.0: Barra da lista com identificador cx-colab-barra, relatório em Sub Regions e P12_ORDER_BY removido. O ajuste 1 (branch da p14) não pôde ser confirmado: a p14 não veio no export colado e o último backup ainda o mostra em processing.
 
 O usuário informou que a página segue diferente do protótipo. Sem captura ou DOM: a tentativa de abrir a página parou no login, sem digitar credenciais. Diferenças identificáveis no export: linhas alternadas (t-Report--altRowsDefault), página em @/standard fora do padrão E1, "Ordenar por" com rótulo flutuante, rótulo visível na busca e colunas sem ordenação pelo cabeçalho (sem a seta de Pessoa). Contagens à direita e menus das facetas seguem sem CSS validado; o seletor .a-FS-facetList nunca foi conferido no DOM. Não foi escrito CSS novo sem o DOM (§11.4). Próximo passo: obter captura atual e DOM das facetas.
+
+## Validação na tela da página 12 e da edição na p14 — 09/11/2026
+
+Usuário autenticou no Chrome (conta Teste Rh); nenhuma credencial digitada e nada salvo. Confirmados na execução: filtro por situação com total sincronizado, Ordenar por, avatar cinza, paginação e, na p14 em modo edição, cabeçalho, ausência de senha, campos só leitura e botão correto; sem erros de console.
+
+Causas das diferenças: região Barra da lista sem Static ID no DOM (id gerado), logo o CSS por #cx-colab-barra não aplicava; seletor flutuante em largura total; contagens com parênteses por pseudo-elemento; menu de faceta com a única ação Filter. Corrigido: apontamentos anteriores de linhas alternadas e rótulo visível da busca eram falsos na tela.
+
+CSS novo testado por estilo temporário na própria aba, sem persistência, e incorporado aos arquivos do módulo. Falta publicar, aplicar a classe e o ajuste de Clear; salvar na p14 não foi testado, e o branch segue em processing no último backup. Testes de contas de outros perfis pendentes.
