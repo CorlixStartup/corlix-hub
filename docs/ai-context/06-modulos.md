@@ -423,3 +423,9 @@ O guia de Colaboradores foi revisto para ações no cabeçalho seguindo Holerite
 Correção arquitetural: os módulos de referência centralizam HTML em packages de UI com render_* retornando CLOB. O cabeçalho inline proposto para Colaboradores não encerra essa adequação; pkg_colaboradores_ui ainda precisa ser implementado, conforme o registro de implantação.
 
 Atualização de 09/11/2026: pkg_colaboradores_ui foi preparado em modulos/colaboradores/02_pkg_colaboradores_ui.pks/.pkb. O guia agora fornece instalação e chamada render_cabecalho; Classic Report/Faceted Search permanecem nativos. Package ainda não compilado nem validado no ambiente; substitui a pendência anterior de criação, sem declarar implantação concluída.
+
+Colaboradores, 09/11/2026: usuário confirmou NOME_COMPLETO já configurado com Link Text. O §5.1 do guia orienta apenas quatro substituições de escape, preservando Type e Target; aplicação do escape ainda pendente.
+
+Validação visual de Colaboradores em 09/11: posicionamento dos filtros e botão confirmado na captura, mas fidelidade parcial. [Auditoria](../../modulos/colaboradores/Validacao-visual-2026-11-09.md) registra HTML literal em Perfil, tabela e barra superior divergentes; correções pendentes.
+
+Colaboradores: §11 do guia transforma a auditoria em ajustes ordenados (Perfil, DOM/CSS, card/colunas, facetas e paginação), com proposta visual ainda não homologada. Barra de contagem/ordenação permanece pendente de implementação integrada.

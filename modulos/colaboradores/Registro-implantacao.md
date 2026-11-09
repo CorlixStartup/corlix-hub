@@ -121,3 +121,31 @@ Verificação local: diff e links do guia; reindexação documental. Compilaçã
 A DEV avançou para 6efa452 com a integração do PR #129, gerando conflito no guia de Colaboradores. Integrada origin/DEV à branch do #130, preservando a chamada ao package, a instalação já confirmada de ACL/CSS e a distinção entre acesso à lista e autorização da ação. Incorporadas as verificações úteis de HTML, paginação, facetas e troubleshooting do #129, sem reintroduzir restrição geral a ADMIN_RH ou HTML inline no cabeçalho. Corrigida também a descrição do módulo que havia sido combinada automaticamente com a orientação antiga.
 
 Verificação: diff sem erros, ausência de marcadores de conflito, links locais do guia e reindexação dos casos. Nenhuma alteração em pastas protegidas nem teste no Builder. O merge do PR para DEV permanece a cargo do time; compilação e validações da aplicação continuam pendentes.
+
+## Confirmação de Link Text — 09/11/2026
+
+O usuário forneceu o HTML atualmente aplicado em NOME_COMPLETO: já está em Link Text, com spans de pessoa/avatar/nome/e-mail e sem âncora interna. O guia §5.1 foi ajustado para reconhecer esse estado e orientar somente as substituições !ATTR em FOTO_URL e !HTML em INICIAIS, NOME_COMPLETO e EMAIL, preservando Type e Target.
+
+Verificação: conferência do trecho enviado, diff sem erros e reindexação. Alteração exclusivamente documental. Não houve aplicação no Builder; escape e comportamento da página 14 continuam pendentes de validação. Próximo passo: aplicar as quatro substituições e conferir apresentação/caracteres especiais.
+
+## Filtros abaixo do relatório — 09/11/2026
+
+Usuário relatou filtros abaixo e enviou export: região Colaboradores sequence 10, coluna 4/span 9 e startNewRow false; Filtros sequence 20, coluna 1/span 3. O guia destacava as colunas, mas não incluía Sequence nas listas principais de configuração. Incluída a sequência nas duas regiões: Filtros 10 primeiro, iniciando linha; Colaboradores 20 depois, sem iniciar linha. A alteração é nas regiões, não nas colunas/facetas; o cabeçalho em breadcrumbBar não precisa ser reordenado.
+
+O export também confirma a chamada ao package de cabeçalho e o escape de NOME_COMPLETO, sem comprovar todos os testes funcionais. Verificação documental: diff e reindexação. Próximo passo: salvar as propriedades e executar a página inteira para confirmar alinhamento; se persistir, obter print do Layout e resultado em desktop. Nenhuma alteração direta na app.
+
+## Auditoria da captura de 09/11/2026 às 10:45
+
+Comparadas captura do usuário e imagem do protótipo. Filtros ao lado e botão no cabeçalho confirmados visualmente. Fidelidade ainda parcial: HTML literal em Perfil, ausência do card/estilo de tabela, Vínculo estreito, barra de contagem/ordenação ausente e mensagens em inglês. Detalhes, limites da evidência e critérios de aceite em [Validacao-visual-2026-11-09.md](./Validacao-visual-2026-11-09.md).
+
+Escopo: validação, sem alteração da app ou CSS. Verificação documental: diff e reindexação. Próximo passo: corrigir renderização de PERFIL, inspecionar DOM/CSS efetivos e depois ajustar distribuição e apresentação, preservando packages e integração das facetas.
+
+## Guia dos ajustes visuais — 09/11/2026
+
+A auditoria foi convertida no §11 do guia: correção pontual de PERFIL, inspeção de CSS/DOM, proposta de card e distribuição de colunas baseada nos tokens do Ponto, rótulo das facetas, paginação e investigação de mensagens. Separadas as dependências ainda não implementadas (barra sincronizada de contagem/ordenação e identificação das chaves de tradução).
+
+Verificação documental: diff, links locais e reindexação. Nenhum CSS foi publicado ou executado no navegador. O bloco CSS é proposta para teste, não resultado homologado. Próximo passo: corrigir a etiqueta, confirmar DOM/CSS e testar a apresentação antes de consolidar estilos no módulo. Package/cabeçalho e posição dos filtros não precisam ser refeitos.
+
+## Tradução e paginação — 09/11/2026
+
+Consultadas listas oficiais de mensagens APEX 26.1 e identificadas APEX.FS.TOTAL_ROW_COUNT_LABEL, PAGINATION.* e WWV_RENDER_REPORT3.X_Y_OF_Z/_2/X_Y_OF_MORE_THAN_Z. Guia §11.7 atualizado com overrides, idioma efetivo en, uso em JavaScript, abrangência por aplicação e configuração de paginação com navegação. Verificação: documentação oficial, diff e reindexação; cadastro de mensagens e execução no Builder não realizados. Próximo passo: aplicar e testar total, intervalo e navegação com filtros.
