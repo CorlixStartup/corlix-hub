@@ -29,6 +29,18 @@
     - O merge é do time: o agente só abre os PRs.
     - A regra não libera as pastas somente leitura (regra 1).
 
+
+14. **Páginas devem partir dos módulos já implementados.** Antes de criar, redesenhar ou corrigir uma página:
+    - Atualize as referências remotas e confira a DEV atualizada, o último export e os relatos do time. Distinga código instalado, proposta em PR e teste executado; não peça para reinstalar algo já confirmado no backup.
+    - Leia o protótipo em pen_dev/ e escolha o módulo existente mais próximo. Referências iniciais: Histórico de carreira (modulos/historico-carreira/), Holerite (modulos/holerite/) e Ponto eletrônico (modulos/ponto-eletronico/). Consulte o guia, o SQL/PLSQL, o CSS/JS necessário e o export da página de referência.
+    - Registre no guia uma seção **Referências reutilizadas**: arquivos, componente reaproveitado e adaptações necessárias. Reutilize primeiro cabeçalho, ações, templates, tokens, espaçamento, estados vazios, ícones e padrões de navegação já adotados.
+    - Preserve a integração entre HTML, CSS, JS e APEX. Antes de trocar uma ação renderizada por botão nativo (ou o contrário), confira posição disponível no template, DOM, autorização, checksum, ação e resultado visual. Não suponha que um botão nativo ficará dentro de um contêiner HTML retornado por PL/SQL.
+    - Escolha a implementação por evidência do módulo de referência, não por preferência abstrata por componentes nativos ou HTML manual. Desvios precisam de motivo concreto, compatibilidade com o APEX 26.1.5 e validação prevista. Reuso não autoriza copiar falhas de segurança.
+    - Diferencie permissão de consultar a página, executar uma ação e acessar o destino. Não restrinja toda uma listagem ao RH só porque contém uma ação administrativa. Não use empresa nula como substituto de autorização explícita.
+    - Confirme como os ícones são renderizados: fonte Lucide mapeada por classes fa-* e SVG Lucide inline coexistem no projeto. Siga o padrão do componente escolhido.
+    - Se o usuário informar que a orientação não funciona, interrompa as tentativas por suposição: confira o exemplo existente e obtenha o export/print necessário. Marque propostas não verificadas e não declare a página validada só por ler o código.
+    - Registre resultados, falhas e pendências no módulo, com evidência e próximo passo. Mantenha as pastas protegidas somente para leitura.
+
 ## 2. Lacunas estruturais (objetos que faltam no repositório)
 
 | Lacuna | Impacto |

@@ -10,6 +10,7 @@ Resumo:
 - App Oracle APEX 26.1 (ID 100, `CORLIXHUB`, workspace `WKSP_CORLIXHUB`) sobre Oracle DB 23ai. Toda a lógica está em SQL/PL/SQL e no APEX.
 - Fonte da app: `corlixhub/` (APEXlang `.apx`), **somente leitura** (regra acima). `database/f100.sql` é um export gerado: só leia com grep, nunca edite.
 - **Protótipos:** todo protótipo/tela-alvo do projeto está em `pen_dev/` (PNGs do pen.dev, um por tela; descrições em `docs/ai-context/07-design-pen-dev.md`). Procure lá antes de qualquer outro lugar; se a tela pedida não existir, pergunte.
+- **Páginas baseadas nos módulos existentes (obrigatório):** antes de criar ou alterar uma página, compare o protótipo com a implementação atual de Histórico de carreira, Holerite, Ponto eletrônico ou outro módulo equivalente. Reutilize os padrões já aplicados de cabeçalho, ações, layout, ícones, autorização e integração; registre os arquivos de referência e justifique qualquer desvio. Não proponha componentes ou posições do Builder sem conferir o template usado. Veja a regra 14 em [08-convenções](docs/ai-context/08-convencoes-e-pegadinhas.md).
 - Módulos de feature em `modulos/<nome>/`: SQL numerado + `instalar.sql`, packages, CSS/JS e o guia `Etapas-*.md`.
 - Tema: tokens `--cx-*` em `corlixhub/shared-components/static-files/corlix-tema.css`; ajustes em `custom.css`. Mantenha os `.min.css` em sincronia.
 - Escreva em pt-BR. Use Conventional Commits (`scripts/git-hooks/commit-msg`).

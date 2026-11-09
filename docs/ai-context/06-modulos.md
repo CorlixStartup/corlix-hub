@@ -413,3 +413,7 @@ Checklist:
 7. **CSS/JS**: subir como Static Application File (`#APP_FILES#<m>#MIN#.css` + versão `.min`) ou colar inline; incluir `@media (max-width …)`, `prefers-reduced-motion`, `print` se houver exportação.
 8. **Números de página**: o guia deve dizer quais prefixos `Pnn_` trocar (JS, Source, constantes do package). Conferir colisões com `corlixhub/pages/`.
 9. Após montar no Builder: exportar em APEXlang (`corlixhub/pages/pNNNNN-*.apx`) e commitar módulo + páginas juntos.
+
+### Colaboradores — acompanhamento da implantação
+
+O [registro de implantação](../../modulos/colaboradores/Registro-implantacao.md) consolida o diagnóstico das facetas, correções instaladas, recomendações revistas e o botão ainda pendente. Novas orientações devem seguir a regra 14 do [08](./08-convencoes-e-pegadinhas.md), comparando Histórico de carreira, Holerite e Ponto eletrônico antes de propor componentes.

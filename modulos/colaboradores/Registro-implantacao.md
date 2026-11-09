@@ -1,0 +1,82 @@
+# Colaboradores — registro de implantação e pendências
+
+Registro da sessão de montagem e revisão da página 12, em 08/11/2026. Base consultada: DEV a2e3c4b, com backup e33f972 de 08/11/2026 às 23:17. Relatos posteriores do Builder podem ainda não aparecer nesse export.
+
+## Situação atual
+
+A página possui Classic Report, Faceted Search, cabeçalho e CSS. A função de ACL e a view corrigida aparecem no backup. **A página não está integralmente validada.** O usuário informa que o botão Novo colaborador não está funcionando visualmente como esperado; a configuração atual desse botão após as tentativas ainda precisa ser inspecionada. Não foi feita alteração direta na app pelo agente.
+
+## O que foi feito e qual é a evidência
+
+| Etapa | Trabalho e resultado | Estado |
+|---|---|---|
+| Branch inicial | Localizada e selecionada feature/pagina-colaboradores | Concluído |
+| HTML de Pessoa | O guia misturava Type = Link e HTML Expression. Corrigido para Link Text, sem âncora interna nem &LINK. | PR #126 integrado; export confirma Link Text |
+| Ordenação | Retirado ORDER BY da consulta do relatório; ordenação inicial configurada na coluna de nome | Export da página confirma consulta sem ORDER BY e defaultSequence = 1 |
+| Erro Ajax em Filtros | ORA-00904 em APEX_260100.WWV_FLOW_SECURITY ao contar facetas | Reproduzido pelo usuário; diagnóstico abaixo |
+| Função de ACL | Criada FN_COLAB_TEM_PAPEL baseada em APEX_ACL.HAS_USER_ROLE | Teste isolado passou; função presente no backup |
+| View | Subconsultas diretas à ACL substituídas pela função em PERFIL e PERFIL_HTML, preservando regras de cargo | PR #127 integrado; database/ddl/06-views.sql confirma implantação |
+| CSS | Página aponta para #APP_FILES#modulos/colaboradores/colaboradores#MIN#.css | Arquivos normal e minificado registrados no backup |
+| Revisão da página | Conferidos SQL, facetas, links, autorização, paginação e HTML | Revisão estática; não equivale a teste visual |
+| Guia de validação | PR #129 propôs ajustes de autorização, escape, layout e paginação | Aberto na consulta desta sessão; contém recomendações posteriormente revistas |
+| Botão nativo | Sugerido botão com destino p14, ADMIN_RH, Hot e Text with Icon, retirando o link gerado no PL/SQL | Tentativa não validada; usuário relata que não está dando certo |
+| Lucide | Conferido mapeamento fa-plus para Lucide Plus em corlix-tema.css | Confirmado no código; não foi necessário instalar biblioteca |
+
+PRs: [#126](https://github.com/CorlixStartup/corlix-hub/pull/126), [#127](https://github.com/CorlixStartup/corlix-hub/pull/127), [#129](https://github.com/CorlixStartup/corlix-hub/pull/129).
+
+## Diagnóstico do erro das facetas
+
+1. Leitura de PERFIL na view funcionou e retornou Colaborador nas cinco linhas apresentadas.
+2. Consulta de ROLE_STATIC_ID em APEX_APPL_ACL_USER_ROLES funcionou, retornando diretoria, publicador-de-conteúdo, equipe-do-corlix-hub, colaborador e gestor.
+3. Debug mostrou SQL gerada pelo Faceted Search com GROUPING SETS de SITUACAO, EMPRESA, DEPARTAMENTO e PERFIL.
+4. Consulta reduzida com esses campos reproduziu ORA-00904.
+5. A mesma agregação sem PERFIL funcionou.
+6. Tentativa de impedir transformação com ROWNUM e filtro externo também falhou: não reutilizar como correção comprovada.
+7. Função PL/SQL consultando APEX_ACL.HAS_USER_ROLE foi criada; agregação sobre o retorno funcionou: TEM_PAPEL = 0 para 309 registros, mais a linha de total 309.
+8. SQL da view, instalador e guia foram atualizados para usar a função antes da view.
+
+A causa interna exata do Oracle não foi comprovada. O teste isolou a dependência do cálculo de PERFIL na agregação; não demonstrou ausência de papéis. Os 309 zeros não validam a classificação. O backup comprova instalação, mas ainda é necessário confirmar filtros combinados e usuários com papéis conhecidos dentro da app 100.
+
+## Revisão das recomendações anteriores
+
+- **Não aplicar automaticamente ADMIN_RH à página 12 inteira.** A lista está em Pessoas e consulta não é a mesma permissão que cadastro. A recomendação anterior alteraria o acesso existente sem confirmar o requisito.
+- **Não reinstalar ACL nem CSS já presentes no backup.** Os PRs de documentação não determinam sozinhos o estado instalado.
+- **Não tratar a ordem das regiões como defeito visual comprovado.** Export mostra relatório com sequência 10 e filtros com 20; só alterar se a apresentação estiver incorreta e depois de conferir o template.
+- **Não declarar edição na página 14 pronta.** Ela recebe o ID, mas o processo CREATE_USER disponível não está condicionado apenas à inclusão. Carregar dados não comprova salvamento seguro.
+- **Não inferir autorização pela ausência de empresa.** A equipe Corlix possui contas sem vínculo, mas a regra deve reconhecer a autorização explicitamente. A view também permite todas as empresas quando G_ID_EMPRESA é nulo: separar política de equipe e sessão incompleta.
+- **Não trocar estratégia de cabeçalho sem conferir outro módulo.** A sugestão de botão nativo não confirmou como ocupar o espaço de ações do HTML retornado pelo cabeçalho.
+
+## Botão Novo colaborador: estado e retomada
+
+O protótipo mostra botão escuro, texto branco, sinal de mais à esquerda e alinhamento à direita do título. O cabeçalho original gera o link dentro de cx-cabecalho-pagina__acoes, com URL via apex_page.get_url.
+
+A alternativa nativa foi sugerida para permitir Authorization Scheme no próprio botão. O problema atual não foi diagnosticado: faltam export ou print da configuração mais recente e do resultado. Não afirmar que Hot, fa-plus ou uma posição não conferida resolvem o alinhamento.
+
+### Referências reutilizadas
+
+| Referência | O que conferir/reutilizar |
+|---|---|
+| [Holerite — package UI](../holerite/02_pkg_holerite_ui.pkb), render_cabecalho | Cabeçalho e ações no mesmo HTML; classes cx-cabecalho-pagina, __texto e __acoes; botões e SVGs; condições de renderização |
+| [Holerite — guia](../holerite/Etapas-holerite.md) | Integração entre região, package, CSS/JS e validações na app |
+| [Ponto — package UI](../ponto-eletronico/04_pkg_ponto_ui.pkb), render_cabecalho | Ações Baixar espelho e Solicitar ajuste dentro do cabeçalho; links com checksum e escape de atributo |
+| [Ponto — guia](../ponto-eletronico/Etapas-ponto-eletronico.md) e [validação](../ponto-eletronico/Etapas-ajustes-validacao.md) | Padrões de integração e registro de testes |
+| [Histórico — UI](../historico-carreira/08_pkg_historico_carreira_ui.sql) e [guia](../historico-carreira/Etapas-historico-carreira.md) | Padrões existentes de renderização, navegação e separação de responsabilidades |
+| [Tema](../../docs/ai-context/04-tema-e-estilos.md) | Tokens, Lucide e classes existentes; evitar CSS duplicado |
+| [Protótipo](../../pen_dev/Colaboradores%20%C2%B7%20vis%C3%A3o%20de%20administra%C3%A7%C3%A3o.png) | Resultado visual esperado |
+
+Próxima intervenção: inspecionar o botão atual, escolher a implementação equivalente já usada nesses módulos e documentar a adaptação antes de orientar o Builder. Se mantido botão nativo, comprovar slot e posição no template; se renderizado em PL/SQL, verificar autorização pelo nome correto e manter proteção no destino. Não manter os dois botões.
+
+## Pendências de validação
+
+- Botão: posição, cor, ícone, ausência de duplicação, responsividade, autorização e navegação para cadastro limpo.
+- Permissões: distinguir consulta na p12, ação de criar e destino p14. IS_AUTHORIZED recebe nomes ADMIN_RH e EQUIPE_CORLIX_HUB; os identificadores APEXlang são diferentes.
+- Paginação: export contém rowRangesXToYOfZNoPagination. Conferir necessidade de navegação e testar mais de 15 resultados antes de marcar concluído.
+- Escape: verificar os textos livres de nome, e-mail e vínculo inseridos no HTML; manter marcação confiável separada de dados.
+- Layout: conferir resultado visual, sem presumir defeito apenas pela sequência.
+- Página 14: revisar inclusão versus edição, CREATE_USER, admissão, senhas e autorização antes de oferecer edição na lista.
+- Facetas: combinar filtros, limpar, buscar e conferir contagens e perfis conhecidos; registrar ausência do erro Ajax.
+- Isolamento: testar duas empresas, usuário comum e equipe Corlix; empresa nula não comprova autorização global.
+
+## Como registrar os próximos resultados
+
+Para cada ajuste: referência existente, mudança no Builder, evidência (export/print/relato), resultado e pendência. Marcar como concluído apenas o que foi confirmado; conservar os testes negativos para não repetir tentativas. A regra de reutilização está no AGENTS.md e em docs/ai-context/08-convencoes-e-pegadinhas.md, regra 14.

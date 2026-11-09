@@ -1,5 +1,7 @@
 # Módulo Colaboradores (Página 12)
 
+> **Situação atual e histórico:** consulte [Registro de implantação](./Registro-implantacao.md). O botão Novo colaborador continua pendente; as recomendações revistas estão registradas ali.
+
 Módulo responsável pela página de listagem, busca e administração de colaboradores do Corlix Hub (**Página 12: `COLABORADORES`**).
 
 Protótipo correspondente no `pen_dev/`:
