@@ -164,11 +164,12 @@ Em *Shared Components › Static Application Files*, suba os dois arquivos:
 
 Abra a **Página 12** no Page Designer. Selecione o nó raiz da página (**Page 12: Colaboradores**):
 
+- *Security › Authorization Scheme*: **ADMIN_RH** (confirmar no 26.1.5). Esta é a listagem administrativa e deve usar a mesma autorização da página 14; confira no export `security { authorizationScheme: @admin-rh }`. A proteção por checksum permanece habilitada.
 - *Identification › Title*: `Colaboradores`
 - *Appearance › Page CSS Classes*: `cx-colaboradores-pagina`
 - *CSS › File URLs*:
   ```
-  #APP_FILES#colaboradores#MIN#.css
+  #APP_FILES#modulos/colaboradores/colaboradores#MIN#.css
   ```
 
 ---
@@ -193,9 +194,7 @@ Na árvore *Rendering*, clique com o botão direito na região **Breadcrumb** (s
          || '</div>'
          || '<div class="cx-cabecalho-pagina__acoes">'
          || case
-              when apex_authorization.is_authorized('admin-rh')
-                or apex_authorization.is_authorized('administration-rights')
-                or v('G_ID_EMPRESA') is null then
+              when apex_authorization.is_authorized('ADMIN_RH') then
                    '<a class="t-Button t-Button--hot t-Button--iconLeft" href="'
                 || apex_escape.html_attribute(apex_page.get_url(p_page => 14, p_clear_cache => '14'))
                 || '"><span class="t-Icon t-Icon--left fa fa-plus" aria-hidden="true"></span>'
@@ -215,6 +214,7 @@ Na árvore *Rendering*, clique com o botão direito na região **Breadcrumb** (s
    - *Identification › Title*: `Colaboradores`
    - *Identification › Type*: **Classic Report**
    - *Advanced › Static ID*: `colaboradores`
+   - *Layout › Sequence*: `20` (confirmar no 26.1.5; no export: `sequence: 20`)
    - *Layout › Column*: `4`
    - *Layout › Column Span*: `9`
    - *Layout › Start New Row*: `No` *(para ficar ao lado das facetas)*
@@ -252,10 +252,9 @@ Na árvore *Rendering*, clique com o botão direito na região **Breadcrumb** (s
             situacao,
             situacao_classe
        from vw_colaboradores_lista
-      order by nome_completo
      ```
 3. Nos atributos do relatório (*Attributes* na árvore sob a região):
-   - *Pagination › Type*: **Row Ranges X to Y of Z**
+   - *Pagination › Type*: **Row Ranges X to Y of Z (with pagination)** (confirmar o rótulo no 26.1.5; o export deve ter `rowRangesXToYOfZWithPagination`, não `rowRangesXToYOfZNoPagination`)
    - *Pagination › Number of Rows*: `15`
    - *Messages › When No Data Found*: `Nenhum colaborador encontrado.`
 
@@ -265,22 +264,25 @@ Selecione cada coluna da região em *Columns* e configure:
 
 | Coluna | Type | Heading | Propriedades e Formatação |
 |---|---|---|---|
-| `NOME_COMPLETO` | **Link** | `Pessoa` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Link › Target**: Page `14`<br>**Link › Set Items**: `P14_ID_COLABORADOR` = `#ID_COLABORADOR#`<br>**Link › Clear Cache**: `14`<br>**Column Formatting › HTML Expression**:<br>`<div class="cx-colab-pessoa"><span class="cx-avatar"><img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS#</span><div class="cx-colab-pessoa__info"><a href="&LINK." class="cx-colab-pessoa__nome">#NOME_COMPLETO#</a><span class="cx-colab-pessoa__email">#EMAIL#</span></div></div>` |
+| `NOME_COMPLETO` | **Link** | `Pessoa` | **Sortable**: Yes<br>**Default Sequence**: 1<br>**Default Direction**: Ascending<br>**Escape Special Characters**: No<br>**Link › Target**: Page `14`<br>**Link › Set Items**: `P14_ID_COLABORADOR` = `#ID_COLABORADOR#`<br>**Link › Clear Cache**: `14`<br>**Link › Link Text** (confirmar no 26.1.5):<br>`<span class="cx-colab-pessoa"><span class="cx-avatar"><img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>` |
 | `LOGIN_APEX` | **Plain Text** | `Login` | **Sortable**: Yes |
-| `VINCULO_LINHA1` | **Plain Text** | `Vínculo` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`<div class="cx-colab-vinculo #CLASSE_VINCULO#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO##VINCULO_LINHA1#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2#</span></div>` |
-| `PERFIL` | **Plain Text** | `Perfil` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`#PERFIL_HTML#` |
-| `SITUACAO` | **Plain Text** | `Situação` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`<span class="cx-badge cx-badge--#SITUACAO_CLASSE#">#SITUACAO#</span>` |
+| `VINCULO_LINHA1` | **Plain Text** | `Vínculo` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`<div class="cx-colab-vinculo #CLASSE_VINCULO!ATTR#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO!RAW##VINCULO_LINHA1!HTML#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2!HTML#</span></div>` |
+| `PERFIL` | **Plain Text** | `Perfil` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`#PERFIL_HTML!RAW#` |
+| `SITUACAO` | **Plain Text** | `Situação` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`<span class="cx-badge cx-badge--#SITUACAO_CLASSE!ATTR#">#SITUACAO!HTML#</span>` |
 | *Demais colunas* | **Hidden** | — | Deixe como **Hidden**: `ID_COLABORADOR`, `EMAIL`, `PRIMEIRO_NOME`, `ULTIMO_NOME`, `FOTO_URL`, `TEM_IMAGEM`, `INICIAIS`, `ID_EMPRESA`, `EMPRESA`, `ID_DEPARTAMENTO`, `DEPARTAMENTO`, `ID_CARGO`, `CARGO`, `VINCULO_LINHA2`, `FL_SEM_VINCULO`, `CLASSE_VINCULO`, `ICONE_VINCULO`, `PERFIL_HTML`, `SITUACAO_CLASSE`. |
 
 ---
 
 ## 6. Região de Facetas (Faceted Search)
 
+A ordem final no Body deve ser **Filtros (10)** antes de **Colaboradores (20)**, independentemente da ordem em que as regiões foram criadas. Confirme ambos na mesma linha em desktop e o comportamento em tela estreita.
+
 1. Na árvore *Rendering*, clique com o botão direito em **Body** › **Create Region**.
 2. Defina as propriedades:
    - *Identification › Title*: `Filtros`
    - *Identification › Type*: **Faceted Search**
    - *Source › Filtered Region*: **Colaboradores** *(a região do Classic Report criada no passo 5)*
+   - *Layout › Sequence*: `10` (confirmar no 26.1.5; no export: `sequence: 10`)
    - *Layout › Column*: `1`
    - *Layout › Column Span*: `3`
    - *Layout › Start New Row*: `Yes`
@@ -380,3 +382,44 @@ Compare com `pen_dev/Colaboradores · visão de administração.png`:
   - [ ] **Perfil**: Perfis especiais exibem a etiqueta neutra cinza (`Publicador de conteúdo`, `Administrador`) e os demais como texto simples `Colaborador`.
   - [ ] **Situação**: Badge com ponto verde para `Ativa` e ponto cinza para `Inativa`.
 - [ ] **Paginação**: Formato `1 – 8 de 8` no rodapé à direita.
+
+## 8. Validação após a revisão do export de 08/11/2026
+
+A revisão foi estática. Não marca como concluídos os testes de execução, segurança ou aparência.
+
+### Autorização e isolamento
+
+- A página 12 administrativa e o botão Novo colaborador usam **ADMIN_RH**, em alinhamento com a autorização da página 14 disponível no repositório.
+- Na chamada PL/SQL use o **nome** do esquema, `ADMIN_RH`; `@admin-rh` é a referência do APEXlang. Não use ausência de empresa como permissão.
+- Confira a autorização correspondente na entrada do menu. Teste acesso direto à página 12 com usuário autorizado e não autorizado.
+- A view deste guia permite todas as empresas quando `G_ID_EMPRESA` é nulo. A autorização de página não corrige esse comportamento: não considere o isolamento validado até testar contas de duas empresas e uma sessão sem empresa. Para uma conta RH comum, empresa ausente não deve liberar dados de outras empresas; a política de acesso global precisa ser explícita.
+
+### HTML e apresentação
+
+- Em **Link Text**, o APEX gera a âncora: não inclua `<a>` nem `&LINK.`. O link envolve toda a célula Pessoa.
+- Os exemplos da tabela usam `!HTML` para texto e `!ATTR` para valores dentro de atributos. `!RAW` fica restrito a `ICONE_VINCULO` e `PERFIL_HTML`, gerados com marcação fixa pela view; não acrescente dados livres a esses fragmentos sem escape.
+- **Escape Special Characters = No** não torna dados seguros sozinho: mantenha os filtros explícitos dos exemplos. Teste nome, e-mail, departamento e cargo com caracteres como `&`, `<` e aspas: devem aparecer como texto, sem criar marcação.
+- Confirme os arquivos estáticos no caminho `modulos/colaboradores/`, inclusive a variante minificada, e ausência de erro 404.
+- Confira foto válida, foto ausente, iniciais, filtros à esquerda e relatório à direita.
+- Com mais de 15 resultados, teste avançar e voltar páginas; após filtrar, confira total e navegação.
+
+Referências: [escaping de substituições](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/controlling-output-escaping-in-substitution-strings.html) e [paginação de Classic Report](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/managing-classic-report-attributes.html).
+
+### Página 14 e filtros: testes pendentes
+
+- O link para a página 14 está configurado, mas **edição ainda não foi comprovada**. O export disponível descreve cadastro e processos de criação de usuário/admissão.
+- Primeiro confira os processos e condições da página 14. Em DEV, com registro de teste, verifique carregamento do ID, salvamento sem criar outro usuário nem outra admissão e comportamento de cancelamento. Se a página só suportar criação, não libere o link Pessoa como edição.
+- Novo colaborador deve abrir a página 14 limpa e apenas para usuário autorizado.
+- Combine Situação, Empresa, Departamento e **Perfil**, depois limpe os filtros e faça busca textual. Confirme ausência de ORA-00904 na requisição Ajax.
+- A correção da ACL está no PR #127: aplique a função e a view corrigida antes do teste. A consulta isolada da função passou com 309 zeros e total 309; isso não comprova a classificação de perfis. Valide um usuário com papel manual conhecido e outro com papel via cargo na sessão da app 100.
+- O SQL da view no §1 desta branch ainda depende da integração do PR #127; não o reaplique sobre a versão corrigida já instalada.
+
+### Se não funcionar
+
+| Sintoma | Causa / verificação | Ação |
+|---|---|---|
+| HTML Expression não aparece em NOME_COMPLETO | Coluna do tipo Link | Usar Link Text conforme §5.1; se não aparecer, obter print do painel antes de tentar outro caminho |
+| Filtros aparecem abaixo do relatório | Sequência das regiões invertida | Filtros = 10, inicia linha, coluna 1; Colaboradores = 20, não inicia linha, coluna 4 |
+| Total aparece sem navegação | Tipo NoPagination | Usar variante WithPagination e testar mais de 15 resultados |
+| Botão aparece para conta sem empresa | Condição antiga usava G_ID_EMPRESA nulo como autorização | Usar somente ADMIN_RH e proteger a própria página |
+| Nome abre cadastro em vez de edição | Página 14 ainda não validada para editar | Conferir processos da página 14 antes de liberar essa navegação |

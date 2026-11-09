@@ -18,7 +18,7 @@
 | `modulos/tema/` | **untracked** | todas (tema global) | documentado em `04-tema-e-estilos.md` |
 | `modulos/perfis-acesso/` | versionado | p. 14 `Cadastro de Usuários` | **Sim** na app (papéis `colaborador`/`gestor`/`admin-rh`, authorization `ADMIN_RH`, processo e LOV de gestor na P14); SQL instalado no banco em 06/10/2026, com papéis vinculados à mão aos cargos antigos. Guia: `Etapas-perfis-acesso.md`; histórico: `Registro-implantacao.md` |
 | `modulos/empresas/` | versionado | p. 16 `Cadastro de Empresas` | **Sim** (01 e 02, confirmados no DDL do backup de 27/10/2026) | `01_data_criacao_opcional.sql`: `EMPRESA.DATA_CRIACAO` passa a aceitar NULL; `02_complemento_100.sql`: `EMPRESA.COMPLEMENTO` de 30 para 100 caracteres (idempotentes). Sem package nem página própria |
-| `modulos/colaboradores/` | versionado (07/11/2026) | p. 12 `Colaboradores` | **Não** ainda: montar pelo `Etapas-colaboradores.md` | `01_vw_colaboradores_lista.sql` (view com avatares, vínculo, perfil e isolamento multiempresa); CSS próprio `colaboradores.css` |
+| `modulos/colaboradores/` | versionado (07/11/2026) | p. 12 `Colaboradores` | **Não** ainda: montar pelo `Etapas-colaboradores.md` | `01_vw_colaboradores_lista.sql` (view com avatares, vínculo, perfil e isolamento multiempresa); CSS próprio `colaboradores.css`; guia revisado em 08/11: ADMIN_RH na página e botão, escape explícito, ordem das regiões e paginação. Edição na p14, isolamento e facetas ainda exigem validação na app |
 
 O histórico de carreira já está integrado: `G_ID_EMPRESA`, as authorizations `GESTOR` e `COLABORADOR`, as LOVs, os static files e as páginas 13 e 18–23 estão em `corlixhub/` e no `database/f100.sql`. O papel `Admin RH` e a authorization `ADMIN_RH` foram criados pelo módulo `perfis-acesso`.
 
