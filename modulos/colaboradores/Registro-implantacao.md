@@ -163,3 +163,11 @@ Parecer e pendências em Validacao-visual-2026-11-09.md, seção Revalidação: 
 Por instrução do usuário, retirado o uso de CSS Inline do fluxo recomendado, inclusive para testes. Regras Inline do export da p12 foram transferidas para colaboradores.css, conciliadas com os estilos de tabela anteriores; colaboradores.min.css regenerado. O guia §11.3 agora orienta publicação dos dois arquivos, manutenção de File URLs e remoção do Inline pelo Builder. Regra persistida em AGENTS.md/convenções.
 
 Validação local: diff, balanço de blocos CSS e equivalência da versão minificada com a transformação conservadora. Não houve publicação ou remoção de Inline na aplicação; corlixhub/ foi apenas lido. Próximo passo: publicar arquivos, remover Inline pelo Builder e comparar aparência, paginação e responsividade. Pendências de barra e edição permanecem.
+
+## Acesso da liderança e guia das correções — 09/11/2026
+
+Decisão do usuário: a lista é vista por RH, gestores, CEO e diretores; criar e editar seguem com ADMIN_RH. Interpretação registrada: papéis admin-rh, diretoria e gestor, além da autorização GESTOR; a equipe do Corlix Hub não foi incluída, e o gestor vê a empresa toda.
+
+Versionado: §12 do guia, view com isolamento estrito por G_ID_EMPRESA, render_cabecalho_cadastro no package e CSS da barra e do avatar inativo. Decisões: departamento e cargo só leitura na edição, para passar pela Movimentação; sincronização da conta APEX fora do guia, pois SET_EMAIL e LOCK_ACCOUNT exigem administrador do workspace; Order By Item em região própria, porque o template Standard não tem #ORDER_BY_ITEM#.
+
+Verificação: export e documentação oficial do APEX 26.1 conferidos, git diff --check. Não houve compilação Oracle, aplicação no Builder nem teste em execução; os itens marcados no guia dependem de confirmação no 26.1.5. Próximo passo: executar §12 na ordem e os testes do §12.9.
