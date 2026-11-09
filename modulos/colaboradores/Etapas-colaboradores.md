@@ -419,67 +419,20 @@ Não conclua que o CSS está ausente só pela imagem. Os próximos seletores pre
 
 Referência reutilizada: [ponto.css](../ponto-eletronico/ponto.css), `.cx-ponto-card`: superfície, borda, raio e ausência de sombras. A adaptação abaixo é restrita à tabela de Colaboradores, preservando o componente nativo.
 
-**Proposta para teste visual, ainda não homologada:** com o DOM confirmado no §11.2, teste o bloco abaixo ao final de **Page → CSS → Inline** (confirmar caminho no 26.1.5). Não edite arquivos de corlixhub/ diretamente.
+**Estilos em arquivo, sem CSS Inline:** as regras de card e distribuição que constavam no export foram incorporadas a [colaboradores.css](./colaboradores.css) e [colaboradores.min.css](./colaboradores.min.css), preservando a aparência proposta. A validação visual continua pendente.
 
-```css
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: separate;
-    border-spacing: 0;
-    border: 1px solid var(--cx-borda);
-    border-radius: var(--cx-raio-card);
-    background: var(--cx-superficie);
-    box-shadow: none;
-}
+1. Publique os dois arquivos pelo Builder em Shared Components → Static Application Files, substituindo os arquivos com os mesmos nomes/prefixos existentes.
+2. Mantenha CSS File URLs da página:
 
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th,
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report td {
-    border: 0;
-    border-bottom: 1px solid var(--cx-borda);
-    padding: 12px;
-    vertical-align: middle;
-    white-space: normal;
-    overflow-wrap: anywhere;
-}
+   ```
+   #APP_FILES#modulos/colaboradores/colaboradores#MIN#.css
+   ```
 
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report tr:last-child td {
-    border-bottom: 0;
-}
+3. Após confirmar a publicação, remova o CSS Inline da página 12. Não copie os estilos para o corpo HTML ou atributo style.
+4. Salve e recarregue sem cache. Confira em Network que o arquivo correto foi carregado e em Computed que as regras vêm do arquivo estático.
+5. Teste as cinco colunas, nomes longos, filtros, paginação e janela estreita. Compare com a captura anterior para verificar que a transferência não alterou a apresentação.
 
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:first-child {
-    border-top-left-radius: var(--cx-raio-card);
-}
-
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:last-child {
-    border-top-right-radius: var(--cx-raio-card);
-}
-
-/* Ordem das cinco colunas visíveis: Pessoa, Login, Vínculo, Perfil, Situação. */
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(1) { width: 30%; }
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(2) { width: 15%; }
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(3) { width: 25%; }
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(4) { width: 18%; }
-.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(5) { width: 12%; }
-
-.cx-colaboradores-pagina .cx-colab-pessoa {
-    display: flex;
-    min-width: 0;
-    max-width: 100%;
-}
-
-.cx-colaboradores-pagina .cx-colab-pessoa__info {
-    min-width: 0;
-}
-
-.cx-colaboradores-pagina .cx-colab-pessoa__email {
-    overflow-wrap: anywhere;
-}
-```
-
-As proporções são ponto de partida, não medidas extraídas do protótipo. Não fixe altura de linha nem corte departamento/cargo. Confirme a ordem das cinco colunas antes de usar nth-child. Em tela estreita, confira legibilidade e acesso a todas as colunas: se necessário, planeje rolagem horizontal no contêiner real do relatório; não esconda overflow apenas para eliminar o corte.
-
-Se regras do tema vencerem na cascata, confira o seletor computado antes de acrescentar especificidade; não use !important indiscriminadamente. Após aprovar o teste, incorporar o ajuste aos arquivos do módulo normal/minificado, publicar ambos pelo Builder e retirar a cópia Inline. A sincronização definitiva dos arquivos ainda não foi realizada nesta revisão documental.
+A distribuição preservada é Pessoa 30%, Login 15%, Vínculo 25%, Perfil 18%, Situação 12%; depende dessa ordem de colunas e deve ser ajustada no arquivo se o teste visual exigir. Não fixar altura nem cortar dados para caber. Regras do tema devem ser investigadas pela cascata, sem !important indiscriminado. Pastas corlixhub/ continuam somente leitura; publicação é feita pelo time no Builder.
 
 ### 11.4 Facetas, contagem e ordenação
 
@@ -519,7 +472,7 @@ Compare novamente com o protótipo, considerando a largura da janela:
 - botão e filtros nas posições já confirmadas;
 - navegação e filtros funcionando após cada ajuste.
 
-Registre no Registro-implantacao.md quais passos foram aplicados, prints/export e testes executados. Esta seção oferece ajustes de Builder e uma proposta de CSS para validação; não declara a página pronta nem implementa a barra pendente.
+Registre no Registro-implantacao.md quais passos foram aplicados, prints/export e testes executados. Esta seção oferece ajustes de Builder e uma estilos em arquivo para validação; não declara a página pronta nem implementa a barra pendente.
 
 ### 11.7 Mensagens confirmadas na documentação APEX 26.1
 

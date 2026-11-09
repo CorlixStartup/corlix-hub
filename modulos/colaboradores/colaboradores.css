@@ -78,20 +78,61 @@
 
 .cx-colaboradores-pagina .cx-relatorio table.t-Report-report {
     width: 100%;
+    table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+    background: var(--cx-superficie);
+    box-shadow: none;
 }
 
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th,
 .cx-colaboradores-pagina .cx-relatorio table.t-Report-report td {
-    padding: 12px 16px;
+    border: 0;
+    border-bottom: 1px solid var(--cx-borda);
+    padding: 12px;
     vertical-align: middle;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report tr:last-child td {
+    border-bottom: 0;
+}
+
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:first-child {
+    border-top-left-radius: var(--cx-raio-card);
+}
+
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:last-child {
+    border-top-right-radius: var(--cx-raio-card);
+}
+
+/* Ordem das cinco colunas visíveis: Pessoa, Login, Vínculo, Perfil, Situação. */
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(1) { width: 30%; }
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(2) { width: 15%; }
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(3) { width: 25%; }
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(4) { width: 18%; }
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(5) { width: 12%; }
+
+.cx-colaboradores-pagina .cx-colab-pessoa {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.cx-colaboradores-pagina .cx-colab-pessoa__info {
+    min-width: 0;
+}
+
+.cx-colaboradores-pagina .cx-colab-pessoa__email {
+    overflow-wrap: anywhere;
 }
 
 .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th {
-    padding: 12px 16px;
     background: var(--cx-superficie-2);
     font-weight: 600;
     font-size: 13px;
     color: var(--cx-texto);
-    border-bottom: 1px solid var(--cx-borda);
 }
