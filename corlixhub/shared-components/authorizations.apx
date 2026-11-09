@@ -124,3 +124,26 @@ authorization somente-diretoria (
     }
 )
 
+authorization ver-lista-colaboradores (
+    name: VER_LISTA_COLABORADORES
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            return apex_authorization.is_authorized('ADMIN_RH')
+                or apex_authorization.is_authorized('SOMENTE_DIRETORIA')
+                or apex_authorization.is_authorized('GESTOR')
+                or apex_acl.has_user_role(
+                     p_application_id => :APP_ID,
+                     p_user_name      => :APP_USER,
+                     p_role_static_id => 'gestor');
+            ```
+    }
+    error {
+        errorMessage: Acesso restrito ao RH e à liderança.
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+

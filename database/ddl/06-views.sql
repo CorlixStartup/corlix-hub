@@ -211,10 +211,7 @@ select f.id_empresa,
   left join empresa e      on e.id_empresa = c.id_empresa
   left join departamento d on d.id_departamento = c.id_departamento
   left join cargo cg       on cg.id_cargo = c.id_cargo
- where (
-   v('G_ID_EMPRESA') is null
-   or c.id_empresa = to_number(v('G_ID_EMPRESA') default null on conversion error)
- );
+ where c.id_empresa = to_number(v('G_ID_EMPRESA') default null on conversion error);
 
   CREATE OR REPLACE FORCE EDITIONABLE VIEW "VW_HISTORICO_CARREIRA" ("ID_HISTORICO_CARREIRA", "ID_EMPRESA", "ID_COLABORADOR", "NM_COLABORADOR", "ID_TIPO_MOVIMENTACAO", "CD_TIPO", "DS_TIPO", "DS_ICONE", "DS_COR", "DT_EFETIVA", "ID_CARGO_ANTERIOR", "NM_CARGO_ANTERIOR", "ID_DEPARTAMENTO_ANTERIOR", "NM_DEPARTAMENTO_ANTERIOR", "ID_GESTOR_ANTERIOR", "NM_GESTOR_ANTERIOR", "ID_CARGO_NOVO", "NM_CARGO_NOVO", "ID_DEPARTAMENTO_NOVO", "NM_DEPARTAMENTO_NOVO", "ID_GESTOR_NOVO", "NM_GESTOR_NOVO", "VL_SALARIO_ANTERIOR", "VL_SALARIO_NOVO", "DS_MOTIVO", "DS_OBSERVACAO", "ST_REGISTRO", "ID_REGISTRO_ESTORNADO", "FL_ESTORNO", "ID_APROVADOR", "NM_APROVADOR", "DT_EFETIVACAO", "USR_EFETIVACAO", "DT_CRIACAO", "USR_CRIACAO", "DT_ALTERACAO", "USR_ALTERACAO") AS
   select h.id_historico_carreira,

@@ -111,6 +111,7 @@ end pkg_busca_ui;
 
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_COLABORADORES_UI" authid definer as
   function render_cabecalho return clob;
+  function render_cabecalho_cadastro (p_id_colaborador in number) return clob;
 end pkg_colaboradores_ui;
 /
 

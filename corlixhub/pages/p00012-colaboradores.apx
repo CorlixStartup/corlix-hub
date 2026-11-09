@@ -12,68 +12,30 @@ page 12 (
     }
     css {
         fileUrls: #APP_FILES#modulos/colaboradores/colaboradores#MIN#.css
-        inline:
-            ```css
-            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report {
-                width: 100%;
-                table-layout: fixed;
-                border-collapse: separate;
-                border-spacing: 0;
-                border: 1px solid var(--cx-borda);
-                border-radius: var(--cx-raio-card);
-                background: var(--cx-superficie);
-                box-shadow: none;
-            }
-            
-            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th,
-            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report td {
-                border: 0;
-                border-bottom: 1px solid var(--cx-borda);
-                padding: 12px;
-                vertical-align: middle;
-                white-space: normal;
-                overflow-wrap: anywhere;
-            }
-            
-            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report tr:last-child td {
-                border-bottom: 0;
-            }
-            
-            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:first-child {
-                border-top-left-radius: var(--cx-raio-card);
-            }
-            
-            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:last-child {
-                border-top-right-radius: var(--cx-raio-card);
-            }
-            
-            /* Ordem das cinco colunas visíveis: Pessoa, Login, Vínculo, Perfil, Situação. */
-            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(1) { width: 30%; }
-            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(2) { width: 15%; }
-            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(3) { width: 25%; }
-            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(4) { width: 18%; }
-            .cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(5) { width: 12%; }
-            
-            .cx-colaboradores-pagina .cx-colab-pessoa {
-                display: flex;
-                min-width: 0;
-                max-width: 100%;
-            }
-            
-            .cx-colaboradores-pagina .cx-colab-pessoa__info {
-                min-width: 0;
-            }
-            
-            .cx-colaboradores-pagina .cx-colab-pessoa__email {
-                overflow-wrap: anywhere;
-            }
-            ```
     }
     security {
-        authorizationScheme: @admin-rh
+        authorizationScheme: @ver-lista-colaboradores
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
+
+    region barra-da-lista (
+        name: Barra da lista
+        type: staticContent
+        source {
+            htmlCode: <div id="cx-colab-total" class="cx-colab-barra__total" aria-live="polite"></div>
+        }
+        layout {
+            sequence: 10
+            parentRegion: @resultados
+            slot: subRegions
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+            cssClasses: cx-colab-barra
+        }
+    )
 
     region cabeçalho (
         name: Cabeçalho
@@ -101,11 +63,16 @@ page 12 (
                 ```sql
                 select id_colaborador,
                        nome_completo,
+                       nome_completo as nome_sem_link,
                        email,
                        login_apex,
                        primeiro_nome,
                        ultimo_nome,
-                       foto_url,
+                       case
+                         when trim(foto_url) is null
+                              or foto_url = '#APP_FILES#Fotos Colaboradores/' then null
+                         else apex_page.get_url(p_page => 44, p_x01 => regexp_substr(trim(foto_url), '[^/]+$'))
+                       end as foto_url,
                        tem_imagem,
                        iniciais,
                        id_empresa,
@@ -124,14 +91,24 @@ page 12 (
                        situacao,
                        situacao_classe
                   from vw_colaboradores_lista
+                
                 ```
+        }
+        orderBy {
+            type: item
+            item: {
+                itemName: P12_ORDEM
+                orderBys: {
+                    NOME: nome_completo
+                    LOGIN: login_apex, nome_completo
+                    DEPARTAMENTO: departamento, nome_completo
+                }
+            }
         }
         layout {
             sequence: 20
-            slot: body
-            startNewRow: false
-            column: 4
-            columnSpan: 9
+            parentRegion: @resultados
+            slot: regionBody
         }
         appearance {
             template: @/standard
@@ -160,7 +137,7 @@ page 12 (
         }
 
         column CARGO (
-            reportColumnQueryId: 15
+            reportColumnQueryId: 16
             derivedColumn: N
             type: hidden
             layout {
@@ -169,7 +146,7 @@ page 12 (
         )
 
         column CLASSE_VINCULO (
-            reportColumnQueryId: 19
+            reportColumnQueryId: 20
             derivedColumn: N
             type: hidden
             layout {
@@ -178,7 +155,7 @@ page 12 (
         )
 
         column DEPARTAMENTO (
-            reportColumnQueryId: 13
+            reportColumnQueryId: 14
             derivedColumn: N
             type: hidden
             layout {
@@ -187,7 +164,7 @@ page 12 (
         )
 
         column EMAIL (
-            reportColumnQueryId: 3
+            reportColumnQueryId: 4
             derivedColumn: N
             type: hidden
             layout {
@@ -196,7 +173,7 @@ page 12 (
         )
 
         column EMPRESA (
-            reportColumnQueryId: 11
+            reportColumnQueryId: 12
             derivedColumn: N
             type: hidden
             layout {
@@ -205,7 +182,7 @@ page 12 (
         )
 
         column FL_SEM_VINCULO (
-            reportColumnQueryId: 18
+            reportColumnQueryId: 19
             derivedColumn: N
             type: hidden
             layout {
@@ -214,7 +191,7 @@ page 12 (
         )
 
         column FOTO_URL (
-            reportColumnQueryId: 7
+            reportColumnQueryId: 8
             derivedColumn: N
             type: hidden
             layout {
@@ -223,7 +200,7 @@ page 12 (
         )
 
         column ICONE_VINCULO (
-            reportColumnQueryId: 20
+            reportColumnQueryId: 21
             derivedColumn: N
             type: hidden
             layout {
@@ -232,7 +209,7 @@ page 12 (
         )
 
         column ID_CARGO (
-            reportColumnQueryId: 14
+            reportColumnQueryId: 15
             derivedColumn: N
             type: hidden
             layout {
@@ -250,7 +227,7 @@ page 12 (
         )
 
         column ID_DEPARTAMENTO (
-            reportColumnQueryId: 12
+            reportColumnQueryId: 13
             derivedColumn: N
             type: hidden
             layout {
@@ -259,7 +236,7 @@ page 12 (
         )
 
         column ID_EMPRESA (
-            reportColumnQueryId: 10
+            reportColumnQueryId: 11
             derivedColumn: N
             type: hidden
             layout {
@@ -268,7 +245,7 @@ page 12 (
         )
 
         column INICIAIS (
-            reportColumnQueryId: 9
+            reportColumnQueryId: 10
             derivedColumn: N
             type: hidden
             layout {
@@ -277,13 +254,16 @@ page 12 (
         )
 
         column LOGIN_APEX (
-            reportColumnQueryId: 4
+            reportColumnQueryId: 5
             derivedColumn: N
             heading {
                 heading: Login
             }
             layout {
                 sequence: 40
+            }
+            sorting {
+                sortable: false
             }
         )
 
@@ -305,18 +285,40 @@ page 12 (
                     }
                     clearCache: 14
                 }
-                linkText: <span class="cx-colab-pessoa">   <span class="cx-avatar">     <img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL!ATTR#"          alt="" onerror="this.remove();" loading="lazy">     #INICIAIS!HTML#   </span>   <span class="cx-colab-pessoa__info">     <span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span>     <span class="cx-colab-pessoa__email">#EMAIL!HTML#</span>   </span> </span>
+                linkText: <span class="cx-colab-pessoa"><span class="cx-avatar cx-avatar--situacao-#SITUACAO_CLASSE!ATTR#"><img src="#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>
             }
             sorting {
-                defaultSequence: 1
+                sortable: false
             }
             security {
+                authorizationScheme: @admin-rh
+                escapeSpecialChars: false
+            }
+        )
+
+        column NOME_SEM_LINK (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Pessoa
+            }
+            layout {
+                sequence: 21
+            }
+            columnFormatting {
+                htmlExpression: <span class="cx-colab-pessoa"><span class="cx-avatar cx-avatar--situacao-#SITUACAO_CLASSE!ATTR#"><img src="#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_SEM_LINK!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>
+            }
+            sorting {
+                sortable: false
+            }
+            security {
+                authorizationScheme: !@admin-rh
                 escapeSpecialChars: false
             }
         )
 
         column PERFIL (
-            reportColumnQueryId: 21
+            reportColumnQueryId: 22
             derivedColumn: N
             heading {
                 heading: Perfil
@@ -327,13 +329,16 @@ page 12 (
             columnFormatting {
                 htmlExpression: #PERFIL_HTML!RAW#
             }
+            sorting {
+                sortable: false
+            }
             security {
                 escapeSpecialChars: false
             }
         )
 
         column PERFIL_HTML (
-            reportColumnQueryId: 22
+            reportColumnQueryId: 23
             derivedColumn: N
             type: hidden
             layout {
@@ -342,7 +347,7 @@ page 12 (
         )
 
         column PRIMEIRO_NOME (
-            reportColumnQueryId: 5
+            reportColumnQueryId: 6
             derivedColumn: N
             type: hidden
             layout {
@@ -351,7 +356,7 @@ page 12 (
         )
 
         column SITUACAO (
-            reportColumnQueryId: 23
+            reportColumnQueryId: 24
             derivedColumn: N
             heading {
                 heading: Situação
@@ -360,7 +365,10 @@ page 12 (
                 sequence: 230
             }
             columnFormatting {
-                htmlExpression: <span class="cx-badge cx-badge--#SITUACAO_CLASSE#">#SITUACAO#</span>
+                htmlExpression: <span class="cx-badge cx-badge--#SITUACAO_CLASSE!ATTR#">#SITUACAO!HTML#</span>
+            }
+            sorting {
+                sortable: false
             }
             security {
                 escapeSpecialChars: false
@@ -368,7 +376,7 @@ page 12 (
         )
 
         column SITUACAO_CLASSE (
-            reportColumnQueryId: 24
+            reportColumnQueryId: 25
             derivedColumn: N
             type: hidden
             layout {
@@ -377,7 +385,7 @@ page 12 (
         )
 
         column TEM_IMAGEM (
-            reportColumnQueryId: 8
+            reportColumnQueryId: 9
             derivedColumn: N
             type: hidden
             layout {
@@ -386,7 +394,7 @@ page 12 (
         )
 
         column ULTIMO_NOME (
-            reportColumnQueryId: 6
+            reportColumnQueryId: 7
             derivedColumn: N
             type: hidden
             layout {
@@ -395,7 +403,7 @@ page 12 (
         )
 
         column VINCULO_LINHA1 (
-            reportColumnQueryId: 16
+            reportColumnQueryId: 17
             derivedColumn: N
             heading {
                 heading: Vínculo
@@ -404,7 +412,10 @@ page 12 (
                 sequence: 160
             }
             columnFormatting {
-                htmlExpression: <div class="cx-colab-vinculo #CLASSE_VINCULO#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO##VINCULO_LINHA1#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2#</span></div>
+                htmlExpression: <div class="cx-colab-vinculo #CLASSE_VINCULO!ATTR#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO!RAW##VINCULO_LINHA1!HTML#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2!HTML#</span></div>
+            }
+            sorting {
+                sortable: false
             }
             security {
                 escapeSpecialChars: false
@@ -412,7 +423,7 @@ page 12 (
         )
 
         column VINCULO_LINHA2 (
-            reportColumnQueryId: 17
+            reportColumnQueryId: 18
             derivedColumn: N
             type: hidden
             layout {
@@ -448,7 +459,8 @@ page 12 (
         settings {
             compactNosThreshold: 10000
             showCurrentFacets: true
-            showTotalRowCount: true
+            showTotalRowCount: selector
+            totalRowCountSelector: #cx-colab-total
             showCharts: false
         }
 
@@ -513,7 +525,7 @@ page 12 (
         facet P12_SEARCH (
             type: search
             label {
-                label: Search
+                label: Busca
             }
             layout {
                 sequence: 10
@@ -546,6 +558,92 @@ page 12 (
             }
         )
 
+    )
+
+    region resultados (
+        name: Resultados
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+            startNewRow: false
+            column: 4
+            columnSpan: 9
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P12_ORDEM (
+        type: selectList
+        label {
+            label: Ordenar por
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Nome;NOME,Login;LOGIN,Departamento;DEPARTAMENTO
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            region: @barra-da-lista
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        default {
+            type: static
+            staticValue: NOME
+        }
+    )
+
+    pageItem P12_ORDER_BY (
+        type: selectList
+        label {
+            label: Order By
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC2:Nome;NOME,Login;LOGIN,Departamento;DEPARTAMENTO
+            displayExtraValues: false
+            displayNullValue: false
+        }
+        layout {
+            sequence: 20
+            region: @colaboradores
+            slot: sortOrder
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        advanced {
+            warnOnUnsavedChanges: ignore
+        }
+        default {
+            type: static
+            staticValue: NOME
+        }
     )
 
 )
