@@ -1,6 +1,6 @@
 # Colaboradores · passo a passo no APEX
 
-> **Situação atual e histórico:** consulte [Registro de implantação](./Registro-implantacao.md). O botão Novo colaborador continua pendente; as recomendações revistas estão registradas ali.
+> **Situação atual e histórico:** consulte [Registro de implantação](./Registro-implantacao.md). O backup de 09/11 às 12:06 confirma package, layout, paginação e traduções aplicados. Para continuar na página existente, comece pelo §12; não repita a montagem inicial.
 
 Este guia monta a página 12 (**Colaboradores**) com base no protótipo `pen_dev/Colaboradores · visão de administração.png`, no App Builder do **Oracle APEX 26.1.5**. A descrição da tela está em [`docs/ai-context/07-design-pen-dev.md`](../../docs/ai-context/07-design-pen-dev.md) §4.4.
 
@@ -545,3 +545,125 @@ Para mensagens APEX.FS usadas no cliente, marcar Used in JavaScript = Yes (confi
 No Classic Report, localizar Pagination no painel e usar Row Ranges X to Y of Z com paginação (confirmar rótulo); export rowRangesXToYOfZWithPagination. Number of Rows = 15; Display Position = Bottom Right e Partial Page Refresh = Yes se disponíveis (confirmar no 26.1.5). Salvar, recarregar a página inteira e testar navegação/filtros. Não há necessidade de ORDER BY fixo na SQL.
 
 Fontes: [mensagens das facetas](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/search-and-smart-filters-messages-requiring-translation.html), [mensagens internas](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/internal-messages-requiring-translation.html). As chaves antes pendentes de identificação no §11.5 foram confirmadas; cadastro e teste no Builder continuam pendentes.
+
+
+## 12. Retomada após o backup de 09/11 às 12:06
+
+**Base:** DEV b1ff0d6 / backup 05730bc. Esta seção prevalece sobre instruções de instalação e pendências antigas. Já aplicados: package de cabeçalho, ordem das regiões, paginação com links/15 linhas, escape de Pessoa, RAW de Perfil, rótulo Perfil de acesso, mensagens em português e CSS Inline de card/colunas. Não reaplicar como se faltassem.
+
+### 12.1 Corrigir o escape de Vínculo
+
+1. Abra p12 → região Colaboradores → Columns → VINCULO_LINHA1.
+2. Em Column Formatting → HTML Expression, substitua o conteúdo por:
+
+```html
+<div class="cx-colab-vinculo #CLASSE_VINCULO!ATTR#">
+  <span class="cx-colab-vinculo__emp-dept">
+    #ICONE_VINCULO!RAW##VINCULO_LINHA1!HTML#
+  </span>
+  <span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2!HTML#</span>
+</div>
+```
+
+3. Preserve a coluna auxiliar VINCULO_LINHA2 como Hidden. Não altere os dados nem as regras da view para esse ajuste.
+4. Salve e execute. Empresa/departamento/cargo devem aparecer como texto, inclusive com &, aspas e sinais de menor/maior.
+5. Confira um vínculo incompleto: ícone e cor de alerta devem permanecer. RAW é exclusivo do ícone fixo gerado pela view.
+6. Registre o resultado e o export; NOME_COMPLETO e PERFIL já estão corrigidos no backup.
+
+### 12.2 Confirmar paginação e traduções já cadastradas
+
+1. Execute a página inteira, sem filtros, em uma conta autorizada.
+2. Confira intervalo 1–15, total e navegação; avance para 16–30 e volte.
+3. Na segunda página, aplique uma faceta que retorne poucos registros. Confira que não aparece uma página vazia por posição antiga.
+4. Teste busca, combinação/limpeza de facetas, zero resultados e ordenação pelo cabeçalho Pessoa.
+5. Confirme rótulo do total e intervalo em português, sem corte lateral.
+6. Se alguma mensagem permanecer em inglês, confira em Shared Components → Text Messages a chave do §11.7 e o idioma efetivo da sessão. Para mensagens de facetas, confira carregamento no cliente e Used in JavaScript; não duplique chaves ou altere idioma global por tentativa.
+7. Se o texto estiver cortado, inspecione overflow no contêiner real do rodapé. Não use overflow:hidden para disfarçar o problema.
+
+O export SQL já confirma ROW_RANGES_WITH_LINKS, 15 linhas e BOTTOM_RIGHT. Não procurar ou trocar novamente o tipo de paginação se esses testes passarem.
+
+### 12.3 Consolidar o CSS depois de aprovar o visual
+
+1. Mantenha o CSS Inline atual durante a validação. Ele já contém a proposta do §11.3; não cole uma segunda cópia.
+2. Compare uma captura nova, posterior às 12:06, com o protótipo: card branco, divisórias horizontais, etiqueta de Perfil e Vínculo legível.
+3. Teste desktop largo, janela próxima de 1280 px e tela estreita. Verifique teclado, rolagem e acesso às cinco colunas. Não fixe alturas nem oculte textos para caber.
+4. Se aprovado, incorporar as regras Inline em modulos/colaboradores/colaboradores.css, conciliando os seletores repetidos. Gerar a versão minificada equivalente. Essa edição deve seguir branch/PR; não editar corlixhub/ diretamente.
+5. Pelo Builder, publicar os dois arquivos em Static Application Files com os nomes atuais modulos/colaboradores/colaboradores.css e .min.css.
+6. Só depois de publicar ambos, remover da p12 o bloco Inline transferido. Preservar CSS de outros assuntos, se houver.
+7. Recarregar sem cache e verificar Network/Computed; testar o arquivo normal e o minificado, conforme modo de execução. Repetir a captura e registrar que a aparência não mudou.
+
+Esta tarefa documenta a consolidação; não entrega um novo CSS aprovado sem a captura/validação atual.
+
+### 12.4 Definir o acesso antes de alterar autorização ou isolamento
+
+O backup atual restringe a p12 a ADMIN_RH. **Não remover essa proteção enquanto o público não estiver definido.** A consulta ao usuário sobre o público está pendente; as alternativas abaixo não são autorização para ampliar acesso.
+
+| Política a confirmar | Regra de consulta | Cadastro/edição |
+|---|---|---|
+| RH por empresa e equipe Corlix global | RH somente com empresa válida; global apenas mediante EQUIPE_CORLIX_HUB explícito | Destino p14 e ações precisam de autorização compatível |
+| Colaboradores consultam sua empresa | Vínculo válido e empresa da sessão; ações administrativas separadas | Apenas RH ou política aprovada |
+| Somente RH, sem acesso global | Empresa obrigatória; sem empresa, nenhum dado | Manter autorização atual do destino |
+
+Depois da decisão:
+1. Documentar matriz de acesso em Registro-implantacao.md.
+2. Preparar o esquema de autorização com os nomes reais, sem confundir referência APEXlang e nome usado na API.
+3. Aplicar autorização coerente à página e à entrada do menu; proteger destinos e processos independentemente de esconder links.
+4. Corrigir o filtro da view no arquivo SQL do módulo antes de executá-lo no banco. Não criar uma segunda view divergente apenas no Builder.
+5. Para a política **sem acesso global**, o predicado deve falhar fechado, por exemplo:
+
+```sql
+where c.id_empresa =
+      to_number(v('G_ID_EMPRESA') default null on conversion error)
+```
+
+Sem empresa, a comparação não retorna registros. Esse predicado não serve para implementar a alternativa de equipe com acesso global: nesse caso, preparar uma verificação explícita de autorização no backend, seguindo os packages de acesso do projeto; não voltar ao OR empresa nula.
+
+6. Executar a view completa revisada e conferir USER_ERRORS. Reentrar na aplicação para renovar contexto/cache de autorização.
+7. Testar RH de duas empresas, conta sem empresa, usuário comum e equipe Corlix, pela navegação e por URL direta. Testar também filtros e destinos.
+8. Só registrar isolamento concluído se nenhuma conta não autorizada acessar dados de outra empresa.
+
+### 12.5 Tratar o link Pessoa e o modo edição da página 14
+
+**Contorno aplicável enquanto a edição não for homologada:**
+1. Na p12, selecione NOME_COMPLETO.
+2. Altere Type para Plain Text.
+3. Copie o HTML seguro do Link Text do §5.1 para HTML Expression. Preserve heading, ordenação e classes; não inclua âncora.
+4. Salve e confirme que a pessoa é apresentada sem navegação. O botão Novo colaborador permanece usando o cadastro.
+5. Registre que o link de edição está temporariamente indisponível; isso é pendência de fidelidade/funcionalidade, não conclusão do módulo.
+
+**Implementação do modo edição — trabalho separado antes de reativar o link:**
+1. Inspecionar em p14 os processos de inicialização, DML, atribuição de papéis, CREATE_USER e registrar_admissao_automatica, além de botões, condições e validações de senha.
+2. Definir operações explícitas de inclusão e alteração (requests/botões distintos), com autorização e validação de empresa no servidor.
+3. Restringir criação de conta e admissão à operação de inclusão. Não usar apenas P14_ID_COLABORADOR is null após o DML: o identificador pode já estar preenchido na criação.
+4. No modo alteração, carregar registro autorizado, manter login conforme regra do projeto e não exigir senha de criação nem recriar usuário/admissão.
+5. Tratar mudanças de cargo/empresa segundo os packages e histórico existentes; não duplicar regras no formulário. Atualizar spec/body e guia quando necessário.
+6. Em DEV, testar criação, alteração, cancelamento, tentativa de acesso a outra empresa e falha de validação. Conferir que conta e admissão não foram duplicadas.
+7. Só então restaurar Type = Link e o destino p14 com ID e checksum, repetindo os testes a partir da p12.
+
+Não há código de modo edição entregue nesta atualização documental; não executar alterações isoladas nos processos como se completassem o fluxo.
+
+### 12.6 Implementar a barra do protótipo
+
+Ainda não existe no export uma barra com “N colaboradores” e “Ordenar por — Nome”. Traduzir o total lateral não implementa esse requisito.
+
+Sequência de implementação necessária, seguindo o padrão dos módulos:
+1. Preparar no pkg_colaboradores_ui uma função para renderizar a barra, com helpers de CLOB, escape e acessibilidade. Não chamar no Builder uma função ainda inexistente.
+2. Definir, com APIs oficiais do APEX 26.1, a fonte do **total filtrado** e a sincronização com busca/facetas. Preferir o estado do componente; não fazer COUNT(*) independente sem filtros.
+3. Definir as opções de ordenação e sua integração efetiva com o Classic Report. Não adicionar ORDER BY fixo que conflite com a ordenação dos cabeçalhos; documentar o mecanismo escolhido.
+4. Implementar JavaScript do módulo, se necessário, para atualizar contagem/ordenação após refresh, sem registrar handlers duplicados. Configurar HTML DOM ID das regiões utilizadas.
+5. Publicar spec/body, CSS/JS e só então criar a região Dynamic Content acima do relatório, na coluna da direita. Conferir slots e sequência no template real.
+6. Manter o total lateral enquanto a nova contagem não estiver funcional. Removê-lo somente após comparar valores em busca, facetas combinadas, zero resultados e limpeza.
+7. Testar ordenação real, reset da página quando pertinente, preservação de filtros, teclado e responsividade.
+8. Registrar resultados e novo export.
+
+Este roteiro não é uma implementação pronta: a função, o JS e a integração ainda devem ser desenvolvidos/verificados. Não há instrução para criar controle decorativo ou usar valor fixo. Sem essa etapa, a página permanece parcialmente fiel.
+
+### 12.7 Ordem de execução e aceite
+
+- Aplicar agora: §12.1; testar §12.2 e obter captura atual para §12.3.
+- Antes de liberar edição: usar contorno ou concluir §12.5.
+- Aguardar definição do público antes das mudanças dependentes do §12.4.
+- Implementar §12.6 para concluir fidelidade da barra.
+- Consolidar CSS aprovado, registrar resultado de cada teste e comparar novamente com o protótipo.
+
+Ao encerrar, atualizar Registro-implantacao.md distinguindo configuração aplicada, código preparado e teste executado. Não declarar a página pronta apenas porque compila ou porque a paginação consta no export.

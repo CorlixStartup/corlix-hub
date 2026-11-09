@@ -157,3 +157,11 @@ Pedido: voltar à DEV, atualizar e avaliar prontidão/fidelidade. Checkout princ
 Inspeção do backup 05730bc das 12:06 confirma package instalado, paginação de 15 linhas com links, layout corrigido, escape de Pessoa, RAW em Perfil, rótulo e traduções. O CSS de ajuste foi aplicado Inline. Não foi usada a captura antiga como prova do resultado novo.
 
 Parecer e pendências em Validacao-visual-2026-11-09.md, seção Revalidação: barra de total/ordenação ausente, p14 ainda sem fluxo de edição comprovado, isolamento com empresa nula, decisão do acesso RH da lista, escape de Vínculo, consolidação CSS após teste e verificação visual/funcional atual. Não foram feitas alterações na app. Verificação documental: diff e reindexação; retorno à DEV ao encerrar. Próximo passo: priorizar pendências confirmadas e obter captura após as alterações das 12:06.
+
+## Passo a passo após revalidação — 09/11/2026
+
+Guia atualizado no §12 para partir do backup das 12:06: escape de Vínculo, testes de paginação/tradução já aplicadas, consolidação CSS após validação, matriz de permissões, contorno sem link até homologar edição e roteiro da barra sincronizada em package. Corrigido o aviso inicial que ainda tratava botão como não instalado.
+
+A definição de público foi solicitada ao usuário; não houve resposta registrada nesta edição. Nenhuma ampliação de acesso foi assumida. As etapas dependentes estão condicionadas à decisão. Modo edição e barra não foram implementados nesta tarefa documental.
+
+Verificação: diff e links locais; reindexação. Nenhuma alteração no Builder ou banco. Próximo passo: aplicar escape/testes independentes e confirmar público antes de modificar permissões. O PR #134 reúne auditoria e roteiro atualizado.
