@@ -13,6 +13,9 @@ set define off
 prompt == 00 · Função FN_COLAB_TEM_PAPEL
 @@00_fn_colab_tem_papel.sql
 
+prompt == 00 · Função FN_COLAB_E_EQUIPE
+@@00_fn_colab_e_equipe.sql
+
 prompt == 01 · View VW_COLABORADORES_LISTA
 @@01_vw_colaboradores_lista.sql
 

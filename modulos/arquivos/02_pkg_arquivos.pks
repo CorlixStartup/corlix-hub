@@ -4,7 +4,8 @@
 -- =============================================================================
 create or replace package pkg_arquivos as
 
-  -- Entrega a foto ao navegador, se ela for de alguém da empresa da sessão.
+  -- Entrega a foto ao navegador, se ela for de alguém da empresa da sessão
+  -- (a equipe do Corlix Hub vê as fotos de todas as empresas).
   -- Sem permissão, nome inválido ou arquivo ausente: HTTP 404, e a tela mostra as iniciais.
   procedure entregar_foto (p_nome in varchar2);
 
