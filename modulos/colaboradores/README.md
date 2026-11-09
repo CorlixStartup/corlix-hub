@@ -1,5 +1,7 @@
 # Módulo Colaboradores (Página 12)
 
+> **Situação atual e histórico:** consulte [Registro de implantação](./Registro-implantacao.md). O botão Novo colaborador continua pendente; as recomendações revistas estão registradas ali.
+
 Módulo responsável pela página de listagem, busca e administração de colaboradores do Corlix Hub (**Página 12: `COLABORADORES`**).
 
 Protótipo correspondente no `pen_dev/`:
@@ -50,6 +52,7 @@ Banco de dados (COLABORADOR, CARGO, DEPARTAMENTO, EMPRESA, CARGO_PAPEL)
 |---|---|
 | `00_fn_colab_tem_papel.sql` | Função de consulta de papéis via APEX_ACL; executar antes da view |
 | `01_vw_colaboradores_lista.sql` | View `VW_COLABORADORES_LISTA` que alimenta o relatório e as facetas |
+| `02_pkg_colaboradores_ui.pks` / `.pkb` | Cabeçalho em package de UI, com ação autorizada; instalar spec antes do body |
 | `instalar.sql` | Script instalador para SQLcl ou SQL Workshop |
 | `colaboradores.css` / `.min.css` | Estilos específicos para avatares, pessoa, vínculo e tabela |
 | `Etapas-colaboradores.md` | Passo a passo detalhado para montagem no App Builder do APEX 26.1.5 |

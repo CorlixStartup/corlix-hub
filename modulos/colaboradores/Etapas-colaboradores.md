@@ -1,6 +1,8 @@
 # Colaboradores · passo a passo no APEX
 
-Este guia monta a página 12 (**Colaboradores**) exatamente igual ao protótipo `pen_dev/Colaboradores · visão de administração.png`, no App Builder do **Oracle APEX 26.1.5**. A descrição da tela está em [`docs/ai-context/07-design-pen-dev.md`](../../docs/ai-context/07-design-pen-dev.md) §4.4.
+> **Situação atual e histórico:** consulte [Registro de implantação](./Registro-implantacao.md). O botão Novo colaborador continua pendente; as recomendações revistas estão registradas ali.
+
+Este guia monta a página 12 (**Colaboradores**) com base no protótipo `pen_dev/Colaboradores · visão de administração.png`, no App Builder do **Oracle APEX 26.1.5**. A descrição da tela está em [`docs/ai-context/07-design-pen-dev.md`](../../docs/ai-context/07-design-pen-dev.md) §4.4.
 
 A alteração é feita no Builder. O backup diário trará o resultado para `corlixhub/pages/p00012-colaboradores.apx` na branch `DEV`.
 
@@ -16,127 +18,29 @@ A alteração é feita no Builder. O backup diário trará o resultado para `cor
 | Página placeholder com apenas a região Breadcrumb | Página completa com **Faceted Search** à esquerda e **Classic Report** à direita |
 | Sem filtros nem busca | 5 facetas: campo de busca global, Situação, Empresa, Departamento e Perfil de acesso |
 | Sem listagem de pessoas | Tabela estilizada com avatar circular (foto/iniciais), nome em link com e-mail, login, vínculo completo (com alerta para incompletos), etiquetas de perfil e badges de status |
-| Sem botão de ação | Cabeçalho com faixa branca e botão primário escuro **+ Novo colaborador** (para administradores e RH) |
+| Sem botão de ação | Cabeçalho com faixa branca e botão primário escuro **+ Novo colaborador** (para usuários autorizados a cadastrar na página 14) |
 
 ---
 
 ## 1. Banco de dados (View da listagem)
 
-Antes de abrir o Builder, execute [00_fn_colab_tem_papel.sql](./00_fn_colab_tem_papel.sql) e depois a view abaixo. Se já criou a função durante o diagnóstico, basta recriar a view. No SQL Commands, execute um comando por vez e omita a linha isolada `/` da função, preservando `end;`.
+**Ambiente atual:** função e view corrigidas já constam no backup e33f972. Não reinstale para ajustar o botão.
 
-1. No menu do APEX, acesse **SQL Workshop › SQL Scripts** (ou utilize o SQL Commands).
-2. Execute o conteúdo do arquivo [`01_vw_colaboradores_lista.sql`](./01_vw_colaboradores_lista.sql):
-   ```sql
-   create or replace force editionable view vw_colaboradores_lista as
-   select c.id_colaborador,
-          c.nome_completo,
-          c.email,
-          c.login_apex,
-          c.primeiro_nome,
-          c.ultimo_nome,
-          c.foto_url,
-          case
-            when c.imagem_perfil is not null then 'S'
-            else 'N'
-          end as tem_imagem,
-          upper(
-            substr(coalesce(trim(c.primeiro_nome), trim(c.nome_completo), 'C'), 1, 1) ||
-            coalesce(
-              substr(trim(c.ultimo_nome), 1, 1),
-              substr(trim(substr(c.nome_completo, instr(c.nome_completo, ' ', -1) + 1)), 1, 1),
-              ''
-            )
-          ) as iniciais,
-          c.id_empresa,
-          nvl(e.nome_fantasia, 'Sem vínculo') as empresa,
-          c.id_departamento,
-          nvl(d.nome, 'Sem departamento') as departamento,
-          c.id_cargo,
-          nvl(cg.nome, 'Sem cargo') as cargo,
-          case
-            when c.id_empresa is not null and c.id_departamento is not null then
-              e.nome_fantasia || ' · ' || d.nome
-            when c.id_empresa is not null then
-              e.nome_fantasia
-            else
-              'Sem vínculo'
-          end as vinculo_linha1,
-          case
-            when c.id_empresa is not null and c.id_cargo is not null then
-              cg.nome
-            else
-              'Cadastro incompleto'
-          end as vinculo_linha2,
-          case
-            when c.id_empresa is null or c.id_departamento is null or c.id_cargo is null then
-              'S'
-            else
-              'N'
-          end as fl_sem_vinculo,
-          case
-            when c.id_empresa is null or c.id_departamento is null or c.id_cargo is null then
-              'cx-colab-vinculo--alerta'
-            else
-              ''
-          end as classe_vinculo,
-          case
-            when c.id_empresa is null or c.id_departamento is null or c.id_cargo is null then
-              '<span class="fa fa-warning" aria-hidden="true"></span> '
-            else
-              ''
-          end as icone_vinculo,
-          case
-            when exists (
-              select 1 from cargo_papel cp
-               where cp.id_cargo = c.id_cargo
-                 and cp.cd_papel in ('equipe-do-corlix-hub', 'admin-rh', 'diretoria')
-            ) or (fn_colab_tem_papel(c.login_apex, 'equipe-do-corlix-hub', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'admin-rh', to_number(v('APP_ID') default 100 on conversion error)) = 1) then 'Administrador'
-            when exists (
-              select 1 from cargo_papel cp
-               where cp.id_cargo = c.id_cargo
-                 and cp.cd_papel in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-             ) or (fn_colab_tem_papel(c.login_apex, 'publicador-de-conteudo', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'publicador-de-conteúdo', to_number(v('APP_ID') default 100 on conversion error)) = 1) then 'Publicador de conteúdo'
-            else 'Colaborador'
-          end as perfil,
-          case
-            when exists (
-              select 1 from cargo_papel cp
-               where cp.id_cargo = c.id_cargo
-                 and cp.cd_papel in ('equipe-do-corlix-hub', 'admin-rh', 'diretoria')
-            ) or (fn_colab_tem_papel(c.login_apex, 'equipe-do-corlix-hub', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'admin-rh', to_number(v('APP_ID') default 100 on conversion error)) = 1) then '<span class="cx-etiqueta">Administrador</span>'
-            when exists (
-              select 1 from cargo_papel cp
-               where cp.id_cargo = c.id_cargo
-                 and cp.cd_papel in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-            ) or (fn_colab_tem_papel(c.login_apex, 'publicador-de-conteudo', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'publicador-de-conteúdo', to_number(v('APP_ID') default 100 on conversion error)) = 1) then '<span class="cx-etiqueta">Publicador de conteúdo</span>'
-            else 'Colaborador'
-          end as perfil_html,
-          case when c.status = true then 'Ativa' else 'Inativa' end as situacao,
-          case when c.status = true then 'sucesso' else 'neutro' end as situacao_classe
-     from colaborador c
-     left join empresa e      on e.id_empresa = c.id_empresa
-     left join departamento d on d.id_departamento = c.id_departamento
-     left join cargo cg       on cg.id_cargo = c.id_cargo
-    where (
-      v('G_ID_EMPRESA') is null
-      or c.id_empresa = to_number(v('G_ID_EMPRESA') default null on conversion error)
-    );
-   ```
+Para instalação em outro ambiente, execute [00_fn_colab_tem_papel.sql](./00_fn_colab_tem_papel.sql) antes de [01_vw_colaboradores_lista.sql](./01_vw_colaboradores_lista.sql). O [instalador](./instalar.sql) mantém essa ordem no SQLcl. No SQL Commands, execute um comando por vez, sem a linha isolada `/` da função, preservando `end;`.
 
-3. Confira se a view está válida no SQL Commands:
-   ```sql
-   select count(*) from vw_colaboradores_lista
-   ```
+Os arquivos SQL são a fonte da instalação; não há cópia paralela da view neste guia. Confira compilação e contagens das facetas conforme o diagnóstico ao final.
+
+**Isolamento pendente:** a view permite todas as empresas quando G_ID_EMPRESA é nulo. Não use esse comportamento como prova de autorização da equipe; valide a política de acesso global separadamente antes de considerar o isolamento concluído.
 
 ---
 
 ## 2. CSS do Módulo
 
-Em *Shared Components › Static Application Files*, suba os dois arquivos:
+Os dois arquivos já constam no backup. Somente em instalação nova ou atualização de CSS, publique em *Shared Components › Static Application Files*, mantendo os nomes com o prefixo `modulos/colaboradores/`:
 - `modulos/colaboradores/colaboradores.css`
 - `modulos/colaboradores/colaboradores.min.css`
 
-*(Caso prefira unificar no `custom.css`, basta colar o conteúdo de `colaboradores.css` no final do arquivo `corlixhub/shared-components/static-files/custom.css` e no `.min.css` correspondente).*
+Não duplique esses estilos no custom.css. Reutilize os tokens e classes existentes; publique CSS pelo Builder, mantendo o arquivo minificado em sincronia.
 
 ---
 
@@ -144,7 +48,6 @@ Em *Shared Components › Static Application Files*, suba os dois arquivos:
 
 Abra a **Página 12** no Page Designer. Selecione o nó raiz da página (**Page 12: Colaboradores**):
 
-- *Security › Authorization Scheme*: **ADMIN_RH** (confirmar no 26.1.5). Esta é a listagem administrativa e deve usar a mesma autorização da página 14; confira no export `security { authorizationScheme: @admin-rh }`. A proteção por checksum permanece habilitada.
 - *Identification › Title*: `Colaboradores`
 - *Appearance › Page CSS Classes*: `cx-colaboradores-pagina`
 - *CSS › File URLs*:
@@ -156,34 +59,67 @@ Abra a **Página 12** no Page Designer. Selecione o nó raiz da página (**Page 
 
 ## 4. Cabeçalho da Página
 
-### 4.1 Apagar o breadcrumb antigo
-Na árvore *Rendering*, clique com o botão direito na região **Breadcrumb** (slot Breadcrumb Bar) › **Delete**.
+### Referências reutilizadas
 
-### 4.2 Criar o cabeçalho moderno com botão de ação
-1. Clique com o botão direito em **Breadcrumb Bar** › **Create Region** *(confirmar no 26.1.5)*.
-2. Defina as propriedades da nova região:
-   - *Identification › Name*: `Cabeçalho`
-   - *Identification › Type*: **Dynamic Content**
-   - *Source › Language*: **PL/SQL**
-   - *Source › PL/SQL Function Body returning a CLOB*:
-     ```plsql
-     return '<div class="cx-cabecalho-pagina cx-cabecalho-pagina--acoes">'
-         || '<div class="cx-cabecalho-pagina__texto">'
-         || '<h1 class="cx-cabecalho-pagina__titulo">Colaboradores</h1>'
-         || '<p class="cx-cabecalho-pagina__descricao">Encontre pessoas e gerencie contas, vínculos e perfis de acesso.</p>'
-         || '</div>'
-         || '<div class="cx-cabecalho-pagina__acoes">'
-         || case
-              when apex_authorization.is_authorized('ADMIN_RH') then
-                   '<a class="t-Button t-Button--hot t-Button--iconLeft" href="'
-                || apex_escape.html_attribute(apex_page.get_url(p_page => 14, p_clear_cache => '14'))
-                || '"><span class="t-Icon t-Icon--left fa fa-plus" aria-hidden="true"></span>'
-                || '<span class="t-Button-label">Novo colaborador</span></a>'
-            end
-         || '</div>'
-         || '</div>';
-     ```
-   - *Appearance › Template*: **Blank with Attributes (No Grid)**
+- [Holerite — render_cabecalho](../holerite/02_pkg_holerite_ui.pkb): título e ações dentro do mesmo contêiner.
+- [Ponto eletrônico — render_cabecalho](../ponto-eletronico/04_pkg_ponto_ui.pkb): cx-cabecalho-pagina__texto e cx-cabecalho-pagina__acoes, URL com checksum e escape.
+- [Histórico de carreira — UI](../historico-carreira/08_pkg_historico_carreira_ui.sql): padrões de renderização e integração.
+- [Tema](../../docs/ai-context/04-tema-e-estilos.md): fa-plus já mapeia para Lucide; não instalar outra biblioteca.
+
+**Retomada da página existente:** não recrie regiões. O botão nativo tentado não teve encaixe validado no template. A orientação abaixo mantém a ação dentro do cabeçalho, seguindo Holerite e Ponto. É uma proposta de ajuste, ainda pendente de teste visual no Builder.
+
+Não aplique ADMIN_RH à página 12 inteira apenas para controlar esse botão. A página 14 atualmente exige ADMIN_RH; a condição da ação acompanha esse destino. Acesso adicional da equipe exige decisão explícita e alinhamento com o destino.
+
+### 4.1 Apagar o breadcrumb antigo
+Somente se ainda houver o breadcrumb antigo duplicado: na árvore Rendering, remova essa região. Preserve o Cabeçalho existente.
+
+### 4.2 Instalar o package de UI
+
+Para a página já montada, execute somente os dois arquivos novos, nesta ordem:
+
+1. [02_pkg_colaboradores_ui.pks](./02_pkg_colaboradores_ui.pks) — especificação.
+2. [02_pkg_colaboradores_ui.pkb](./02_pkg_colaboradores_ui.pkb) — corpo.
+
+Use SQL Workshop › SQL Scripts ou SQLcl. No SQL Commands, execute um CREATE OR REPLACE por vez, omitindo somente a linha isolada `/` e preservando os pontos e vírgulas internos. O instalador completo inclui esses arquivos depois da função e da view; não é necessário reinstalar tudo no ambiente atual.
+
+Confira a compilação:
+
+```sql
+select type, line, position, text
+  from user_errors
+ where name = 'PKG_COLABORADORES_UI'
+ order by type, sequence
+```
+
+O resultado deve estar vazio. Confira também PACKAGE e PACKAGE BODY com STATUS = VALID:
+
+```sql
+select object_type, status
+  from user_objects
+ where object_name = 'PKG_COLABORADORES_UI'
+   and object_type in ('PACKAGE', 'PACKAGE BODY')
+```
+
+Não altere a região antes de resolver eventuais erros de compilação. Não foi possível compilar no banco a partir desta tarefa: esses testes devem ser feitos no ambiente do projeto.
+
+### 4.3 Chamar o package no Builder
+
+1. Na página 12, selecione a região **Cabeçalho** existente.
+2. Mantenha **Type = Dynamic Content**, posição **Breadcrumb Bar** e template **Blank with Attributes (No Grid)**, como no cabeçalho do Holerite.
+3. Substitua todo o corpo PL/SQL da região por:
+
+   ```plsql
+   return pkg_colaboradores_ui.render_cabecalho;
+   ```
+
+4. Se a tentativa anterior criou o botão nativo NOVO_COLABORADOR, confira sua identificação e remova somente essa duplicata. O package renderiza a ação; não existe uma segunda configuração de botão no Builder.
+5. Salve e execute com uma conta autorizada.
+
+A autorização da ação está no package e usa o nome ADMIN_RH, em alinhamento com a página 14. Mantenha a proteção no destino; não restrinja a página 12 inteira para esconder o botão. O package usa URL com checksum e escape de atributo. O tema já converte fa-plus no Lucide Plus; não instalar biblioteca adicional.
+
+**Arquitetura adotada:** o HTML personalizado do cabeçalho fica no package. Classic Report e Faceted Search continuam nativos, pois as facetas dependem da fonte SQL filtrável. Essa composição preserva busca, contagens e paginação existentes; não há substituição da listagem por HTML manual. O CLOB é local à chamada, seguindo o mesmo padrão de montagem incremental dos módulos de referência e evitando estado compartilhado desnecessário para uma única função.
+
+**Conferência:** use uma conta autorizada; deve existir uma única ação à direita do título, com fundo escuro, ícone Lucide Plus e texto branco. Teste a navegação ao cadastro limpo. Com usuário comum, a lista continua disponível e a ação não aparece. Teste tela estreita e foco pelo teclado. Se o resultado divergir, registre print e export atual antes de sugerir outra posição ou CSS; não declare o alinhamento concluído apenas pelo código.
 
 ---
 
@@ -194,7 +130,6 @@ Na árvore *Rendering*, clique com o botão direito na região **Breadcrumb** (s
    - *Identification › Title*: `Colaboradores`
    - *Identification › Type*: **Classic Report**
    - *Advanced › Static ID*: `colaboradores`
-   - *Layout › Sequence*: `20` (confirmar no 26.1.5; no export: `sequence: 20`)
    - *Layout › Column*: `4`
    - *Layout › Column Span*: `9`
    - *Layout › Start New Row*: `No` *(para ficar ao lado das facetas)*
@@ -233,14 +168,14 @@ Na árvore *Rendering*, clique com o botão direito na região **Breadcrumb** (s
             situacao_classe
        from vw_colaboradores_lista
      ```
-3. Nos atributos do relatório (*Attributes* na árvore sob a região):
-   - *Pagination › Type*: **Row Ranges X to Y of Z (with pagination)** (confirmar o rótulo no 26.1.5; o export deve ter `rowRangesXToYOfZWithPagination`, não `rowRangesXToYOfZNoPagination`)
+3. Nas propriedades do Classic Report, use a busca do painel para localizar os atributos abaixo (confirmar agrupamento no 26.1.5):
+   - *Pagination › Type*: **Row Ranges X to Y of Z com paginação** (confirmar rótulo no 26.1.5; export esperado: `rowRangesXToYOfZWithPagination`)
    - *Pagination › Number of Rows*: `15`
    - *Messages › When No Data Found*: `Nenhum colaborador encontrado.`
 
 ### 5.1 Configuração das Colunas do Relatório
 
-Selecione cada coluna da região em *Columns* e configure:
+Selecione cada coluna da região em *Columns* e configure. O link Pessoa abaixo documenta o destino existente; sua utilização como edição depende da revisão da página 14 descrita após a tabela.
 
 | Coluna | Type | Heading | Propriedades e Formatação |
 |---|---|---|---|
@@ -254,6 +189,10 @@ Selecione cada coluna da região em *Columns* e configure:
 
 **Coluna Pessoa:** como `NOME_COMPLETO` é do tipo **Link**, preencha o HTML em **Link › Link Text**, não em **HTML Expression**. O APEX gera a tag `<a>` com o destino e o checksum; não coloque outra tag `<a>` dentro do conteúdo nem use `&LINK.`. As demais colunas **Plain Text** continuam usando **HTML Expression**.
 
+**Escape:** !HTML protege os textos livres e !ATTR os atributos. !RAW fica restrito aos fragmentos fixos de ícone e etiqueta da view. Teste caracteres especiais em nomes e vínculos sem produzir marcação.
+
+**Página 14 — pendente:** o processo CREATE_USER disponível não está condicionado à inclusão. Revise também admissão, validações de senha e processamento do formulário antes de testar salvamento de registro existente. Receber o ID não comprova edição segura. Até validar, pode apresentar Pessoa como Plain Text usando o mesmo HTML em HTML Expression, sem link. Não considere esta revisão da p12 uma implementação do modo edição.
+
 **Validação no Builder (pendente):** salve e execute a página; confira avatar, nome e e-mail e clique na Pessoa para verificar a navegação à página 14 com o colaborador correto. O link envolve todo o conteúdo da célula Pessoa. Se **Link Text** não aparecer, envie um print da árvore e das propriedades da coluna antes de tentar outro caminho.
 
 Referência: [Oracle APEX 26.1 — Creating a Column Link in a Classic Report](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/managing-classic-report-column-attributes.html).
@@ -262,14 +201,13 @@ Referência: [Oracle APEX 26.1 — Creating a Column Link in a Classic Report](h
 
 ## 6. Região de Facetas (Faceted Search)
 
-A ordem final no Body deve ser **Filtros (10)** antes de **Colaboradores (20)**, independentemente da ordem em que as regiões foram criadas. Confirme ambos na mesma linha em desktop e o comportamento em tela estreita.
+Na página já montada, preserve as facetas existentes. Confira primeiro o resultado visual. **Somente se filtros e relatório estiverem em linhas incorretas**, ajuste Layout (confirmar no 26.1.5): Filtros sequence 10, coluna 1, span 3, Start New Row Yes; Colaboradores sequence 20, coluna 4, span 9, Start New Row No. Compare desktop e tela estreita antes de registrar resultado.
 
 1. Na árvore *Rendering*, clique com o botão direito em **Body** › **Create Region**.
 2. Defina as propriedades:
    - *Identification › Title*: `Filtros`
    - *Identification › Type*: **Faceted Search**
    - *Source › Filtered Region*: **Colaboradores** *(a região do Classic Report criada no passo 5)*
-   - *Layout › Sequence*: `10` (confirmar no 26.1.5; no export: `sequence: 10`)
    - *Layout › Column*: `1`
    - *Layout › Column Span*: `3`
    - *Layout › Start New Row*: `Yes`
@@ -278,7 +216,7 @@ A ordem final no Body deve ser **Filtros (10)** antes de **Colaboradores (20)**,
      - *Header*: **Hidden**
      - *Style*: **Remove UI Decoration**
      - Marque **Remove Body Padding**
-3. Nos atributos do Faceted Search (*Attributes* da região):
+3. Nas propriedades do Faceted Search (confirmar agrupamento no 26.1.5):
    - *Show Total Row Count*: **Yes**
    - *Show Current Facets*: **Yes**
    - *Show Charts*: **No**
@@ -376,7 +314,7 @@ Confirmado no ambiente: a leitura simples da view funciona; a agregação com GR
 
 A view agora chama a função baseada na API pública APEX_ACL.HAS_USER_ROLE em PERFIL e PERFIL_HTML. As condições de CARGO_PAPEL e os papéis consultados foram preservados. A causa interna exata do erro não foi confirmada.
 
-Após recriar a view, execute:
+Para verificar a view já instalada (ou após instalação nova), execute:
 
 ```sql
 select situacao, empresa, departamento, perfil, count(*) quantidade
@@ -392,44 +330,28 @@ Referência: [Oracle APEX 26.1 — APEX_ACL](https://docs.oracle.com/en/database
 
 | Sintoma | Causa / diagnóstico | Correção proposta |
 |---|---|---|
-| ORA-00904: "APEX_260100"."WWV_FLOW_SECURITY": invalid identifier em Filtros | Reproduzido com GROUPING SETS incluindo PERFIL; sem PERFIL funciona. Causa interna ainda não confirmada | Criar 00_fn_colab_tem_papel.sql e recriar a view 01, isolando a consulta de ACL em PL/SQL. Teste isolado da função passou; validação da view completa e da página pendente |
+| ORA-00904: "APEX_260100"."WWV_FLOW_SECURITY": invalid identifier em Filtros | Reproduzido com GROUPING SETS incluindo PERFIL; sem PERFIL funciona. Causa interna ainda não confirmada | A função e a view corrigida já estão no backup. Em ambiente novo, instalar 00 e 01; no atual, testar antes de reinstalar. Teste isolado da função passou; validação da view completa e da página pendente |
 
-## 8. Validação após a revisão do export de 08/11/2026
 
-A revisão foi estática. Não marca como concluídos os testes de execução, segurança ou aparência.
+## 9. Encerramento da tarefa
 
-### Autorização e isolamento
+Atualize [Registro-implantacao.md](./Registro-implantacao.md) ao final de cada intervenção, conforme a regra 15 do [08](../../docs/ai-context/08-convencoes-e-pegadinhas.md). Registre referência reutilizada, alterações, aplicação no Builder, testes/evidências, falhas, pendências e próximo passo. Reindexe os casos se alterados. Não marque módulo concluído com botão, edição ou testes de isolamento ainda pendentes.
 
-- A página 12 administrativa e o botão Novo colaborador usam **ADMIN_RH**, em alinhamento com a autorização da página 14 disponível no repositório.
-- Na chamada PL/SQL use o **nome** do esquema, `ADMIN_RH`; `@admin-rh` é a referência do APEXlang. Não use ausência de empresa como permissão.
-- Confira a autorização correspondente na entrada do menu. Teste acesso direto à página 12 com usuário autorizado e não autorizado.
-- A view deste guia permite todas as empresas quando `G_ID_EMPRESA` é nulo. A autorização de página não corrige esse comportamento: não considere o isolamento validado até testar contas de duas empresas e uma sessão sem empresa. Para uma conta RH comum, empresa ausente não deve liberar dados de outras empresas; a política de acesso global precisa ser explícita.
+Esta revisão ajustou somente a documentação. O cabeçalho proposto, escape e paginação ainda precisam de aplicação e validação pelo time. A instalação de ACL está confirmada pelo backup; a validação final das facetas permanece pendente.
 
-### HTML e apresentação
 
-- Em **Link Text**, o APEX gera a âncora: não inclua `<a>` nem `&LINK.`. O link envolve toda a célula Pessoa.
-- Os exemplos da tabela usam `!HTML` para texto e `!ATTR` para valores dentro de atributos. `!RAW` fica restrito a `ICONE_VINCULO` e `PERFIL_HTML`, gerados com marcação fixa pela view; não acrescente dados livres a esses fragmentos sem escape.
-- **Escape Special Characters = No** não torna dados seguros sozinho: mantenha os filtros explícitos dos exemplos. Teste nome, e-mail, departamento e cargo com caracteres como `&`, `<` e aspas: devem aparecer como texto, sem criar marcação.
-- Confirme os arquivos estáticos no caminho `modulos/colaboradores/`, inclusive a variante minificada, e ausência de erro 404.
-- Confira foto válida, foto ausente, iniciais, filtros à esquerda e relatório à direita.
-- Com mais de 15 resultados, teste avançar e voltar páginas; após filtrar, confira total e navegação.
+## 10. Verificações complementares da revisão integrada
 
-Referências: [escaping de substituições](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/controlling-output-escaping-in-substitution-strings.html) e [paginação de Classic Report](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/managing-classic-report-attributes.html).
+- Teste texto com caracteres especiais em nome, e-mail, departamento e cargo; não deve virar marcação HTML.
+- Confira o carregamento dos arquivos CSS normal/minificado sem erro 404, foto válida, foto ausente e iniciais.
+- Com mais de 15 resultados, avance e volte páginas; depois filtre e confira total e navegação.
+- Combine Situação, Empresa, Departamento e Perfil; limpe os filtros e teste a busca textual. Confira um usuário com papel manual conhecido e outro com papel via cargo.
+- Teste isolamento entre empresas e sessão sem empresa. A autorização do botão não substitui a política de acesso aos dados.
 
-### Página 14 e filtros: testes pendentes
-
-- O link para a página 14 está configurado, mas **edição ainda não foi comprovada**. O export disponível descreve cadastro e processos de criação de usuário/admissão.
-- Primeiro confira os processos e condições da página 14. Em DEV, com registro de teste, verifique carregamento do ID, salvamento sem criar outro usuário nem outra admissão e comportamento de cancelamento. Se a página só suportar criação, não libere o link Pessoa como edição.
-- Novo colaborador deve abrir a página 14 limpa e apenas para usuário autorizado.
-- Combine Situação, Empresa, Departamento e **Perfil**, depois limpe os filtros e faça busca textual. Confirme ausência de ORA-00904 na requisição Ajax.
-- A correção da ACL já está neste guia (§1): aplique a função `00_fn_colab_tem_papel.sql` e a view corrigida antes do teste. A consulta isolada da função passou com 309 zeros e total 309; isso não comprova a classificação de perfis. Valide um usuário com papel manual conhecido e outro com papel via cargo na sessão da app 100.
-
-### Se não funcionar
-
-| Sintoma | Causa / verificação | Ação |
+| Sintoma | Verificação | Ação |
 |---|---|---|
-| HTML Expression não aparece em NOME_COMPLETO | Coluna do tipo Link | Usar Link Text conforme §5.1; se não aparecer, obter print do painel antes de tentar outro caminho |
-| Filtros aparecem abaixo do relatório | Sequência das regiões invertida | Filtros = 10, inicia linha, coluna 1; Colaboradores = 20, não inicia linha, coluna 4 |
-| Total aparece sem navegação | Tipo NoPagination | Usar variante WithPagination e testar mais de 15 resultados |
-| Botão aparece para conta sem empresa | Condição antiga usava G_ID_EMPRESA nulo como autorização | Usar somente ADMIN_RH e proteger a própria página |
-| Nome abre cadastro em vez de edição | Página 14 ainda não validada para editar | Conferir processos da página 14 antes de liberar essa navegação |
+| HTML Expression não aparece em NOME_COMPLETO | Coluna do tipo Link | Usar Link Text conforme §5.1; se ausente, obter print do painel |
+| Filtros aparecem abaixo do relatório | Conferir layout renderizado e sequência | Aplicar ajuste condicional do §6 e testar novamente |
+| Total aparece sem navegação | Tipo NoPagination | Usar WithPagination e testar mais de 15 resultados |
+| Botão aparece para conta sem empresa | Condição antiga tratava G_ID_EMPRESA nulo como permissão | Usar o package do §4 com ADMIN_RH na ação e manter proteção no destino; não restringir a lista inteira por causa do botão |
+| Nome abre cadastro em vez de edição | Página 14 ainda não validada para editar | Revisar processos e condições da página 14 antes de liberar essa navegação |
