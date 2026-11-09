@@ -277,3 +277,26 @@ Decisão do usuário, 09/11/2026: as decisões sobre funcionários acontecem for
 ## Ajustes visuais finais — 09/11/2026
 
 Versionados no §13 do guia: sufixo do total por JS e attr, nome azul só em link, mensagem do processo em lugar de "Row updated.", rótulos da Situação e ajuda neutra do Gestor. A página de mensagens internas do 26.1 não trouxe chave para "Row updated", e o efeito da mensagem no processo depende de teste. CSS: seletores do .css e .min conferidos. Não aplicado nem testado.
+
+## Validação dos ajustes visuais (§13) — 09/11/2026
+
+Aplicado pelo usuário: §13.1 a §13.4 e, depois, a nova LOV de Gestor (§13.5). Resultados na tela:
+
+| Item | Conta | Resultado |
+|---|---|---|
+| CSS publicado (§13.1) | TESTE.RH | OK: regra `attr(data-sufixo)` carregada, nome azul com link |
+| Script da p12 (§13.1) | TESTE.RH | Falhou na 1ª validação: script ausente da página, barra com "309" sem sufixo. Corrigido pelo usuário |
+| Total e singular | SARAHSILVA2 | OK: "309 colaboradores"; busca `AlineSouza` mostrou "1 colaborador" |
+| Somente leitura | SARAHSILVA2 | OK: nome na cor do texto, sem link e sem Novo colaborador |
+| Situação (§13.3) | TESTE.RH | OK: "Ativa"/"Inativa", só leitura |
+| Ajuda do Gestor (§13.4) | TESTE.RH | OK |
+| Gestor na edição | TESTE.RH | Falhou na 1ª validação: 4 de 8 cadastros com ID (`47`, `48`). Após o §13.5, os 4 mostram nome; os outros 4 seguiram iguais |
+| Mensagem (§13.2) e situação ao salvar | TESTE.RH | OK: [DEMO] Diego Alves (id 315, Inativa), autorizado pelo usuário, salvo sem alterar valores; voltou à lista só com "Dados salvos." e, reaberto, os 13 campos conferidos ficaram iguais, com a situação ainda Inativa |
+
+Causa do Gestor como número: consulta do usuário mostrou os ids 47 e 48 no cargo 403 (Supervisor de Vendas), sem papel `gestor`. Levantamento: cargo 403 com 2 gestores, 60 liderados e 2 ocupantes; cargo 506 (Técnico de Logística) com 1 gestor, Eduardo Vieira (id 272), 7 liderados e 147 ocupantes. Decisão: corrigir a LOV, sem mudar `CARGO_PAPEL`, porque o papel também concede acesso. Liderado do id 272 não foi aberto na tela; a regra é a mesma que corrigiu os ids 47 e 48.
+
+Preparação do teste: data de nascimento do registro 315 preenchida por SQL pelo usuário (`DATA_DE_NASCIMENTO`; a primeira tentativa usou `DATA_NASCIMENTO` e deu ORA-00904, e update com commit na mesma execução deu ORA-03049).
+
+Achados fora do §13: o usuário entrou com a conta `DEMO.CARREIRA.1.4`, do Diego, que está Inativo. Isso confirma a lacuna do §12.11: inativar não bloqueia a conta APEX. A conta não existia no teste anterior (contas = 0), e não foi confirmado como foi criada. O acesso de colaborador comum à p12 não foi concluído: a navegação por link direto caiu no login. Erro de console de um `onerror` de imagem, provavelmente o avatar do cabeçalho na página 0, sem efeito visível.
+
+Pendências: restaurar por SQL a data de nascimento nula do registro 315; decidir se o cargo 403 recebe o papel `gestor`; RH conferir o cargo do id 272; definir o bloqueio de conta inativa; testes de gestor, colaborador comum pelo menu, criação, caracteres especiais e tela estreita.
