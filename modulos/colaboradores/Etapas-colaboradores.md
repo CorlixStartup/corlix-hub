@@ -534,6 +534,27 @@ Validado no navegador com a conta de RH, sem gravar dados, e no backup `4633d7a`
 
 Fotos de outras empresas podem aparecer como iniciais, porque a página 44 confere a empresa de quem está logado.
 
+**Falta corrigir: autorização que derruba as contas sem empresa**
+
+A equipe do Corlix Hub não tem empresa vinculada. Para essas contas, `APROVADOR_PONTO` termina em `ORA-20012` ("Sua sessão não está vinculada a uma empresa"), e como ela protege um item do menu, **nenhuma página abre**. Sair e entrar de novo não resolve.
+
+1. Abra **Shared Components › Security › Authorization Schemes › APROVADOR_PONTO**.
+2. Em **PL/SQL Function Body**, troque o código por:
+   ```plsql
+   begin
+     return pkg_ponto.fn_e_aprovador = 'S';
+   exception
+     when others then
+       if sqlcode = -20012 then
+         return false;
+       end if;
+       raise;
+   end;
+   ```
+3. Clique em **Apply Changes**, saia e entre de novo com a conta da equipe.
+
+**Confira:** a página abre sem o erro, e o item **Ajustes de ponto** não aparece no menu dessa conta. Para quem tem empresa, nada muda.
+
 **Decisão em aberto:** se gestor e situação ficam só leitura na edição (hoje editáveis, e a alteração não entra no histórico). A data de nascimento continua obrigatória: registros sem ela precisam ser completados para salvar uma edição. A página continua em `@/standard`, divergência registrada no [11 · Padrões de páginas](../../docs/ai-context/11-padroes-de-paginas.md), §6.
 
 ### 12.1 Banco e arquivos (itens 1, 2 e 3)

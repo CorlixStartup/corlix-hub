@@ -717,6 +717,7 @@ No próximo backup, `corlixhub/pages/p00030-*.apx` deve ter `authorizationScheme
 | "Sua empresa ainda não tem jornada de trabalho cadastrada" | Empresa criada depois do seed | Rode `02_seed_ponto.sql` de novo (só insere o que falta) |
 | Aviso de conta sem vínculo em conta com colaborador | `login_apex` diferente do usuário, ou colaborador de outra empresa | Confira `colaborador.login_apex` e `G_ID_EMPRESA` |
 | "Sua sessão não está vinculada a uma empresa" | `G_ID_EMPRESA` vazio | Saia e entre de novo |
+| `ORA-20012` em `APROVADOR_PONTO` em qualquer página, com conta sem empresa (equipe do Corlix Hub) | `fn_e_aprovador` recusa a sessão sem empresa, e a autorização protege um item do menu. Sair e entrar não resolve | Tratar `-20012` como `false` na autorização: `modulos/colaboradores/Etapas-colaboradores.md` §12.0 |
 | Erro aparece com "ORA-200xx" na tela | Handler de erro do app sem a faixa do módulo | Confira as três linhas do `log_pkg` (`docs/ai-context/08` §3, Módulos) |
 | Trocar o mês não muda o espelho, ou dá erro de checksum | Item com proteção ligada, ou sem *Page Items to Submit* | Passo 4.3: Value Protected **No**, Unrestricted e Page Items to Submit |
 | Dia de hoje com a data errada | `config_carreira.ds_fuso_horario` da empresa | Confira o fuso da empresa |
