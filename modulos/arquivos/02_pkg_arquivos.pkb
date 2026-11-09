@@ -28,11 +28,20 @@ create or replace package body pkg_arquivos as
   end e_da_empresa;
 
   procedure entregar_foto (p_nome in varchar2) is
-    l_emp  constant number := to_number(v('G_ID_EMPRESA') default null on conversion error);
+    l_emp  number := to_number(v('G_ID_EMPRESA') default null on conversion error);
     l_cfg  arquivo_config%rowtype;
     l_blob blob;
     l_mime varchar2(255);
   begin
+    -- A equipe do Corlix Hub vê todas as empresas: a pasta vem do dono da foto.
+    if apex_authorization.is_authorized('EQUIPE_CORLIX_HUB') then
+      select max(id_empresa)
+        into l_emp
+        from colaborador
+       where id_empresa is not null
+         and regexp_substr(trim(foto_url), '[^/]+$') = p_nome;
+    end if;
+
     if l_emp is null
        or p_nome is null
        or not regexp_like(p_nome, c_nome_valido, 'i')

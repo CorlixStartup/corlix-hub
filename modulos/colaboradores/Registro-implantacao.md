@@ -203,3 +203,77 @@ Usuário autenticou no Chrome (conta Teste Rh); nenhuma credencial digitada e na
 Causas das diferenças: região Barra da lista sem Static ID no DOM (id gerado), logo o CSS por #cx-colab-barra não aplicava; seletor flutuante em largura total; contagens com parênteses por pseudo-elemento; menu de faceta com a única ação Filter. Corrigido: apontamentos anteriores de linhas alternadas e rótulo visível da busca eram falsos na tela.
 
 CSS novo testado por estilo temporário na própria aba, sem persistência, e incorporado aos arquivos do módulo. Falta publicar, aplicar a classe e o ajuste de Clear; salvar na p14 não foi testado, e o branch segue em processing no último backup. Testes de contas de outros perfis pendentes.
+
+## Validação visual final da página 12 — 09/11/2026
+
+Usuário autenticou no Chrome (conta Teste Rh); nenhuma credencial digitada e nenhum dado gravado. Backup 4633d7a confirma classe da barra, APEX.FS.CLEAR em JavaScript e branch da p14 em After Processing; o CSS foi publicado depois desse backup e conferido na execução.
+
+Resultado em desktop (1488 px): barra em linha única com total à esquerda e Ordenar por à direita; contagens à direita, sem parênteses; menu de três pontos oculto; filtro Inativa levou o total de 309 a 4 e exibiu "Limpar"; sem erros de console. Layout considerado fiel ao protótipo, com as diferenças aceitas listadas no §12.0.
+
+Pendências: testes de salvar na p14 (grava dados), contas de diretor, gestor e colaborador comum, caracteres especiais e tela estreita. Próximo passo: executar esses testes e decidir os itens em aberto do §12.0.
+
+## Teste de salvar edição na p14 — 09/11/2026
+
+Autorizado pelo usuário no registro [DEMO] Diego Alves (id 315), conta Teste Rh, login feito pelo usuário. Alterado apenas o primeiro nome para DiegoTeste e acionado Salvar alterações. Resultado: recusado pela validação "Data de nascimento must have some value.", porque o registro não tem data de nascimento e o campo é obrigatório. Ao reabrir, o primeiro nome continua Diego: nada foi gravado e não houve o que restaurar.
+
+Conclusão: a validação obrigatória funciona na edição, mas o caminho de sucesso (gravar, voltar à lista com "Alterações salvas.", não criar conta nem admissão) segue não testado. Achados: colaboradores sem data de nascimento não podem ser editados até o campo ser preenchido; mensagem de obrigatório em inglês. Próximo passo: repetir o teste num registro de teste com data de nascimento.
+
+Continuação em 09/11/2026: autorizado repetir o teste em outro [DEMO] com data de nascimento. Leitura sem gravação dos 16 registros [DEMO] encontrados pela busca: nenhum tem data de nascimento (leitura conferida com a data de admissão, presente no HTML). Teste de sucesso não executado; nenhum registro alterado. Próximo passo: preencher por SQL a data de um [DEMO], testar e restaurar o valor nulo por SQL, se o usuário autorizar.
+
+## Teste de salvar edição com sucesso na p14 — 09/11/2026
+
+Autorizado pelo usuário, que preencheu por SQL a data de nascimento do [DEMO] Diego Alves (id 315) para o teste. Conta Teste Rh. Primeiro nome alterado para DiegoTeste e salvo: novo carregamento do registro retornou DiegoTeste. Restaurado para Diego pelo mesmo botão e confirmado em novo carregamento; nome, admissão e e-mail inalterados.
+
+Resposta do servidor (POST wwv_flow.accept, status 200): redirectURL para a página colaboradores com success_msg "Row updated. Alterações salvas.", o que comprova a execução do branch de retorno. Na aba automatizada o navegador não seguiu o redirecionamento e permaneceu na p14, com apex.page.isChanged verdadeiro; causa não identificada, possivelmente própria da automação. Falta um salvamento manual para confirmar o retorno na tela.
+
+Não comprovado: ausência de conta e admissão novas, pois a contagem anterior ao teste não foi obtida. Achado: a mensagem de sucesso inclui o texto padrão em inglês "Row updated.". O ambiente informou versão 26.1.6 em wwv_flow.js_messages, enquanto os guias citam 26.1.5. Pendência: restaurar por SQL a data de nascimento nula do registro 315.
+
+Conclusão do teste de edição em 09/11/2026: usuário salvou manualmente o registro 315 e restaurou por SQL a data de nascimento nula, confirmada em novo carregamento, com nome e demais campos originais. Consulta informada pelo usuário após os salvamentos: contas = 0 e historico = 3. Sem conta APEX para DEMO.CARREIRA.1.4, o CREATE_USER não rodou na edição (a carga demo insere em COLABORADOR sem criar conta; a expectativa anterior de contas = 1 estava errada). Os 3 lançamentos são compatíveis com a carga 09_dados_demo_dashboard.sql (admissão, promoção e desligamento), sem indício de admissão nova. O usuário não informou se a tela voltou à lista no salvamento manual.
+
+## Decisões de acesso e confirmação do retorno — 09/11/2026
+
+Usuário confirmou a mensagem de sucesso no salvamento manual da edição; o não redirecionamento visto antes era da aba automatizada.
+
+Decisões: equipe do Corlix Hub vê todas as empresas e os perfis; RH edita; gestores e diretoria só leem; data de nascimento segue obrigatória. Versionado: view com liberação explícita pelo papel equipe-do-corlix-hub, reutilizando fn_colab_tem_papel, e código da autorização no §12.2. Interpretação registrada: a equipe é somente leitura na lista, sem link de edição, pois apenas o RH foi citado como editor.
+
+Não compilado nem aplicado; sem teste com conta da equipe. Risco a observar: nova chamada de função no predicado, a validar nas contagens das facetas. Próximo passo: aplicar o bloco do §12.0 e testar 4A.
+
+Validação com a conta Teste Rh após o usuário aplicar a view e a autorização, 09/11/2026: lista com 309 registros, faceta Empresa só com Corlix, contagens das facetas carregadas sem ORA-, link no nome, botão Novo colaborador e coluna Pessoa única. Mostra que o RH segue restrito à própria empresa. O acesso global da equipe do Corlix Hub não foi testado, por falta de sessão com essa conta, e o último backup (14:51) é anterior à aplicação.
+
+Observado sem relação comprovada com a alteração: exceção de console em onerror de imagem (nextElementSibling nulo) e avatar do cabeçalho ausente nessa carga, embora a imagem e o span de iniciais existam no DOM. O Global Page não muda desde 05/11. Causa não investigada.
+
+Teste com a conta AMANDANUNES, informada como da equipe, 09/11/2026: lista abriu pelo menu, 309 registros, sem link no nome, sem botão Novo colaborador, coluna Pessoa única e sem erro. Somente leitura confirmada. Faceta Empresa só com Corlix, igual à conta de RH: inconclusivo para o acesso global, pois pode haver colaboradores de uma única empresa ou a conta pode não ter o papel equipe-do-corlix-hub. Próximo passo: conferir por SQL as empresas com colaboradores e os papéis da conta.
+
+Resultado das consultas, informado pelo usuário em 09/11/2026: colaboradores só na empresa Corlix (309) e AMANDANUNES apenas com o papel diretoria. Logo, o teste anterior vale como teste 2 (diretoria, somente leitura, aprovado), e não como teste da equipe. O acesso global (teste 4A) segue sem teste: exige conta com equipe-do-corlix-hub e colaborador em outra empresa para distinguir o resultado.
+
+Teste com a conta SARAHSILVA2, da equipe do Corlix Hub, 09/11/2026: a p12 não abre. ORA-20012 em APROVADOR_PONTO (PKG_PONTO.FN_E_APROVADOR via FN_EMPRESA_CONTEXTO), porque a conta não tem empresa em G_ID_EMPRESA; a autorização está em item de menu, logo afeta todas as páginas. Correção proposta no §12.0: tratar -20012 como falso no esquema, seguindo o tratamento já usado em pkg_suporte_ui, sem recompilar o package. Não aplicada nem testada. Caso novo registrado no guia do Ponto; rodar casos.py indexar após o merge. Teste 4A segue pendente.
+
+Reteste com SARAHSILVA2 após a correção de APROVADOR_PONTO, 09/11/2026: a p12 abre sem erro (correção confirmada), porém com 0 colaboradores e com o botão Novo colaborador, indicando papel Admin RH nessa conta. Teste 4A reprovado até o diagnóstico: conferir se a conta tem equipe-do-corlix-hub e se a view instalada contém a liberação.
+
+Novo reteste com SARAHSILVA2, 09/11/2026: após acrescentar à view a condição com fn_colab_tem_papel (bloco com dbms_metadata), a lista seguiu com 0 registros, embora a conta tenha equipe-do-corlix-hub. Hipótese, não confirmada: APEX_ACL.HAS_USER_ROLE não reconhece o papel nesse contexto. Tentativas com colagem longa no SQL Commands falharam (ORA-00900 e ORA-00923). Versionada a troca por fn_colab_e_equipe, baseada em apex_authorization.is_authorized('EQUIPE_CORLIX_HUB'). Atenção: a classificação de Perfil usa o mesmo fn_colab_tem_papel; se a hipótese se confirmar, papéis manuais podem estar sendo classificados como Colaborador. Não aplicado nem testado.
+
+Com fn_colab_e_equipe aplicada, o usuário confirmou que a lista apareceu para a conta da equipe, o que aponta APEX_ACL.HAS_USER_ROLE como a causa provável dos zeros. Teste 4A: lista aprovada; relato do usuário, sem nova leitura da tela.
+
+Fotos ausentes para a equipe: entregar_foto responde 404 sem G_ID_EMPRESA, e a página 44 exige COLABORADOR, que uma conta só da equipe não atende. Versionado em pkg_arquivos: a equipe resolve a empresa pelo dono da foto; a página 44 passa a VER_FOTO_COLABORADOR. Se dois colaboradores de empresas diferentes tiverem o mesmo nome de arquivo, vale o maior id_empresa. Não aplicado nem testado.
+
+Validação na tela com SARAHSILVA2, sem empresa e com equipe-do-corlix-hub, 09/11/2026: 309 registros, facetas carregadas, 15 de 15 fotos da página carregadas e sem erro de tela ou console. Correções de APROVADOR_PONTO, fn_colab_e_equipe, pkg_arquivos e página 44 aplicadas pelo usuário. Limites: só existe uma empresa com colaboradores, e a conta também tem admin-rh, logo o modo somente leitura e o acesso de conta só da equipe à página 44 não foram exercitados. Pendente: revisar a coluna Perfil, que ainda usa APEX_ACL.HAS_USER_ROLE.
+
+Coluna Perfil, 09/11/2026: consulta informada pelo usuário mostrou AnaSouza (publicador-de-conteúdo), FernandaLima (admin-rh) e EDUARDOMARINS (diretoria, admin-rh, equipe-do-corlix-hub, publicador-de-conteúdo) com papéis atribuídos fora do cargo. Com a faceta Publicador sem contagem, confirma-se que papel manual não é reconhecido por fn_colab_tem_papel. Versionada a função com consulta a APEX_APPL_ACL_USER_ROLES, mantendo a assinatura e isolando o SQL da agregação de facetas. Risco a validar: retorno de ORA-00904 e tempo de carga. Não aplicado nem testado.
+
+Validação da coluna Perfil na tela, 09/11/2026, conta SARAHSILVA2: facetas Colaborador 292, Administrador 16 e Publicador 1, conforme o previsto; filtro Publicador retornou AnaSouza com a etiqueta correta, sem ORA-00904 ou erro de console; documento da página em cerca de 0,7 s. Correção de fn_colab_tem_papel confirmada. Limitação conhecida vista na tela: "1 colaboradores" no singular.
+
+Decisão do usuário, 09/11/2026: a equipe do Corlix Hub só lê; quem decide sobre funcionários é principalmente o RH e a diretoria e, com aval, os gestores. A leitura é garantida retirando admin-rh das contas da equipe, sem alteração de código; SARAHSILVA2 e EDUARDOMARINS têm os dois papéis. A permissão de edição no sistema segue só com ADMIN_RH; a aprovação da diretoria e o aval dos gestores não foram implementados e dependem de confirmação do usuário.
+
+Validação de somente leitura da equipe, 09/11/2026: após o usuário retirar admin-rh, SARAHSILVA2 (sem empresa) abriu a p12 com 309 registros, 15 de 15 fotos carregadas, sem link no nome, sem Novo colaborador, coluna Pessoa única e sem erro de tela ou console; o item Ponto eletrônico saiu do menu. Confirma VER_LISTA_COLABORADORES e VER_FOTO_COLABORADOR para conta sem admin-rh. Observação visual: o nome sem link mantém a cor de link. Teste com colaboradores de uma segunda empresa segue impossível, pois só existe a Corlix.
+
+Decisão do usuário, 09/11/2026: Gestor e Situação ficam só leitura na edição da p14, pois as alterações passam pela Movimentação, que atualiza id_gestor e status. Passos no §12.0 e §12.8. Não aplicado nem testado.
+
+Validação da trava de Gestor e Situação, 09/11/2026, conta TESTE.RH, sem salvar: na edição do registro 315, P14_GESTOR e P14_STATUS renderizam como somente leitura; na criação, Gestor segue como Popup LOV editável e Situação sem classe de leitura. Pendente: salvar uma edição com Situação em leitura, para confirmar que o valor booleano não muda. Observações visuais: Situação exibe "Off" em vez de Inativa, e o texto "Busque pelo nome" permanece no Gestor bloqueado.
+
+Teste de salvar com Situação travada, 09/11/2026, conta TESTE.RH, autorizado pelo usuário no [DEMO] Ana Lima (id 312, Ativa), com data de nascimento preenchida por SQL para o teste. Salvo sem alterar valores: a página voltou à lista com "Row updated. Alterações salvas."; a situação segue Ativa, e nome, nascimento, admissão, e-mail e login ficaram iguais em novo carregamento. Trava aprovada. Desta vez o redirecionamento ocorreu também na aba automatizada. Pendência: restaurar por SQL a data de nascimento nula do registro 312.
+
+Decisão do usuário, 09/11/2026: as decisões sobre funcionários acontecem fora do sistema e o RH as registra; não há edição pela diretoria nem fluxo de aprovação de gestores a implementar. Usuário informou a restauração da data de nascimento nula do registro 312. Pendências das páginas 12 e 14: merge do PR, testes de gestor, colaborador comum, criação, caracteres especiais e tela estreita, além dos ajustes visuais opcionais.
+
+## Ajustes visuais finais — 09/11/2026
+
+Versionados no §13 do guia: sufixo do total por JS e attr, nome azul só em link, mensagem do processo em lugar de "Row updated.", rótulos da Situação e ajuda neutra do Gestor. A página de mensagens internas do 26.1 não trouxe chave para "Row updated", e o efeito da mensagem no processo depende de teste. CSS: seletores do .css e .min conferidos. Não aplicado nem testado.

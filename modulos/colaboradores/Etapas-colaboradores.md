@@ -503,7 +503,7 @@ Fontes: [mensagens das facetas](https://docs.oracle.com/en/database/oracle/apex/
 
 ## 12. Acesso da liderança e correções da validação de 09/11/2026
 
-Decisão do time em 09/11/2026: **a lista é vista por RH, gestores, CEO e diretores**. Criar e editar continuam só com o RH (`ADMIN_RH`). Cada pessoa vê apenas a própria empresa.
+Decisão do time em 09/11/2026: **a lista é vista por RH, gestores, CEO, diretores e pela equipe do Corlix Hub**. Só o RH (`ADMIN_RH`) cria e edita; os demais apenas leem. A equipe do Corlix Hub, dona do produto, vê todas as empresas; os outros perfis, só a própria. A equipe é somente leitura: contas dela não devem ter o papel `admin-rh`, que libera a edição. A data de nascimento é obrigatória.
 
 Passos conferidos no export e na documentação oficial; nada aqui foi executado na app. Faça na ordem. Caminho marcado "(confirmar no 26.1.5)" que não existir na sua tela: pare e envie um print.
 
@@ -511,48 +511,62 @@ Referências reutilizadas: autorização `COLABORADOR` (composição por `apex_a
 
 ### 12.0 Situação na app (validada na tela em 09/11/2026)
 
-Validado com a conta de RH, no navegador, sem salvar nada; export da p12 enviado pelo usuário e backup `571499e`.
+Validado no navegador com a conta de RH, sem gravar dados, e no backup `4633d7a`. **Layout da p12 fiel ao protótipo em desktop.** Os ajustes de CSS, classe da barra, tradução e branch da p14 estão aplicados.
 
-**Funciona na tela:** layout de filtros e relatório, total acompanhando o filtro, "Ordenar por", avatar cinza de inativos, etiquetas e badges, paginação em português e, na edição da p14, título com nome e situação, sem campos de senha, com login, empresa, departamento e cargo bloqueados e botão "Salvar alterações".
+**Falta testar (§12.9):**
 
-**Falta fazer, nesta ordem:**
+| Teste | O que falta |
+|---|---|
+| 2, 3 e 4 | Contas de diretor, gestor e colaborador comum |
+| 6 | Caracteres especiais em nome de departamento |
+| 11 e 12 | Salvar edição e criar colaborador, com registro de teste |
+| 14 | Tela estreita |
 
-| # | Ajuste | Por quê |
-|---|---|---|
-| 1 | Publicar `colaboradores.css` e `.min.css` novos | Trazem a barra, as contagens à direita e a remoção do menu de três pontos |
-| 2 | Colocar a classe na região Barra da lista | O CSS usa classe; o Static ID não apareceu no HTML, que usa id gerado |
-| 3 | Marcar `APEX.FS.CLEAR` para uso em JavaScript | O botão "Clear" segue em inglês |
-| 4 | **Conferir o branch "Limpar formulário" da p14** | No último backup segue antes dos processos; sem o ajuste, salvar a edição não volta à lista e pode não gravar |
-| 5 | Testar | §12.9, sobretudo salvar (11 e 12) e os perfis (1 a 4) |
+**Diferenças aceitas em relação ao protótipo:** seta "Pessoa ↑" (a ordenação é pelo seletor), linhas mais altas quando nomes reais quebram em duas linhas, opção "Sem vínculo" ausente (isolamento por empresa), menu lateral e, nas facetas, ausência do filtro interno de valores, removido junto com o menu de três pontos.
 
-**Ajuste 1 · Publicar o CSS**
+**Falta aplicar: acesso da equipe do Corlix Hub**
 
-Siga o Item 2 do §12.1 com os dois arquivos atuais desta pasta.
+1. Em **SQL Commands**, execute [`01_vw_colaboradores_lista.sql`](./01_vw_colaboradores_lista.sql) atualizado e confira `VALID` na consulta do Item 1 do §12.1.
+2. Abra **Shared Components › Security › Authorization Schemes › VER_LISTA_COLABORADORES** e troque o código pelo do §12.2.
+3. Clique em **Apply Changes**. Quem estiver logado precisa sair e entrar de novo.
 
-**Ajuste 2 · Classe da barra**
+**Confira:** com conta da equipe, a faceta Empresa lista as empresas cadastradas, inclusive "Sem vínculo" se houver, e o nome aparece sem link, sem o botão Novo colaborador. Com conta de RH, continua só a própria empresa.
 
-1. Página 12 › clique na região **Barra da lista**.
-2. Em **Appearance › CSS Classes**, informe `cx-colab-barra`.
-3. Clique em **Save**.
+**Fotos para a equipe:** a página 44 e `pkg_arquivos` conferem a empresa da sessão, que a equipe não tem. A correção libera só o papel da equipe:
 
-**Confira (com Ctrl+F5):** "N colaboradores" à esquerda e "Ordenar por" com o seletor compacto à direita, na mesma linha. Nas facetas, contagens à direita, sem parênteses e sem os três pontos.
+1. Em **Authorization Schemes**, crie `VER_FOTO_COLABORADOR`, do tipo PL/SQL Function Returning Boolean, com mensagem `Acesso restrito.`, avaliação uma vez por sessão e o código:
+   ```plsql
+   return apex_authorization.is_authorized('COLABORADOR')
+       or apex_authorization.is_authorized('EQUIPE_CORLIX_HUB');
+   ```
+2. Página 44 › **Security › Authorization Scheme** = `VER_FOTO_COLABORADOR`.
+3. Instale o [`02_pkg_arquivos.pkb`](../arquivos/02_pkg_arquivos.pkb) atualizado.
 
-**Ajuste 3 · Tradução do Clear**
 
-1. Abra **Shared Components › Globalization › Text Messages**.
-2. Abra `APEX.FS.CLEAR` e ligue **Used in JavaScript** (confirmar no 26.1.5).
-3. Salve e, na p12, marque um filtro: o botão deve mostrar "Limpar".
+**Falta corrigir: autorização que derruba as contas sem empresa**
 
-**Ajuste 4 · Branch da página 14**
+A equipe do Corlix Hub não tem empresa vinculada. Para essas contas, `APROVADOR_PONTO` termina em `ORA-20012` ("Sua sessão não está vinculada a uma empresa"), e como ela protege um item do menu, **nenhuma página abre**. Sair e entrar de novo não resolve.
 
-1. Página 14 › aba **Processing** › branch **Limpar formulário após carregamento**.
-2. Em **Execution › Point**, confirme **After Processing**; se estiver diferente, troque e clique em **Save**.
+1. Abra **Shared Components › Security › Authorization Schemes › APROVADOR_PONTO**.
+2. Em **PL/SQL Function Body**, troque o código por:
+   ```plsql
+   begin
+     return pkg_ponto.fn_e_aprovador = 'S';
+   exception
+     when others then
+       if sqlcode = -20012 then
+         return false;
+       end if;
+       raise;
+   end;
+   ```
+3. Clique em **Apply Changes**, saia e entre de novo com a conta da equipe.
 
-**Confira:** ao salvar uma edição de teste, a tela volta para a lista com "Alterações salvas.".
+**Confira:** a página abre sem o erro, e o item **Ajustes de ponto** não aparece no menu dessa conta. Para quem tem empresa, nada muda.
 
-**Diferenças aceitas em relação ao protótipo:** seta "Pessoa ↑" (a ordenação é pelo seletor), linhas mais altas quando nomes reais quebram em duas linhas, opção "Sem vínculo" ausente (isolamento por empresa) e menu lateral, que depende dos módulos existentes.
+**Falta aplicar: Gestor e Situação só leitura na edição.** Em `P14_GESTOR` e em `P14_STATUS`, na página 14: **Read Only › Type** = Item is NOT NULL e **Item** = `P14_ID_COLABORADOR`. Salve. Ao criar colaborador, os dois continuam editáveis.
 
-**Decisões em aberto:** equipe do Corlix Hub na lista (hoje fora), e se gestor e situação ficam só leitura na edição (hoje editáveis, e a alteração não entra no histórico).
+A data de nascimento continua obrigatória: registros sem ela precisam ser completados para salvar uma edição. A página continua em `@/standard`, divergência registrada no [11 · Padrões de páginas](../../docs/ai-context/11-padroes-de-paginas.md), §6.
 
 ### 12.1 Banco e arquivos (itens 1, 2 e 3)
 
@@ -576,7 +590,7 @@ Siga o Item 2 do §12.1 com os dois arquivos atuais desta pasta.
     order by type, sequence
    ```
 
-> A view agora só devolve a empresa da sessão. Em SQL Commands `G_ID_EMPRESA` é nulo, então `select * from vw_colaboradores_lista` volta **vazio**: é o esperado. A lista só mostra dados dentro da app. Colaboradores sem empresa não aparecem para ninguém, e a opção "Sem vínculo" da faceta Empresa some. O alerta "Cadastro incompleto" continua para quem tem empresa, mas não tem departamento ou cargo.
+> A view agora só devolve a empresa da sessão. Em SQL Commands `G_ID_EMPRESA` é nulo, então `select * from vw_colaboradores_lista` volta **vazio**: é o esperado. A lista só mostra dados dentro da app. Colaboradores sem empresa só aparecem para a equipe do Corlix Hub; para os demais, a opção "Sem vínculo" da faceta Empresa some. O alerta "Cadastro incompleto" continua para quem tem empresa, mas não tem departamento ou cargo.
 
 #### Item 2 · Publicar os arquivos CSS
 
@@ -611,6 +625,7 @@ Faça só depois do item 2.
 4. Em **PL/SQL Function Body**, cole:
    ```plsql
    return apex_authorization.is_authorized('ADMIN_RH')
+       or apex_authorization.is_authorized('EQUIPE_CORLIX_HUB')
        or apex_authorization.is_authorized('SOMENTE_DIRETORIA')
        or apex_authorization.is_authorized('GESTOR')
        or apex_acl.has_user_role(
@@ -846,7 +861,7 @@ Hoje `CREATE_USER` roda em todo envio, então salvar um colaborador existente te
 **Passo B · Campos**
 
 4. Em `P14_SENHA` e em `P14_CONFIRMAR_SENHA`: **Server-side Condition › Type** = Item is NULL e **Item** = `P14_ID_COLABORADOR`.
-5. Em cada um destes: `P14_LOGIN`, `P14_EMPRESA`, `P14_DEPARTAMENTO` e `P14_CARGO`: **Read Only › Type** = Item is NOT NULL e **Item** = `P14_ID_COLABORADOR`.
+5. Em cada um destes: `P14_LOGIN`, `P14_EMPRESA`, `P14_DEPARTAMENTO`, `P14_CARGO`, `P14_GESTOR` e `P14_STATUS`: **Read Only › Type** = Item is NOT NULL e **Item** = `P14_ID_COLABORADOR`.
 6. Em `P14_LOGIN`, **Help › Inline Help Text** = `O login não pode ser alterado.`
 
 **Passo C · Validação e processos**
@@ -889,7 +904,7 @@ Hoje `CREATE_USER` roda em todo envio, então salvar um colaborador existente te
 
 **Confira:** abra pelo botão Novo colaborador: título "Novo colaborador", campos de senha e botão "Salvar colaborador". Abra pelo nome de alguém: título com o nome e a situação, sem senha, login bloqueado e botão "Salvar alterações". Faça o teste de salvar só com registro de teste (§12.9, testes 11 e 12).
 
-Departamento e cargo ficam só leitura na edição porque a mudança precisa passar por **Histórico de carreira › Movimentação**, que registra o evento e atualiza o colaborador. É uma diferença consciente em relação ao protótipo.
+Departamento, cargo, gestor e situação ficam só leitura na edição porque a mudança precisa passar por **Histórico de carreira › Movimentação**, que registra o evento e atualiza o colaborador. É uma diferença consciente em relação ao protótipo.
 
 ### 12.9 Testes
 
@@ -899,6 +914,7 @@ Departamento e cargo ficam só leitura na edição porque a mudança precisa pas
 | 2 | CEO ou diretor(a) sem papel de RH | Menu e lista visíveis; nome sem link; sem botão |
 | 3 | Gestor pelo papel e gestor só com subordinados | Iguais ao teste 2 |
 | 4 | Colaborador comum | Sem item no menu; URL direta da p12 mostra acesso restrito |
+| 4A | Equipe do Corlix Hub | Lista de todas as empresas; nome sem link; sem botão Novo colaborador |
 | 5 | Linha com cadastro incompleto | Ícone de alerta, sem tags visíveis |
 | 6 | Departamento de teste com `<b>&` no nome | Texto literal, sem negrito |
 | 7 | Colaborador com foto e sem foto | Foto real; sem foto, iniciais |
@@ -928,3 +944,54 @@ Departamento e cargo ficam só leitura na edição porque a mudança precisa pas
 - **Gestor:** vê a empresa inteira, não só a própria equipe, conforme a decisão acima.
 
 Fontes: [Order By Item](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/managing-sorting-with-order-by-item.html), [total em seletor](https://docs.oracle.com/en/database/oracle/apex/26.1/apxdc/showing-filter-chips-and-total-row-count.html), [SET_EMAIL](https://docs.oracle.com/en/database/oracle/apex/26.1/aeapi/SET_EMAIL-Procedure.html) e [LOCK_ACCOUNT](https://docs.oracle.com/en/database/oracle/apex/26.1/aeapi/LOCK_ACCOUNT-Procedure.html).
+
+---
+
+## 13. Ajustes visuais finais
+
+Nada aqui altera regras de acesso. **Estado: proposto, ainda não aplicado nem testado.** Referência: padrão `*-pagina.js` do Holerite e do Ponto.
+
+### 13.1 Publicar o CSS e o script (singular e nome sem link)
+
+Corrige "1 colaboradores" e deixa o nome azul só para quem tem link.
+
+1. Publique `colaboradores.css` e `colaboradores.min.css` desta pasta, como no Item 2 do §12.1.
+2. Página 12 › nó **Page 12: Colaboradores** › **JavaScript › Execute when Page Loads**: cole o conteúdo de [`colaboradores-pagina.js`](./colaboradores-pagina.js).
+3. Clique em **Save** e recarregue com Ctrl+F5.
+
+Faça os dois passos juntos: sem o script, o sufixo "colaboradores" não aparece.
+
+**Confira:** com filtro de um resultado, a barra mostra "1 colaborador". Com conta de RH, o nome é azul e sublinha ao passar o mouse. Com conta somente leitura, o nome fica na cor do texto.
+
+### 13.2 Trocar "Row updated."
+
+A documentação do 26.1 não lista uma chave de tradução para esse texto. Por isso, a mensagem vai no próprio processo (confirmar o efeito no teste).
+
+1. Página 14 › aba **Processing** › processo **Salvar Dados Colaborador**.
+2. Em **Success Message › Success Message**, informe `Dados salvos.`
+3. Apague o processo **Confirmar alteração**, para não exibir duas mensagens.
+4. Clique em **Save**.
+
+**Confira:** ao salvar uma edição, aparece só "Dados salvos.". Ao criar, "Dados salvos. Colaborador cadastrado com sucesso!". Se "Row updated." continuar, envie um print e não crie outro processo.
+
+### 13.3 Situação travada com "Off"
+
+1. Página 14 › item `P14_STATUS`.
+2. Em **Settings**, desligue **Use Defaults** e preencha:
+
+   | Propriedade | Valor |
+   |---|---|
+   | **On Value** | `Y` |
+   | **On Label** | `Ativa` |
+   | **Off Value** | `N` |
+   | **Off Label** | `Inativa` |
+
+3. Clique em **Save**.
+
+**Confira:** a edição mostra "Ativa" ou "Inativa", conforme o título. **Teste criar ou salvar com registro de teste:** a coluna é booleana, e os valores acima são os padrão da app; a situação não pode mudar.
+
+### 13.4 Ajuda do Gestor
+
+1. Página 14 › item `P14_GESTOR`.
+2. Em **Help › Inline Help Text**, informe `Quem está no topo da hierarquia (ex.: CEO) não tem gestor.`
+3. Clique em **Save**.

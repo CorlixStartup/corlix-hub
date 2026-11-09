@@ -10,6 +10,7 @@
 --   - Resolução do perfil principal (Administrador, Publicador de conteúdo, Colaborador)
 --   - Situação (Ativa / Inativa) para o badge
 --   - Multiempresa: só devolve a empresa de G_ID_EMPRESA; sem empresa na sessão, nenhuma linha
+--   - Equipe do Corlix Hub (papel explícito): vê todas as empresas e quem está sem empresa
 -- =============================================================================
 
 create or replace force editionable view vw_colaboradores_lista as
@@ -110,4 +111,5 @@ select c.id_colaborador,
   left join empresa e      on e.id_empresa = c.id_empresa
   left join departamento d on d.id_departamento = c.id_departamento
   left join cargo cg       on cg.id_cargo = c.id_cargo
- where c.id_empresa = to_number(v('G_ID_EMPRESA') default null on conversion error);
+ where c.id_empresa = to_number(v('G_ID_EMPRESA') default null on conversion error)
+    or fn_colab_e_equipe = 1;
