@@ -121,3 +121,9 @@ Verificação local: diff e links do guia; reindexação documental. Compilaçã
 A DEV avançou para 6efa452 com a integração do PR #129, gerando conflito no guia de Colaboradores. Integrada origin/DEV à branch do #130, preservando a chamada ao package, a instalação já confirmada de ACL/CSS e a distinção entre acesso à lista e autorização da ação. Incorporadas as verificações úteis de HTML, paginação, facetas e troubleshooting do #129, sem reintroduzir restrição geral a ADMIN_RH ou HTML inline no cabeçalho. Corrigida também a descrição do módulo que havia sido combinada automaticamente com a orientação antiga.
 
 Verificação: diff sem erros, ausência de marcadores de conflito, links locais do guia e reindexação dos casos. Nenhuma alteração em pastas protegidas nem teste no Builder. O merge do PR para DEV permanece a cargo do time; compilação e validações da aplicação continuam pendentes.
+
+## Confirmação de Link Text — 09/11/2026
+
+O usuário forneceu o HTML atualmente aplicado em NOME_COMPLETO: já está em Link Text, com spans de pessoa/avatar/nome/e-mail e sem âncora interna. O guia §5.1 foi ajustado para reconhecer esse estado e orientar somente as substituições !ATTR em FOTO_URL e !HTML em INICIAIS, NOME_COMPLETO e EMAIL, preservando Type e Target.
+
+Verificação: conferência do trecho enviado, diff sem erros e reindexação. Alteração exclusivamente documental. Não houve aplicação no Builder; escape e comportamento da página 14 continuam pendentes de validação. Próximo passo: aplicar as quatro substituições e conferir apresentação/caracteres especiais.

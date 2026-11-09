@@ -179,7 +179,7 @@ Selecione cada coluna da região em *Columns* e configure. O link Pessoa abaixo 
 
 | Coluna | Type | Heading | Propriedades e Formatação |
 |---|---|---|---|
-| `NOME_COMPLETO` | **Link** | `Pessoa` | **Sortable**: Yes<br>**Default Sequence**: 1<br>**Default Direction**: Ascending<br>**Escape Special Characters**: No<br>**Link › Target**: Page `14`<br>**Link › Set Items**: `P14_ID_COLABORADOR` = `#ID_COLABORADOR#`<br>**Link › Clear Cache**: `14`<br>**Link › Link Text** (confirmar no 26.1.5):<br>`<span class="cx-colab-pessoa"><span class="cx-avatar"><img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>` |
+| `NOME_COMPLETO` | **Link** | `Pessoa` | **Sortable**: Yes<br>**Default Sequence**: 1<br>**Default Direction**: Ascending<br>**Escape Special Characters**: No<br>**Link › Target**: Page `14`<br>**Link › Set Items**: `P14_ID_COLABORADOR` = `#ID_COLABORADOR#`<br>**Link › Clear Cache**: `14`<br>**Link › Link Text** (uso confirmado pelo usuário em 09/11/2026):<br>`<span class="cx-colab-pessoa"><span class="cx-avatar"><img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>` |
 | `LOGIN_APEX` | **Plain Text** | `Login` | **Sortable**: Yes |
 | `VINCULO_LINHA1` | **Plain Text** | `Vínculo` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`<div class="cx-colab-vinculo #CLASSE_VINCULO!ATTR#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO!RAW##VINCULO_LINHA1!HTML#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2!HTML#</span></div>` |
 | `PERFIL` | **Plain Text** | `Perfil` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`#PERFIL_HTML!RAW#` |
@@ -187,7 +187,32 @@ Selecione cada coluna da região em *Columns* e configure. O link Pessoa abaixo 
 | *Demais colunas* | **Hidden** | — | Deixe como **Hidden**: `ID_COLABORADOR`, `EMAIL`, `PRIMEIRO_NOME`, `ULTIMO_NOME`, `FOTO_URL`, `TEM_IMAGEM`, `INICIAIS`, `ID_EMPRESA`, `EMPRESA`, `ID_DEPARTAMENTO`, `DEPARTAMENTO`, `ID_CARGO`, `CARGO`, `VINCULO_LINHA2`, `FL_SEM_VINCULO`, `CLASSE_VINCULO`, `ICONE_VINCULO`, `PERFIL_HTML`, `SITUACAO_CLASSE`. |
 
 
-**Coluna Pessoa:** como `NOME_COMPLETO` é do tipo **Link**, preencha o HTML em **Link › Link Text**, não em **HTML Expression**. O APEX gera a tag `<a>` com o destino e o checksum; não coloque outra tag `<a>` dentro do conteúdo nem use `&LINK.`. As demais colunas **Plain Text** continuam usando **HTML Expression**.
+**Coluna Pessoa — já aplicado:** o usuário confirmou em 09/11/2026 que `NOME_COMPLETO` já usa **Type = Link** e o HTML em **Link Text**. Não mudar o tipo, mover o HTML ou reconfigurar o Target para este ajuste. O APEX gera a tag `<a>` com o destino e o checksum; não coloque outra tag `<a>` dentro do conteúdo nem use `&LINK.`. As demais colunas **Plain Text** continuam usando **HTML Expression**.
+
+**Ajuste pontual na configuração existente:** em NOME_COMPLETO → Link → Link Text, substitua somente as quatro referências abaixo, ou cole o conteúdo completo a seguir. Preserve classes, estrutura, Type e Target atuais.
+
+| Referência atual | Referência com escape |
+|---|---|
+| `#FOTO_URL#` | `#FOTO_URL!ATTR#` |
+| `#INICIAIS#` | `#INICIAIS!HTML#` |
+| `#NOME_COMPLETO#` | `#NOME_COMPLETO!HTML#` |
+| `#EMAIL#` | `#EMAIL!HTML#` |
+
+```html
+<span class="cx-colab-pessoa">
+  <span class="cx-avatar">
+    <img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL!ATTR#"
+         alt="" onerror="this.remove();" loading="lazy">
+    #INICIAIS!HTML#
+  </span>
+  <span class="cx-colab-pessoa__info">
+    <span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span>
+    <span class="cx-colab-pessoa__email">#EMAIL!HTML#</span>
+  </span>
+</span>
+```
+
+O escape ainda não foi confirmado como aplicado. Após salvar, confira a apresentação e caracteres especiais em nome/e-mail. A confirmação de Link Text não valida os processos de edição da página 14.
 
 **Escape:** !HTML protege os textos livres e !ATTR os atributos. !RAW fica restrito aos fragmentos fixos de ícone e etiqueta da view. Teste caracteres especiais em nomes e vínculos sem produzir marcação.
 
