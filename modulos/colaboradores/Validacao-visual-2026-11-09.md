@@ -81,3 +81,24 @@ Esta seção atualiza a auditoria da captura das 10:45. A captura anterior não 
 **Não pronta para homologação final e ainda não integralmente fiel ao protótipo.** As correções de configuração acima estão no backup e não devem ser solicitadas novamente como se faltassem. Para concluir: implementar barra sincronizada; resolver/validar edição e política de acesso; tratar Vínculo; testar o fluxo e produzir captura atual em desktop e tela estreita. Não exigir oito registros ou dimensões fixas do mockup.
 
 Validações executadas nesta revisão: comparação dos exports, inspeção dos packages/DDL, consulta pontual do export SQL para paginação, inspeção das mensagens e comparação dos arquivos CSS. Não houve alteração de código da app, execução de testes Oracle nem validação visual posterior às 12:06.
+
+## Revalidação estática da DEV 7f902ab — 09/11/2026
+
+Comparados o protótipo, p00012 e p00014 do export, shared components, view, package e CSS, a partir de `origin/DEV` (7f902ab). Revisão estática: a tentativa de abrir a página no navegador parou no login, e nenhuma credencial foi digitada. Não houve execução da página, consulta ao banco nem alteração na app.
+
+**Parecer: não pronta e ainda parcialmente fiel ao protótipo.** Estrutura, colunas, cabeçalho e ordem das facetas conferem. A seção anterior continua válida; abaixo, somente o que ela não registrava ou o que agora tem causa mais precisa.
+
+| Prioridade | Achado | Evidência | Encaminhamento |
+|---|---|---|---|
+| Alta | Salvar pela edição não pode concluir: a p14 executa `APEX_UTIL.CREATE_USER` sem condição | Processo `criar-usuario-apex` (sequence 20) sem `serverSideCondition`; o link da p12 envia `P14_ID_COLABORADOR`; também não há condição por modo em `registrar-admissão` (só ID não nulo) | Separar criação e edição na p14 antes de tratar o nome como link de edição. Comportamento exato a confirmar em DEV com registro de teste |
+| Alta | Provável HTML literal no alerta de Sem vínculo | HTML Expression usa `#ICONE_VINCULO#`; a coluna oculta não tem `escapeSpecialChars: false`. É o mesmo mecanismo do defeito já visto em `PERFIL_HTML`. Confirmar com uma linha sem vínculo | Aplicar `#CLASSE_VINCULO!ATTR#`, `#ICONE_VINCULO!RAW#`, `#VINCULO_LINHA1!HTML#` e `#VINCULO_LINHA2!HTML#`, e testar caracteres especiais |
+| Alta | `VINCULO_LINHA1` sem escape expõe nome de empresa e departamento | Coluna com `escapeSpecialChars: false` e valor composto sem escape na view | Mesma correção acima |
+| Média | Item de menu visível a quem não pode abrir a página | `entry colaboradores` sem `authorizationScheme`; a p12 exige `@admin-rh`. Outras entradas restritas têm o esquema | Resolver junto da decisão sobre o público da lista |
+| Média | Fotos fora do padrão atual do projeto | Link Text usa `#APP_FILES#Fotos Colaboradores/#FOTO_URL!ATTR#`; Chat usa `apex_page.get_url(p_page => 44, ...)` com o nome extraído e trata valor vazio ou legado. Com o `onerror`, a falha pode aparecer como iniciais, sem erro visível | Usar o padrão da página 44 e testar colaborador com foto real |
+| Média | Avatar de pessoa inativa sem o tom cinza do protótipo | Protótipo mostra DM em cinza; o Link Text sempre usa `cx-avatar`, e a view não expõe classe por situação. `.cx-avatar--vazio` existe, mas tem fonte maior | Definir variante e expor classe fixa |
+| Baixa | Rótulo da busca em inglês | `P12_SEARCH.label: Search` | Trocar para pt-BR; conferir se é exibido |
+| Baixa | `colaboradores.min.css` diverge entre módulo e static file | Blobs diferentes em `modulos/colaboradores/` e `corlixhub/shared-components/static-files/modulos/colaboradores/`; os `.css` são idênticos | Consolidar o CSS Inline e publicar um `.min` único |
+
+Conferido sem divergência: autorização e checksum das páginas 12 e 14; ordem e tipo das facetas; colunas; tokens e classes `cx-etiqueta`, `cx-badge--sucesso`, `cx-badge--neutro` e `cx-avatar`; ícone `fa-warning` mapeado; papéis consultados existem em `acl-roles.apx`; static files cadastrados; item de menu sob Pessoas.
+
+Próximo passo: separar criação e edição na p14, corrigir Vínculo, decidir o público da lista e o predicado de empresa nula, implementar a barra de total e ordenação e então validar em execução, autenticado, com captura em desktop e em tela estreita.

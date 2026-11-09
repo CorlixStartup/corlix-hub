@@ -30,7 +30,7 @@ Tabelas existentes (COLABORADOR, CARGO, DEPARTAMENTO, EMPRESA, COMUNICADO)
         └─ package *_UI / render  → CLOB de HTML (escapado com apex_escape)
              └─ Região APEX "Dynamic Content" (template Blank with Attributes, Static ID fixo,
                 Source = PL/SQL Function Body returning CLOB, Page Items to Submit = item de foco)
-                  ├─ CSS do módulo (Static Application File ou CSS Inline), escopado num prefixo (.org / .hc)
+                  ├─ CSS do módulo (Static Application File), escopado num prefixo (.org / .hc)
                   └─ JS do módulo em blocos: Function and Global Variable Declaration /
                      Execute when Page Loads / Dynamic Actions; eventos delegados via data-*,
                      apex.region(id).refresh() e apex.server.process(<Ajax Callback>)

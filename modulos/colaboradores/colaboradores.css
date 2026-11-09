@@ -71,6 +71,31 @@
     color: var(--cx-texto-2);
 }
 
+/* --- Barra acima do relatório: total e ordenação --- */
+#cx-colab-barra {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.cx-colab-barra__total {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cx-texto);
+}
+
+.cx-colab-barra__total::after {
+    content: " colaboradores";
+}
+
+/* Avatar de pessoa inativa em tom neutro */
+.cx-avatar--situacao-neutro {
+    background: var(--cx-tag);
+    color: var(--cx-texto-2);
+}
+
 /* --- Ajustes visuais da página de Colaboradores --- */
 .cx-colaboradores-pagina .a-FS-facetList {
     gap: 16px;
