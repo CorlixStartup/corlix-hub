@@ -503,7 +503,7 @@ Fontes: [mensagens das facetas](https://docs.oracle.com/en/database/oracle/apex/
 
 ## 12. Acesso da liderança e correções da validação de 09/11/2026
 
-Decisão do time em 09/11/2026: **a lista é vista por RH, gestores, CEO, diretores e pela equipe do Corlix Hub**. Só o RH (`ADMIN_RH`) cria e edita; os demais apenas leem. A equipe do Corlix Hub, dona do produto, vê todas as empresas; os outros perfis, só a própria. A data de nascimento é obrigatória.
+Decisão do time em 09/11/2026: **a lista é vista por RH, gestores, CEO, diretores e pela equipe do Corlix Hub**. Só o RH (`ADMIN_RH`) cria e edita; os demais apenas leem. A equipe do Corlix Hub, dona do produto, vê todas as empresas; os outros perfis, só a própria. A equipe é somente leitura: contas dela não devem ter o papel `admin-rh`, que libera a edição. A data de nascimento é obrigatória.
 
 Passos conferidos no export e na documentação oficial; nada aqui foi executado na app. Faça na ordem. Caminho marcado "(confirmar no 26.1.5)" que não existir na sua tela: pare e envie um print.
 
