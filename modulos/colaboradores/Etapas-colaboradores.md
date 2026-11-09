@@ -532,7 +532,16 @@ Validado no navegador com a conta de RH, sem gravar dados, e no backup `4633d7a`
 
 **Confira:** com conta da equipe, a faceta Empresa lista as empresas cadastradas, inclusive "Sem vínculo" se houver, e o nome aparece sem link, sem o botão Novo colaborador. Com conta de RH, continua só a própria empresa.
 
-Fotos de outras empresas podem aparecer como iniciais, porque a página 44 confere a empresa de quem está logado.
+**Fotos para a equipe:** a página 44 e `pkg_arquivos` conferem a empresa da sessão, que a equipe não tem. A correção libera só o papel da equipe:
+
+1. Em **Authorization Schemes**, crie `VER_FOTO_COLABORADOR`, do tipo PL/SQL Function Returning Boolean, com mensagem `Acesso restrito.`, avaliação uma vez por sessão e o código:
+   ```plsql
+   return apex_authorization.is_authorized('COLABORADOR')
+       or apex_authorization.is_authorized('EQUIPE_CORLIX_HUB');
+   ```
+2. Página 44 › **Security › Authorization Scheme** = `VER_FOTO_COLABORADOR`.
+3. Instale o [`02_pkg_arquivos.pkb`](../arquivos/02_pkg_arquivos.pkb) atualizado.
+
 
 **Falta corrigir: autorização que derruba as contas sem empresa**
 
