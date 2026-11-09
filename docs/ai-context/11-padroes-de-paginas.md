@@ -102,7 +102,7 @@ Não troque um componente nativo filtrável por HTML gerado: as facetas dependem
 |---|---|
 | G1 | O guia tem a seção **Referências reutilizadas**, indicando o que veio de qual página |
 | G2 | Caminho do Builder não conferido vai marcado "(confirmar no 26.1.5)"; se não existir, peça print |
-| G3 | Confira no template se a posição existe antes de indicá-la. Exemplo: `Standard` não tem `#ORDER_BY_ITEM#` |
+| G3 | Confira no template e no export se a posição existe antes de indicá-la. Template do tema pode não estar no `f100.sql`: ausência ali não prova que a posição não existe |
 | G4 | Diferencie proposto, versionado, aplicado e validado. Leitura de export não é teste |
 
 ## 4. Antes de entregar

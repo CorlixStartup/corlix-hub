@@ -181,3 +181,11 @@ Registrada a situação no §12.0, com a ordem do que falta, e incluída a remo�
 ## Passo a passo detalhado do §12 — 09/11/2026
 
 §12.1 a §12.8 reescritos por item, com caminho de cada propriedade, valores e conferência. Corrigido: "When Button Pressed" é propriedade própria de Server-side Condition, não opção de Type. Confirmado na documentação do 26.1 que o item de Order By pode ser posicionado em qualquer lugar da página. Referência: export a6d16f1 e documentação oficial. Alteração só documental, sem execução no Builder; caminhos não conferidos seguem marcados.
+
+## Validação das páginas 12 e 14 no backup das 14:10 — 09/11/2026
+
+Comparados guia, export e DDL do backup 571499e. Aplicados na app: view, package, CSS, autorização, menu, consulta, colunas, barra, ordenação e separação de criação e edição. Revisão estática; não houve execução autenticada.
+
+Pendências encontradas: branch "Limpar formulário" em BEFORE_PROCESSING sem condição, antes de todos os processos (AFTER_SUBMIT), o que impede o branch de retorno e pode impedir o salvamento; Barra da lista sem Static ID, com CSS por #cx-colab-barra; relatório em Region Body e barra em Sub Regions; item automático P12_ORDER_BY sobrando.
+
+Correção: a justificativa anterior de que o template Standard não tinha posição de ordenação estava errada. O export mostra a posição sortOrder no relatório; o template do tema não aparece no f100.sql. A região própria segue porque o protótipo põe total e seletor na mesma linha. O caminho de criação de P12_ORDEM no guia foi corrigido conforme o export. Próximo passo: aplicar os ajustes do §12.0 e executar §12.9.

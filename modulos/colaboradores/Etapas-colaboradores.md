@@ -509,29 +509,56 @@ Passos conferidos no export e na documentação oficial; nada aqui foi executado
 
 Referências reutilizadas: autorização `COLABORADOR` (composição por `apex_authorization.is_authorized`), foto do Chat (p. 4, página 44), `pkg_holerite_ui`/`pkg_ponto_ui` (`render_*` com chamada curta) e `render_cabecalho` deste módulo.
 
-### 12.0 Situação na app (backup de 09/11/2026 às 13:11)
+### 12.0 Situação na app (backup de 09/11/2026 às 14:10)
 
-Conferido no export e no DDL do backup `a6d16f1`, que registra "Sem mudanças na app nem no DDL" em relação ao das 12:06. O job só exporta o banco PRD: alteração feita em outro ambiente, ou não salva, não aparece aqui. Leitura de export não prova o funcionamento na tela.
+Conferido no export e no DDL do backup `571499e`. Leitura de export não prova o funcionamento: os testes do §12.9 ainda não foram executados.
 
-**Já está na app; não refaça:** cabeçalho pelo package, filtros à esquerda e relatório à direita, paginação de 15 linhas com links, escape da coluna Pessoa, `!RAW` em Perfil, rótulo "Perfil de acesso" e traduções.
+**Já aplicado; não refaça:** view com isolamento estrito, package com `render_cabecalho_cadastro`, CSS publicado (mesmas regras do módulo), CSS Inline removido, `VER_LISTA_COLABORADORES` na página e no menu, consulta nova, colunas `NOME_COMPLETO`, `NOME_SEM_LINK`, `VINCULO_LINHA1` e `SITUACAO`, regiões Resultados e Barra da lista, total por seletor, `P12_ORDEM` ligado ao relatório, rótulo da busca e, na p14, botões, campos, condições dos processos, processo de confirmação, branch de retorno e cabeçalho.
 
 **Falta fazer, nesta ordem:**
 
-| # | Ajuste | Onde | Estado no backup |
+| # | Ajuste | Por quê | Como |
 |---|---|---|---|
-| 1 | Instalar view e package | §12.1 | View ainda libera empresa nula; package sem `render_cabecalho_cadastro` |
-| 2 | Publicar `.css` e `.min.css` | §12.1 | Arquivos da app diferentes dos desta pasta |
-| 3 | **Apagar o CSS Inline da p12** | §12.1 | Bloco inline ainda na página |
-| 4 | Criar `VER_LISTA_COLABORADORES` | §12.2 | Não existe |
-| 5 | Aplicar na página e no menu | §12.3 | Página com `ADMIN_RH`; menu sem autorização |
-| 6 | Trocar a consulta do relatório | §12.4 | Sem `NOME_SEM_LINK` e sem foto pela página 44 |
-| 7 | Ajustar as colunas | §12.5 | Pessoa sem classe de situação; Vínculo e Situação sem filtros de escape |
-| 8 | Barra de total e ordenação | §12.6 | Sem regiões Resultados e Barra da lista; total nas facetas; sem `P12_ORDEM` |
-| 9 | Rótulo da busca | §12.7 | Ainda `Search` |
-| 10 | Separar criação e edição na p14 | §12.8 | Sem nenhum dos ajustes; `CREATE_USER` sem condição |
-| 11 | Testar | §12.9 | Não executado |
+| 1 | **Mudar o momento do branch "Limpar formulário" na p14** | Está em `Before Processing`, sem condição, antes dos processos. Pode impedir o salvamento, e impede o retorno à lista | Abaixo |
+| 2 | Definir o Static ID da Barra da lista | O CSS usa `#cx-colab-barra`, mas no export só existe a classe | Abaixo |
+| 3 | Mover o relatório para a mesma posição da barra | Barra em `Sub Regions` e relatório em `Region Body`; pela estrutura do template, a tabela tende a vir antes da barra | Abaixo |
+| 4 | Apagar o item `P12_ORDER_BY` | Item automático que sobrou; a ordenação usa `P12_ORDEM` | Abaixo |
+| 5 | Testar | Nada foi executado | §12.9 |
 
-Faça o item 10 antes de liberar o uso do link da p12 pelo RH. Ao terminar, rode o backup: o export deve mostrar `VER_LISTA_COLABORADORES`, `NOME_SEM_LINK`, `SALVAR_ALTERACOES` e `render_cabecalho_cadastro`.
+**Ajuste 1 · Branch da página 14**
+
+1. Página 14 › aba **Processing** › clique no branch **Limpar formulário após carregamento**.
+2. Em **Execution › Point**, escolha **After Processing**.
+3. Mantenha **Sequence** = `10`. O branch "Voltar à lista após editar" tem Sequence `5` e é avaliado antes dele.
+4. Clique em **Save**.
+
+Faça este ajuste antes dos testes 11 e 12. **Confira:** ao salvar uma edição, a tela volta para a lista com "Alterações salvas.". Ao criar, a p14 volta limpa com "Colaborador cadastrado com sucesso!".
+
+**Ajuste 2 · Static ID da barra**
+
+1. Página 12 › clique na região **Barra da lista**.
+2. Em **Advanced › Static ID**, informe `cx-colab-barra`.
+3. A classe em **Appearance › CSS Classes** pode ficar. Clique em **Save**.
+
+**Ajuste 3 · Posição do relatório**
+
+1. Página 12 › clique na região **Colaboradores**.
+2. Em **Layout › Position** (ou **Slot**), escolha **Sub Regions** (confirmar nome no 26.1.5). Mantenha **Parent Region** = `Resultados` e **Sequence** = `20`.
+3. Clique em **Save**.
+
+**Confira:** a barra aparece acima da tabela, com o total à esquerda e "Ordenar por" à direita.
+
+**Ajuste 4 · Item que sobrou**
+
+1. Página 12 › na região **Colaboradores**, encontre o item `P12_ORDER_BY`.
+2. Clique com o botão direito e escolha **Delete**.
+3. Em **Colaboradores › Order By › Item**, confirme que continua `P12_ORDEM`. Clique em **Save**.
+
+Se o Builder impedir a exclusão ou a ordenação parar de funcionar, envie um print.
+
+**Depois dos testes**, se o rótulo flutuante de "Ordenar por" ficar diferente do protótipo, troque o **Template** de `P12_ORDEM` para `Optional - Above`.
+
+**Decisões em aberto:** equipe do Corlix Hub na lista (hoje fora), e se gestor e situação ficam só leitura na edição (hoje editáveis, e a alteração não entra no histórico).
 
 ### 12.1 Banco e arquivos (itens 1, 2 e 3)
 
@@ -712,7 +739,7 @@ O nome usa a própria coluna, porque o valor de `NOME_COMPLETO` não deve ser co
 
 ### 12.6 Item 8 · Barra de total e ordenação
 
-O template `Standard` deste export não tem o marcador `#ORDER_BY_ITEM#`; por isso o seletor fica numa região própria. A [documentação](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/managing-sorting-with-order-by-item.html) confirma que o item pode ser posicionado em qualquer lugar da página.
+O APEX cria o seletor por padrão na posição de ordenação do próprio relatório. Como o protótipo pede total e seletor na mesma linha, o seletor fica numa região própria. A [documentação](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/managing-sorting-with-order-by-item.html) confirma que o item pode ser posicionado em qualquer lugar da página.
 
 **Criar a região Resultados:**
 
@@ -741,6 +768,7 @@ O template `Standard` deste export não tem o marcador `#ORDER_BY_ITEM#`; por is
    | **Layout › Start New Row** | On |
    | **Layout › Column** | Automatic |
    | **Layout › Column Span** | Automatic |
+| **Layout › Position** | Sub Regions (confirmar nome no 26.1.5) |
 
 **Criar a barra:**
 
@@ -767,10 +795,20 @@ O template `Standard` deste export não tem o marcador `#ORDER_BY_ITEM#`; por is
 
 **Criar a ordenação:**
 
-9. Clique na região **Colaboradores**.
-10. Em **Order By › Type**, escolha **Item**.
+9. Clique com o botão direito em **Barra da lista** e escolha **Create Page Item**:
+
+   | Propriedade | Valor |
+   |---|---|
+   | **Identification › Name** | `P12_ORDEM` |
+   | **Identification › Type** | Select List |
+   | **Label › Label** | `Ordenar por` |
+   | **List of Values › Type** | Static Values (Nome/`NOME`, Login/`LOGIN`, Departamento/`DEPARTAMENTO`) |
+   | **List of Values › Display Null Value** | Off |
+   | **Default › Static Value** | `NOME` |
+
+10. Clique na região **Colaboradores**. Em **Order By › Type**, escolha **Item**.
 11. Em **Order By › Item**, clique em **No Order By Item**.
-12. No diálogo, em **Order By Clauses**, cadastre:
+12. No diálogo, cadastre as cláusulas:
 
     | Clause | Key | Display |
     |---|---|---|
@@ -778,16 +816,8 @@ O template `Standard` deste export não tem o marcador `#ORDER_BY_ITEM#`; por is
     | `login_apex, nome_completo` | `LOGIN` | Login |
     | `departamento, nome_completo` | `DEPARTAMENTO` | Departamento |
 
-13. No campo **Item**, informe `P12_ORDEM` e clique em **OK**.
-14. Na árvore, clique no item `P12_ORDEM` e preencha:
-
-    | Propriedade | Valor |
-    |---|---|
-    | **Label › Label** | `Ordenar por` |
-    | **Layout › Region** | `Barra da lista` |
-    | **Default › Type** | Static |
-    | **Default › Static Value** | `NOME` |
-
+13. No campo **Item**, selecione `P12_ORDEM` e clique em **OK**.
+14. Se o APEX tiver criado o item automático `P12_ORDER_BY`, apague-o.
 15. Clique em **Save** e execute a página.
 
 **Se o item não puder ser movido, ou aparecer em outro lugar, pare e envie um print das propriedades dele.** Não crie `ORDER BY` na consulta.
@@ -846,7 +876,7 @@ Hoje `CREATE_USER` roda em todo envio, então salvar um colaborador existente te
    | **Success Message › Success Message** | `Alterações salvas.` |
    | **Server-side Condition › When Button Pressed** | `SALVAR_ALTERACOES` |
 
-9. Em **After Processing**, clique com o botão direito e escolha **Create Branch**:
+9. Em **After Processing**, clique com o botão direito e escolha **Create Branch**. Depois, mude o branch antigo **Limpar formulário após carregamento** para **Execution › Point = After Processing**:
 
    | Propriedade | Valor |
    |---|---|
