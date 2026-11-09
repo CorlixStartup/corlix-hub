@@ -112,4 +112,4 @@ select c.id_colaborador,
   left join departamento d on d.id_departamento = c.id_departamento
   left join cargo cg       on cg.id_cargo = c.id_cargo
  where c.id_empresa = to_number(v('G_ID_EMPRESA') default null on conversion error)
-    or fn_colab_tem_papel(v('APP_USER'), 'equipe-do-corlix-hub', to_number(v('APP_ID') default 100 on conversion error)) = 1;
+    or fn_colab_e_equipe = 1;
