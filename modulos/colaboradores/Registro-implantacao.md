@@ -149,3 +149,11 @@ Verificação documental: diff, links locais e reindexação. Nenhum CSS foi pub
 ## Tradução e paginação — 09/11/2026
 
 Consultadas listas oficiais de mensagens APEX 26.1 e identificadas APEX.FS.TOTAL_ROW_COUNT_LABEL, PAGINATION.* e WWV_RENDER_REPORT3.X_Y_OF_Z/_2/X_Y_OF_MORE_THAN_Z. Guia §11.7 atualizado com overrides, idioma efetivo en, uso em JavaScript, abrangência por aplicação e configuração de paginação com navegação. Verificação: documentação oficial, diff e reindexação; cadastro de mensagens e execução no Builder não realizados. Próximo passo: aplicar e testar total, intervalo e navegação com filtros.
+
+## Revalidação após atualização de DEV — 09/11/2026
+
+Pedido: voltar à DEV, atualizar e avaliar prontidão/fidelidade. Checkout principal estava limpo e foi atualizado por fast-forward para b1ff0d6; workspace de trabalho também selecionou DEV nessa revisão. Criada branch fix/validacao-colaboradores-dev somente para registrar auditoria, sem commit direto na DEV.
+
+Inspeção do backup 05730bc das 12:06 confirma package instalado, paginação de 15 linhas com links, layout corrigido, escape de Pessoa, RAW em Perfil, rótulo e traduções. O CSS de ajuste foi aplicado Inline. Não foi usada a captura antiga como prova do resultado novo.
+
+Parecer e pendências em Validacao-visual-2026-11-09.md, seção Revalidação: barra de total/ordenação ausente, p14 ainda sem fluxo de edição comprovado, isolamento com empresa nula, decisão do acesso RH da lista, escape de Vínculo, consolidação CSS após teste e verificação visual/funcional atual. Não foram feitas alterações na app. Verificação documental: diff e reindexação; retorno à DEV ao encerrar. Próximo passo: priorizar pendências confirmadas e obter captura após as alterações das 12:06.
