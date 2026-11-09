@@ -127,3 +127,9 @@ Verificação: diff sem erros, ausência de marcadores de conflito, links locais
 O usuário forneceu o HTML atualmente aplicado em NOME_COMPLETO: já está em Link Text, com spans de pessoa/avatar/nome/e-mail e sem âncora interna. O guia §5.1 foi ajustado para reconhecer esse estado e orientar somente as substituições !ATTR em FOTO_URL e !HTML em INICIAIS, NOME_COMPLETO e EMAIL, preservando Type e Target.
 
 Verificação: conferência do trecho enviado, diff sem erros e reindexação. Alteração exclusivamente documental. Não houve aplicação no Builder; escape e comportamento da página 14 continuam pendentes de validação. Próximo passo: aplicar as quatro substituições e conferir apresentação/caracteres especiais.
+
+## Filtros abaixo do relatório — 09/11/2026
+
+Usuário relatou filtros abaixo e enviou export: região Colaboradores sequence 10, coluna 4/span 9 e startNewRow false; Filtros sequence 20, coluna 1/span 3. O guia destacava as colunas, mas não incluía Sequence nas listas principais de configuração. Incluída a sequência nas duas regiões: Filtros 10 primeiro, iniciando linha; Colaboradores 20 depois, sem iniciar linha. A alteração é nas regiões, não nas colunas/facetas; o cabeçalho em breadcrumbBar não precisa ser reordenado.
+
+O export também confirma a chamada ao package de cabeçalho e o escape de NOME_COMPLETO, sem comprovar todos os testes funcionais. Verificação documental: diff e reindexação. Próximo passo: salvar as propriedades e executar a página inteira para confirmar alinhamento; se persistir, obter print do Layout e resultado em desktop. Nenhuma alteração direta na app.

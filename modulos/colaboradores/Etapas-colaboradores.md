@@ -130,6 +130,7 @@ A autorização da ação está no package e usa o nome ADMIN_RH, em alinhamento
    - *Identification › Title*: `Colaboradores`
    - *Identification › Type*: **Classic Report**
    - *Advanced › Static ID*: `colaboradores`
+   - *Layout › Sequence*: `20` **na região Colaboradores**, não na coluna do relatório.
    - *Layout › Column*: `4`
    - *Layout › Column Span*: `9`
    - *Layout › Start New Row*: `No` *(para ficar ao lado das facetas)*
@@ -233,6 +234,7 @@ Na página já montada, preserve as facetas existentes. Confira primeiro o resul
    - *Identification › Title*: `Filtros`
    - *Identification › Type*: **Faceted Search**
    - *Source › Filtered Region*: **Colaboradores** *(a região do Classic Report criada no passo 5)*
+   - *Layout › Sequence*: `10` **na região Filtros**, não nas facetas.
    - *Layout › Column*: `1`
    - *Layout › Column Span*: `3`
    - *Layout › Start New Row*: `Yes`
@@ -376,7 +378,7 @@ Esta revisão ajustou somente a documentação. O cabeçalho proposto, escape e 
 | Sintoma | Verificação | Ação |
 |---|---|---|
 | HTML Expression não aparece em NOME_COMPLETO | Coluna do tipo Link | Usar Link Text conforme §5.1; se ausente, obter print do painel |
-| Filtros aparecem abaixo do relatório | Conferir layout renderizado e sequência | Aplicar ajuste condicional do §6 e testar novamente |
+| Filtros aparecem abaixo do relatório | Export de 09/11 mostra Colaboradores sequence 10 e Filtros sequence 20, apesar das colunas 4 e 1 | Inverter a sequência das regiões: Filtros 10 com Start New Row Yes; Colaboradores 20 com Start New Row No. Manter colunas/spans 1/3 e 4/9. Salvar e executar a página inteira; resultado visual ainda pendente |
 | Total aparece sem navegação | Tipo NoPagination | Usar WithPagination e testar mais de 15 resultados |
 | Botão aparece para conta sem empresa | Condição antiga tratava G_ID_EMPRESA nulo como permissão | Usar o package do §4 com ADMIN_RH na ação e manter proteção no destino; não restringir a lista inteira por causa do botão |
 | Nome abre cadastro em vez de edição | Página 14 ainda não validada para editar | Revisar processos e condições da página 14 antes de liberar essa navegação |
