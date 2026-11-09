@@ -101,3 +101,9 @@ Após a observação do usuário, foram inspecionados os packages e as chamadas 
 A revisão anterior apenas reutilizou o contêiner do cabeçalho e manteve HTML inline, sem seguir a arquitetura. O guia agora marca essa proposta como anterior e registra a necessidade do package de Colaboradores antes da chamada no Builder. A regra 14 foi explicitada para exigir arquitetura de packages, além de reaproveitamento visual.
 
 Escopo concluído: inspeção do padrão e correção documental. Validação: comparação das funções e chamadas nos exports, diff documental. Não houve criação/compilação de package nem aplicação no Builder. Próximo passo: implementar a UI de Colaboradores com spec/body, instalação e estratégia de integração com a fonte SQL do Faceted Search; depois validar o botão e as demais pendências. Não existe ainda pkg_colaboradores_ui instalado por esta tarefa.
+
+## Regra permanente de preferência pelos padrões existentes
+
+Por orientação explícita do usuário, AGENTS.md e regra 14 foram reforçados: seguir sempre os padrões adotados, incluindo packages de UI, salvo boa prática demonstravelmente melhor para o caso. A exceção exige comparação documentada, evidência, benefício concreto, impactos e validação; preferência pessoal não basta.
+
+Entrega documental: regra persistida no repositório e incluída no PR #130. Verificação: git diff --check e reindexação dos casos. Nenhuma mudança na aplicação; implementação do package de Colaboradores e validações anteriores seguem pendentes.
