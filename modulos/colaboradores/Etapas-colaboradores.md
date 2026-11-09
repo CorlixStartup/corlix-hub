@@ -564,7 +564,9 @@ A equipe do Corlix Hub não tem empresa vinculada. Para essas contas, `APROVADOR
 
 **Confira:** a página abre sem o erro, e o item **Ajustes de ponto** não aparece no menu dessa conta. Para quem tem empresa, nada muda.
 
-**Decisão em aberto:** se gestor e situação ficam só leitura na edição (hoje editáveis, e a alteração não entra no histórico). A data de nascimento continua obrigatória: registros sem ela precisam ser completados para salvar uma edição. A página continua em `@/standard`, divergência registrada no [11 · Padrões de páginas](../../docs/ai-context/11-padroes-de-paginas.md), §6.
+**Falta aplicar: Gestor e Situação só leitura na edição.** Em `P14_GESTOR` e em `P14_STATUS`, na página 14: **Read Only › Type** = Item is NOT NULL e **Item** = `P14_ID_COLABORADOR`. Salve. Ao criar colaborador, os dois continuam editáveis.
+
+A data de nascimento continua obrigatória: registros sem ela precisam ser completados para salvar uma edição. A página continua em `@/standard`, divergência registrada no [11 · Padrões de páginas](../../docs/ai-context/11-padroes-de-paginas.md), §6.
 
 ### 12.1 Banco e arquivos (itens 1, 2 e 3)
 
@@ -859,7 +861,7 @@ Hoje `CREATE_USER` roda em todo envio, então salvar um colaborador existente te
 **Passo B · Campos**
 
 4. Em `P14_SENHA` e em `P14_CONFIRMAR_SENHA`: **Server-side Condition › Type** = Item is NULL e **Item** = `P14_ID_COLABORADOR`.
-5. Em cada um destes: `P14_LOGIN`, `P14_EMPRESA`, `P14_DEPARTAMENTO` e `P14_CARGO`: **Read Only › Type** = Item is NOT NULL e **Item** = `P14_ID_COLABORADOR`.
+5. Em cada um destes: `P14_LOGIN`, `P14_EMPRESA`, `P14_DEPARTAMENTO`, `P14_CARGO`, `P14_GESTOR` e `P14_STATUS`: **Read Only › Type** = Item is NOT NULL e **Item** = `P14_ID_COLABORADOR`.
 6. Em `P14_LOGIN`, **Help › Inline Help Text** = `O login não pode ser alterado.`
 
 **Passo C · Validação e processos**
@@ -902,7 +904,7 @@ Hoje `CREATE_USER` roda em todo envio, então salvar um colaborador existente te
 
 **Confira:** abra pelo botão Novo colaborador: título "Novo colaborador", campos de senha e botão "Salvar colaborador". Abra pelo nome de alguém: título com o nome e a situação, sem senha, login bloqueado e botão "Salvar alterações". Faça o teste de salvar só com registro de teste (§12.9, testes 11 e 12).
 
-Departamento e cargo ficam só leitura na edição porque a mudança precisa passar por **Histórico de carreira › Movimentação**, que registra o evento e atualiza o colaborador. É uma diferença consciente em relação ao protótipo.
+Departamento, cargo, gestor e situação ficam só leitura na edição porque a mudança precisa passar por **Histórico de carreira › Movimentação**, que registra o evento e atualiza o colaborador. É uma diferença consciente em relação ao protótipo.
 
 ### 12.9 Testes
 
