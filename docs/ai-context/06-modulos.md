@@ -18,7 +18,7 @@
 | `modulos/tema/` | **untracked** | todas (tema global) | documentado em `04-tema-e-estilos.md` |
 | `modulos/perfis-acesso/` | versionado | p. 14 `Cadastro de Usuários` | **Sim** na app (papéis `colaborador`/`gestor`/`admin-rh`, authorization `ADMIN_RH`, processo e LOV de gestor na P14); SQL instalado no banco em 06/10/2026, com papéis vinculados à mão aos cargos antigos. Guia: `Etapas-perfis-acesso.md`; histórico: `Registro-implantacao.md` |
 | `modulos/empresas/` | versionado | p. 16 `Cadastro de Empresas` | **Sim** (01 e 02, confirmados no DDL do backup de 27/10/2026) | `01_data_criacao_opcional.sql`: `EMPRESA.DATA_CRIACAO` passa a aceitar NULL; `02_complemento_100.sql`: `EMPRESA.COMPLEMENTO` de 30 para 100 caracteres (idempotentes). Sem package nem página própria |
-| `modulos/colaboradores/` | versionado (07/11/2026) | p. 12 `Colaboradores` | **Não** ainda: montar pelo `Etapas-colaboradores.md` | `01_vw_colaboradores_lista.sql` (view com avatares, vínculo, perfil e isolamento multiempresa); CSS próprio `colaboradores.css`; função `00_fn_colab_tem_papel.sql` antes da view para isolar ACL das contagens. Teste isolado passou; view e página pendentes de validação. Coluna Pessoa: HTML em Link Text do tipo Link, sem âncora interna; validação no Builder pendente (§5.1 do guia) |
+| `modulos/colaboradores/` | versionado (07/11/2026) | p. 12 `Colaboradores` | **Parcial**: página e ACL no backup; package de cabeçalho preparado, ainda sem confirmação de instalação | `01_vw_colaboradores_lista.sql` (view com avatares, vínculo, perfil e isolamento multiempresa); CSS próprio `colaboradores.css`; função `00_fn_colab_tem_papel.sql` antes da view para isolar ACL das contagens. Teste isolado passou; view e página pendentes de validação. Coluna Pessoa: HTML em Link Text do tipo Link, sem âncora interna; validação no Builder pendente (§5.1 do guia). Guia revisado em 09/11: cabeçalho em pkg_colaboradores_ui, ADMIN_RH somente na ação em alinhamento com o destino p14, escape explícito, layout a conferir e paginação. Edição na p14, isolamento e facetas ainda exigem validação na app |
 
 O histórico de carreira já está integrado: `G_ID_EMPRESA`, as authorizations `GESTOR` e `COLABORADOR`, as LOVs, os static files e as páginas 13 e 18–23 estão em `corlixhub/` e no `database/f100.sql`. O papel `Admin RH` e a authorization `ADMIN_RH` foram criados pelo módulo `perfis-acesso`.
 
@@ -413,3 +413,13 @@ Checklist:
 7. **CSS/JS**: subir como Static Application File (`#APP_FILES#<m>#MIN#.css` + versão `.min`) ou colar inline; incluir `@media (max-width …)`, `prefers-reduced-motion`, `print` se houver exportação.
 8. **Números de página**: o guia deve dizer quais prefixos `Pnn_` trocar (JS, Source, constantes do package). Conferir colisões com `corlixhub/pages/`.
 9. Após montar no Builder: exportar em APEXlang (`corlixhub/pages/pNNNNN-*.apx`) e commitar módulo + páginas juntos.
+
+### Colaboradores — acompanhamento da implantação
+
+O [registro de implantação](../../modulos/colaboradores/Registro-implantacao.md) consolida o diagnóstico das facetas, correções instaladas, recomendações revistas e o botão ainda pendente. Novas orientações devem seguir a regra 14 do [08](./08-convencoes-e-pegadinhas.md), comparando Histórico de carreira, Holerite e Ponto eletrônico antes de propor componentes.
+
+O guia de Colaboradores foi revisto para ações no cabeçalho seguindo Holerite/Ponto, sem restringir toda a lista ao RH. A revisão é documental e os testes na app continuam pendentes; encerramentos seguem a regra 15 do 08.
+
+Correção arquitetural: os módulos de referência centralizam HTML em packages de UI com render_* retornando CLOB. O cabeçalho inline proposto para Colaboradores não encerra essa adequação; pkg_colaboradores_ui ainda precisa ser implementado, conforme o registro de implantação.
+
+Atualização de 09/11/2026: pkg_colaboradores_ui foi preparado em modulos/colaboradores/02_pkg_colaboradores_ui.pks/.pkb. O guia agora fornece instalação e chamada render_cabecalho; Classic Report/Faceted Search permanecem nativos. Package ainda não compilado nem validado no ambiente; substitui a pendência anterior de criação, sem declarar implantação concluída.

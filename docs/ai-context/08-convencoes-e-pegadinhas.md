@@ -29,6 +29,29 @@
     - O merge é do time: o agente só abre os PRs.
     - A regra não libera as pastas somente leitura (regra 1).
 
+
+14. **Páginas devem partir dos módulos já implementados.** Antes de criar, redesenhar ou corrigir uma página:
+    - Atualize as referências remotas e confira a DEV atualizada, o último export e os relatos do time. Distinga código instalado, proposta em PR e teste executado; não peça para reinstalar algo já confirmado no backup.
+    - Leia o protótipo em pen_dev/ e escolha o módulo existente mais próximo. Referências iniciais: Histórico de carreira (modulos/historico-carreira/), Holerite (modulos/holerite/) e Ponto eletrônico (modulos/ponto-eletronico/). Consulte o guia, o SQL/PLSQL, o CSS/JS necessário e o export da página de referência.
+    - Registre no guia uma seção **Referências reutilizadas**: arquivos, componente reaproveitado e adaptações necessárias. Reutilize primeiro cabeçalho, ações, templates, tokens, espaçamento, estados vazios, ícones e padrões de navegação já adotados.
+    - **Reutilize a arquitetura de packages de UI**, não apenas as classes CSS. HTML personalizado deve ser centralizado em `pkg_<modulo>_ui`, com funções `render_*` retornando CLOB; as regiões Dynamic Content fazem chamadas curtas ao package. Separe regras de negócio e acesso a dados da apresentação, seguindo o módulo equivalente. Registre a estratégia de CLOB, escape de texto/atributos, URLs com checksum e ícones. Não distribua grandes blocos de HTML/PLSQL pelas regiões como substituto desse padrão. Componentes nativos podem coexistir quando necessários (por exemplo, fonte filtrável do Faceted Search); justificar a composição no guia.
+    - Preserve a integração entre HTML, CSS, JS e APEX. Antes de trocar uma ação renderizada por botão nativo (ou o contrário), confira posição disponível no template, DOM, autorização, checksum, ação e resultado visual. Não suponha que um botão nativo ficará dentro de um contêiner HTML retornado por PL/SQL.
+    - **Padrão existente é a escolha obrigatória por padrão.** Só adote outra abordagem quando uma boa prática for demonstravelmente melhor para o caso. Antes da mudança, registre o padrão comparado, evidência técnica (documentação oficial e/ou teste), benefício concreto em segurança, manutenção, desempenho, acessibilidade ou compatibilidade, impactos de integração e validação prevista. Preferência pessoal, novidade ou conveniência isolada não bastam. Sem evidência suficiente, preserve o padrão. A alternativa deve ser compatível com o APEX 26.1.5. Reuso não autoriza copiar falhas de segurança; corrigir uma falha comprovada é justificativa técnica válida.
+    - Diferencie permissão de consultar a página, executar uma ação e acessar o destino. Não restrinja toda uma listagem ao RH só porque contém uma ação administrativa. Não use empresa nula como substituto de autorização explícita.
+    - Confirme como os ícones são renderizados: fonte Lucide mapeada por classes fa-* e SVG Lucide inline coexistem no projeto. Siga o padrão do componente escolhido.
+    - Se o usuário informar que a orientação não funciona, interrompa as tentativas por suposição: confira o exemplo existente e obtenha o export/print necessário. Marque propostas não verificadas e não declare a página validada só por ler o código.
+    - Registre resultados, falhas e pendências no módulo, com evidência e próximo passo. Mantenha as pastas protegidas somente para leitura.
+
+
+15. **Documentar o encerramento de toda tarefa ou módulo.** Antes da entrega final:
+    - Atualize o registro existente do módulo (preferencialmente Registro-implantacao.md ou seção Situação na app do guia). Para tarefa sem módulo, use o documento temático em docs/. Não crie registros duplicados quando já existe um apropriado.
+    - Registre objetivo/escopo, data e referência do código consultado, alterações e arquivos/componentes, decisões e referências reutilizadas, comandos ou testes relevantes, resultado e evidências (export, print, relato do usuário, commit/PR).
+    - Diferencie proposto, versionado, aplicado no Builder/banco e validado em execução. Registre também tentativas malsucedidas e hipóteses descartadas. Não trate revisão estática ou backup como prova de funcionamento.
+    - Liste o que falta, bloqueios e próximo passo concreto; se nada falta, indique conclusão e sua evidência. Se a tarefa terminar parcialmente, documente esse estado sem afirmar que o módulo foi concluído.
+    - Atualize o guia e docs/ai-context/ correspondentes quando a mudança afetar instruções ou estado do projeto. Registre casos novos no 09 ou em Se não funcionar e rode casos.py indexar quando aplicável.
+    - Para mudanças apenas documentais, registre o que foi revisado e a verificação feita; não invente testes de app. Escale o tamanho do registro à tarefa, sem transcrever toda a conversa ou incluir credenciais/dados pessoais desnecessários.
+    - Inclua o registro no mesmo fluxo de branch/commit/PR da tarefa e aponte o resultado na resposta final. Não peça confirmação só para documentar trabalho já autorizado.
+
 ## 2. Lacunas estruturais (objetos que faltam no repositório)
 
 | Lacuna | Impacto |
