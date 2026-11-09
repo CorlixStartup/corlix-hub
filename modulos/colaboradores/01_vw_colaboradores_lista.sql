@@ -81,22 +81,12 @@ select c.id_colaborador,
            select 1 from cargo_papel cp
             where cp.id_cargo = c.id_cargo
               and cp.cd_papel in ('equipe-do-corlix-hub', 'admin-rh', 'diretoria')
-         ) or exists (
-           select 1 from apex_appl_acl_user_roles ur
-            where ur.application_id = to_number(v('APP_ID') default 100 on conversion error)
-              and upper(ur.user_name) = upper(c.login_apex)
-              and ur.role_static_id in ('equipe-do-corlix-hub', 'admin-rh')
-         ) then 'Administrador'
+         ) or (fn_colab_tem_papel(c.login_apex, 'equipe-do-corlix-hub', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'admin-rh', to_number(v('APP_ID') default 100 on conversion error)) = 1) then 'Administrador'
          when exists (
            select 1 from cargo_papel cp
             where cp.id_cargo = c.id_cargo
               and cp.cd_papel in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-         ) or exists (
-           select 1 from apex_appl_acl_user_roles ur
-            where ur.application_id = to_number(v('APP_ID') default 100 on conversion error)
-              and upper(ur.user_name) = upper(c.login_apex)
-              and ur.role_static_id in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-         ) then 'Publicador de conteúdo'
+         ) or (fn_colab_tem_papel(c.login_apex, 'publicador-de-conteudo', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'publicador-de-conteúdo', to_number(v('APP_ID') default 100 on conversion error)) = 1) then 'Publicador de conteúdo'
          else 'Colaborador'
        end as perfil,
        -- HTML do perfil (etiqueta cinza ou texto simples para o relatório)
@@ -105,22 +95,12 @@ select c.id_colaborador,
            select 1 from cargo_papel cp
             where cp.id_cargo = c.id_cargo
               and cp.cd_papel in ('equipe-do-corlix-hub', 'admin-rh', 'diretoria')
-         ) or exists (
-           select 1 from apex_appl_acl_user_roles ur
-            where ur.application_id = to_number(v('APP_ID') default 100 on conversion error)
-              and upper(ur.user_name) = upper(c.login_apex)
-              and ur.role_static_id in ('equipe-do-corlix-hub', 'admin-rh')
-         ) then '<span class="cx-etiqueta">Administrador</span>'
+         ) or (fn_colab_tem_papel(c.login_apex, 'equipe-do-corlix-hub', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'admin-rh', to_number(v('APP_ID') default 100 on conversion error)) = 1) then '<span class="cx-etiqueta">Administrador</span>'
          when exists (
            select 1 from cargo_papel cp
             where cp.id_cargo = c.id_cargo
               and cp.cd_papel in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-         ) or exists (
-           select 1 from apex_appl_acl_user_roles ur
-            where ur.application_id = to_number(v('APP_ID') default 100 on conversion error)
-              and upper(ur.user_name) = upper(c.login_apex)
-              and ur.role_static_id in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-         ) then '<span class="cx-etiqueta">Publicador de conteúdo</span>'
+         ) or (fn_colab_tem_papel(c.login_apex, 'publicador-de-conteudo', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'publicador-de-conteúdo', to_number(v('APP_ID') default 100 on conversion error)) = 1) then '<span class="cx-etiqueta">Publicador de conteúdo</span>'
          else 'Colaborador'
        end as perfil_html,
        -- Situação
