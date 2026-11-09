@@ -299,4 +299,6 @@ Preparação do teste: data de nascimento do registro 315 preenchida por SQL pel
 
 Achados fora do §13: o usuário entrou com a conta `DEMO.CARREIRA.1.4`, do Diego, que está Inativo. Isso confirma a lacuna do §12.11: inativar não bloqueia a conta APEX. A conta não existia no teste anterior (contas = 0), e não foi confirmado como foi criada. O acesso de colaborador comum à p12 não foi concluído: a navegação por link direto caiu no login. Erro de console de um `onerror` de imagem, provavelmente o avatar do cabeçalho na página 0, sem efeito visível.
 
-Pendências: restaurar por SQL a data de nascimento nula do registro 315; decidir se o cargo 403 recebe o papel `gestor`; RH conferir o cargo do id 272; definir o bloqueio de conta inativa; testes de gestor, colaborador comum pelo menu, criação, caracteres especiais e tela estreita.
+O usuário informou a restauração da data de nascimento nula do registro 315 após o teste.
+
+Pendências: decidir se o cargo 403 recebe o papel `gestor`; RH conferir o cargo do id 272; definir o bloqueio de conta inativa; testes de gestor, colaborador comum pelo menu, criação, caracteres especiais e tela estreita.
