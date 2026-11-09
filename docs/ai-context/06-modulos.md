@@ -427,3 +427,5 @@ Atualização de 09/11/2026: pkg_colaboradores_ui foi preparado em modulos/colab
 Colaboradores, 09/11/2026: usuário confirmou NOME_COMPLETO já configurado com Link Text. O §5.1 do guia orienta apenas quatro substituições de escape, preservando Type e Target; aplicação do escape ainda pendente.
 
 Validação visual de Colaboradores em 09/11: posicionamento dos filtros e botão confirmado na captura, mas fidelidade parcial. [Auditoria](../../modulos/colaboradores/Validacao-visual-2026-11-09.md) registra HTML literal em Perfil, tabela e barra superior divergentes; correções pendentes.
+
+Colaboradores: §11 do guia transforma a auditoria em ajustes ordenados (Perfil, DOM/CSS, card/colunas, facetas e paginação), com proposta visual ainda não homologada. Barra de contagem/ordenação permanece pendente de implementação integrada.

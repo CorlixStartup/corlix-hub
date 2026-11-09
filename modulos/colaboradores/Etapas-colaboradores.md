@@ -366,7 +366,7 @@ Referência: [Oracle APEX 26.1 — APEX_ACL](https://docs.oracle.com/en/database
 
 Atualize [Registro-implantacao.md](./Registro-implantacao.md) ao final de cada intervenção, conforme a regra 15 do [08](../../docs/ai-context/08-convencoes-e-pegadinhas.md). Registre referência reutilizada, alterações, aplicação no Builder, testes/evidências, falhas, pendências e próximo passo. Reindexe os casos se alterados. Não marque módulo concluído com botão, edição ou testes de isolamento ainda pendentes.
 
-Esta revisão ajustou somente a documentação. O cabeçalho proposto, escape e paginação ainda precisam de aplicação e validação pelo time. A instalação de ACL está confirmada pelo backup; a validação final das facetas permanece pendente.
+Estado atualizado pela captura de 09/11: cabeçalho e posição dos filtros confirmados visualmente. A chamada ao package e o escape de NOME_COMPLETO constam no export enviado. Demais ajustes e testes funcionais continuam pendentes. A instalação de ACL está confirmada pelo backup; a validação final das facetas permanece pendente.
 
 
 ## 10. Verificações complementares da revisão integrada
@@ -380,7 +380,143 @@ Esta revisão ajustou somente a documentação. O cabeçalho proposto, escape e 
 | Sintoma | Verificação | Ação |
 |---|---|---|
 | HTML Expression não aparece em NOME_COMPLETO | Coluna do tipo Link | Usar Link Text conforme §5.1; se ausente, obter print do painel |
-| Filtros aparecem abaixo do relatório | Export de 09/11 mostra Colaboradores sequence 10 e Filtros sequence 20, apesar das colunas 4 e 1 | Inverter a sequência das regiões: Filtros 10 com Start New Row Yes; Colaboradores 20 com Start New Row No. Manter colunas/spans 1/3 e 4/9. Salvar e executar a página inteira; resultado visual ainda pendente |
+| Filtros aparecem abaixo do relatório | Export de 09/11 mostra Colaboradores sequence 10 e Filtros sequence 20, apesar das colunas 4 e 1 | Inverter a sequência das regiões: Filtros 10 com Start New Row Yes; Colaboradores 20 com Start New Row No. Manter colunas/spans 1/3 e 4/9. Salvar e executar a página inteira; captura posterior de 09/11 confirma o alinhamento resolvido |
 | Total aparece sem navegação | Tipo NoPagination | Usar WithPagination e testar mais de 15 resultados |
 | Botão aparece para conta sem empresa | Condição antiga tratava G_ID_EMPRESA nulo como permissão | Usar o package do §4 com ADMIN_RH na ação e manter proteção no destino; não restringir a lista inteira por causa do botão |
 | Nome abre cadastro em vez de edição | Página 14 ainda não validada para editar | Revisar processos e condições da página 14 antes de liberar essa navegação |
+
+
+## 11. Ajustes após a captura de 09/11/2026
+
+Siga esta seção na página já montada. **Não recrie o cabeçalho, o botão, as facetas ou a view:** a captura confirma o alinhamento geral. A [auditoria visual](./Validacao-visual-2026-11-09.md) registra o que ainda diverge do protótipo. Não alterar os 309 registros para reproduzir os oito exemplos fictícios.
+
+### 11.1 Corrigir a etiqueta de Perfil primeiro
+
+1. Na página 12, selecione **Colaboradores → Columns → PERFIL** (não PERFIL_HTML).
+2. Em **Column Formatting → HTML Expression**, use:
+
+   ```html
+   #PERFIL_HTML!RAW#
+   ```
+
+3. Preserve PERFIL_HTML como coluna Hidden. O fragmento RAW é permitido aqui porque a view gera a etiqueta com marcação fixa; não aplique RAW a nome, e-mail ou vínculo.
+4. Salve e execute. Administrador deve aparecer como etiqueta cinza, sem tags visíveis.
+5. Se continuar aparecendo HTML literal, confira o valor retornado pela view: se contém `&lt;span`, há escape anterior. Obtenha o valor/expressão atual antes de alterar outras colunas. Não desligue o escape de todos os campos.
+
+Só avalie a largura das colunas depois disso: o HTML literal em Perfil aumenta a largura necessária da célula.
+
+### 11.2 Confirmar o CSS e o template efetivamente usados
+
+1. Preserve **CSS File URLs** com `#APP_FILES#modulos/colaboradores/colaboradores#MIN#.css`.
+2. No navegador, abra DevTools → Network e recarregue a página. Confirme qual variante foi solicitada, retorno sem 404 e conteúdo atualizado.
+3. Inspecione a tabela em Elements. Confira se possui a classe `t-Report-report` e se está dentro da região com classe `cx-relatorio`.
+4. Em Styles/Computed, confira se as regras de colaboradores.css aparecem. Se o DOM não corresponder, registre as classes e o template antes de adaptar seletores.
+5. No Builder, preserve `cx-relatorio` em CSS Classes da região. As opções do **template do relatório** são diferentes das opções da região; confira o componente que desenha as células.
+
+Não conclua que o CSS está ausente só pela imagem. Os próximos seletores pressupõem a estrutura acima e devem ser validados no navegador.
+
+### 11.3 Card e distribuição das colunas
+
+Referência reutilizada: [ponto.css](../ponto-eletronico/ponto.css), `.cx-ponto-card`: superfície, borda, raio e ausência de sombras. A adaptação abaixo é restrita à tabela de Colaboradores, preservando o componente nativo.
+
+**Proposta para teste visual, ainda não homologada:** com o DOM confirmado no §11.2, teste o bloco abaixo ao final de **Page → CSS → Inline** (confirmar caminho no 26.1.5). Não edite arquivos de corlixhub/ diretamente.
+
+```css
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+    background: var(--cx-superficie);
+    box-shadow: none;
+}
+
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th,
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report td {
+    border: 0;
+    border-bottom: 1px solid var(--cx-borda);
+    padding: 12px;
+    vertical-align: middle;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report tr:last-child td {
+    border-bottom: 0;
+}
+
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:first-child {
+    border-top-left-radius: var(--cx-raio-card);
+}
+
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:last-child {
+    border-top-right-radius: var(--cx-raio-card);
+}
+
+/* Ordem das cinco colunas visíveis: Pessoa, Login, Vínculo, Perfil, Situação. */
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(1) { width: 30%; }
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(2) { width: 15%; }
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(3) { width: 25%; }
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(4) { width: 18%; }
+.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(5) { width: 12%; }
+
+.cx-colaboradores-pagina .cx-colab-pessoa {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.cx-colaboradores-pagina .cx-colab-pessoa__info {
+    min-width: 0;
+}
+
+.cx-colaboradores-pagina .cx-colab-pessoa__email {
+    overflow-wrap: anywhere;
+}
+```
+
+As proporções são ponto de partida, não medidas extraídas do protótipo. Não fixe altura de linha nem corte departamento/cargo. Confirme a ordem das cinco colunas antes de usar nth-child. Em tela estreita, confira legibilidade e acesso a todas as colunas: se necessário, planeje rolagem horizontal no contêiner real do relatório; não esconda overflow apenas para eliminar o corte.
+
+Se regras do tema vencerem na cascata, confira o seletor computado antes de acrescentar especificidade; não use !important indiscriminadamente. Após aprovar o teste, incorporar o ajuste aos arquivos do módulo normal/minificado, publicar ambos pelo Builder e retirar a cópia Inline. A sincronização definitiva dos arquivos ainda não foi realizada nesta revisão documental.
+
+### 11.4 Facetas, contagem e ordenação
+
+1. Na faceta P12_PERFIL, altere Label para **Perfil de acesso**.
+2. Preserve a busca com placeholder **Nome, login ou e-mail**.
+3. Confira as opções disponíveis de contagem e menus no componente Faceted Search. Não esconder menus pelo CSS sem verificar suas ações e acessibilidade.
+4. As contagens junto aos rótulos devem, no alvo visual, ficar alinhadas à direita. Esse ajuste depende do DOM efetivo das facetas; obtenha-o antes de adicionar seletores novos.
+
+**Barra acima da tabela — implementação pendente:** o protótipo tem “309 colaboradores” à esquerda e “Ordenar por — Nome” à direita. Isso não se resolve apenas renomeando “Total Row Count”. Não desative a contagem atual antes de existir a substituta funcional.
+
+A nova barra deve seguir pkg_colaboradores_ui para HTML personalizado e a integração nativa do relatório/facetas para estado. Antes de implementar, definir e verificar pela documentação APEX 26.1:
+- fonte do total filtrado, inclusive zero resultados;
+- atualização após busca, combinação/limpeza de facetas e refresh;
+- opções de ordenação realmente disponíveis e aplicação ao relatório;
+- preservação dos filtros e retorno à primeira página quando necessário;
+- acesso por teclado e rótulos em pt-BR.
+
+Não usar um count(*) independente sem os filtros, não fixar “309” e não criar um select decorativo. A fidelidade ao protótipo permanece pendente até essa barra funcionar.
+
+### 11.5 Paginação e mensagens em português
+
+1. Confira no relatório o tipo com navegação do §5 e o número de linhas = 15.
+2. Teste avançar, voltar e filtrar estando fora da primeira página.
+3. Inspecione o rodapé para distinguir texto cortado por overflow de texto incompleto gerado pelo template.
+4. Para “Total Row Count” e “row(s)”, identifique primeiro a origem pelo Help/documentação de Faceted Search e pelo template de paginação. Não altere o idioma global da aplicação nem invente chaves de Text Messages para corrigir apenas esta página.
+5. Se a mensagem vier de template compartilhado, avaliar impacto nas outras páginas antes da alteração. Registrar chave/template identificado e tradução no guia.
+6. O resultado deve exibir total e intervalo em pt-BR, por exemplo “1–15 de 309”, sem corte e com navegação acessível. A chave exata de tradução ainda precisa ser confirmada no Builder.
+
+### 11.6 Conferência final e registro
+
+Compare novamente com o protótipo, considerando a largura da janela:
+- card branco, divisórias horizontais e borda discreta;
+- etiqueta Administrador renderizada;
+- Vínculo com espaço suficiente sem truncar dados;
+- barra de contagem/ordenação funcional;
+- facetas e rodapé em pt-BR;
+- botão e filtros nas posições já confirmadas;
+- navegação e filtros funcionando após cada ajuste.
+
+Registre no Registro-implantacao.md quais passos foram aplicados, prints/export e testes executados. Esta seção oferece ajustes de Builder e uma proposta de CSS para validação; não declara a página pronta nem implementa a barra pendente.

@@ -139,3 +139,9 @@ O export também confirma a chamada ao package de cabeçalho e o escape de NOME_
 Comparadas captura do usuário e imagem do protótipo. Filtros ao lado e botão no cabeçalho confirmados visualmente. Fidelidade ainda parcial: HTML literal em Perfil, ausência do card/estilo de tabela, Vínculo estreito, barra de contagem/ordenação ausente e mensagens em inglês. Detalhes, limites da evidência e critérios de aceite em [Validacao-visual-2026-11-09.md](./Validacao-visual-2026-11-09.md).
 
 Escopo: validação, sem alteração da app ou CSS. Verificação documental: diff e reindexação. Próximo passo: corrigir renderização de PERFIL, inspecionar DOM/CSS efetivos e depois ajustar distribuição e apresentação, preservando packages e integração das facetas.
+
+## Guia dos ajustes visuais — 09/11/2026
+
+A auditoria foi convertida no §11 do guia: correção pontual de PERFIL, inspeção de CSS/DOM, proposta de card e distribuição de colunas baseada nos tokens do Ponto, rótulo das facetas, paginação e investigação de mensagens. Separadas as dependências ainda não implementadas (barra sincronizada de contagem/ordenação e identificação das chaves de tradução).
+
+Verificação documental: diff, links locais e reindexação. Nenhum CSS foi publicado ou executado no navegador. O bloco CSS é proposta para teste, não resultado homologado. Próximo passo: corrigir a etiqueta, confirmar DOM/CSS e testar a apresentação antes de consolidar estilos no módulo. Package/cabeçalho e posição dos filtros não precisam ser refeitos.
