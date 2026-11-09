@@ -157,3 +157,11 @@ Pedido: voltar à DEV, atualizar e avaliar prontidão/fidelidade. Checkout princ
 Inspeção do backup 05730bc das 12:06 confirma package instalado, paginação de 15 linhas com links, layout corrigido, escape de Pessoa, RAW em Perfil, rótulo e traduções. O CSS de ajuste foi aplicado Inline. Não foi usada a captura antiga como prova do resultado novo.
 
 Parecer e pendências em Validacao-visual-2026-11-09.md, seção Revalidação: barra de total/ordenação ausente, p14 ainda sem fluxo de edição comprovado, isolamento com empresa nula, decisão do acesso RH da lista, escape de Vínculo, consolidação CSS após teste e verificação visual/funcional atual. Não foram feitas alterações na app. Verificação documental: diff e reindexação; retorno à DEV ao encerrar. Próximo passo: priorizar pendências confirmadas e obter captura após as alterações das 12:06.
+
+## Acesso da liderança e guia das correções — 09/11/2026
+
+Decisão do usuário: a lista é vista por RH, gestores, CEO e diretores; criar e editar seguem com ADMIN_RH. Interpretação registrada: papéis admin-rh, diretoria e gestor, além da autorização GESTOR; a equipe do Corlix Hub não foi incluída, e o gestor vê a empresa toda.
+
+Versionado: §12 do guia, view com isolamento estrito por G_ID_EMPRESA, render_cabecalho_cadastro no package e CSS da barra e do avatar inativo. Decisões: departamento e cargo só leitura na edição, para passar pela Movimentação; sincronização da conta APEX fora do guia, pois SET_EMAIL e LOCK_ACCOUNT exigem administrador do workspace; Order By Item em região própria, porque o template Standard não tem #ORDER_BY_ITEM#.
+
+Verificação: export e documentação oficial do APEX 26.1 conferidos, git diff --check. Não houve compilação Oracle, aplicação no Builder nem teste em execução; os itens marcados no guia dependem de confirmação no 26.1.5. Próximo passo: executar §12 na ordem e os testes do §12.9.

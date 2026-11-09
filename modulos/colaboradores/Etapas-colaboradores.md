@@ -545,3 +545,251 @@ Para mensagens APEX.FS usadas no cliente, marcar Used in JavaScript = Yes (confi
 No Classic Report, localizar Pagination no painel e usar Row Ranges X to Y of Z com paginação (confirmar rótulo); export rowRangesXToYOfZWithPagination. Number of Rows = 15; Display Position = Bottom Right e Partial Page Refresh = Yes se disponíveis (confirmar no 26.1.5). Salvar, recarregar a página inteira e testar navegação/filtros. Não há necessidade de ORDER BY fixo na SQL.
 
 Fontes: [mensagens das facetas](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/search-and-smart-filters-messages-requiring-translation.html), [mensagens internas](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/internal-messages-requiring-translation.html). As chaves antes pendentes de identificação no §11.5 foram confirmadas; cadastro e teste no Builder continuam pendentes.
+
+---
+
+## 12. Acesso da liderança e correções da validação de 09/11/2026
+
+Decisão do time em 09/11/2026: **a lista é vista por RH, gestores, CEO e diretores**. Criar e editar continuam só com o RH (`ADMIN_RH`). Cada pessoa vê apenas a própria empresa.
+
+Passos conferidos no export e na documentação oficial; nada aqui foi executado na app. Faça na ordem. Caminho marcado "(confirmar no 26.1.5)" que não existir na sua tela: pare e envie um print.
+
+Referências reutilizadas: autorização `COLABORADOR` (composição por `apex_authorization.is_authorized`), foto do Chat (p. 4, página 44), `pkg_holerite_ui`/`pkg_ponto_ui` (`render_*` com chamada curta) e `render_cabecalho` deste módulo.
+
+### 12.1 Atualizar banco e arquivos
+
+1. Em **SQL Commands**, execute, um por vez e sem a `/` isolada: [`01_vw_colaboradores_lista.sql`](./01_vw_colaboradores_lista.sql), [`02_pkg_colaboradores_ui.pks`](./02_pkg_colaboradores_ui.pks) e [`02_pkg_colaboradores_ui.pkb`](./02_pkg_colaboradores_ui.pkb).
+2. Confirme a compilação:
+   ```sql
+   select object_name, object_type, status
+     from user_objects
+    where object_name in ('VW_COLABORADORES_LISTA', 'PKG_COLABORADORES_UI');
+   ```
+   Esperado: tudo `VALID`.
+3. Em *Shared Components › Static Application Files*, substitua `modulos/colaboradores/colaboradores.css` e `colaboradores.min.css` pelas versões desta pasta.
+
+> A view agora só devolve a empresa da sessão. Fora da app (SQL Commands), `G_ID_EMPRESA` é nulo e a consulta volta **vazia**: isso é esperado. Colaboradores sem empresa deixam de aparecer para todos, portanto a opção "Sem vínculo" da faceta Empresa some. O alerta "Cadastro incompleto" continua para quem tem empresa, mas não tem departamento ou cargo.
+
+### 12.2 Criar a autorização
+
+Em *Shared Components › Authorization Schemes › Create › From Scratch*:
+
+| Propriedade | Valor |
+|---|---|
+| **Name** | `VER_LISTA_COLABORADORES` |
+| **Scheme Type** | PL/SQL Function Returning Boolean |
+| **Error Message** | `Acesso restrito ao RH e à liderança.` |
+| **Evaluation Point** | Once per session |
+
+```plsql
+return apex_authorization.is_authorized('ADMIN_RH')
+    or apex_authorization.is_authorized('SOMENTE_DIRETORIA')
+    or apex_authorization.is_authorized('GESTOR')
+    or apex_acl.has_user_role(
+         p_application_id => :APP_ID,
+         p_user_name      => :APP_USER,
+         p_role_static_id => 'gestor');
+```
+
+CEO e diretores têm o papel `diretoria` pelo cargo. A autorização `GESTOR` cobre quem tem subordinados, e o papel `gestor` cobre quem lidera pelo cargo.
+
+### 12.3 Aplicar na página e no menu
+
+1. Página 12 › **Security › Authorization Scheme**: `VER_LISTA_COLABORADORES`.
+2. *Shared Components › Navigation Menu › Colaboradores* › **Authorization Scheme**: `VER_LISTA_COLABORADORES`.
+3. Página 14: não altere; continua `ADMIN_RH`.
+
+### 12.4 Nova consulta do relatório
+
+Na região **Colaboradores**, em **Source › SQL Query**, use:
+
+```sql
+select id_colaborador,
+       nome_completo,
+       nome_completo as nome_sem_link,
+       email,
+       login_apex,
+       primeiro_nome,
+       ultimo_nome,
+       case
+         when trim(foto_url) is null
+              or foto_url = '#APP_FILES#Fotos Colaboradores/' then null
+         else apex_page.get_url(p_page => 44, p_x01 => regexp_substr(trim(foto_url), '[^/]+$'))
+       end as foto_url,
+       tem_imagem,
+       iniciais,
+       id_empresa,
+       empresa,
+       id_departamento,
+       departamento,
+       id_cargo,
+       cargo,
+       vinculo_linha1,
+       vinculo_linha2,
+       fl_sem_vinculo,
+       classe_vinculo,
+       icone_vinculo,
+       perfil,
+       perfil_html,
+       situacao,
+       situacao_classe
+  from vw_colaboradores_lista
+```
+
+Salve: a coluna `NOME_SEM_LINK` aparece na árvore.
+
+### 12.5 Colunas
+
+**`NOME_COMPLETO`** (só o RH vê o link):
+
+- **Security › Authorization Scheme**: `ADMIN_RH`.
+- **Link › Link Text**:
+  ```html
+  <span class="cx-colab-pessoa"><span class="cx-avatar cx-avatar--situacao-#SITUACAO_CLASSE!ATTR#"><img src="#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>
+  ```
+
+**`NOME_SEM_LINK`** (gestores, CEO e diretores):
+
+| Propriedade | Valor |
+|---|---|
+| **Type** | Plain Text |
+| **Heading** | `Pessoa` |
+| **Sequence** | Logo depois de `NOME_COMPLETO` |
+| **Escape Special Characters** | No |
+| **Security › Authorization Scheme** | `{Not ADMIN_RH}` (confirmar no 26.1.5) |
+
+**HTML Expression** de `NOME_SEM_LINK`:
+
+```html
+<span class="cx-colab-pessoa"><span class="cx-avatar cx-avatar--situacao-#SITUACAO_CLASSE!ATTR#"><img src="#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_SEM_LINK!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>
+```
+
+O nome usa a própria coluna, porque o valor de `NOME_COMPLETO` não deve ser considerado disponível para quem não passa na autorização dela.
+
+**`VINCULO_LINHA1`** › **HTML Expression**:
+
+```html
+<div class="cx-colab-vinculo #CLASSE_VINCULO!ATTR#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO!RAW##VINCULO_LINHA1!HTML#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2!HTML#</span></div>
+```
+
+**`SITUACAO`** › **HTML Expression**:
+
+```html
+<span class="cx-badge cx-badge--#SITUACAO_CLASSE!ATTR#">#SITUACAO!HTML#</span>
+```
+
+### 12.6 Barra com total e ordenação
+
+O template `Standard` deste export não tem o marcador `#ORDER_BY_ITEM#`, presente só no `Cards Container`. Por isso o seletor fica numa região própria.
+
+1. Crie a região **Resultados** no slot Body:
+
+   | Propriedade | Valor |
+   |---|---|
+   | **Type** | Static Content, sem texto |
+   | **Template** | Blank with Attributes (No Grid) |
+   | **Sequence** | 20 |
+   | **Start New Row** | No |
+   | **Column / Column Span** | 4 / 9 |
+
+2. Em **Colaboradores**, defina **Parent Region** = `Resultados` e **Sequence** = 20. Se houver coluna ou span definidos, volte para Automatic.
+3. Crie a sub-região **Barra da lista** com **Parent Region** = `Resultados`, **Sequence** = 10, **Template** = Blank with Attributes (No Grid), **Static ID** = `cx-colab-barra` e este texto em **Source › HTML Code**:
+   ```html
+   <div id="cx-colab-total" class="cx-colab-barra__total" aria-live="polite"></div>
+   ```
+4. Na região **Filtros**, ajuste **Settings › Show Total Row Count** = `Selector` e **Total Row Count Selector** = `#cx-colab-total` (confirmar nome no 26.1.5). O rótulo da faceta não é usado nesse modo.
+5. Em **Colaboradores**, em **Order By › Type** = Item (confirmar no 26.1.5), crie as opções:
+
+   | Key | Display | Clause |
+   |---|---|---|
+   | `NOME` | Nome | `nome_completo` |
+   | `LOGIN` | Login | `login_apex, nome_completo` |
+   | `DEPARTAMENTO` | Departamento | `departamento, nome_completo` |
+
+   Use o item `P12_ORDEM`, com **Label** `Ordenar por`, valor padrão `NOME`.
+6. Coloque `P12_ORDEM` na região **Barra da lista**. **Se o Builder não permitir mover o item, pare aqui e envie um print das propriedades dele**, sem criar `ORDER BY` na consulta.
+
+Limitação: o sufixo vem do CSS, então um único resultado aparece como "1 colaboradores".
+
+### 12.7 Rótulo da busca
+
+Faceta `P12_SEARCH` › **Label**: `Buscar`.
+
+### 12.8 Página 14: separar criação e edição
+
+Hoje `CREATE_USER` roda em todo envio, então salvar um colaborador existente tenta criar a conta de novo. **Mantenha a p14 assim só até concluir esta seção; o link da p12 depende dela.**
+
+**Botões**
+
+1. `SALVAR_USUARIO` › **Server-side Condition**: Item is NULL, `P14_ID_COLABORADOR`.
+2. Duplique o botão. Na cópia:
+
+   | Propriedade | Valor |
+   |---|---|
+   | **Button Name** | `SALVAR_ALTERACOES` |
+   | **Label** | `Salvar alterações` |
+   | **Database Action** | SQL UPDATE action |
+   | **Requires Confirmation** | No |
+   | **Server-side Condition** | Item is NOT NULL, `P14_ID_COLABORADOR` |
+
+**Campos**
+
+3. `P14_SENHA` e `P14_CONFIRMAR_SENHA` › **Server-side Condition**: Item is NULL, `P14_ID_COLABORADOR`.
+4. `P14_LOGIN`, `P14_EMPRESA`, `P14_DEPARTAMENTO` e `P14_CARGO` › **Read Only › Type**: Item is NOT NULL, `P14_ID_COLABORADOR`. Em `P14_LOGIN`, **Inline Help Text**: `O login não pode ser alterado.`
+
+**Validação e processos**
+
+5. Em cada item abaixo, **Server-side Condition › Type** = When Button Pressed, botão `SALVAR_USUARIO`:
+   - validação **Validar Confirmação de Senha**;
+   - processo **Registrar admissão**;
+   - processo **Criar usuário APEX**;
+   - processo **Atribuir papéis do cargo**.
+6. Crie o processo **Confirmar alteração**: Type Execute Code, código `null;`, Sequence 40, **Success Message** `Alterações salvas.`, When Button Pressed `SALVAR_ALTERACOES`.
+
+**Saída e cabeçalho**
+
+7. Crie um **Branch** em Processing: Sequence 5, destino página 12, When Button Pressed `SALVAR_ALTERACOES`.
+8. Na região **Cabeçalho** da p14, troque **PL/SQL Function Body** por:
+   ```plsql
+   return pkg_colaboradores_ui.render_cabecalho_cadastro(to_number(:P14_ID_COLABORADOR));
+   ```
+
+Departamento e cargo ficam só leitura na edição porque a mudança precisa passar por **Histórico de carreira › Movimentação**, que registra o evento e atualiza o colaborador. É uma diferença consciente em relação ao protótipo.
+
+### 12.9 Testes
+
+| # | Conta / ação | Esperado |
+|---|---|---|
+| 1 | RH | Menu visível; lista só da própria empresa; nome com link; botão Novo colaborador |
+| 2 | CEO ou diretor(a) sem papel de RH | Menu e lista visíveis; nome sem link; sem botão |
+| 3 | Gestor pelo papel e gestor só com subordinados | Iguais ao teste 2 |
+| 4 | Colaborador comum | Sem item no menu; URL direta da p12 mostra acesso restrito |
+| 5 | Linha com cadastro incompleto | Ícone de alerta, sem tags visíveis |
+| 6 | Departamento de teste com `<b>&` no nome | Texto literal, sem negrito |
+| 7 | Colaborador com foto e sem foto | Foto real; sem foto, iniciais |
+| 8 | Pessoa inativa | Avatar cinza |
+| 9 | Filtros e busca | Total da barra acompanha; contagens consistentes |
+| 10 | Trocar `Ordenar por`, depois paginar | Ordem muda e se mantém entre páginas |
+| 11 | RH edita o nome de alguém em registro de teste | Volta à lista com "Alterações salvas."; nenhum usuário APEX ou admissão nova |
+| 12 | RH cria colaborador | Conta, admissão e papéis criados como antes |
+| 13 | Editar colaborador | Login, empresa, departamento e cargo bloqueados; sem campos de senha; título com nome e situação |
+| 14 | Tela estreita | Barra e tabela sem corte |
+
+### 12.10 Se não funcionar
+
+| Sintoma | Causa / verificação | Ação |
+|---|---|---|
+| Lista vazia para todos os usuários | `G_ID_EMPRESA` nulo na sessão | Confira se a conta tem empresa e faça login de novo; `SET_G_ID_EMPRESA` roda na autenticação |
+| Liderança recebe acesso negado | Conta sem papel e sem subordinados, ou avaliação antiga na sessão | Confira o cargo em `cargo_papel`; saia e entre de novo |
+| Duas colunas Pessoa | Autorização ausente em uma delas | Revisar §12.5 |
+| `{Not ADMIN_RH}` não aparece | Rótulo diferente no 26.1.5 | Enviar print da lista de autorizações da coluna |
+| Total vazio | Seletor incorreto ou região sem o `div` | Conferir `#cx-colab-total` e o HTML da região |
+| `ORA-` ao trocar a ordenação | Coluna da cláusula ausente da consulta | Usar só colunas do select do §12.4 |
+
+### 12.11 Fora deste passo a passo
+
+- **Conta APEX ao editar:** `APEX_UTIL.SET_EMAIL` e `LOCK_ACCOUNT` exigem administrador do workspace, conforme a documentação. Por isso, editar o e-mail ou inativar não altera a conta APEX; falta definir e testar como sincronizar.
+- **Protótipo de edição:** Redefinir senha, Perfis de acesso e Topo da hierarquia não foram incluídos.
+- **Gestor:** vê a empresa inteira, não só a própria equipe, conforme a decisão acima.
+
+Fontes: [Order By Item](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/managing-sorting-with-order-by-item.html), [total em seletor](https://docs.oracle.com/en/database/oracle/apex/26.1/apxdc/showing-filter-chips-and-total-row-count.html), [SET_EMAIL](https://docs.oracle.com/en/database/oracle/apex/26.1/aeapi/SET_EMAIL-Procedure.html) e [LOCK_ACCOUNT](https://docs.oracle.com/en/database/oracle/apex/26.1/aeapi/LOCK_ACCOUNT-Procedure.html).

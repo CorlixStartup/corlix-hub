@@ -262,6 +262,7 @@ Em montagem pelo guia `modulos/colaboradores/Etapas-colaboradores.md` com base n
   3. `P12_EMPRESA` (Checkbox Group): empresas cadastradas e `Sem vínculo` com contagens.
   4. `P12_DEPARTAMENTO` (Checkbox Group): departamentos cadastrados com contagens.
   5. `P12_PERFIL` (Checkbox Group): `Administrador`, `Publicador de conteúdo` e `Colaborador` com contagens.
+- **Acesso (proposto, §12 do guia do módulo):** RH, gestores, CEO e diretores veem a lista da própria empresa (`VER_LISTA_COLABORADORES`); criar e editar seguem com `ADMIN_RH`. Ainda não aplicado na app.
 - **Resultados (Classic Report)**: região `Colaboradores` (col 4, col-span 9, classe `cx-relatorio`) sobre a view `VW_COLABORADORES_LISTA`:
   - `Pessoa`: avatar circular com foto ou iniciais (`cx-avatar`), nome em link azul para edição na p14 com `P14_ID_COLABORADOR`, e e-mail corporativo abaixo.
   - `Login`: plain text (`login_apex`).
