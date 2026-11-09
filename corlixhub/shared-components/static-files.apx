@@ -98,6 +98,16 @@ file lucide.woff2 (
     charSet: utf-8
 )
 
+file "modulos/colaboradores/colaboradores.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file "modulos/colaboradores/colaboradores.min.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
 file organograma.css (
     mimeType: text/css
     charSet: utf-8

@@ -5,36 +5,509 @@ page 12 (
     appearance {
         pageTemplate: @/standard
         templateOptions: #DEFAULT#
+        cssClasses: cx-colaboradores-pagina
     }
     navigation {
         cursorFocus: doNotFocusCursor
+    }
+    css {
+        fileUrls: #APP_FILES#modulos/colaboradores/colaboradores#MIN#.css
     }
     security {
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
 
-    region breadcrumb (
-        name: Breadcrumb
-        type: breadcrumb
+    region cabeçalho (
+        name: Cabeçalho
+        type: dynamicContent
         source {
-            breadcrumb: @breadcrumb
+            plsqlFunctionBody:
+                ```plsql
+                return '<div class="cx-cabecalho-pagina cx-cabecalho-pagina--acoes">'
+                    || '<div class="cx-cabecalho-pagina__texto">'
+                    || '<h1 class="cx-cabecalho-pagina__titulo">Colaboradores</h1>'
+                    || '<p class="cx-cabecalho-pagina__descricao">Encontre pessoas e gerencie contas, vínculos e perfis de acesso.</p>'
+                    || '</div>'
+                    || '<div class="cx-cabecalho-pagina__acoes">'
+                    || case
+                         when apex_authorization.is_authorized('admin-rh')
+                           or apex_authorization.is_authorized('administration-rights')
+                           or v('G_ID_EMPRESA') is null then
+                              '<a class="t-Button t-Button--hot t-Button--iconLeft" href="'
+                           || apex_escape.html_attribute(apex_page.get_url(p_page => 14, p_clear_cache => '14'))
+                           || '"><span class="t-Icon t-Icon--left fa fa-plus" aria-hidden="true"></span>'
+                           || '<span class="t-Button-label">Novo colaborador</span></a>'
+                       end
+                    || '</div>'
+                    || '</div>';
+                ```
         }
         layout {
             sequence: 10
             slot: breadcrumbBar
         }
         appearance {
-            template: @/title-bar
-            templateOptions: [
-                #DEFAULT#
-                t-BreadcrumbRegion--useBreadcrumbTitle
-            ]
-        }
-        componentAppearance {
-            breadcrumbTemplate: @/breadcrumb
+            template: @/blank-with-attributes-no-grid
             templateOptions: #DEFAULT#
         }
+    )
+
+    region colaboradores (
+        name: Colaboradores
+        type: classicReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id_colaborador,
+                       nome_completo,
+                       email,
+                       login_apex,
+                       primeiro_nome,
+                       ultimo_nome,
+                       foto_url,
+                       tem_imagem,
+                       iniciais,
+                       id_empresa,
+                       empresa,
+                       id_departamento,
+                       departamento,
+                       id_cargo,
+                       cargo,
+                       vinculo_linha1,
+                       vinculo_linha2,
+                       fl_sem_vinculo,
+                       classe_vinculo,
+                       icone_vinculo,
+                       perfil,
+                       perfil_html,
+                       situacao,
+                       situacao_classe
+                  from vw_colaboradores_lista
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+            startNewRow: false
+            column: 4
+            columnSpan: 9
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--removeHeader js-removeLandmark
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+            cssClasses: cx-relatorio
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        pagination {
+            type: rowRangesXToYOfZNoPagination
+        }
+        messages {
+            whenNoDataFound: Nenhum colaborador encontrado.
+        }
+
+        column CARGO (
+            reportColumnQueryId: 15
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 150
+            }
+        )
+
+        column CLASSE_VINCULO (
+            reportColumnQueryId: 19
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 190
+            }
+        )
+
+        column DEPARTAMENTO (
+            reportColumnQueryId: 13
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 130
+            }
+        )
+
+        column EMAIL (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column EMPRESA (
+            reportColumnQueryId: 11
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 110
+            }
+        )
+
+        column FL_SEM_VINCULO (
+            reportColumnQueryId: 18
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 180
+            }
+        )
+
+        column FOTO_URL (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 70
+            }
+        )
+
+        column ICONE_VINCULO (
+            reportColumnQueryId: 20
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 200
+            }
+        )
+
+        column ID_CARGO (
+            reportColumnQueryId: 14
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 140
+            }
+        )
+
+        column ID_COLABORADOR (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column ID_DEPARTAMENTO (
+            reportColumnQueryId: 12
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 120
+            }
+        )
+
+        column ID_EMPRESA (
+            reportColumnQueryId: 10
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 100
+            }
+        )
+
+        column INICIAIS (
+            reportColumnQueryId: 9
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 90
+            }
+        )
+
+        column LOGIN_APEX (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Login
+            }
+            layout {
+                sequence: 40
+            }
+        )
+
+        column NOME_COMPLETO (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: link
+            heading {
+                heading: Pessoa
+            }
+            layout {
+                sequence: 20
+            }
+            link {
+                target: {
+                    page: 14
+                    items: {
+                        P14_ID_COLABORADOR: #ID_COLABORADOR#
+                    }
+                    clearCache: 14
+                }
+                linkText: <span class="cx-colab-pessoa"><span class="cx-avatar"><img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_COMPLETO#</span><span class="cx-colab-pessoa__email">#EMAIL#</span></span></span>
+            }
+            sorting {
+                defaultSequence: 1
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column PERFIL (
+            reportColumnQueryId: 21
+            derivedColumn: N
+            heading {
+                heading: Perfil
+            }
+            layout {
+                sequence: 210
+            }
+            columnFormatting {
+                htmlExpression: #PERFIL_HTML#
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column PERFIL_HTML (
+            reportColumnQueryId: 22
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 220
+            }
+        )
+
+        column PRIMEIRO_NOME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 50
+            }
+        )
+
+        column SITUACAO (
+            reportColumnQueryId: 23
+            derivedColumn: N
+            heading {
+                heading: Situação
+            }
+            layout {
+                sequence: 230
+            }
+            columnFormatting {
+                htmlExpression: <span class="cx-badge cx-badge--#SITUACAO_CLASSE#">#SITUACAO#</span>
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column SITUACAO_CLASSE (
+            reportColumnQueryId: 24
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 240
+            }
+        )
+
+        column TEM_IMAGEM (
+            reportColumnQueryId: 8
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 80
+            }
+        )
+
+        column ULTIMO_NOME (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 60
+            }
+        )
+
+        column VINCULO_LINHA1 (
+            reportColumnQueryId: 16
+            derivedColumn: N
+            heading {
+                heading: Vínculo
+            }
+            layout {
+                sequence: 160
+            }
+            columnFormatting {
+                htmlExpression: <div class="cx-colab-vinculo #CLASSE_VINCULO#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO##VINCULO_LINHA1#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2#</span></div>
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
+
+        column VINCULO_LINHA2 (
+            reportColumnQueryId: 17
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 170
+            }
+        )
+
+    )
+
+    region filtros (
+        name: Filtros
+        title: Filtros
+        type: facetedSearch
+        source {
+            filteredRegion: @colaboradores
+        }
+        layout {
+            sequence: 20
+            slot: body
+            column: 1
+            columnSpan: 3
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--removeHeader js-removeLandmark
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+        settings {
+            compactNosThreshold: 10000
+            showCurrentFacets: true
+            showTotalRowCount: true
+            showCharts: false
+        }
+
+        facet P12_DEPARTAMENTO (
+            type: checkboxGroup
+            label {
+                label: Departamento
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 40
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: DEPARTAMENTO
+            }
+        )
+
+        facet P12_EMPRESA (
+            type: checkboxGroup
+            label {
+                label: Empresa
+            }
+            lov {
+                type: distinctValues
+            }
+            layout {
+                sequence: 30
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: EMPRESA
+            }
+        )
+
+        facet P12_PERFIL (
+            type: checkboxGroup
+            label {
+                label: Perfil
+            }
+            lov {
+                type: staticValues
+                staticValues: STATIC:Administrador;Administrador,Publicador de conteúdo;Publicador de conteúdo,Colaborador;Colaborador
+            }
+            layout {
+                sequence: 50
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: PERFIL
+            }
+        )
+
+        facet P12_SEARCH (
+            type: search
+            label {
+                label: Search
+            }
+            layout {
+                sequence: 10
+            }
+            appearance {
+                valuePlaceholder: Nome, login ou e-mail
+            }
+            source {
+                dbColumns: NOME_COMPLETO,LOGIN_APEX,EMAIL
+            }
+        )
+
+        facet P12_SITUACAO (
+            type: checkboxGroup
+            label {
+                label: Situação
+            }
+            lov {
+                type: staticValues
+                staticValues: STATIC:Ativa;Ativa,Inativa;Inativa
+            }
+            layout {
+                sequence: 20
+            }
+            listEntries {
+                maxDisplayedEntries: 7
+            }
+            source {
+                databaseColumn: SITUACAO
+            }
+        )
+
     )
 
 )

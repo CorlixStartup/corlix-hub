@@ -22,7 +22,7 @@ A alteração é feita no Builder. O backup diário trará o resultado para `cor
 
 ## 1. Banco de dados (View da listagem)
 
-Antes de abrir o Builder, crie a view que alimenta as facetas e o relatório.
+Antes de abrir o Builder, execute [00_fn_colab_tem_papel.sql](./00_fn_colab_tem_papel.sql) e depois a view abaixo. Se já criou a função durante o diagnóstico, basta recriar a view. No SQL Commands, execute um comando por vez e omita a linha isolada `/` da função, preservando `end;`.
 
 1. No menu do APEX, acesse **SQL Workshop › SQL Scripts** (ou utilize o SQL Commands).
 2. Execute o conteúdo do arquivo [`01_vw_colaboradores_lista.sql`](./01_vw_colaboradores_lista.sql):
@@ -90,22 +90,12 @@ Antes de abrir o Builder, crie a view que alimenta as facetas e o relatório.
               select 1 from cargo_papel cp
                where cp.id_cargo = c.id_cargo
                  and cp.cd_papel in ('equipe-do-corlix-hub', 'admin-rh', 'diretoria')
-            ) or exists (
-              select 1 from apex_appl_acl_user_roles ur
-               where ur.application_id = to_number(v('APP_ID') default 100 on conversion error)
-                 and upper(ur.user_name) = upper(c.login_apex)
-                 and ur.role_static_id in ('equipe-do-corlix-hub', 'admin-rh')
-            ) then 'Administrador'
+            ) or (fn_colab_tem_papel(c.login_apex, 'equipe-do-corlix-hub', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'admin-rh', to_number(v('APP_ID') default 100 on conversion error)) = 1) then 'Administrador'
             when exists (
               select 1 from cargo_papel cp
                where cp.id_cargo = c.id_cargo
                  and cp.cd_papel in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-             ) or exists (
-               select 1 from apex_appl_acl_user_roles ur
-                where ur.application_id = to_number(v('APP_ID') default 100 on conversion error)
-                  and upper(ur.user_name) = upper(c.login_apex)
-                  and ur.role_static_id in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-            ) then 'Publicador de conteúdo'
+             ) or (fn_colab_tem_papel(c.login_apex, 'publicador-de-conteudo', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'publicador-de-conteúdo', to_number(v('APP_ID') default 100 on conversion error)) = 1) then 'Publicador de conteúdo'
             else 'Colaborador'
           end as perfil,
           case
@@ -113,22 +103,12 @@ Antes de abrir o Builder, crie a view que alimenta as facetas e o relatório.
               select 1 from cargo_papel cp
                where cp.id_cargo = c.id_cargo
                  and cp.cd_papel in ('equipe-do-corlix-hub', 'admin-rh', 'diretoria')
-            ) or exists (
-              select 1 from apex_appl_acl_user_roles ur
-               where ur.application_id = to_number(v('APP_ID') default 100 on conversion error)
-                 and upper(ur.user_name) = upper(c.login_apex)
-                 and ur.role_static_id in ('equipe-do-corlix-hub', 'admin-rh')
-            ) then '<span class="cx-etiqueta">Administrador</span>'
+            ) or (fn_colab_tem_papel(c.login_apex, 'equipe-do-corlix-hub', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'admin-rh', to_number(v('APP_ID') default 100 on conversion error)) = 1) then '<span class="cx-etiqueta">Administrador</span>'
             when exists (
               select 1 from cargo_papel cp
                where cp.id_cargo = c.id_cargo
                  and cp.cd_papel in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-            ) or exists (
-              select 1 from apex_appl_acl_user_roles ur
-               where ur.application_id = to_number(v('APP_ID') default 100 on conversion error)
-                 and upper(ur.user_name) = upper(c.login_apex)
-                 and ur.role_static_id in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-            ) then '<span class="cx-etiqueta">Publicador de conteúdo</span>'
+            ) or (fn_colab_tem_papel(c.login_apex, 'publicador-de-conteudo', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'publicador-de-conteúdo', to_number(v('APP_ID') default 100 on conversion error)) = 1) then '<span class="cx-etiqueta">Publicador de conteúdo</span>'
             else 'Colaborador'
           end as perfil_html,
           case when c.status = true then 'Ativa' else 'Inativa' end as situacao,
@@ -271,6 +251,13 @@ Selecione cada coluna da região em *Columns* e configure:
 | `SITUACAO` | **Plain Text** | `Situação` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`<span class="cx-badge cx-badge--#SITUACAO_CLASSE!ATTR#">#SITUACAO!HTML#</span>` |
 | *Demais colunas* | **Hidden** | — | Deixe como **Hidden**: `ID_COLABORADOR`, `EMAIL`, `PRIMEIRO_NOME`, `ULTIMO_NOME`, `FOTO_URL`, `TEM_IMAGEM`, `INICIAIS`, `ID_EMPRESA`, `EMPRESA`, `ID_DEPARTAMENTO`, `DEPARTAMENTO`, `ID_CARGO`, `CARGO`, `VINCULO_LINHA2`, `FL_SEM_VINCULO`, `CLASSE_VINCULO`, `ICONE_VINCULO`, `PERFIL_HTML`, `SITUACAO_CLASSE`. |
 
+
+**Coluna Pessoa:** como `NOME_COMPLETO` é do tipo **Link**, preencha o HTML em **Link › Link Text**, não em **HTML Expression**. O APEX gera a tag `<a>` com o destino e o checksum; não coloque outra tag `<a>` dentro do conteúdo nem use `&LINK.`. As demais colunas **Plain Text** continuam usando **HTML Expression**.
+
+**Validação no Builder (pendente):** salve e execute a página; confira avatar, nome e e-mail e clique na Pessoa para verificar a navegação à página 14 com o colaborador correto. O link envolve todo o conteúdo da célula Pessoa. Se **Link Text** não aparecer, envie um print da árvore e das propriedades da coluna antes de tentar outro caminho.
+
+Referência: [Oracle APEX 26.1 — Creating a Column Link in a Classic Report](https://docs.oracle.com/en/database/oracle/apex/26.1/htmdb/managing-classic-report-column-attributes.html).
+
 ---
 
 ## 6. Região de Facetas (Faceted Search)
@@ -383,6 +370,30 @@ Compare com `pen_dev/Colaboradores · visão de administração.png`:
   - [ ] **Situação**: Badge com ponto verde para `Ativa` e ponto cinza para `Inativa`.
 - [ ] **Paginação**: Formato `1 – 8 de 8` no rodapé à direita.
 
+### Diagnóstico das contagens de perfil — 08/11/2026
+
+Confirmado no ambiente: a leitura simples da view funciona; a agregação com GROUPING SETS falha ao incluir PERFIL e funciona sem ele. A tentativa com ROWNUM também falhou. O teste com FN_COLAB_TEM_PAPEL e GROUPING SETS executou sem erro, com 309 linhas retornando zero e total 309. Isso valida a execução da função, mas não comprova a classificação dos usuários.
+
+A view agora chama a função baseada na API pública APEX_ACL.HAS_USER_ROLE em PERFIL e PERFIL_HTML. As condições de CARGO_PAPEL e os papéis consultados foram preservados. A causa interna exata do erro não foi confirmada.
+
+Após recriar a view, execute:
+
+```sql
+select situacao, empresa, departamento, perfil, count(*) quantidade
+  from vw_colaboradores_lista
+ group by grouping sets (situacao, empresa, departamento, perfil, ())
+```
+
+Depois, na sessão da aplicação 100, teste as contagens e a seleção das facetas na página 12. Confira um colaborador com papel manual conhecido e outro com papel via CARGO_PAPEL. Compare a etiqueta do relatório com a faceta. A validação da view completa e da página permanece pendente.
+
+A API depende do contexto de workspace. Não interprete os 309 zeros como prova de ausência de papéis: confira o APP_ID e um login com papel conhecido no mesmo contexto. Não altere o contexto de segurança dentro da função, não adicione cache e não suprima erros retornando zero.
+
+Referência: [Oracle APEX 26.1 — APEX_ACL](https://docs.oracle.com/en/database/oracle/apex/26.1/aeapi/APEX_ACL.html).
+
+| Sintoma | Causa / diagnóstico | Correção proposta |
+|---|---|---|
+| ORA-00904: "APEX_260100"."WWV_FLOW_SECURITY": invalid identifier em Filtros | Reproduzido com GROUPING SETS incluindo PERFIL; sem PERFIL funciona. Causa interna ainda não confirmada | Criar 00_fn_colab_tem_papel.sql e recriar a view 01, isolando a consulta de ACL em PL/SQL. Teste isolado da função passou; validação da view completa e da página pendente |
+
 ## 8. Validação após a revisão do export de 08/11/2026
 
 A revisão foi estática. Não marca como concluídos os testes de execução, segurança ou aparência.
@@ -411,8 +422,7 @@ Referências: [escaping de substituições](https://docs.oracle.com/en/database/
 - Primeiro confira os processos e condições da página 14. Em DEV, com registro de teste, verifique carregamento do ID, salvamento sem criar outro usuário nem outra admissão e comportamento de cancelamento. Se a página só suportar criação, não libere o link Pessoa como edição.
 - Novo colaborador deve abrir a página 14 limpa e apenas para usuário autorizado.
 - Combine Situação, Empresa, Departamento e **Perfil**, depois limpe os filtros e faça busca textual. Confirme ausência de ORA-00904 na requisição Ajax.
-- A correção da ACL está no PR #127: aplique a função e a view corrigida antes do teste. A consulta isolada da função passou com 309 zeros e total 309; isso não comprova a classificação de perfis. Valide um usuário com papel manual conhecido e outro com papel via cargo na sessão da app 100.
-- O SQL da view no §1 desta branch ainda depende da integração do PR #127; não o reaplique sobre a versão corrigida já instalada.
+- A correção da ACL já está neste guia (§1): aplique a função `00_fn_colab_tem_papel.sql` e a view corrigida antes do teste. A consulta isolada da função passou com 309 zeros e total 309; isso não comprova a classificação de perfis. Valide um usuário com papel manual conhecido e outro com papel via cargo na sessão da app 100.
 
 ### Se não funcionar
 

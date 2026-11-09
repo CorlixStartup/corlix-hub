@@ -46,6 +46,30 @@ exception
 end fn_carreira_ve_salario;
 /
 
+  CREATE OR REPLACE EDITIONABLE FUNCTION "FN_COLAB_TEM_PAPEL" (
+    p_login  in varchar2,
+    p_papel  in varchar2,
+    p_app_id in number
+) return number
+authid definer
+is
+begin
+    if p_login is null or p_app_id is null then
+        return 0;
+    end if;
+
+    if apex_acl.has_user_role(
+        p_application_id => p_app_id,
+        p_user_name      => p_login,
+        p_role_static_id => p_papel
+    ) then
+        return 1;
+    end if;
+
+    return 0;
+end;
+/
+
   CREATE OR REPLACE EDITIONABLE PACKAGE "LOG_PKG" as
   procedure gravar(p_nivel varchar2, p_msg varchar2, p_origem varchar2 default null, p_detalhe clob default null);
   procedure erro (p_msg varchar2, p_origem varchar2 default null);
