@@ -73,38 +73,51 @@ Não aplique ADMIN_RH à página 12 inteira apenas para controlar esse botão. A
 ### 4.1 Apagar o breadcrumb antigo
 Somente se ainda houver o breadcrumb antigo duplicado: na árvore Rendering, remova essa região. Preserve o Cabeçalho existente.
 
-### 4.2 Configurar o cabeçalho com a ação no mesmo contêiner
+### 4.2 Instalar o package de UI
 
-> **Revisão arquitetural:** o bloco inline abaixo documenta a proposta anterior e não é a implementação final recomendada. O padrão confirmado nos módulos é um package de UI. Antes de reaplicar este bloco, preparar `pkg_colaboradores_ui.render_cabecalho return clob`, com spec/body e instalação, e então configurar a região com `return pkg_colaboradores_ui.render_cabecalho;`. Esse package ainda não foi criado nesta tarefa; não colar a chamada antes de sua instalação. A revisão da arquitetura completa da listagem deve preservar a fonte SQL exigida pelo Faceted Search ou justificar e implementar sua substituição. Não remover relatório/facetas apenas para adotar Dynamic Content.
+Para a página já montada, execute somente os dois arquivos novos, nesta ordem:
 
+1. [02_pkg_colaboradores_ui.pks](./02_pkg_colaboradores_ui.pks) — especificação.
+2. [02_pkg_colaboradores_ui.pkb](./02_pkg_colaboradores_ui.pkb) — corpo.
 
-Na página existente, selecione Cabeçalho e substitua a função abaixo. Se criou o botão nativo NOVO_COLABORADOR na tentativa anterior, remova apenas esse botão depois de conferir sua identificação, para evitar duplicação. Não remova ações de outros módulos.
+Use SQL Workshop › SQL Scripts ou SQLcl. No SQL Commands, execute um CREATE OR REPLACE por vez, omitindo somente a linha isolada `/` e preservando os pontos e vírgulas internos. O instalador completo inclui esses arquivos depois da função e da view; não é necessário reinstalar tudo no ambiente atual.
 
-Para instalação nova:
-1. Clique com o botão direito em **Breadcrumb Bar** › **Create Region** *(confirmar no 26.1.5)*.
-2. Defina as propriedades da nova região:
-   - *Identification › Name*: `Cabeçalho`
-   - *Identification › Type*: **Dynamic Content**
-   - *Source › Language*: **PL/SQL**
-   - *Source › PL/SQL Function Body returning a CLOB*:
-     ```plsql
-     return '<div class="cx-cabecalho-pagina cx-cabecalho-pagina--acoes">'
-         || '<div class="cx-cabecalho-pagina__texto">'
-         || '<h1 class="cx-cabecalho-pagina__titulo">Colaboradores</h1>'
-         || '<p class="cx-cabecalho-pagina__descricao">Encontre pessoas e gerencie contas, vínculos e perfis de acesso.</p>'
-         || '</div>'
-         || '<div class="cx-cabecalho-pagina__acoes">'
-         || case
-              when apex_authorization.is_authorized('ADMIN_RH') then
-                   '<a class="t-Button t-Button--hot t-Button--iconLeft" href="'
-                || apex_escape.html_attribute(apex_page.get_url(p_page => 14, p_clear_cache => '14'))
-                || '"><span class="t-Icon t-Icon--left fa fa-plus" aria-hidden="true"></span>'
-                || '<span class="t-Button-label">Novo colaborador</span></a>'
-            end
-         || '</div>'
-         || '</div>';
-     ```
-   - *Appearance › Template*: **Blank with Attributes (No Grid)**
+Confira a compilação:
+
+```sql
+select type, line, position, text
+  from user_errors
+ where name = 'PKG_COLABORADORES_UI'
+ order by type, sequence
+```
+
+O resultado deve estar vazio. Confira também PACKAGE e PACKAGE BODY com STATUS = VALID:
+
+```sql
+select object_type, status
+  from user_objects
+ where object_name = 'PKG_COLABORADORES_UI'
+   and object_type in ('PACKAGE', 'PACKAGE BODY')
+```
+
+Não altere a região antes de resolver eventuais erros de compilação. Não foi possível compilar no banco a partir desta tarefa: esses testes devem ser feitos no ambiente do projeto.
+
+### 4.3 Chamar o package no Builder
+
+1. Na página 12, selecione a região **Cabeçalho** existente.
+2. Mantenha **Type = Dynamic Content**, posição **Breadcrumb Bar** e template **Blank with Attributes (No Grid)**, como no cabeçalho do Holerite.
+3. Substitua todo o corpo PL/SQL da região por:
+
+   ```plsql
+   return pkg_colaboradores_ui.render_cabecalho;
+   ```
+
+4. Se a tentativa anterior criou o botão nativo NOVO_COLABORADOR, confira sua identificação e remova somente essa duplicata. O package renderiza a ação; não existe uma segunda configuração de botão no Builder.
+5. Salve e execute com uma conta autorizada.
+
+A autorização da ação está no package e usa o nome ADMIN_RH, em alinhamento com a página 14. Mantenha a proteção no destino; não restrinja a página 12 inteira para esconder o botão. O package usa URL com checksum e escape de atributo. O tema já converte fa-plus no Lucide Plus; não instalar biblioteca adicional.
+
+**Arquitetura adotada:** o HTML personalizado do cabeçalho fica no package. Classic Report e Faceted Search continuam nativos, pois as facetas dependem da fonte SQL filtrável. Essa composição preserva busca, contagens e paginação existentes; não há substituição da listagem por HTML manual. O CLOB é local à chamada, seguindo o mesmo padrão de montagem incremental dos módulos de referência e evitando estado compartilhado desnecessário para uma única função.
 
 **Conferência:** use uma conta autorizada; deve existir uma única ação à direita do título, com fundo escuro, ícone Lucide Plus e texto branco. Teste a navegação ao cadastro limpo. Com usuário comum, a lista continua disponível e a ação não aparece. Teste tela estreita e foco pelo teclado. Se o resultado divergir, registre print e export atual antes de sugerir outra posição ou CSS; não declare o alinhamento concluído apenas pelo código.
 

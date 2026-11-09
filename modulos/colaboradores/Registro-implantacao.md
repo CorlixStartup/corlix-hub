@@ -107,3 +107,11 @@ Escopo concluído: inspeção do padrão e correção documental. Validação: c
 Por orientação explícita do usuário, AGENTS.md e regra 14 foram reforçados: seguir sempre os padrões adotados, incluindo packages de UI, salvo boa prática demonstravelmente melhor para o caso. A exceção exige comparação documentada, evidência, benefício concreto, impactos e validação; preferência pessoal não basta.
 
 Entrega documental: regra persistida no repositório e incluída no PR #130. Verificação: git diff --check e reindexação dos casos. Nenhuma mudança na aplicação; implementação do package de Colaboradores e validações anteriores seguem pendentes.
+
+## Guia executável com package de UI — 09/11/2026
+
+A etapa anteriormente pendente de preparar o package foi realizada no repositório: 02_pkg_colaboradores_ui.pks/.pkb fornecem render_cabecalho retornando CLOB, com ação no mesmo contêiner, ADMIN_RH, URL com checksum, escape e Lucide pelo mapeamento do tema. O instalador inclui spec/body. O guia substitui o bloco inline por instalação, consulta de USER_ERRORS/USER_OBJECTS e chamada curta no Builder.
+
+Referências: render_cabecalho de Holerite/Ponto. A montagem usa CLOB local e append; relatório e facetas permanecem nativos para preservar a fonte filtrável. Não foi criado um render_pagina para substituir esses componentes.
+
+Verificação local: diff e links do guia; reindexação documental. Compilação Oracle, aplicação no Builder e testes visuais/funcionais não executados. O package está versionado, não confirmado como instalado. Próximo passo: executar os dois arquivos 02, conferir validade, aplicar a chamada do §4.3 e testar botão, autorização e navegação; demais pendências anteriores continuam abertas. Esta seção atualiza o estado histórico que dizia que o package ainda precisava ser criado.

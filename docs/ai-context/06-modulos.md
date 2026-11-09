@@ -421,3 +421,5 @@ O [registro de implantação](../../modulos/colaboradores/Registro-implantacao.m
 O guia de Colaboradores foi revisto para ações no cabeçalho seguindo Holerite/Ponto, sem restringir toda a lista ao RH. A revisão é documental e os testes na app continuam pendentes; encerramentos seguem a regra 15 do 08.
 
 Correção arquitetural: os módulos de referência centralizam HTML em packages de UI com render_* retornando CLOB. O cabeçalho inline proposto para Colaboradores não encerra essa adequação; pkg_colaboradores_ui ainda precisa ser implementado, conforme o registro de implantação.
+
+Atualização de 09/11/2026: pkg_colaboradores_ui foi preparado em modulos/colaboradores/02_pkg_colaboradores_ui.pks/.pkb. O guia agora fornece instalação e chamada render_cabecalho; Classic Report/Faceted Search permanecem nativos. Package ainda não compilado nem validado no ambiente; substitui a pendência anterior de criação, sem declarar implantação concluída.

@@ -52,6 +52,7 @@ Banco de dados (COLABORADOR, CARGO, DEPARTAMENTO, EMPRESA, CARGO_PAPEL)
 |---|---|
 | `00_fn_colab_tem_papel.sql` | Função de consulta de papéis via APEX_ACL; executar antes da view |
 | `01_vw_colaboradores_lista.sql` | View `VW_COLABORADORES_LISTA` que alimenta o relatório e as facetas |
+| `02_pkg_colaboradores_ui.pks` / `.pkb` | Cabeçalho em package de UI, com ação autorizada; instalar spec antes do body |
 | `instalar.sql` | Script instalador para SQLcl ou SQL Workshop |
 | `colaboradores.css` / `.min.css` | Estilos específicos para avatares, pessoa, vínculo e tabela |
 | `Etapas-colaboradores.md` | Passo a passo detalhado para montagem no App Builder do APEX 26.1.5 |
