@@ -211,3 +211,9 @@ Usuário autenticou no Chrome (conta Teste Rh); nenhuma credencial digitada e ne
 Resultado em desktop (1488 px): barra em linha única com total à esquerda e Ordenar por à direita; contagens à direita, sem parênteses; menu de três pontos oculto; filtro Inativa levou o total de 309 a 4 e exibiu "Limpar"; sem erros de console. Layout considerado fiel ao protótipo, com as diferenças aceitas listadas no §12.0.
 
 Pendências: testes de salvar na p14 (grava dados), contas de diretor, gestor e colaborador comum, caracteres especiais e tela estreita. Próximo passo: executar esses testes e decidir os itens em aberto do §12.0.
+
+## Teste de salvar edição na p14 — 09/11/2026
+
+Autorizado pelo usuário no registro [DEMO] Diego Alves (id 315), conta Teste Rh, login feito pelo usuário. Alterado apenas o primeiro nome para DiegoTeste e acionado Salvar alterações. Resultado: recusado pela validação "Data de nascimento must have some value.", porque o registro não tem data de nascimento e o campo é obrigatório. Ao reabrir, o primeiro nome continua Diego: nada foi gravado e não houve o que restaurar.
+
+Conclusão: a validação obrigatória funciona na edição, mas o caminho de sucesso (gravar, voltar à lista com "Alterações salvas.", não criar conta nem admissão) segue não testado. Achados: colaboradores sem data de nascimento não podem ser editados até o campo ser preenchido; mensagem de obrigatório em inglês. Próximo passo: repetir o teste num registro de teste com data de nascimento.
