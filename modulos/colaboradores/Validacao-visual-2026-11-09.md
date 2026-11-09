@@ -46,3 +46,38 @@ Não há motivo nesta captura para refazer a posição do botão ou trocar novam
 6. Repetir testes em desktop e tela estreita, com teclado, filtros combinados e mais de uma página.
 
 Estado: auditoria concluída e documentada; correções visuais não aplicadas nem validadas nesta tarefa. Não confundir conformidade visual parcial com homologação funcional.
+
+## Revalidação da DEV b1ff0d6 — backup 05730bc, 09/11 às 12:06
+
+Esta seção atualiza a auditoria da captura das 10:45. A captura anterior não prova o resultado visual das mudanças das 12:06. Revisão atual de export APEXlang, DDL, CSS e mensagens; sem execução autenticada no navegador ou banco.
+
+### Confirmado como aplicado no backup
+
+| Item | Evidência |
+|---|---|
+| Cabeçalho no padrão de packages | p00012-colaboradores.apx chama pkg_colaboradores_ui.render_cabecalho; spec/body constam nos DDL 08/09 |
+| Ordem do layout | Filtros sequence 10/coluna 1/span 3; relatório sequence 20/coluna 4/span 9, startNewRow false |
+| Paginação com links | pagination.type = rowRangesXToYOfZWithPagination; export SQL confirma p_query_num_rows = 15, ROW_RANGES_WITH_LINKS e BOTTOM_RIGHT |
+| Pessoa com escape | FOTO_URL!ATTR, INICIAIS!HTML, NOME_COMPLETO!HTML e EMAIL!HTML no Link Text |
+| Etiqueta de perfil | htmlExpression de PERFIL = #PERFIL_HTML!RAW#; não repetir instrução como se ainda estivesse ausente |
+| Rótulo Perfil de acesso | P12_PERFIL.label atualizado |
+| Traduções | messages.apx contém APEX.FS.*, PAGINATION.* e WWV_RENDER_REPORT3.* em en com texto em português |
+| Card e proporções | CSS Inline na página contém superfície/borda/raio, table-layout fixed e larguras 30/15/25/18/12 |
+| ACL | Função e view corrigida continuam presentes |
+
+### Pendências que impedem declarar a página pronta
+
+1. **Barra do protótipo não implementada:** não há região/controle acima do relatório com total filtrado e “Ordenar por — Nome”. O total continua configurado nas facetas; não há item/select correspondente à ordenação. A seta no cabeçalho Pessoa não substitui o controle do protótipo.
+2. **Edição na p14 não homologada:** p12 passa P14_ID_COLABORADOR, mas p14 mantém CREATE_USER sem condição de inclusão. Revisar criação/edição, admissão, validações e autorização antes de afirmar que “Editar colaborador” funciona.
+3. **Isolamento incompleto:** VW_COLABORADORES_LISTA mantém v('G_ID_EMPRESA') is null OR id_empresa = contexto. Uma sessão RH sem empresa pode obter todos os registros; a intenção de acesso global não está explicitamente verificada nesse predicado.
+4. **Acesso da lista precisa de decisão:** export da p12 contém authorizationScheme @admin-rh, diferente da orientação posterior que separou consulta da lista e ação de cadastro. Confirmar o público da página; não remover nem adicionar autorização automaticamente durante esta auditoria.
+5. **Escape de Vínculo não atualizado:** HTML Expression usa VINCULO_LINHA1/VINCULO_LINHA2 sem filtros explícitos e escapeSpecialChars false; a view compõe nomes de empresa/departamento/cargo sem escape. Aplicar o tratamento contextual documentado e testar caracteres especiais.
+6. **CSS ainda em etapa de teste:** ajustes de card/colunas estão Inline, fora dos arquivos normal/minificado do módulo. Confirmar o DOM e o resultado visual/responsivo antes de consolidar, para não duplicar estilos.
+7. **Tradução e navegação precisam de teste:** mensagens estão cadastradas, mas isso não comprova o texto final no cliente nem ausência de corte no rodapé. Conferir recarga completa, filtros e navegação. O export não explicita Used in JavaScript nas mensagens das facetas; verificar se são carregadas pelo componente antes de atribuir falha a esse atributo.
+8. **Facetas ainda diferem do alvo até prova visual:** alinhamento de contagens, menus de três pontos e posição do total precisam de captura atual. Nenhum CSS novo específico para esses elementos foi identificado.
+
+### Parecer
+
+**Não pronta para homologação final e ainda não integralmente fiel ao protótipo.** As correções de configuração acima estão no backup e não devem ser solicitadas novamente como se faltassem. Para concluir: implementar barra sincronizada; resolver/validar edição e política de acesso; tratar Vínculo; testar o fluxo e produzir captura atual em desktop e tela estreita. Não exigir oito registros ou dimensões fixas do mockup.
+
+Validações executadas nesta revisão: comparação dos exports, inspeção dos packages/DDL, consulta pontual do export SQL para paginação, inspeção das mensagens e comparação dos arquivos CSS. Não houve alteração de código da app, execução de testes Oracle nem validação visual posterior às 12:06.
