@@ -41,6 +41,16 @@
     - Se o usuário informar que a orientação não funciona, interrompa as tentativas por suposição: confira o exemplo existente e obtenha o export/print necessário. Marque propostas não verificadas e não declare a página validada só por ler o código.
     - Registre resultados, falhas e pendências no módulo, com evidência e próximo passo. Mantenha as pastas protegidas somente para leitura.
 
+
+15. **Documentar o encerramento de toda tarefa ou módulo.** Antes da entrega final:
+    - Atualize o registro existente do módulo (preferencialmente Registro-implantacao.md ou seção Situação na app do guia). Para tarefa sem módulo, use o documento temático em docs/. Não crie registros duplicados quando já existe um apropriado.
+    - Registre objetivo/escopo, data e referência do código consultado, alterações e arquivos/componentes, decisões e referências reutilizadas, comandos ou testes relevantes, resultado e evidências (export, print, relato do usuário, commit/PR).
+    - Diferencie proposto, versionado, aplicado no Builder/banco e validado em execução. Registre também tentativas malsucedidas e hipóteses descartadas. Não trate revisão estática ou backup como prova de funcionamento.
+    - Liste o que falta, bloqueios e próximo passo concreto; se nada falta, indique conclusão e sua evidência. Se a tarefa terminar parcialmente, documente esse estado sem afirmar que o módulo foi concluído.
+    - Atualize o guia e docs/ai-context/ correspondentes quando a mudança afetar instruções ou estado do projeto. Registre casos novos no 09 ou em Se não funcionar e rode casos.py indexar quando aplicável.
+    - Para mudanças apenas documentais, registre o que foi revisado e a verificação feita; não invente testes de app. Escale o tamanho do registro à tarefa, sem transcrever toda a conversa ou incluir credenciais/dados pessoais desnecessários.
+    - Inclua o registro no mesmo fluxo de branch/commit/PR da tarefa e aponte o resultado na resposta final. Não peça confirmação só para documentar trabalho já autorizado.
+
 ## 2. Lacunas estruturais (objetos que faltam no repositório)
 
 | Lacuna | Impacto |

@@ -82,3 +82,5 @@
 9. **Todo protótipo está em `pen_dev/`** (PNGs das telas-alvo do pen.dev, descritas no 07). Procure lá primeiro; se a tela não existir, pergunte (ver 08 §1, regra 12).
 
 10. Antes de criar ou alterar páginas, reutilize os padrões dos módulos existentes (Histórico de carreira, Holerite, Ponto eletrônico ou equivalente) e registre as referências; veja 08 §1, regra 14.
+
+11. Ao encerrar cada tarefa ou módulo, documente resultados, evidências e pendências em registro versionado (08 §1, regra 15); a resposta final não substitui esse registro.

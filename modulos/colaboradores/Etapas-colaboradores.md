@@ -2,7 +2,7 @@
 
 > **Situação atual e histórico:** consulte [Registro de implantação](./Registro-implantacao.md). O botão Novo colaborador continua pendente; as recomendações revistas estão registradas ali.
 
-Este guia monta a página 12 (**Colaboradores**) exatamente igual ao protótipo `pen_dev/Colaboradores · visão de administração.png`, no App Builder do **Oracle APEX 26.1.5**. A descrição da tela está em [`docs/ai-context/07-design-pen-dev.md`](../../docs/ai-context/07-design-pen-dev.md) §4.4.
+Este guia monta a página 12 (**Colaboradores**) com base no protótipo `pen_dev/Colaboradores · visão de administração.png`, no App Builder do **Oracle APEX 26.1.5**. A descrição da tela está em [`docs/ai-context/07-design-pen-dev.md`](../../docs/ai-context/07-design-pen-dev.md) §4.4.
 
 A alteração é feita no Builder. O backup diário trará o resultado para `corlixhub/pages/p00012-colaboradores.apx` na branch `DEV`.
 
@@ -18,127 +18,29 @@ A alteração é feita no Builder. O backup diário trará o resultado para `cor
 | Página placeholder com apenas a região Breadcrumb | Página completa com **Faceted Search** à esquerda e **Classic Report** à direita |
 | Sem filtros nem busca | 5 facetas: campo de busca global, Situação, Empresa, Departamento e Perfil de acesso |
 | Sem listagem de pessoas | Tabela estilizada com avatar circular (foto/iniciais), nome em link com e-mail, login, vínculo completo (com alerta para incompletos), etiquetas de perfil e badges de status |
-| Sem botão de ação | Cabeçalho com faixa branca e botão primário escuro **+ Novo colaborador** (para administradores e RH) |
+| Sem botão de ação | Cabeçalho com faixa branca e botão primário escuro **+ Novo colaborador** (para usuários autorizados a cadastrar na página 14) |
 
 ---
 
 ## 1. Banco de dados (View da listagem)
 
-Antes de abrir o Builder, execute [00_fn_colab_tem_papel.sql](./00_fn_colab_tem_papel.sql) e depois a view abaixo. Se já criou a função durante o diagnóstico, basta recriar a view. No SQL Commands, execute um comando por vez e omita a linha isolada `/` da função, preservando `end;`.
+**Ambiente atual:** função e view corrigidas já constam no backup e33f972. Não reinstale para ajustar o botão.
 
-1. No menu do APEX, acesse **SQL Workshop › SQL Scripts** (ou utilize o SQL Commands).
-2. Execute o conteúdo do arquivo [`01_vw_colaboradores_lista.sql`](./01_vw_colaboradores_lista.sql):
-   ```sql
-   create or replace force editionable view vw_colaboradores_lista as
-   select c.id_colaborador,
-          c.nome_completo,
-          c.email,
-          c.login_apex,
-          c.primeiro_nome,
-          c.ultimo_nome,
-          c.foto_url,
-          case
-            when c.imagem_perfil is not null then 'S'
-            else 'N'
-          end as tem_imagem,
-          upper(
-            substr(coalesce(trim(c.primeiro_nome), trim(c.nome_completo), 'C'), 1, 1) ||
-            coalesce(
-              substr(trim(c.ultimo_nome), 1, 1),
-              substr(trim(substr(c.nome_completo, instr(c.nome_completo, ' ', -1) + 1)), 1, 1),
-              ''
-            )
-          ) as iniciais,
-          c.id_empresa,
-          nvl(e.nome_fantasia, 'Sem vínculo') as empresa,
-          c.id_departamento,
-          nvl(d.nome, 'Sem departamento') as departamento,
-          c.id_cargo,
-          nvl(cg.nome, 'Sem cargo') as cargo,
-          case
-            when c.id_empresa is not null and c.id_departamento is not null then
-              e.nome_fantasia || ' · ' || d.nome
-            when c.id_empresa is not null then
-              e.nome_fantasia
-            else
-              'Sem vínculo'
-          end as vinculo_linha1,
-          case
-            when c.id_empresa is not null and c.id_cargo is not null then
-              cg.nome
-            else
-              'Cadastro incompleto'
-          end as vinculo_linha2,
-          case
-            when c.id_empresa is null or c.id_departamento is null or c.id_cargo is null then
-              'S'
-            else
-              'N'
-          end as fl_sem_vinculo,
-          case
-            when c.id_empresa is null or c.id_departamento is null or c.id_cargo is null then
-              'cx-colab-vinculo--alerta'
-            else
-              ''
-          end as classe_vinculo,
-          case
-            when c.id_empresa is null or c.id_departamento is null or c.id_cargo is null then
-              '<span class="fa fa-warning" aria-hidden="true"></span> '
-            else
-              ''
-          end as icone_vinculo,
-          case
-            when exists (
-              select 1 from cargo_papel cp
-               where cp.id_cargo = c.id_cargo
-                 and cp.cd_papel in ('equipe-do-corlix-hub', 'admin-rh', 'diretoria')
-            ) or (fn_colab_tem_papel(c.login_apex, 'equipe-do-corlix-hub', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'admin-rh', to_number(v('APP_ID') default 100 on conversion error)) = 1) then 'Administrador'
-            when exists (
-              select 1 from cargo_papel cp
-               where cp.id_cargo = c.id_cargo
-                 and cp.cd_papel in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-             ) or (fn_colab_tem_papel(c.login_apex, 'publicador-de-conteudo', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'publicador-de-conteúdo', to_number(v('APP_ID') default 100 on conversion error)) = 1) then 'Publicador de conteúdo'
-            else 'Colaborador'
-          end as perfil,
-          case
-            when exists (
-              select 1 from cargo_papel cp
-               where cp.id_cargo = c.id_cargo
-                 and cp.cd_papel in ('equipe-do-corlix-hub', 'admin-rh', 'diretoria')
-            ) or (fn_colab_tem_papel(c.login_apex, 'equipe-do-corlix-hub', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'admin-rh', to_number(v('APP_ID') default 100 on conversion error)) = 1) then '<span class="cx-etiqueta">Administrador</span>'
-            when exists (
-              select 1 from cargo_papel cp
-               where cp.id_cargo = c.id_cargo
-                 and cp.cd_papel in ('publicador-de-conteudo', 'publicador-de-conteúdo')
-            ) or (fn_colab_tem_papel(c.login_apex, 'publicador-de-conteudo', to_number(v('APP_ID') default 100 on conversion error)) = 1 or fn_colab_tem_papel(c.login_apex, 'publicador-de-conteúdo', to_number(v('APP_ID') default 100 on conversion error)) = 1) then '<span class="cx-etiqueta">Publicador de conteúdo</span>'
-            else 'Colaborador'
-          end as perfil_html,
-          case when c.status = true then 'Ativa' else 'Inativa' end as situacao,
-          case when c.status = true then 'sucesso' else 'neutro' end as situacao_classe
-     from colaborador c
-     left join empresa e      on e.id_empresa = c.id_empresa
-     left join departamento d on d.id_departamento = c.id_departamento
-     left join cargo cg       on cg.id_cargo = c.id_cargo
-    where (
-      v('G_ID_EMPRESA') is null
-      or c.id_empresa = to_number(v('G_ID_EMPRESA') default null on conversion error)
-    );
-   ```
+Para instalação em outro ambiente, execute [00_fn_colab_tem_papel.sql](./00_fn_colab_tem_papel.sql) antes de [01_vw_colaboradores_lista.sql](./01_vw_colaboradores_lista.sql). O [instalador](./instalar.sql) mantém essa ordem no SQLcl. No SQL Commands, execute um comando por vez, sem a linha isolada `/` da função, preservando `end;`.
 
-3. Confira se a view está válida no SQL Commands:
-   ```sql
-   select count(*) from vw_colaboradores_lista
-   ```
+Os arquivos SQL são a fonte da instalação; não há cópia paralela da view neste guia. Confira compilação e contagens das facetas conforme o diagnóstico ao final.
+
+**Isolamento pendente:** a view permite todas as empresas quando G_ID_EMPRESA é nulo. Não use esse comportamento como prova de autorização da equipe; valide a política de acesso global separadamente antes de considerar o isolamento concluído.
 
 ---
 
 ## 2. CSS do Módulo
 
-Em *Shared Components › Static Application Files*, suba os dois arquivos:
+Os dois arquivos já constam no backup. Somente em instalação nova ou atualização de CSS, publique em *Shared Components › Static Application Files*, mantendo os nomes com o prefixo `modulos/colaboradores/`:
 - `modulos/colaboradores/colaboradores.css`
 - `modulos/colaboradores/colaboradores.min.css`
 
-*(Caso prefira unificar no `custom.css`, basta colar o conteúdo de `colaboradores.css` no final do arquivo `corlixhub/shared-components/static-files/custom.css` e no `.min.css` correspondente).*
+Não duplique esses estilos no custom.css. Reutilize os tokens e classes existentes; publique CSS pelo Builder, mantendo o arquivo minificado em sincronia.
 
 ---
 
@@ -150,17 +52,32 @@ Abra a **Página 12** no Page Designer. Selecione o nó raiz da página (**Page 
 - *Appearance › Page CSS Classes*: `cx-colaboradores-pagina`
 - *CSS › File URLs*:
   ```
-  #APP_FILES#colaboradores#MIN#.css
+  #APP_FILES#modulos/colaboradores/colaboradores#MIN#.css
   ```
 
 ---
 
 ## 4. Cabeçalho da Página
 
-### 4.1 Apagar o breadcrumb antigo
-Na árvore *Rendering*, clique com o botão direito na região **Breadcrumb** (slot Breadcrumb Bar) › **Delete**.
+### Referências reutilizadas
 
-### 4.2 Criar o cabeçalho moderno com botão de ação
+- [Holerite — render_cabecalho](../holerite/02_pkg_holerite_ui.pkb): título e ações dentro do mesmo contêiner.
+- [Ponto eletrônico — render_cabecalho](../ponto-eletronico/04_pkg_ponto_ui.pkb): cx-cabecalho-pagina__texto e cx-cabecalho-pagina__acoes, URL com checksum e escape.
+- [Histórico de carreira — UI](../historico-carreira/08_pkg_historico_carreira_ui.sql): padrões de renderização e integração.
+- [Tema](../../docs/ai-context/04-tema-e-estilos.md): fa-plus já mapeia para Lucide; não instalar outra biblioteca.
+
+**Retomada da página existente:** não recrie regiões. O botão nativo tentado não teve encaixe validado no template. A orientação abaixo mantém a ação dentro do cabeçalho, seguindo Holerite e Ponto. É uma proposta de ajuste, ainda pendente de teste visual no Builder.
+
+Não aplique ADMIN_RH à página 12 inteira apenas para controlar esse botão. A página 14 atualmente exige ADMIN_RH; a condição da ação acompanha esse destino. Acesso adicional da equipe exige decisão explícita e alinhamento com o destino.
+
+### 4.1 Apagar o breadcrumb antigo
+Somente se ainda houver o breadcrumb antigo duplicado: na árvore Rendering, remova essa região. Preserve o Cabeçalho existente.
+
+### 4.2 Configurar o cabeçalho com a ação no mesmo contêiner
+
+Na página existente, selecione Cabeçalho e substitua a função abaixo. Se criou o botão nativo NOVO_COLABORADOR na tentativa anterior, remova apenas esse botão depois de conferir sua identificação, para evitar duplicação. Não remova ações de outros módulos.
+
+Para instalação nova:
 1. Clique com o botão direito em **Breadcrumb Bar** › **Create Region** *(confirmar no 26.1.5)*.
 2. Defina as propriedades da nova região:
    - *Identification › Name*: `Cabeçalho`
@@ -175,9 +92,7 @@ Na árvore *Rendering*, clique com o botão direito na região **Breadcrumb** (s
          || '</div>'
          || '<div class="cx-cabecalho-pagina__acoes">'
          || case
-              when apex_authorization.is_authorized('admin-rh')
-                or apex_authorization.is_authorized('administration-rights')
-                or v('G_ID_EMPRESA') is null then
+              when apex_authorization.is_authorized('ADMIN_RH') then
                    '<a class="t-Button t-Button--hot t-Button--iconLeft" href="'
                 || apex_escape.html_attribute(apex_page.get_url(p_page => 14, p_clear_cache => '14'))
                 || '"><span class="t-Icon t-Icon--left fa fa-plus" aria-hidden="true"></span>'
@@ -187,6 +102,8 @@ Na árvore *Rendering*, clique com o botão direito na região **Breadcrumb** (s
          || '</div>';
      ```
    - *Appearance › Template*: **Blank with Attributes (No Grid)**
+
+**Conferência:** use uma conta autorizada; deve existir uma única ação à direita do título, com fundo escuro, ícone Lucide Plus e texto branco. Teste a navegação ao cadastro limpo. Com usuário comum, a lista continua disponível e a ação não aparece. Teste tela estreita e foco pelo teclado. Se o resultado divergir, registre print e export atual antes de sugerir outra posição ou CSS; não declare o alinhamento concluído apenas pelo código.
 
 ---
 
@@ -234,28 +151,31 @@ Na árvore *Rendering*, clique com o botão direito na região **Breadcrumb** (s
             situacao,
             situacao_classe
        from vw_colaboradores_lista
-      order by nome_completo
      ```
-3. Nos atributos do relatório (*Attributes* na árvore sob a região):
-   - *Pagination › Type*: **Row Ranges X to Y of Z**
+3. Nas propriedades do Classic Report, use a busca do painel para localizar os atributos abaixo (confirmar agrupamento no 26.1.5):
+   - *Pagination › Type*: **Row Ranges X to Y of Z com paginação** (confirmar rótulo no 26.1.5; export esperado: `rowRangesXToYOfZWithPagination`)
    - *Pagination › Number of Rows*: `15`
    - *Messages › When No Data Found*: `Nenhum colaborador encontrado.`
 
 ### 5.1 Configuração das Colunas do Relatório
 
-Selecione cada coluna da região em *Columns* e configure:
+Selecione cada coluna da região em *Columns* e configure. O link Pessoa abaixo documenta o destino existente; sua utilização como edição depende da revisão da página 14 descrita após a tabela.
 
 | Coluna | Type | Heading | Propriedades e Formatação |
 |---|---|---|---|
-| `NOME_COMPLETO` | **Link** | `Pessoa` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Link › Target**: Page `14`<br>**Link › Set Items**: `P14_ID_COLABORADOR` = `#ID_COLABORADOR#`<br>**Link › Clear Cache**: `14`<br>**Link › Link Text** (confirmar no 26.1.5):<br>`<span class="cx-colab-pessoa"><span class="cx-avatar"><img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_COMPLETO#</span><span class="cx-colab-pessoa__email">#EMAIL#</span></span></span>` |
+| `NOME_COMPLETO` | **Link** | `Pessoa` | **Sortable**: Yes<br>**Default Sequence**: 1<br>**Default Direction**: Ascending<br>**Escape Special Characters**: No<br>**Link › Target**: Page `14`<br>**Link › Set Items**: `P14_ID_COLABORADOR` = `#ID_COLABORADOR#`<br>**Link › Clear Cache**: `14`<br>**Link › Link Text** (confirmar no 26.1.5):<br>`<span class="cx-colab-pessoa"><span class="cx-avatar"><img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL!ATTR#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS!HTML#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span><span class="cx-colab-pessoa__email">#EMAIL!HTML#</span></span></span>` |
 | `LOGIN_APEX` | **Plain Text** | `Login` | **Sortable**: Yes |
-| `VINCULO_LINHA1` | **Plain Text** | `Vínculo` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`<div class="cx-colab-vinculo #CLASSE_VINCULO#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO##VINCULO_LINHA1#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2#</span></div>` |
-| `PERFIL` | **Plain Text** | `Perfil` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`#PERFIL_HTML#` |
-| `SITUACAO` | **Plain Text** | `Situação` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`<span class="cx-badge cx-badge--#SITUACAO_CLASSE#">#SITUACAO#</span>` |
+| `VINCULO_LINHA1` | **Plain Text** | `Vínculo` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`<div class="cx-colab-vinculo #CLASSE_VINCULO!ATTR#"><span class="cx-colab-vinculo__emp-dept">#ICONE_VINCULO!RAW##VINCULO_LINHA1!HTML#</span><span class="cx-colab-vinculo__cargo">#VINCULO_LINHA2!HTML#</span></div>` |
+| `PERFIL` | **Plain Text** | `Perfil` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`#PERFIL_HTML!RAW#` |
+| `SITUACAO` | **Plain Text** | `Situação` | **Sortable**: Yes<br>**Escape Special Characters**: No<br>**Column Formatting › HTML Expression**:<br>`<span class="cx-badge cx-badge--#SITUACAO_CLASSE!ATTR#">#SITUACAO!HTML#</span>` |
 | *Demais colunas* | **Hidden** | — | Deixe como **Hidden**: `ID_COLABORADOR`, `EMAIL`, `PRIMEIRO_NOME`, `ULTIMO_NOME`, `FOTO_URL`, `TEM_IMAGEM`, `INICIAIS`, `ID_EMPRESA`, `EMPRESA`, `ID_DEPARTAMENTO`, `DEPARTAMENTO`, `ID_CARGO`, `CARGO`, `VINCULO_LINHA2`, `FL_SEM_VINCULO`, `CLASSE_VINCULO`, `ICONE_VINCULO`, `PERFIL_HTML`, `SITUACAO_CLASSE`. |
 
 
 **Coluna Pessoa:** como `NOME_COMPLETO` é do tipo **Link**, preencha o HTML em **Link › Link Text**, não em **HTML Expression**. O APEX gera a tag `<a>` com o destino e o checksum; não coloque outra tag `<a>` dentro do conteúdo nem use `&LINK.`. As demais colunas **Plain Text** continuam usando **HTML Expression**.
+
+**Escape:** !HTML protege os textos livres e !ATTR os atributos. !RAW fica restrito aos fragmentos fixos de ícone e etiqueta da view. Teste caracteres especiais em nomes e vínculos sem produzir marcação.
+
+**Página 14 — pendente:** o processo CREATE_USER disponível não está condicionado à inclusão. Revise também admissão, validações de senha e processamento do formulário antes de testar salvamento de registro existente. Receber o ID não comprova edição segura. Até validar, pode apresentar Pessoa como Plain Text usando o mesmo HTML em HTML Expression, sem link. Não considere esta revisão da p12 uma implementação do modo edição.
 
 **Validação no Builder (pendente):** salve e execute a página; confira avatar, nome e e-mail e clique na Pessoa para verificar a navegação à página 14 com o colaborador correto. O link envolve todo o conteúdo da célula Pessoa. Se **Link Text** não aparecer, envie um print da árvore e das propriedades da coluna antes de tentar outro caminho.
 
@@ -264,6 +184,8 @@ Referência: [Oracle APEX 26.1 — Creating a Column Link in a Classic Report](h
 ---
 
 ## 6. Região de Facetas (Faceted Search)
+
+Na página já montada, preserve as facetas existentes. Confira primeiro o resultado visual. **Somente se filtros e relatório estiverem em linhas incorretas**, ajuste Layout (confirmar no 26.1.5): Filtros sequence 10, coluna 1, span 3, Start New Row Yes; Colaboradores sequence 20, coluna 4, span 9, Start New Row No. Compare desktop e tela estreita antes de registrar resultado.
 
 1. Na árvore *Rendering*, clique com o botão direito em **Body** › **Create Region**.
 2. Defina as propriedades:
@@ -278,7 +200,7 @@ Referência: [Oracle APEX 26.1 — Creating a Column Link in a Classic Report](h
      - *Header*: **Hidden**
      - *Style*: **Remove UI Decoration**
      - Marque **Remove Body Padding**
-3. Nos atributos do Faceted Search (*Attributes* da região):
+3. Nas propriedades do Faceted Search (confirmar agrupamento no 26.1.5):
    - *Show Total Row Count*: **Yes**
    - *Show Current Facets*: **Yes**
    - *Show Charts*: **No**
@@ -376,7 +298,7 @@ Confirmado no ambiente: a leitura simples da view funciona; a agregação com GR
 
 A view agora chama a função baseada na API pública APEX_ACL.HAS_USER_ROLE em PERFIL e PERFIL_HTML. As condições de CARGO_PAPEL e os papéis consultados foram preservados. A causa interna exata do erro não foi confirmada.
 
-Após recriar a view, execute:
+Para verificar a view já instalada (ou após instalação nova), execute:
 
 ```sql
 select situacao, empresa, departamento, perfil, count(*) quantidade
@@ -392,4 +314,11 @@ Referência: [Oracle APEX 26.1 — APEX_ACL](https://docs.oracle.com/en/database
 
 | Sintoma | Causa / diagnóstico | Correção proposta |
 |---|---|---|
-| ORA-00904: "APEX_260100"."WWV_FLOW_SECURITY": invalid identifier em Filtros | Reproduzido com GROUPING SETS incluindo PERFIL; sem PERFIL funciona. Causa interna ainda não confirmada | Criar 00_fn_colab_tem_papel.sql e recriar a view 01, isolando a consulta de ACL em PL/SQL. Teste isolado da função passou; validação da view completa e da página pendente |
+| ORA-00904: "APEX_260100"."WWV_FLOW_SECURITY": invalid identifier em Filtros | Reproduzido com GROUPING SETS incluindo PERFIL; sem PERFIL funciona. Causa interna ainda não confirmada | A função e a view corrigida já estão no backup. Em ambiente novo, instalar 00 e 01; no atual, testar antes de reinstalar. Teste isolado da função passou; validação da view completa e da página pendente |
+
+
+## 9. Encerramento da tarefa
+
+Atualize [Registro-implantacao.md](./Registro-implantacao.md) ao final de cada intervenção, conforme a regra 15 do [08](../../docs/ai-context/08-convencoes-e-pegadinhas.md). Registre referência reutilizada, alterações, aplicação no Builder, testes/evidências, falhas, pendências e próximo passo. Reindexe os casos se alterados. Não marque módulo concluído com botão, edição ou testes de isolamento ainda pendentes.
+
+Esta revisão ajustou somente a documentação. O cabeçalho proposto, escape e paginação ainda precisam de aplicação e validação pelo time. A instalação de ACL está confirmada pelo backup; a validação final das facetas permanece pendente.

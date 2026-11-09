@@ -18,3 +18,5 @@ Resumo:
 - Ao alterar páginas, schema, tema ou módulos, atualize o documento correspondente em `docs/ai-context/`.
 - **Dúvida sobre o APEX (componente, atributo, API PL/SQL ou JS, APEXlang)?** Consulte `docs/apex-26.1/` e, para o detalhe exato, a documentação oficial indexada: `python3 scripts/busca-casos/casos.py buscar "<termos em inglês>" --fonte apex`. Não responda de memória quando a doc puder confirmar.
 - **Apareceu um erro ou comportamento estranho?** Antes de investigar, procure casos já ocorridos com `python3 scripts/busca-casos/casos.py buscar "<mensagem ou sintoma>"` (Elasticsearch; ver [`scripts/busca-casos/README.md`](scripts/busca-casos/README.md)). Ao resolver um caso novo, registre-o no `09` ou na tabela "Se não funcionar" do guia do módulo e rode `casos.py indexar`.
+
+- **Documentação de encerramento (obrigatória):** ao finalizar qualquer tarefa ou módulo, atualize o registro correspondente com o que foi feito, decisões, evidências, testes (inclusive falhas), estado instalado versus proposto, pendências e próximo passo. A resposta final não substitui o registro versionado. Veja 08 §1, regra 15.

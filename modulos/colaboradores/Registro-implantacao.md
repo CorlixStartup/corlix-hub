@@ -80,3 +80,16 @@ Próxima intervenção: inspecionar o botão atual, escolher a implementação e
 ## Como registrar os próximos resultados
 
 Para cada ajuste: referência existente, mudança no Builder, evidência (export/print/relato), resultado e pendência. Marcar como concluído apenas o que foi confirmado; conservar os testes negativos para não repetir tentativas. A regra de reutilização está no AGENTS.md e em docs/ai-context/08-convencoes-e-pegadinhas.md, regra 14.
+
+## Revisão do guia e regra de encerramento — continuação da tarefa
+
+Pedido: alinhar o guia aos módulos existentes e exigir documentação no encerramento de tarefas e módulos. Trabalho documental na branch fix/documentacao-padroes-paginas, baseado na DEV a2e3c4b.
+
+- Guia revisado: instalação já presente distinguida de instalação nova; removida cópia duplicada da view e sugestão de duplicar CSS; caminho estático corrigido.
+- Cabeçalho proposto seguindo Holerite e Ponto, com ação no mesmo contêiner e autorização pelo nome ADMIN_RH, compatível com o destino atual. A consulta da p12 não foi restringida ao RH.
+- Retirada instrução de procurar aba Attributes; retirado ORDER BY da consulta; documentados escape, paginação com navegação e ajuste de layout condicionado à inspeção visual.
+- Link de Pessoa permanece documentado com ressalva sobre edição na p14; alternativa sem link registrada até validar os processos.
+- Regra 15 adicionada ao AGENTS.md, convenções e índice de contexto: toda entrega deve registrar trabalho, evidências, falhas e pendências.
+- Verificação documental: diff e links locais verificados; índice de casos atualizado. Nenhuma aplicação ou execução no Builder nesta tarefa.
+
+Pendências: aplicar/conferir cabeçalho, validar visualmente o botão e testar autorização, escape, paginação, facetas, isolamento e edição. Próximo passo: conferir o cabeçalho atual no Builder e seguir §4 do guia, registrando o resultado antes de outra alteração. PR de documentação: #130, atualizado nesta continuação; a revisão corrente substitui as orientações conflitantes do #129, que ainda requer conciliação pelo time.
