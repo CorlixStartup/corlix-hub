@@ -19,24 +19,6 @@ page 12 (
         formAutoComplete: false
     }
 
-    region barra-da-lista (
-        name: Barra da lista
-        type: staticContent
-        source {
-            htmlCode: <div id="cx-colab-total" class="cx-colab-barra__total" aria-live="polite"></div>
-        }
-        layout {
-            sequence: 10
-            parentRegion: @resultados
-            slot: subRegions
-        }
-        appearance {
-            template: @/blank-with-attributes-no-grid
-            templateOptions: #DEFAULT#
-            cssClasses: cx-colab-barra
-        }
-    )
-
     region cabeçalho (
         name: Cabeçalho
         type: dynamicContent
@@ -108,7 +90,7 @@ page 12 (
         layout {
             sequence: 20
             parentRegion: @resultados
-            slot: regionBody
+            slot: subRegions
         }
         appearance {
             template: @/standard
@@ -433,6 +415,24 @@ page 12 (
 
     )
 
+    region cx-colab-barra (
+        name: Barra da lista
+        type: staticContent
+        source {
+            htmlCode: <div id="cx-colab-total" class="cx-colab-barra__total" aria-live="polite"></div>
+        }
+        layout {
+            sequence: 10
+            parentRegion: @resultados
+            slot: subRegions
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+            cssClasses: cx-colab-barra
+        }
+    )
+
     region filtros (
         name: Filtros
         title: Filtros
@@ -590,43 +590,8 @@ page 12 (
         }
         layout {
             sequence: 10
-            region: @barra-da-lista
+            region: @cx-colab-barra
             slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/optional-floating
-            templateOptions: #DEFAULT#
-            height: 1
-        }
-        validation {
-            valueRequired: true
-        }
-        advanced {
-            warnOnUnsavedChanges: ignore
-        }
-        default {
-            type: static
-            staticValue: NOME
-        }
-    )
-
-    pageItem P12_ORDER_BY (
-        type: selectList
-        label {
-            label: Order By
-            alignment: left
-        }
-        lov {
-            type: staticValues
-            staticValues: STATIC2:Nome;NOME,Login;LOGIN,Departamento;DEPARTAMENTO
-            displayExtraValues: false
-            displayNullValue: false
-        }
-        layout {
-            sequence: 20
-            region: @colaboradores
-            slot: sortOrder
             alignment: left
         }
         appearance {
