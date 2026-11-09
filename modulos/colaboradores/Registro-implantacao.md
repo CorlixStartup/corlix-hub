@@ -219,3 +219,11 @@ Autorizado pelo usuário no registro [DEMO] Diego Alves (id 315), conta Teste Rh
 Conclusão: a validação obrigatória funciona na edição, mas o caminho de sucesso (gravar, voltar à lista com "Alterações salvas.", não criar conta nem admissão) segue não testado. Achados: colaboradores sem data de nascimento não podem ser editados até o campo ser preenchido; mensagem de obrigatório em inglês. Próximo passo: repetir o teste num registro de teste com data de nascimento.
 
 Continuação em 09/11/2026: autorizado repetir o teste em outro [DEMO] com data de nascimento. Leitura sem gravação dos 16 registros [DEMO] encontrados pela busca: nenhum tem data de nascimento (leitura conferida com a data de admissão, presente no HTML). Teste de sucesso não executado; nenhum registro alterado. Próximo passo: preencher por SQL a data de um [DEMO], testar e restaurar o valor nulo por SQL, se o usuário autorizar.
+
+## Teste de salvar edição com sucesso na p14 — 09/11/2026
+
+Autorizado pelo usuário, que preencheu por SQL a data de nascimento do [DEMO] Diego Alves (id 315) para o teste. Conta Teste Rh. Primeiro nome alterado para DiegoTeste e salvo: novo carregamento do registro retornou DiegoTeste. Restaurado para Diego pelo mesmo botão e confirmado em novo carregamento; nome, admissão e e-mail inalterados.
+
+Resposta do servidor (POST wwv_flow.accept, status 200): redirectURL para a página colaboradores com success_msg "Row updated. Alterações salvas.", o que comprova a execução do branch de retorno. Na aba automatizada o navegador não seguiu o redirecionamento e permaneceu na p14, com apex.page.isChanged verdadeiro; causa não identificada, possivelmente própria da automação. Falta um salvamento manual para confirmar o retorno na tela.
+
+Não comprovado: ausência de conta e admissão novas, pois a contagem anterior ao teste não foi obtida. Achado: a mensagem de sucesso inclui o texto padrão em inglês "Row updated.". O ambiente informou versão 26.1.6 em wwv_flow.js_messages, enquanto os guias citam 26.1.5. Pendência: restaurar por SQL a data de nascimento nula do registro 315.
