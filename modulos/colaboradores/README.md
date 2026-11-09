@@ -1,6 +1,6 @@
 # Módulo Colaboradores (Página 12)
 
-> **Situação atual e histórico:** consulte [Registro de implantação](./Registro-implantacao.md). O botão Novo colaborador continua pendente; as recomendações revistas estão registradas ali.
+> **Situação atual e histórico:** consulte [Registro de implantação](./Registro-implantacao.md). Páginas 12 e 14 validadas na app em 09/11/2026 (lista, acesso por perfil, edição). A criação de colaborador pelo RH e as demais pendências ficaram para o final do projeto: [Pendências](./Pendencias.md).
 
 Módulo responsável pela página de listagem, busca e administração de colaboradores do Corlix Hub (**Página 12: `COLABORADORES`**).
 
@@ -56,6 +56,8 @@ Banco de dados (COLABORADOR, CARGO, DEPARTAMENTO, EMPRESA, CARGO_PAPEL)
 | `instalar.sql` | Script instalador para SQLcl ou SQL Workshop |
 | `colaboradores.css` / `.min.css` | Estilos específicos para avatares, pessoa, vínculo e tabela |
 | `Etapas-colaboradores.md` | Passo a passo detalhado para montagem no App Builder do APEX 26.1.5 |
+| `Registro-implantacao.md` | Histórico de validações, decisões e evidências |
+| `Pendencias.md` | Pendências deixadas para o final do projeto |
 
 ---
 

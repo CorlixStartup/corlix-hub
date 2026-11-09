@@ -302,3 +302,29 @@ Achados fora do §13: o usuário entrou com a conta `DEMO.CARREIRA.1.4`, do Dieg
 O usuário informou a restauração da data de nascimento nula do registro 315 após o teste.
 
 Pendências: decidir se o cargo 403 recebe o papel `gestor`; RH conferir o cargo do id 272; definir o bloqueio de conta inativa; testes de gestor, colaborador comum pelo menu, criação, caracteres especiais e tela estreita.
+
+## Teste de colaborador comum — 09/11/2026
+
+Conta `DEMO.CARREIRA.1.4` ([DEMO] Diego Alves, só o papel colaborador), login feito pelo usuário, sem gravar dados.
+
+| Verificação | Resultado |
+|---|---|
+| Menu | OK: Pessoas mostra só Organograma, e Administração só Central de equipes e Configurações; sem Colaboradores e sem Cadastro de usuários |
+| p12 por URL, na sessão ativa | OK: "Acesso restrito ao RH e à liderança.", autorização `VER_LISTA_COLABORADORES` |
+| p14 por URL, na sessão ativa | OK: "Acesso restrito ao RH.", autorização `ADMIN_RH` |
+
+O bloqueio é da página, não só do menu. A tela de erro exibiu "Technical Info", que o APEX mostra só a desenvolvedores; a sessão do Builder estava aberta no mesmo navegador. A tentativa anterior, por link sem sessão, caiu no login e não serviu como evidência. Teste "colaborador comum" concluído.
+
+Pendências: teste de criação de colaborador (aguarda autorização para criar um registro [DEMO] com conta APEX); gestor, caracteres especiais e tela estreita podem seguir como acompanhamento; decisões do cargo 403, do id 272 e do bloqueio de conta inativa.
+
+## Teste de criação de colaborador — 09/11/2026
+
+Feito pelo usuário com a TESTE.RH, pela tela; o agente não digita senhas. Resultado: falhou com `User TESTE.RH requires ADMIN privilege to perform this operation.`
+
+Causa, confirmada na documentação do 26.1 (`docs/apex-26.1/06-api-plsql-nucleo.md`, CREATE_USER): dentro de uma app, `APEX_UTIL.CREATE_USER` exige que o usuário logado seja administrador do workspace, além do `runtimeApiUsage: modifyWorkspaceRepository`, que a app já tem. A TESTE.RH é usuária final. Não é efeito dos ajustes do §12 ou do §13: o processo "Criar usuário APEX" (sequência 20) já existia. Testes anteriores de criação provavelmente usaram conta de desenvolvedor ou administrador.
+
+Consistência: os processos 10 (form) e 15 (admissão) rodam antes do 20. A consulta do usuário por login `DEMO.CRIACAO.1` e e-mail `demo.criacao@demo.invalid` não retornou linhas, então o APEX desfez a transação e nada ficou gravado.
+
+Opções levantadas, sem decisão e sem validação: (1) RH como administrador do workspace, que não é recomendado por dar acesso ao Builder; (2) RH cadastra, e um administrador cria a conta e os papéis no APEX, o que exige mudar a p14 para não chamar `CREATE_USER` nesse caso; (3) criar a conta fora da sessão do RH, por fila e processo de banco, que precisa de pesquisa e pode depender de `CREATE JOB`, já ausente no Suporte TI; (4) trocar a autenticação.
+
+Encerramento da task das páginas 12 e 14: lista, acesso por perfil, edição, ajustes visuais e bloqueio de colaborador comum validados na app. Fora desta task: criação de colaborador pelo RH (decisão de arquitetura), cargo 403, cargo do id 272, bloqueio de conta inativa e testes de gestor, caracteres especiais e tela estreita.

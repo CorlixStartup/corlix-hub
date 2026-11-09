@@ -1048,3 +1048,4 @@ select g.id_cargo, cg.nome cargo,
 | `ORA-00904: "DATA_NASCIMENTO"` ao preparar teste | A coluna se chama `DATA_DE_NASCIMENTO` | Usar `data_de_nascimento` |
 | `ORA-03049` no SQL Commands | Update e `commit` colados juntos | Rodar só o update, com **Autocommit** marcado |
 | Conta inativa ainda entra no sistema | Inativar não bloqueia a conta APEX (§12.11) | Pendente de definição; não é efeito do §13 |
+| `User TESTE.RH requires ADMIN privilege to perform this operation.` ao criar colaborador | `APEX_UTIL.CREATE_USER` (processo "Criar usuário APEX") só roda dentro da app se o usuário logado for administrador do workspace; o RH é usuário final | Nada fica gravado: a consulta por login e e-mail não retornou linhas. Não torne o RH administrador do workspace (daria acesso ao Builder). Criação com conta está pendente de decisão do time (ver `Registro-implantacao.md`, 09/11/2026) |
