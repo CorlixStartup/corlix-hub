@@ -237,3 +237,7 @@ Usuário confirmou a mensagem de sucesso no salvamento manual da edição; o nã
 Decisões: equipe do Corlix Hub vê todas as empresas e os perfis; RH edita; gestores e diretoria só leem; data de nascimento segue obrigatória. Versionado: view com liberação explícita pelo papel equipe-do-corlix-hub, reutilizando fn_colab_tem_papel, e código da autorização no §12.2. Interpretação registrada: a equipe é somente leitura na lista, sem link de edição, pois apenas o RH foi citado como editor.
 
 Não compilado nem aplicado; sem teste com conta da equipe. Risco a observar: nova chamada de função no predicado, a validar nas contagens das facetas. Próximo passo: aplicar o bloco do §12.0 e testar 4A.
+
+Validação com a conta Teste Rh após o usuário aplicar a view e a autorização, 09/11/2026: lista com 309 registros, faceta Empresa só com Corlix, contagens das facetas carregadas sem ORA-, link no nome, botão Novo colaborador e coluna Pessoa única. Mostra que o RH segue restrito à própria empresa. O acesso global da equipe do Corlix Hub não foi testado, por falta de sessão com essa conta, e o último backup (14:51) é anterior à aplicação.
+
+Observado sem relação comprovada com a alteração: exceção de console em onerror de imagem (nextElementSibling nulo) e avatar do cabeçalho ausente nessa carga, embora a imagem e o span de iniciais existam no DOM. O Global Page não muda desde 05/11. Causa não investigada.
