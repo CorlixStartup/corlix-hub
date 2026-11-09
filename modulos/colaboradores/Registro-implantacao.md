@@ -157,3 +157,9 @@ Pedido: voltar à DEV, atualizar e avaliar prontidão/fidelidade. Checkout princ
 Inspeção do backup 05730bc das 12:06 confirma package instalado, paginação de 15 linhas com links, layout corrigido, escape de Pessoa, RAW em Perfil, rótulo e traduções. O CSS de ajuste foi aplicado Inline. Não foi usada a captura antiga como prova do resultado novo.
 
 Parecer e pendências em Validacao-visual-2026-11-09.md, seção Revalidação: barra de total/ordenação ausente, p14 ainda sem fluxo de edição comprovado, isolamento com empresa nula, decisão do acesso RH da lista, escape de Vínculo, consolidação CSS após teste e verificação visual/funcional atual. Não foram feitas alterações na app. Verificação documental: diff e reindexação; retorno à DEV ao encerrar. Próximo passo: priorizar pendências confirmadas e obter captura após as alterações das 12:06.
+
+## CSS exclusivamente em arquivo — 09/11/2026
+
+Por instrução do usuário, retirado o uso de CSS Inline do fluxo recomendado, inclusive para testes. Regras Inline do export da p12 foram transferidas para colaboradores.css, conciliadas com os estilos de tabela anteriores; colaboradores.min.css regenerado. O guia §11.3 agora orienta publicação dos dois arquivos, manutenção de File URLs e remoção do Inline pelo Builder. Regra persistida em AGENTS.md/convenções.
+
+Validação local: diff, balanço de blocos CSS e equivalência da versão minificada com a transformação conservadora. Não houve publicação ou remoção de Inline na aplicação; corlixhub/ foi apenas lido. Próximo passo: publicar arquivos, remover Inline pelo Builder e comparar aparência, paginação e responsividade. Pendências de barra e edição permanecem.

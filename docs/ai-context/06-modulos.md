@@ -431,3 +431,5 @@ Validação visual de Colaboradores em 09/11: posicionamento dos filtros e botã
 Colaboradores: §11 do guia transforma a auditoria em ajustes ordenados (Perfil, DOM/CSS, card/colunas, facetas e paginação), com proposta visual ainda não homologada. Barra de contagem/ordenação permanece pendente de implementação integrada.
 
 Revalidação DEV b1ff0d6 (backup de 09/11 às 12:06): package de cabeçalho, paginação de 15 linhas com links, layout, RAW de Perfil e traduções já constam no export. Ainda não homologada: barra de ordenação/total, edição na p14, isolamento/acesso, escape de Vínculo e teste visual atual. Ver auditoria no módulo.
+
+Colaboradores: estilos de card/colunas transferidos do Inline exportado para colaboradores.css/.min.css. Publicação e remoção do Inline no Builder pendentes; novos ajustes seguem exclusivamente arquivos estáticos.
