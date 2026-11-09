@@ -30,7 +30,7 @@
     - A regra não libera as pastas somente leitura (regra 1).
 
 
-14. **Páginas devem partir dos módulos já implementados.** Antes de criar, redesenhar ou corrigir uma página:
+14. **Páginas devem partir dos módulos já implementados.** As regras concretas, a ordem das referências e o formulário de exceção estão em [11 · Padrões de páginas](./11-padroes-de-paginas.md); a exceção precisa de aprovação do time antes de ser implementada. Antes de criar, redesenhar ou corrigir uma página:
     - Atualize as referências remotas e confira a DEV atualizada, o último export e os relatos do time. Distinga código instalado, proposta em PR e teste executado; não peça para reinstalar algo já confirmado no backup.
     - Leia o protótipo em pen_dev/ e escolha o módulo existente mais próximo. Referências iniciais: Histórico de carreira (modulos/historico-carreira/), Holerite (modulos/holerite/) e Ponto eletrônico (modulos/ponto-eletronico/). Consulte o guia, o SQL/PLSQL, o CSS/JS necessário e o export da página de referência.
     - Registre no guia uma seção **Referências reutilizadas**: arquivos, componente reaproveitado e adaptações necessárias. Reutilize primeiro cabeçalho, ações, templates, tokens, espaçamento, estados vazios, ícones e padrões de navegação já adotados.

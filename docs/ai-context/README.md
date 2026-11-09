@@ -27,10 +27,11 @@
 | 09 | [Erros e soluções](./09-erros-e-solucoes.md) | Erros de SQL, PL/SQL e APEX já vistos: como ler a mensagem, causa, correção, prevenção e checklist |
 | — | [**Base Oracle APEX 26.1**](../apex-26.1/README.md) | Referência do APEX tirada da documentação oficial (conceitos, páginas, relatórios, segurança, APIs PL/SQL/JS, APEXlang, workflows, REST, admin, novidades). Use para dúvidas sobre o APEX em si |
 | 10 | [Cookies e sessão (OCI)](./10-erro-400-cookies.md) | `400 Request Header Or Cookie Too Large` e sessão do Builder caindo/pedindo workspace: causa, diagnóstico, correção |
+| 11 | [**Padrões de páginas**](./11-padroes-de-paginas.md) | **Leia antes de criar ou alterar qualquer página.** Qual página copiar, regras obrigatórias, checklist e como propor exceção |
 
 ### Guia por tipo de tarefa
-- **Mexer numa página existente:** 08 → 02 (seção da página) → 03 (componentes que ela usa) → 04 (classes CSS).
-- **Criar uma página ou tela do pen.dev:** 07 (tela) → 02 §1 (sintaxe) → 04 §8 (aplicar tema) → 08.
+- **Mexer numa página existente:** 11 → 08 → 02 (seção da página) → 03 (componentes que ela usa) → 04 (classes CSS).
+- **Criar uma página ou tela do pen.dev:** 11 → 07 (tela) → 02 §1 (sintaxe) → 04 §8 (aplicar tema) → 08.
 - **Mexer no banco ou criar tabela:** 05 → 06 §4 (padrão de módulo) → 08.
 - **Integrar organograma ou histórico de carreira:** 06 → 05 → 02 (páginas 3/13).
 - **Apareceu um erro (ORA-, PLS-, Access denied):** primeiro `python3 scripts/busca-casos/casos.py buscar "<mensagem ou sintoma>"` (busca de casos com Elasticsearch, cobre o 09, o 10 e as tabelas "Se não funcionar" dos módulos; ver 01 §8.2); depois 09.
@@ -81,6 +82,6 @@
 8. Passo a passo do Builder sempre para o **APEX 26.1.5**: caminho não conferido vai marcado "(confirmar no 26.1.5)"; se não existir, peça print em vez de chutar (ver 08 §1, regra 11).
 9. **Todo protótipo está em `pen_dev/`** (PNGs das telas-alvo do pen.dev, descritas no 07). Procure lá primeiro; se a tela não existir, pergunte (ver 08 §1, regra 12).
 
-10. Antes de criar ou alterar páginas, reutilize os padrões dos módulos existentes (Histórico de carreira, Holerite, Ponto eletrônico ou equivalente) e registre as referências; veja 08 §1, regra 14.
+10. Antes de criar ou alterar páginas, siga o [11 · Padrões de páginas](./11-padroes-de-paginas.md) e registre as referências. Sair do padrão exige evidência para o 26.1.5 e aprovação do time (08 §1, regra 14).
 
 11. Ao encerrar cada tarefa ou módulo, documente resultados, evidências e pendências em registro versionado (08 §1, regra 15); a resposta final não substitui esse registro.
