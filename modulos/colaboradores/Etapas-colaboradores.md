@@ -509,6 +509,30 @@ Passos conferidos no export e na documentação oficial; nada aqui foi executado
 
 Referências reutilizadas: autorização `COLABORADOR` (composição por `apex_authorization.is_authorized`), foto do Chat (p. 4, página 44), `pkg_holerite_ui`/`pkg_ponto_ui` (`render_*` com chamada curta) e `render_cabecalho` deste módulo.
 
+### 12.0 Situação na app (backup de 09/11/2026 às 13:11)
+
+Conferido no export e no DDL do backup `a6d16f1`, que registra "Sem mudanças na app nem no DDL" em relação ao das 12:06. O job só exporta o banco PRD: alteração feita em outro ambiente, ou não salva, não aparece aqui. Leitura de export não prova o funcionamento na tela.
+
+**Já está na app; não refaça:** cabeçalho pelo package, filtros à esquerda e relatório à direita, paginação de 15 linhas com links, escape da coluna Pessoa, `!RAW` em Perfil, rótulo "Perfil de acesso" e traduções.
+
+**Falta fazer, nesta ordem:**
+
+| # | Ajuste | Onde | Estado no backup |
+|---|---|---|---|
+| 1 | Instalar view e package | §12.1 | View ainda libera empresa nula; package sem `render_cabecalho_cadastro` |
+| 2 | Publicar `.css` e `.min.css` | §12.1 | Arquivos da app diferentes dos desta pasta |
+| 3 | **Apagar o CSS Inline da p12** | §12.1 | Bloco inline ainda na página |
+| 4 | Criar `VER_LISTA_COLABORADORES` | §12.2 | Não existe |
+| 5 | Aplicar na página e no menu | §12.3 | Página com `ADMIN_RH`; menu sem autorização |
+| 6 | Trocar a consulta do relatório | §12.4 | Sem `NOME_SEM_LINK` e sem foto pela página 44 |
+| 7 | Ajustar as colunas | §12.5 | Pessoa sem classe de situação; Vínculo e Situação sem filtros de escape |
+| 8 | Barra de total e ordenação | §12.6 | Sem regiões Resultados e Barra da lista; total nas facetas; sem `P12_ORDEM` |
+| 9 | Rótulo da busca | §12.7 | Ainda `Search` |
+| 10 | Separar criação e edição na p14 | §12.8 | Sem nenhum dos ajustes; `CREATE_USER` sem condição |
+| 11 | Testar | §12.9 | Não executado |
+
+Faça o item 10 antes de liberar o uso do link da p12 pelo RH. Ao terminar, rode o backup: o export deve mostrar `VER_LISTA_COLABORADORES`, `NOME_SEM_LINK`, `SALVAR_ALTERACOES` e `render_cabecalho_cadastro`.
+
 ### 12.1 Atualizar banco e arquivos
 
 1. Em **SQL Commands**, execute, um por vez e sem a `/` isolada: [`01_vw_colaboradores_lista.sql`](./01_vw_colaboradores_lista.sql), [`02_pkg_colaboradores_ui.pks`](./02_pkg_colaboradores_ui.pks) e [`02_pkg_colaboradores_ui.pkb`](./02_pkg_colaboradores_ui.pkb).
@@ -520,6 +544,7 @@ Referências reutilizadas: autorização `COLABORADOR` (composição por `apex_a
    ```
    Esperado: tudo `VALID`.
 3. Em *Shared Components › Static Application Files*, substitua `modulos/colaboradores/colaboradores.css` e `colaboradores.min.css` pelas versões desta pasta.
+4. Só depois de publicar os dois arquivos, na página 12, apague todo o conteúdo de **CSS › Inline** e confira o card da tabela com Ctrl+F5. Os estilos desse bloco já estão nos arquivos.
 
 > A view agora só devolve a empresa da sessão. Fora da app (SQL Commands), `G_ID_EMPRESA` é nulo e a consulta volta **vazia**: isso é esperado. Colaboradores sem empresa deixam de aparecer para todos, portanto a opção "Sem vínculo" da faceta Empresa some. O alerta "Cadastro incompleto" continua para quem tem empresa, mas não tem departamento ou cargo.
 
