@@ -138,6 +138,9 @@ list navigation-menu (
                 page: 12
             }
         }
+        security {
+            authorizationScheme: @ver-lista-colaboradores
+        }
     )
 
     entry comunicação (

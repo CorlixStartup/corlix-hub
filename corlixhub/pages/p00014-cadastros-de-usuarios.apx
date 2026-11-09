@@ -21,15 +21,7 @@ page 14 (
         source {
             plsqlFunctionBody:
                 ```plsql
-                return '<div class="cx-cabecalho-pagina">'
-                    || '<nav class="cx-cabecalho-pagina__trilha" aria-label="Trilha de navegação">'
-                    || '<a href="' || apex_escape.html_attribute(apex_page.get_url(p_page => 12)) || '">Colaboradores</a>'
-                    || '<span class="fa fa-chevron-right" aria-hidden="true"></span>'
-                    || '<span aria-current="page">Novo colaborador</span>'
-                    || '</nav>'
-                    || '<h1 class="cx-cabecalho-pagina__titulo">Novo colaborador</h1>'
-                    || '<p class="cx-cabecalho-pagina__descricao">Preencha os dados pessoais, o vínculo profissional e o acesso ao CorlixHub.</p>'
-                    || '</div>';
+                return pkg_colaboradores_ui.render_cabecalho_cadastro(to_number(:P14_ID_COLABORADOR));
                 
                 ```
         }
@@ -225,6 +217,10 @@ page 14 (
             column: ID_CARGO
             dataType: number
         }
+        readOnly {
+            type: itemIsNotNull
+            item: P14_ID_COLABORADOR
+        }
         help {
             inlineHelpText: Disponível após selecionar a empresa.
         }
@@ -253,6 +249,10 @@ page 14 (
         }
         advanced {
             customAttributes: autocomplete="new-password"
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P14_ID_COLABORADOR
         }
     )
 
@@ -363,6 +363,10 @@ page 14 (
             column: ID_DEPARTAMENTO
             dataType: number
         }
+        readOnly {
+            type: itemIsNotNull
+            item: P14_ID_COLABORADOR
+        }
         help {
             inlineHelpText: Disponível após selecionar a empresa.
         }
@@ -438,6 +442,10 @@ page 14 (
         default {
             type: expression
             plsqlExpression: :G_ID_EMPRESA
+        }
+        readOnly {
+            type: itemIsNotNull
+            item: P14_ID_COLABORADOR
         }
     )
 
@@ -535,6 +543,13 @@ page 14 (
             column: LOGIN_APEX
             dataType: varchar2
         }
+        readOnly {
+            type: itemIsNotNull
+            item: P14_ID_COLABORADOR
+        }
+        help {
+            inlineHelpText: O login não pode ser alterado.
+        }
     )
 
     pageItem P14_NOME_COMPLETO (
@@ -615,6 +630,10 @@ page 14 (
         }
         advanced {
             customAttributes: autocomplete="new-password"
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P14_ID_COLABORADOR
         }
     )
 
@@ -731,6 +750,28 @@ page 14 (
         }
     )
 
+    button salvar-alteracoes (
+        buttonName: SALVAR_ALTERACOES
+        label: Salvar alterações
+        layout {
+            sequence: 30
+            region: @rodapé
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P14_ID_COLABORADOR
+        }
+    )
+
     button salvar-usuario (
         buttonName: SALVAR_USUARIO
         label: Salvar colaborador
@@ -755,6 +796,10 @@ page 14 (
                 <span>Deseja realmente salvar as informações deste novo colaborador? Esta ação criará o acesso ao sistema imediatamente.</span>
                 ```
             style: warning
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P14_ID_COLABORADOR
         }
     )
 
@@ -839,6 +884,9 @@ page 14 (
         error {
             errorMessage: A confirmação de senha não corresponde à senha informada.
             associatedItem: @P14_CONFIRMAR_SENHA
+        }
+        serverSideCondition {
+            whenButtonPressed: @salvar-usuario
         }
     )
 
@@ -943,8 +991,29 @@ page 14 (
             executionMappingIdentifier: 29711915237370001
         }
         serverSideCondition {
+            whenButtonPressed: @salvar-usuario
             type: itemIsNotNull
             item: P14_LOGIN
+        }
+    )
+
+    process confirmar-alteração (
+        name: Confirmar alteração
+        type: executeCode
+        source {
+            plsqlCode: null;
+        }
+        execution {
+            sequence: 40
+        }
+        successMessage {
+            successMessage: Alterações salvas.
+        }
+        advanced {
+            executionMappingIdentifier: 46620741248225819
+        }
+        serverSideCondition {
+            whenButtonPressed: @salvar-alteracoes
         }
     )
 
@@ -982,6 +1051,9 @@ page 14 (
         advanced {
             executionMappingIdentifier: 9205761285147840
         }
+        serverSideCondition {
+            whenButtonPressed: @salvar-usuario
+        }
     )
 
     process inicializar-o-form-cadastros (
@@ -1014,6 +1086,7 @@ page 14 (
             executionMappingIdentifier: 38252066194320208
         }
         serverSideCondition {
+            whenButtonPressed: @salvar-usuario
             type: itemIsNotNull
             item: P14_ID_COLABORADOR
         }
@@ -1043,6 +1116,21 @@ page 14 (
                 clearCache: 14
                 action: clearRegions
             }
+        }
+    )
+
+    branch (
+        name: Voltar à lista após editar
+        execution {
+            sequence: 5
+        }
+        behavior {
+            target: {
+                page: 12
+            }
+        }
+        serverSideCondition {
+            whenButtonPressed: @salvar-alteracoes
         }
     )
 
