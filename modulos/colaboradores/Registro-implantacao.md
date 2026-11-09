@@ -115,3 +115,9 @@ A etapa anteriormente pendente de preparar o package foi realizada no repositór
 Referências: render_cabecalho de Holerite/Ponto. A montagem usa CLOB local e append; relatório e facetas permanecem nativos para preservar a fonte filtrável. Não foi criado um render_pagina para substituir esses componentes.
 
 Verificação local: diff e links do guia; reindexação documental. Compilação Oracle, aplicação no Builder e testes visuais/funcionais não executados. O package está versionado, não confirmado como instalado. Próximo passo: executar os dois arquivos 02, conferir validade, aplicar a chamada do §4.3 e testar botão, autorização e navegação; demais pendências anteriores continuam abertas. Esta seção atualiza o estado histórico que dizia que o package ainda precisava ser criado.
+
+## Resolução do conflito do PR #130 — 09/11/2026
+
+A DEV avançou para 6efa452 com a integração do PR #129, gerando conflito no guia de Colaboradores. Integrada origin/DEV à branch do #130, preservando a chamada ao package, a instalação já confirmada de ACL/CSS e a distinção entre acesso à lista e autorização da ação. Incorporadas as verificações úteis de HTML, paginação, facetas e troubleshooting do #129, sem reintroduzir restrição geral a ADMIN_RH ou HTML inline no cabeçalho. Corrigida também a descrição do módulo que havia sido combinada automaticamente com a orientação antiga.
+
+Verificação: diff sem erros, ausência de marcadores de conflito, links locais do guia e reindexação dos casos. Nenhuma alteração em pastas protegidas nem teste no Builder. O merge do PR para DEV permanece a cargo do time; compilação e validações da aplicação continuam pendentes.

@@ -338,3 +338,20 @@ Referência: [Oracle APEX 26.1 — APEX_ACL](https://docs.oracle.com/en/database
 Atualize [Registro-implantacao.md](./Registro-implantacao.md) ao final de cada intervenção, conforme a regra 15 do [08](../../docs/ai-context/08-convencoes-e-pegadinhas.md). Registre referência reutilizada, alterações, aplicação no Builder, testes/evidências, falhas, pendências e próximo passo. Reindexe os casos se alterados. Não marque módulo concluído com botão, edição ou testes de isolamento ainda pendentes.
 
 Esta revisão ajustou somente a documentação. O cabeçalho proposto, escape e paginação ainda precisam de aplicação e validação pelo time. A instalação de ACL está confirmada pelo backup; a validação final das facetas permanece pendente.
+
+
+## 10. Verificações complementares da revisão integrada
+
+- Teste texto com caracteres especiais em nome, e-mail, departamento e cargo; não deve virar marcação HTML.
+- Confira o carregamento dos arquivos CSS normal/minificado sem erro 404, foto válida, foto ausente e iniciais.
+- Com mais de 15 resultados, avance e volte páginas; depois filtre e confira total e navegação.
+- Combine Situação, Empresa, Departamento e Perfil; limpe os filtros e teste a busca textual. Confira um usuário com papel manual conhecido e outro com papel via cargo.
+- Teste isolamento entre empresas e sessão sem empresa. A autorização do botão não substitui a política de acesso aos dados.
+
+| Sintoma | Verificação | Ação |
+|---|---|---|
+| HTML Expression não aparece em NOME_COMPLETO | Coluna do tipo Link | Usar Link Text conforme §5.1; se ausente, obter print do painel |
+| Filtros aparecem abaixo do relatório | Conferir layout renderizado e sequência | Aplicar ajuste condicional do §6 e testar novamente |
+| Total aparece sem navegação | Tipo NoPagination | Usar WithPagination e testar mais de 15 resultados |
+| Botão aparece para conta sem empresa | Condição antiga tratava G_ID_EMPRESA nulo como permissão | Usar o package do §4 com ADMIN_RH na ação e manter proteção no destino; não restringir a lista inteira por causa do botão |
+| Nome abre cadastro em vez de edição | Página 14 ainda não validada para editar | Revisar processos e condições da página 14 antes de liberar essa navegação |
