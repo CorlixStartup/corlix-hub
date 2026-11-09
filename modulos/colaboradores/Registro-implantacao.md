@@ -133,3 +133,9 @@ Verificação: conferência do trecho enviado, diff sem erros e reindexação. A
 Usuário relatou filtros abaixo e enviou export: região Colaboradores sequence 10, coluna 4/span 9 e startNewRow false; Filtros sequence 20, coluna 1/span 3. O guia destacava as colunas, mas não incluía Sequence nas listas principais de configuração. Incluída a sequência nas duas regiões: Filtros 10 primeiro, iniciando linha; Colaboradores 20 depois, sem iniciar linha. A alteração é nas regiões, não nas colunas/facetas; o cabeçalho em breadcrumbBar não precisa ser reordenado.
 
 O export também confirma a chamada ao package de cabeçalho e o escape de NOME_COMPLETO, sem comprovar todos os testes funcionais. Verificação documental: diff e reindexação. Próximo passo: salvar as propriedades e executar a página inteira para confirmar alinhamento; se persistir, obter print do Layout e resultado em desktop. Nenhuma alteração direta na app.
+
+## Auditoria da captura de 09/11/2026 às 10:45
+
+Comparadas captura do usuário e imagem do protótipo. Filtros ao lado e botão no cabeçalho confirmados visualmente. Fidelidade ainda parcial: HTML literal em Perfil, ausência do card/estilo de tabela, Vínculo estreito, barra de contagem/ordenação ausente e mensagens em inglês. Detalhes, limites da evidência e critérios de aceite em [Validacao-visual-2026-11-09.md](./Validacao-visual-2026-11-09.md).
+
+Escopo: validação, sem alteração da app ou CSS. Verificação documental: diff e reindexação. Próximo passo: corrigir renderização de PERFIL, inspecionar DOM/CSS efetivos e depois ajustar distribuição e apresentação, preservando packages e integração das facetas.

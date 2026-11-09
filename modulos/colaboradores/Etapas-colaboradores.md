@@ -317,6 +317,8 @@ Na árvore, clique com o botão direito no nó **Facets** da região Filtros ›
 
 ## 8. Checklist de Validação Visual e Funcional
 
+Resultado da captura de 09/11: **parcialmente conforme**. Consulte [validação visual](./Validacao-visual-2026-11-09.md) antes de novos ajustes. Filtros e botão estão posicionados; tabela, etiqueta de perfil e barra superior ainda divergem.
+
 Compare com `pen_dev/Colaboradores · visão de administração.png`:
 
 - [ ] **Faixa de Cabeçalho**: Título `Colaboradores`, descrição clara e botão escuro **+ Novo colaborador** à direita.
