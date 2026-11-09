@@ -47,8 +47,8 @@ end fn_carreira_ve_salario;
 /
 
   CREATE OR REPLACE EDITIONABLE FUNCTION "FN_COLAB_TEM_PAPEL" (
-    p_login  in varchar2,
-    p_papel  in varchar2,
+    p_login in varchar2,
+    p_papel in varchar2,
     p_app_id in number
 ) return number
 authid definer
@@ -57,15 +57,13 @@ begin
     if p_login is null or p_app_id is null then
         return 0;
     end if;
-
     if apex_acl.has_user_role(
         p_application_id => p_app_id,
-        p_user_name      => p_login,
+        p_user_name => p_login,
         p_role_static_id => p_papel
     ) then
         return 1;
     end if;
-
     return 0;
 end;
 /
@@ -109,6 +107,11 @@ end pkg_arquivos;
   function render_ajuda return clob;
 
 end pkg_busca_ui;
+/
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_COLABORADORES_UI" authid definer as
+  function render_cabecalho return clob;
+end pkg_colaboradores_ui;
 /
 
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_COMUNICADO" AS

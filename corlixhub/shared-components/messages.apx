@@ -1,0 +1,84 @@
+textMessage APEX.FS.CLEAR (
+    message {
+        text: Limpar
+        language: en
+    }
+)
+
+textMessage APEX.FS.CLEAR_ALL (
+    message {
+        text: Limpar filtros
+        language: en
+    }
+)
+
+textMessage APEX.FS.SHOW_LESS (
+    message {
+        text: Mostrar menos
+        language: en
+    }
+)
+
+textMessage APEX.FS.SHOW_MORE (
+    message {
+        text: Mostrar mais
+        language: en
+    }
+)
+
+textMessage APEX.FS.TOTAL_ROW_COUNT_LABEL (
+    message {
+        text: Total de colaboradores
+        language: en
+    }
+)
+
+textMessage PAGINATION.NEXT (
+    message {
+        text: Próxima
+        language: en
+    }
+)
+
+textMessage PAGINATION.NEXT_SET (
+    message {
+        text: Próximo conjunto
+        language: en
+    }
+)
+
+textMessage PAGINATION.PREVIOUS (
+    message {
+        text: Anterior
+        language: en
+    }
+)
+
+textMessage PAGINATION.PREVIOUS_SET (
+    message {
+        text: Conjunto anterior
+        language: en
+    }
+)
+
+textMessage WWV_RENDER_REPORT3.X_Y_OF_MORE_THAN_Z (
+    message {
+        text: %0–%1 de mais de %2
+        language: en
+    }
+)
+
+textMessage WWV_RENDER_REPORT3.X_Y_OF_Z (
+    message {
+        text: %0–%1 de %2
+        language: en
+    }
+)
+
+textMessage WWV_RENDER_REPORT3.X_Y_OF_Z_2 (
+    message {
+        text: %0–%1 de %2
+        language: en
+    }
+)
+

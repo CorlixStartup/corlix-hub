@@ -67,6 +67,7 @@ prompt APPLICATION 100 - Corlix Hub
 --         LOVs:                   8
 --       PWA:
 --       Globalization:
+--         Messages:              12
 --       Reports:
 --       E-Mail:
 --     Supporting Objects:  Included
@@ -116,8 +117,8 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_string_01=>'APP_NAME'
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
-,p_files_version=>2461352211428
-,p_version_scn=>'47052154260392'
+,p_files_version=>2461354133635
+,p_version_scn=>'47052197990359'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -6096,7 +6097,7 @@ wwv_flow_imp.g_varchar2_table(19) := '742D5265706F72742D7265706F7274207B0A202020
 wwv_flow_imp.g_varchar2_table(20) := '626F7261646F7265732D706167696E61202E63782D72656C61746F72696F207461626C652E742D5265706F72742D7265706F7274207464207B0A2020202070616464696E673A203132707820313670783B0A20202020766572746963616C2D616C69676E';
 wwv_flow_imp.g_varchar2_table(21) := '3A206D6964646C653B0A7D0A0A2E63782D636F6C61626F7261646F7265732D706167696E61202E63782D72656C61746F72696F207461626C652E742D5265706F72742D7265706F7274207468207B0A2020202070616464696E673A203132707820313670';
 wwv_flow_imp.g_varchar2_table(22) := '783B0A202020206261636B67726F756E643A20766172282D2D63782D737570657266696369652D32293B0A20202020666F6E742D7765696768743A203630303B0A20202020666F6E742D73697A653A20313370783B0A20202020636F6C6F723A20766172';
-wwv_flow_imp.g_varchar2_table(23) := '282D2D63782D746578746F293B0A20202020626F726465722D626F74746F6D3A2031707820736F6C696420766172282D2D63782D626F726461293B0A7D';
+wwv_flow_imp.g_varchar2_table(23) := '282D2D63782D746578746F293B0A20202020626F726465722D626F74746F6D3A2031707820736F6C696420766172282D2D63782D626F726461293B0A7D0A';
 wwv_flow_imp_shared.create_app_static_file(
  p_id=>wwv_flow_imp.id(46046643841908375)
 ,p_file_name=>'modulos/colaboradores/colaboradores.css'
@@ -8092,7 +8093,78 @@ end;
 /
 prompt --application/shared_components/globalization/messages
 begin
-null;
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46832047107956159)
+,p_name=>'APEX.FS.CLEAR'
+,p_message_text=>'Limpar'
+,p_version_scn=>'SH256:i23GQAIF8UR9a7pDjH91zJvRGPCToT7bm5swfuG42Os'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46832208321957250)
+,p_name=>'APEX.FS.CLEAR_ALL'
+,p_message_text=>'Limpar filtros'
+,p_version_scn=>'SH256:jr_pe5vDbPbX2d9AViUVl3k1TGJrvmcmrcsoCjiVGNI'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46832611542959143)
+,p_name=>'APEX.FS.SHOW_LESS'
+,p_message_text=>'Mostrar menos'
+,p_version_scn=>'SH256:ao3ZgIbafxH01NmI2-85-0516CLd3gk3gg0jOd3lGwI'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46832416912958241)
+,p_name=>'APEX.FS.SHOW_MORE'
+,p_message_text=>'Mostrar mais'
+,p_version_scn=>'SH256:xpYuWk0cU-UEHRuM7FQOvsKAbQSBe4toEKQVvJ0ibRA'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46831890938954725)
+,p_name=>'APEX.FS.TOTAL_ROW_COUNT_LABEL'
+,p_message_text=>'Total de colaboradores'
+,p_version_scn=>'SH256:XOIrIMLfzKNv6PdfQzPaZCHf_alDm5ATyg8McljI67I'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46832831413959898)
+,p_name=>'PAGINATION.NEXT'
+,p_message_text=>unistr('Pr\00F3xima')
+,p_version_scn=>'SH256:60kdLA64Gmi9T6R837jQAuSjzFpvfP8Zlxgv37cPmeo'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46833222177962006)
+,p_name=>'PAGINATION.NEXT_SET'
+,p_message_text=>unistr('Pr\00F3ximo conjunto')
+,p_version_scn=>'SH256:6LId_y-rjd-TVGKxmO3CgUD6YPYAhfFbd-uAc4X1328'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46833029196960735)
+,p_name=>'PAGINATION.PREVIOUS'
+,p_message_text=>'Anterior'
+,p_version_scn=>'SH256:ZJw-Kzq5RXP6YjKEOJla6c2OlJvI7UmNw_UFjVHbBqQ'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46833458787962860)
+,p_name=>'PAGINATION.PREVIOUS_SET'
+,p_message_text=>'Conjunto anterior'
+,p_version_scn=>'SH256:7gxTTCJSEoFV7F2doZvk9Ytfr2uCwqGAR3NGwhSk8Co'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46834054460966728)
+,p_name=>'WWV_RENDER_REPORT3.X_Y_OF_MORE_THAN_Z'
+,p_message_text=>unistr('%0\2013%1 de mais de %2')
+,p_version_scn=>'SH256:EyKWrHA-pM3wnGwL08hvLlRi8zXvfYPuXBNHzn1XBA8'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46833615114964331)
+,p_name=>'WWV_RENDER_REPORT3.X_Y_OF_Z'
+,p_message_text=>unistr('%0\2013%1 de %2')
+,p_version_scn=>'SH256:dPY59613mFhRuuP-hIOlynNVybPYdX88DoHjrjppuy4'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(46833875881965631)
+,p_name=>'WWV_RENDER_REPORT3.X_Y_OF_Z_2'
+,p_message_text=>unistr('%0\2013%1 de %2')
+,p_version_scn=>'SH256:flkirciNrsOz_rIurGywYeIzg6M60ygKh2FC0h8XdOA'
+);
 end;
 /
 prompt --application/shared_components/globalization/dyntranslations
@@ -11210,41 +11282,79 @@ wwv_flow_imp_page.create_page(
 ,p_step_title=>'Colaboradores'
 ,p_autocomplete_on_off=>'OFF'
 ,p_css_file_urls=>'#APP_FILES#modulos/colaboradores/colaboradores#MIN#.css'
+,p_inline_css=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'.cx-colaboradores-pagina .cx-relatorio table.t-Report-report {',
+'    width: 100%;',
+'    table-layout: fixed;',
+'    border-collapse: separate;',
+'    border-spacing: 0;',
+'    border: 1px solid var(--cx-borda);',
+'    border-radius: var(--cx-raio-card);',
+'    background: var(--cx-superficie);',
+'    box-shadow: none;',
+'}',
+'',
+'.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th,',
+'.cx-colaboradores-pagina .cx-relatorio table.t-Report-report td {',
+'    border: 0;',
+'    border-bottom: 1px solid var(--cx-borda);',
+'    padding: 12px;',
+'    vertical-align: middle;',
+'    white-space: normal;',
+'    overflow-wrap: anywhere;',
+'}',
+'',
+'.cx-colaboradores-pagina .cx-relatorio table.t-Report-report tr:last-child td {',
+'    border-bottom: 0;',
+'}',
+'',
+'.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:first-child {',
+'    border-top-left-radius: var(--cx-raio-card);',
+'}',
+'',
+'.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:last-child {',
+'    border-top-right-radius: var(--cx-raio-card);',
+'}',
+'',
+unistr('/* Ordem das cinco colunas vis\00EDveis: Pessoa, Login, V\00EDnculo, Perfil, Situa\00E7\00E3o. */'),
+'.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(1) { width: 30%; }',
+'.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(2) { width: 15%; }',
+'.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(3) { width: 25%; }',
+'.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(4) { width: 18%; }',
+'.cx-colaboradores-pagina .cx-relatorio table.t-Report-report th:nth-child(5) { width: 12%; }',
+'',
+'.cx-colaboradores-pagina .cx-colab-pessoa {',
+'    display: flex;',
+'    min-width: 0;',
+'    max-width: 100%;',
+'}',
+'',
+'.cx-colaboradores-pagina .cx-colab-pessoa__info {',
+'    min-width: 0;',
+'}',
+'',
+'.cx-colaboradores-pagina .cx-colab-pessoa__email {',
+'    overflow-wrap: anywhere;',
+'}'))
 ,p_step_template=>4073832297226169690
 ,p_page_css_classes=>'cx-colaboradores-pagina'
 ,p_page_template_options=>'#DEFAULT#'
+,p_required_role=>wwv_flow_imp.id(29681448805008196)
 ,p_protection_level=>'C'
 ,p_page_component_map=>'22'
 );
 wwv_flow_imp_page.create_page_plug(
- p_id=>wwv_flow_imp.id(44209523294570325)
+ p_id=>wwv_flow_imp.id(46619730454225809)
 ,p_plug_name=>unistr('Cabe\00E7alho')
 ,p_static_id=>unistr('cabe\00E7alho')
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>3372714138756020509
-,p_plug_display_sequence=>10
+,p_plug_display_sequence=>30
 ,p_plug_display_point=>'REGION_POSITION_01'
 ,p_plug_item_display_point=>'ABOVE'
 ,p_location=>null
 ,p_function_body_language=>'PLSQL'
-,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
-'return ''<div class="cx-cabecalho-pagina cx-cabecalho-pagina--acoes">''',
-'    || ''<div class="cx-cabecalho-pagina__texto">''',
-'    || ''<h1 class="cx-cabecalho-pagina__titulo">Colaboradores</h1>''',
-unistr('    || ''<p class="cx-cabecalho-pagina__descricao">Encontre pessoas e gerencie contas, v\00EDnculos e perfis de acesso.</p>'''),
-'    || ''</div>''',
-'    || ''<div class="cx-cabecalho-pagina__acoes">''',
-'    || case',
-'         when apex_authorization.is_authorized(''admin-rh'')',
-'           or apex_authorization.is_authorized(''administration-rights'')',
-'           or v(''G_ID_EMPRESA'') is null then',
-'              ''<a class="t-Button t-Button--hot t-Button--iconLeft" href="''',
-'           || apex_escape.html_attribute(apex_page.get_url(p_page => 14, p_clear_cache => ''14''))',
-'           || ''"><span class="t-Icon t-Icon--left fa fa-plus" aria-hidden="true"></span>''',
-'           || ''<span class="t-Button-label">Novo colaborador</span></a>''',
-'       end',
-'    || ''</div>''',
-'    || ''</div>'';'))
+,p_plug_source=>' return pkg_colaboradores_ui.render_cabecalho;'
 ,p_lazy_loading=>false
 ,p_plug_source_type=>'NATIVE_DYNAMIC_CONTENT'
 );
@@ -11253,7 +11363,7 @@ wwv_flow_imp_page.create_report_region(
 ,p_name=>'Colaboradores'
 ,p_static_id=>'colaboradores'
 ,p_template=>4073835273271169698
-,p_display_sequence=>10
+,p_display_sequence=>20
 ,p_region_css_classes=>'cx-relatorio'
 ,p_region_template_options=>'#DEFAULT#:t-Region--noPadding:t-Region--removeHeader js-removeLandmark:t-Region--noUI:t-Region--scrollBody'
 ,p_component_template_options=>'#DEFAULT#:t-Report--altRowsDefault:t-Report--rowHighlight'
@@ -11294,7 +11404,7 @@ wwv_flow_imp_page.create_report_region(
 ,p_query_num_rows=>15
 ,p_query_options=>'DERIVED_REPORT_COLUMNS'
 ,p_query_no_data_found=>'Nenhum colaborador encontrado.'
-,p_query_num_rows_type=>'ROWS_X_TO_Y_OF_Z'
+,p_query_num_rows_type=>'ROW_RANGES_WITH_LINKS'
 ,p_pagination_display_position=>'BOTTOM_RIGHT'
 ,p_csv_output=>'N'
 ,p_prn_output=>'N'
@@ -11423,8 +11533,8 @@ wwv_flow_imp_page.create_report_columns(
 ,p_column_display_sequence=>20
 ,p_column_heading=>'Pessoa'
 ,p_column_link=>'f?p=&APP_ID.:14:&SESSION.::&DEBUG.:14:P14_ID_COLABORADOR:#ID_COLABORADOR#'
-,p_column_linktext=>'<span class="cx-colab-pessoa"><span class="cx-avatar"><img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL#" alt="" onerror="this.remove();" loading="lazy">#INICIAIS#</span><span class="cx-colab-pessoa__info"><span class="cx-colab-pessoa__nome">#NOME_C'
-||'OMPLETO#</span><span class="cx-colab-pessoa__email">#EMAIL#</span></span></span>'
+,p_column_linktext=>'<span class="cx-colab-pessoa">   <span class="cx-avatar">     <img src="#APP_FILES#Fotos Colaboradores/#FOTO_URL!ATTR#"          alt="" onerror="this.remove();" loading="lazy">     #INICIAIS!HTML#   </span>   <span class="cx-colab-pessoa__info">     '
+||'<span class="cx-colab-pessoa__nome">#NOME_COMPLETO!HTML#</span>     <span class="cx-colab-pessoa__email">#EMAIL!HTML#</span>   </span> </span>'
 ,p_heading_alignment=>'LEFT'
 ,p_default_sort_column_sequence=>1
 ,p_disable_sort_column=>'N'
@@ -11438,7 +11548,7 @@ wwv_flow_imp_page.create_report_columns(
 ,p_column_alias=>'PERFIL'
 ,p_column_display_sequence=>210
 ,p_column_heading=>'Perfil'
-,p_column_html_expression=>'#PERFIL_HTML#'
+,p_column_html_expression=>'#PERFIL_HTML!RAW#'
 ,p_heading_alignment=>'LEFT'
 ,p_disable_sort_column=>'N'
 ,p_display_as=>'WITHOUT_MODIFICATION'
@@ -11526,7 +11636,7 @@ wwv_flow_imp_page.create_page_plug(
 ,p_title=>'Filtros'
 ,p_region_template_options=>'#DEFAULT#:t-Region--noPadding:t-Region--removeHeader js-removeLandmark:t-Region--noUI:t-Region--scrollBody'
 ,p_plug_template=>4073835273271169698
-,p_plug_display_sequence=>20
+,p_plug_display_sequence=>10
 ,p_plug_grid_column_span=>3
 ,p_plug_display_column=>1
 ,p_plug_item_display_point=>'ABOVE'
@@ -11600,7 +11710,7 @@ wwv_flow_imp_page.create_page_item(
 ,p_source_data_type=>'VARCHAR2'
 ,p_item_sequence=>50
 ,p_item_plug_id=>wwv_flow_imp.id(46618998146225801)
-,p_prompt=>'Perfil'
+,p_prompt=>'Perfil de acesso'
 ,p_source=>'PERFIL'
 ,p_source_type=>'FACET_COLUMN'
 ,p_display_as=>'NATIVE_CHECKBOX'
@@ -19556,4 +19666,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:pajF7UBve/GnLJ8or+yqDxdo8ORb1mM0hAYJvRE/Klo=
+-- Application Checksum SH256:oL8GDwwX41SQNr+42FOyhaNzg8J1R3WA95eNlN6UxM4=
