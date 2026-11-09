@@ -177,3 +177,7 @@ Verificação: export e documentação oficial do APEX 26.1 conferidos, git diff
 Pedido: identificar o que já foi aplicado e o que falta. Comparados §12 do guia, export e DDL do backup a6d16f1 (corlixhub-prd-20261109-160916), cujo commit registra ausência de mudanças em relação ao de 12:06. Resultado: nenhum item do §12 consta como aplicado no banco PRD, único ambiente exportado pelo job. O usuário relatou ter feito boa parte; hipóteses a confirmar: alterações anteriores às 12:06, não salvas ou em outro ambiente.
 
 Registrada a situação no §12.0, com a ordem do que falta, e incluída a remoção do CSS Inline no §12.1. Verificação: comparação de export/DDL e git diff --check. Revisão estática, sem execução da app. Próximo passo: aplicar os itens do §12.0 e rodar novo backup.
+
+## Passo a passo detalhado do §12 — 09/11/2026
+
+§12.1 a §12.8 reescritos por item, com caminho de cada propriedade, valores e conferência. Corrigido: "When Button Pressed" é propriedade própria de Server-side Condition, não opção de Type. Confirmado na documentação do 26.1 que o item de Order By pode ser posicionado em qualquer lugar da página. Referência: export a6d16f1 e documentação oficial. Alteração só documental, sem execução no Builder; caminhos não conferidos seguem marcados.
