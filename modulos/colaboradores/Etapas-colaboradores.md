@@ -511,48 +511,20 @@ Referências reutilizadas: autorização `COLABORADOR` (composição por `apex_a
 
 ### 12.0 Situação na app (validada na tela em 09/11/2026)
 
-Validado com a conta de RH, no navegador, sem salvar nada; export da p12 enviado pelo usuário e backup `571499e`.
+Validado no navegador com a conta de RH, sem gravar dados, e no backup `4633d7a`. **Layout da p12 fiel ao protótipo em desktop.** Os ajustes de CSS, classe da barra, tradução e branch da p14 estão aplicados.
 
-**Funciona na tela:** layout de filtros e relatório, total acompanhando o filtro, "Ordenar por", avatar cinza de inativos, etiquetas e badges, paginação em português e, na edição da p14, título com nome e situação, sem campos de senha, com login, empresa, departamento e cargo bloqueados e botão "Salvar alterações".
+**Falta testar (§12.9):**
 
-**Falta fazer, nesta ordem:**
+| Teste | O que falta |
+|---|---|
+| 2, 3 e 4 | Contas de diretor, gestor e colaborador comum |
+| 6 | Caracteres especiais em nome de departamento |
+| 11 e 12 | Salvar edição e criar colaborador, com registro de teste |
+| 14 | Tela estreita |
 
-| # | Ajuste | Por quê |
-|---|---|---|
-| 1 | Publicar `colaboradores.css` e `.min.css` novos | Trazem a barra, as contagens à direita e a remoção do menu de três pontos |
-| 2 | Colocar a classe na região Barra da lista | O CSS usa classe; o Static ID não apareceu no HTML, que usa id gerado |
-| 3 | Marcar `APEX.FS.CLEAR` para uso em JavaScript | O botão "Clear" segue em inglês |
-| 4 | **Conferir o branch "Limpar formulário" da p14** | No último backup segue antes dos processos; sem o ajuste, salvar a edição não volta à lista e pode não gravar |
-| 5 | Testar | §12.9, sobretudo salvar (11 e 12) e os perfis (1 a 4) |
+**Diferenças aceitas em relação ao protótipo:** seta "Pessoa ↑" (a ordenação é pelo seletor), linhas mais altas quando nomes reais quebram em duas linhas, opção "Sem vínculo" ausente (isolamento por empresa), menu lateral e, nas facetas, ausência do filtro interno de valores, removido junto com o menu de três pontos.
 
-**Ajuste 1 · Publicar o CSS**
-
-Siga o Item 2 do §12.1 com os dois arquivos atuais desta pasta.
-
-**Ajuste 2 · Classe da barra**
-
-1. Página 12 › clique na região **Barra da lista**.
-2. Em **Appearance › CSS Classes**, informe `cx-colab-barra`.
-3. Clique em **Save**.
-
-**Confira (com Ctrl+F5):** "N colaboradores" à esquerda e "Ordenar por" com o seletor compacto à direita, na mesma linha. Nas facetas, contagens à direita, sem parênteses e sem os três pontos.
-
-**Ajuste 3 · Tradução do Clear**
-
-1. Abra **Shared Components › Globalization › Text Messages**.
-2. Abra `APEX.FS.CLEAR` e ligue **Used in JavaScript** (confirmar no 26.1.5).
-3. Salve e, na p12, marque um filtro: o botão deve mostrar "Limpar".
-
-**Ajuste 4 · Branch da página 14**
-
-1. Página 14 › aba **Processing** › branch **Limpar formulário após carregamento**.
-2. Em **Execution › Point**, confirme **After Processing**; se estiver diferente, troque e clique em **Save**.
-
-**Confira:** ao salvar uma edição de teste, a tela volta para a lista com "Alterações salvas.".
-
-**Diferenças aceitas em relação ao protótipo:** seta "Pessoa ↑" (a ordenação é pelo seletor), linhas mais altas quando nomes reais quebram em duas linhas, opção "Sem vínculo" ausente (isolamento por empresa) e menu lateral, que depende dos módulos existentes.
-
-**Decisões em aberto:** equipe do Corlix Hub na lista (hoje fora), e se gestor e situação ficam só leitura na edição (hoje editáveis, e a alteração não entra no histórico).
+**Decisões em aberto:** equipe do Corlix Hub na lista (hoje fora), e se gestor e situação ficam só leitura na edição (hoje editáveis, e a alteração não entra no histórico). A página continua em `@/standard`, divergência registrada no [11 · Padrões de páginas](../../docs/ai-context/11-padroes-de-paginas.md), §6.
 
 ### 12.1 Banco e arquivos (itens 1, 2 e 3)
 

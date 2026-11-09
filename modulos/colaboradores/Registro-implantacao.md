@@ -203,3 +203,29 @@ Usuário autenticou no Chrome (conta Teste Rh); nenhuma credencial digitada e na
 Causas das diferenças: região Barra da lista sem Static ID no DOM (id gerado), logo o CSS por #cx-colab-barra não aplicava; seletor flutuante em largura total; contagens com parênteses por pseudo-elemento; menu de faceta com a única ação Filter. Corrigido: apontamentos anteriores de linhas alternadas e rótulo visível da busca eram falsos na tela.
 
 CSS novo testado por estilo temporário na própria aba, sem persistência, e incorporado aos arquivos do módulo. Falta publicar, aplicar a classe e o ajuste de Clear; salvar na p14 não foi testado, e o branch segue em processing no último backup. Testes de contas de outros perfis pendentes.
+
+## Validação visual final da página 12 — 09/11/2026
+
+Usuário autenticou no Chrome (conta Teste Rh); nenhuma credencial digitada e nenhum dado gravado. Backup 4633d7a confirma classe da barra, APEX.FS.CLEAR em JavaScript e branch da p14 em After Processing; o CSS foi publicado depois desse backup e conferido na execução.
+
+Resultado em desktop (1488 px): barra em linha única com total à esquerda e Ordenar por à direita; contagens à direita, sem parênteses; menu de três pontos oculto; filtro Inativa levou o total de 309 a 4 e exibiu "Limpar"; sem erros de console. Layout considerado fiel ao protótipo, com as diferenças aceitas listadas no §12.0.
+
+Pendências: testes de salvar na p14 (grava dados), contas de diretor, gestor e colaborador comum, caracteres especiais e tela estreita. Próximo passo: executar esses testes e decidir os itens em aberto do §12.0.
+
+## Teste de salvar edição na p14 — 09/11/2026
+
+Autorizado pelo usuário no registro [DEMO] Diego Alves (id 315), conta Teste Rh, login feito pelo usuário. Alterado apenas o primeiro nome para DiegoTeste e acionado Salvar alterações. Resultado: recusado pela validação "Data de nascimento must have some value.", porque o registro não tem data de nascimento e o campo é obrigatório. Ao reabrir, o primeiro nome continua Diego: nada foi gravado e não houve o que restaurar.
+
+Conclusão: a validação obrigatória funciona na edição, mas o caminho de sucesso (gravar, voltar à lista com "Alterações salvas.", não criar conta nem admissão) segue não testado. Achados: colaboradores sem data de nascimento não podem ser editados até o campo ser preenchido; mensagem de obrigatório em inglês. Próximo passo: repetir o teste num registro de teste com data de nascimento.
+
+Continuação em 09/11/2026: autorizado repetir o teste em outro [DEMO] com data de nascimento. Leitura sem gravação dos 16 registros [DEMO] encontrados pela busca: nenhum tem data de nascimento (leitura conferida com a data de admissão, presente no HTML). Teste de sucesso não executado; nenhum registro alterado. Próximo passo: preencher por SQL a data de um [DEMO], testar e restaurar o valor nulo por SQL, se o usuário autorizar.
+
+## Teste de salvar edição com sucesso na p14 — 09/11/2026
+
+Autorizado pelo usuário, que preencheu por SQL a data de nascimento do [DEMO] Diego Alves (id 315) para o teste. Conta Teste Rh. Primeiro nome alterado para DiegoTeste e salvo: novo carregamento do registro retornou DiegoTeste. Restaurado para Diego pelo mesmo botão e confirmado em novo carregamento; nome, admissão e e-mail inalterados.
+
+Resposta do servidor (POST wwv_flow.accept, status 200): redirectURL para a página colaboradores com success_msg "Row updated. Alterações salvas.", o que comprova a execução do branch de retorno. Na aba automatizada o navegador não seguiu o redirecionamento e permaneceu na p14, com apex.page.isChanged verdadeiro; causa não identificada, possivelmente própria da automação. Falta um salvamento manual para confirmar o retorno na tela.
+
+Não comprovado: ausência de conta e admissão novas, pois a contagem anterior ao teste não foi obtida. Achado: a mensagem de sucesso inclui o texto padrão em inglês "Row updated.". O ambiente informou versão 26.1.6 em wwv_flow.js_messages, enquanto os guias citam 26.1.5. Pendência: restaurar por SQL a data de nascimento nula do registro 315.
+
+Conclusão do teste de edição em 09/11/2026: usuário salvou manualmente o registro 315 e restaurou por SQL a data de nascimento nula, confirmada em novo carregamento, com nome e demais campos originais. Consulta informada pelo usuário após os salvamentos: contas = 0 e historico = 3. Sem conta APEX para DEMO.CARREIRA.1.4, o CREATE_USER não rodou na edição (a carga demo insere em COLABORADOR sem criar conta; a expectativa anterior de contas = 1 estava errada). Os 3 lançamentos são compatíveis com a carga 09_dados_demo_dashboard.sql (admissão, promoção e desligamento), sem indício de admissão nova. O usuário não informou se a tela voltou à lista no salvamento manual.
