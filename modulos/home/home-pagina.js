@@ -67,6 +67,36 @@ function cxHomeCarrossel(regiao) {
   marcar();
 }
 
+// "Ponto de hoje" (guia §7): relógio e horas trabalhadas. A hora vem do servidor
+// (data-segundos) e aqui só avança; o refresh do hero troca o painel e recomeça.
+// Mesma conta do relógio da página 30 (ponto-pagina.js).
+let cxHomePontoBase = null;
+
+function cxHomePontoRelogio() {
+  const painel = document.querySelector("[data-cx-home-ponto]");
+  if (!painel) { return; }
+
+  function dois(n) { return String(n).padStart(2, "0"); }
+  function horas(min) { return Math.floor(min / 60) + "h" + dois(min % 60); }
+
+  if (!cxHomePontoBase || cxHomePontoBase.painel !== painel) {
+    cxHomePontoBase = { painel: painel, inicio: Date.now(), segundos: Number(painel.dataset.segundos) };
+  }
+  const passados = Math.floor((Date.now() - cxHomePontoBase.inicio) / 1000);
+  const agora = (cxHomePontoBase.segundos + passados) % 86400;
+  const hora = painel.querySelector("[data-cx-home-ponto-hora]");
+  const texto = dois(Math.floor(agora / 3600)) + ":" + dois(Math.floor(agora / 60) % 60);
+  if (hora.textContent !== texto) { hora.textContent = texto; }
+
+  if (painel.dataset.correndo === "S") {
+    const minutos = Math.floor(((cxHomePontoBase.segundos % 60) + passados) / 60);
+    const trabalhados = Number(painel.dataset.trabalhados) + minutos;
+    const meta = Number(painel.dataset.meta);
+    painel.querySelector("[data-cx-home-ponto-resumo]").textContent = horas(trabalhados) + " trabalhadas · "
+      + (trabalhados >= meta ? "jornada completa" : "faltam " + horas(meta - trabalhados));
+  }
+}
+
 // ---- BLOCO 2 · Execute when Page Loads --------------------------------------
 
 cxHomeCarregarFotos();
@@ -88,3 +118,34 @@ $(document).on("click", ".cx-home-atalho[aria-disabled='true']", function (event
   evento.preventDefault();
   apex.message.alert("Este atalho ainda não tem destino configurado.");
 });
+
+// "Registrar saída" (e entrada, intervalo, retorno): Ajax Callback REGISTRAR_MARCACAO,
+// o mesmo da página 30, que responde {ok, mensagem}. Depois, refaz o hero.
+$(document).on("click", "[data-cx-home-registrar]", function () {
+  const botao = this;
+  botao.disabled = true;
+  apex.server.process("REGISTRAR_MARCACAO", { x01: botao.dataset.cxHomeRegistrar }, { dataType: "json" })
+    .done(function (resposta) {
+      apex.message.clearErrors();
+      if (resposta.ok) {
+        apex.message.showPageSuccess(resposta.mensagem);
+        apex.region("home_hero").refresh();
+      } else {
+        apex.message.showErrors([{ type: "error", location: "page", message: resposta.mensagem, unsafe: true }]);
+      }
+    })
+    .fail(function () {
+      apex.message.showErrors([{ type: "error", location: "page",
+        message: "Não foi possível falar com o servidor. Confira sua conexão e tente de novo.", unsafe: false }]);
+    })
+    .always(function () { botao.disabled = false; });
+});
+
+// Pedido de ajuste enviado pela página 31 ("Justificar"): a lista de pendências muda
+$(document).on("apexafterclosedialog", function () {
+  const pendencias = apex.region("home_pendencias");
+  if (pendencias) { pendencias.refresh(); }
+});
+
+cxHomePontoRelogio();
+setInterval(cxHomePontoRelogio, 1000);

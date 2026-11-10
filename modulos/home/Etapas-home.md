@@ -4,6 +4,8 @@ Este guia monta a nova Home numa **página nova, a 28 ("Início")**, no App Buil
 
 > **Situação em 28/10/2026:** o time montou o redesign direto na **página 1** (renomeada para "Início", alias `INÍCIO`; export `corlixhub/pages/p00001-início.apx`), e a página 28 não existe. As seções 1 a 5 ficam como histórico dessa montagem. O protótipo foi atualizado em 28/10/2026 (commit `25c7e8a`): a **[seção 6](#6-atualização-para-o-protótipo-de-28102026-página-1)** leva a página 1 até ele, só com os blocos que têm dados no banco.
 
+> **Situação em 10/11/2026:** o export de 05/11/2026 ainda não tem a seção 6 aplicada (sem carrossel, celebrações nem `home.css`). Com o ponto eletrônico implantado (páginas 30 a 33), a **[seção 7](#7-blocos-do-ponto-eletrônico-página-1)** acrescenta os blocos do protótipo que agora têm dados: o painel "Ponto de hoje" no hero, o banco de horas e "Suas pendências". Aplique a 6 e a 7 na mesma rodada; o registro está em [Situação na app](#situação-na-app).
+
 **A Home atual (página 1) não é apagada nem alterada.** Ela continua sendo a página inicial do app até a seção 5, quando a 28 passa a ser a Home. Para voltar atrás, basta desfazer os três ajustes da seção 5.
 
 Depois de montar a página no Builder, não é preciso exportar à mão: o backup diário (Jenkins) exporta o app de PRD em APEXlang para `corlixhub/` na `DEV`. Mudança feita só no `.apx` do repositório, sem levar ao APEX, é **desfeita** no próximo backup. Por isso este módulo traz o package, o CSS, a imagem e este guia, e não um `.apx` editado.
@@ -31,10 +33,10 @@ O cabeçalho e o menu lateral do protótipo são da Global Page e dos Shared Com
 
 | Arquivo | O que é |
 |---|---|
-| `pkg_home_ui.pks` / `.pkb` | Package que devolve o HTML do hero, do Meu gestor e dos aniversariantes |
+| `pkg_home_ui.pks` / `.pkb` | Package que devolve o HTML do hero (com o "Ponto de hoje"), dos indicadores, das pendências, do Meu gestor e das celebrações |
 | `instalar.sql` | Instala o package pelo SQLcl |
-| `home-pagina.js` | JavaScript da página (2 blocos; carrossel desde a seção 6) |
-| `home.css` / `home.min.css` | Estilos do protótipo de 28/10/2026 (hero sem arte, carrossel, Meu gestor, celebrações); seção 6 |
+| `home-pagina.js` | JavaScript da página (2 blocos; carrossel desde a seção 6, ponto desde a seção 7) |
+| `home.css` / `home.min.css` | Estilos do protótipo de 28/10/2026: hero, carrossel, Meu gestor e celebrações (seção 6); ponto, indicadores e pendências (seção 7) |
 | `home-hero.jpg` | Arte decorativa do hero (recorte do protótipo; troque pela arte original quando houver) |
 | `corlixhub/shared-components/static-files/custom.css` §12 (+ `.min.css`) | Estilos da nova Home (classes `cx-home-*` e `cx-avatar`) |
 
@@ -290,6 +292,8 @@ Clique no nó **Page 28** e cole os blocos de `modulos/home/home-pagina.js`:
 - **JavaScript › Function and Global Variable Declaration:** BLOCO 1 (`cxHomeCarregarFotos`).
 - **JavaScript › Execute when Page Loads:** BLOCO 2.
 
+O arquivo já traz o código do ponto (seção 7): relógio do painel, botão de registrar e atualização das pendências. Sem as regiões da seção 7, esse trecho não faz nada.
+
 ### 3.9 Como deve ficar a árvore
 
 ```
@@ -405,6 +409,9 @@ O que muda no package:
 - `render_meu_gestor`: botão "Mensagem" no lugar de "Chat" e classe `cx-home-gestor__acoes`.
 - `render_celebracoes` (nova): aniversários e anos de empresa do mês, da empresa do usuário, só colaboradores ativos.
 - `render_aniversariantes` continua lá e com o mesmo resultado, para a página não quebrar entre a instalação e o passo 6.5.
+- Já vem com o que a seção 7 usa (`render_indicadores`, `render_pendencias` e o painel do ponto dentro do `render_hero`). Por isso o package agora **depende do `pkg_ponto`** (`modulos/ponto-eletronico`, já instalado no ambiente): sem ele, a compilação falha com `PLS-00201: identifier 'PKG_PONTO' must be declared`.
+
+**O painel "Ponto de hoje" aparece no hero assim que o package é instalado**, para quem tem colaborador vinculado. O botão de registrar do painel só funciona depois do Ajax Callback do passo 7.3; faça as seções 6 e 7 em seguida.
 
 Assim que o package é instalado, a página 1 já mostra a saudação e os atalhos novos (o hero vem do package). Até o passo 6.2, sobra um espaço vazio onde ficava a arte: suba o CSS logo em seguida.
 
@@ -555,3 +562,193 @@ Abra a página 1 e recarregue com **Ctrl+Shift+R** (Cmd+Shift+R no Mac).
 | Botão "Ler comunicado" não aparece | Ação criada com outro *Type* (Full Card, Title...) | Passo 6.3: *Type* **Button** |
 | Celebrações sem os anos de empresa | Colaboradores sem `DATA_ADMISSAO`, ou admitidos neste ano (só conta a partir de 1 ano) | Esperado; confira com `select nome_completo, data_admissao from colaborador where to_char(data_admissao, 'mm') = to_char(sysdate, 'mm')` |
 | `PLS-00302: component 'RENDER_CELEBRACOES' must be declared` | Package antigo no banco | Passo 6.1 |
+| Painel "Ponto de hoje" aparece sem estilo (tudo empilhado) | `home.css` antigo no Static Application Files | Passo 6.2 com os arquivos desta versão (têm as seções 5 a 7) |
+
+---
+
+## 7. Blocos do ponto eletrônico (página 1)
+
+O ponto eletrônico (páginas 30 a 33, `modulos/ponto-eletronico`) já tem dados. Esta seção põe na Home os blocos do protótipo que vêm dele. **Faça a seção 6 antes**: esta usa o package, o CSS e o JS de lá.
+
+| Bloco do protótipo | O que entra | Fonte |
+|---|---|---|
+| Card **Ponto de hoje** à direita do hero | Hora atual, "4h33 trabalhadas · faltam 3h27", selo (Não iniciada, Em jornada, Em intervalo, Jornada concluída ou o nome do feriado), botão da próxima marcação (Registrar entrada, Iniciar intervalo, Voltar do intervalo, Registrar saída) e a linha Entrada → Intervalo → Retorno → Saída prev. O título abre a página 30 | `pkg_ponto` (as mesmas funções do relógio da página 30) |
+| Faixa de indicadores: **Banco de horas** | Saldo ("+6h15", verde se positivo, vermelho se negativo), "Saldo até ontem · ver espelho" ou, se houver horas para vencer em até 60 dias, "3h10 vencem em 31/12/2026 · ver espelho" | `pkg_ponto.calcular_banco` |
+| **Suas pendências** | Do ponto: marcação incompleta ou dia sem marcação nos últimos 30 dias (até 5, botão **Justificar** abre a página 31 já preenchida), espelho do mês a assinar (**Assinar** abre a página 30, onde fica o diálogo de assinatura) e, para gestor ou RH, "N pedidos de ajuste de ponto" (**Responder** abre a página 32). Sem nada: "Nenhuma pendência" | `pkg_ponto` |
+
+**Ficam de fora:** os outros 3 indicadores (Próximo pagamento, Férias, Meu PDI), as pendências de outros módulos (avaliação, documento, feedback, chamado), o número no título "Suas pendências" e o "Ver todas". Seguem em `docs/ai-context/07` §5.
+
+**Quem vê o quê:**
+- Conta sem colaborador na empresa (equipe do Corlix Hub, RH sem cadastro): hero sem o painel, sem indicadores. Em "Suas pendências", o RH vê os pedidos de ajuste, se houver; os outros veem "Nenhuma pendência".
+- Empresa sem jornada cadastrada (`-20061`): a página abre normalmente, sem os blocos do ponto.
+- Registrar a marcação: o `pkg_ponto.registrar_marcacao` só grava para o colaborador da conta logada. O Ajax Callback ainda pede a autorização `COLABORADOR`, a mesma da página 30.
+- Links: página 30 e 31 (`COLABORADOR`) só aparecem para quem tem colaborador; página 32 (`APROVADOR_PONTO`) só no item de pedidos, que só aparece para quem passa no `pkg_ponto.fn_e_aprovador`, a mesma função do esquema.
+
+### 7.1 Banco e arquivos
+
+Nada além da seção 6: o package do passo 6.1 e os arquivos do passo 6.2 já têm tudo. Se instalou antes desta versão, reinstale o package (6.1) e suba de novo o `home.css` e o `home.min.css` (6.2).
+
+**Teste** (SQL Commands, um comando por vez; troque `123` por um colaborador com ponto, como na seção "Conta de teste" do `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`):
+
+```sql
+select pkg_home_ui.render_hero(p_id_colaborador => 123) from dual
+```
+Deve voltar a `<section class="cx-home-hero cx-home-hero--ponto">` com um `<aside class="cx-home-ponto"` no fim.
+
+```sql
+select pkg_home_ui.render_indicadores(p_id_colaborador => 123) from dual
+```
+Deve voltar um `<ul class="cx-home-indicadores">` com o banco de horas.
+
+```sql
+select pkg_home_ui.render_pendencias(p_id_colaborador => 123) from dual
+```
+Deve voltar um `<ul class="cx-home-pendencias">` ou o estado vazio "Nenhuma pendência". No SQL Commands os links saem sem sessão; isso é esperado.
+
+### 7.2 Regiões
+
+O hero não muda no Builder: o painel vem do `render_hero`. Ele só precisa de um id para o JS atualizar depois de registrar a marcação.
+
+Selecione a região **Início** (`home_hero`):
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Advanced | HTML DOM ID | `home_hero` |
+
+**Indicadores.** Botão direito em **Body** › **Create Region**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Indicadores` |
+| Identification | Type | **Dynamic Content** |
+| Source | PL/SQL Function Body returning a CLOB | `return pkg_home_ui.render_indicadores;` |
+| Layout | Sequence | `15` |
+| Layout | Start New Row | Yes |
+| Appearance | Template | **Blank with Attributes** |
+| Advanced | HTML DOM ID | `home_indicadores` |
+
+**Coluna principal.** Hoje a Comunicados ocupa a coluna da esquerda sozinha (span 8). Para "Suas pendências" ficar embaixo dela, as duas vão para uma região de coluna, como a Coluna lateral (e como as colunas da página 30). Botão direito em **Body** › **Create Region**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Coluna principal` |
+| Identification | Type | **Static Content** (Source vazio) |
+| Layout | Sequence | `20` |
+| Layout | Start New Row | Yes |
+| Layout | Column Span | **8** |
+| Appearance | Template | **Blank with Attributes** |
+
+Selecione a região **Comunicados** (`home_comunicados`):
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Layout | Parent Region | `Coluna principal` |
+| Layout | Sequence | `10` |
+| Layout | Column Span | **Automatic** (era 8; agora a coluna é que tem o 8) |
+
+Os botões "Ver todos" e "Novo comunicado", a ação "Ler comunicado" e a DA "Atualizar comunicados" vão junto com a região; não mexa neles.
+
+**Suas pendências.** Botão direito em **Coluna principal** › **Create Sub Region**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Suas pendências` |
+| Identification | Title | `Suas pendências<span class="cx-home-card__subtitulo">Itens que aguardam uma ação sua</span>` |
+| Identification | Type | **Dynamic Content** |
+| Source | PL/SQL Function Body returning a CLOB | `return pkg_home_ui.render_pendencias;` |
+| Layout | Sequence | `20` |
+| Appearance | Template | **Standard** |
+| Appearance | Template Options | As mesmas do Meu gestor: **Remove Body Padding** e o corpo com rolagem (no export, `t-Region--noPadding` e `t-Region--scrollBody`) |
+| Appearance | CSS Classes | `cx-home-card` |
+| Advanced | HTML DOM ID | `home_pendencias` |
+
+A **Coluna lateral** fica como está (Sequence 30, span 4, *Start New Row* No): ela continua na mesma linha da Coluna principal.
+
+**O HTML DOM ID é obrigatório** no hero e nas pendências: o JS atualiza as regiões por ele. Sem ele, o APEX gera `R<número>` e o refresh não acontece (`docs/ai-context/08` §3, "Static ID ≠ id do HTML").
+
+### 7.3 Ajax Callback
+
+Na aba **Processing** do Page Designer, botão direito em **Ajax Callback** › **Create Process**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `REGISTRAR_MARCACAO` (exatamente assim: o JS chama por esse nome) |
+| Identification | Type | **Execute Code** |
+| Source | PL/SQL Code | `pkg_ponto_ui.ajax_registrar(apex_application.g_x01);` |
+| Security | Authorization Scheme | **COLABORADOR** (confirmar no 26.1.5) |
+
+É o mesmo processo da página 30: o `pkg_ponto_ui.ajax_registrar` responde `{"ok":..., "mensagem":...}` e o JS mostra a mensagem.
+
+### 7.4 Como deve ficar a árvore
+
+```
+Page 1: Início                          (home#MIN#.css)
+├── Body
+│   ├── Início                          (10, home_hero)
+│   ├── Indicadores                     (15, home_indicadores)
+│   ├── Coluna principal                (20, span 8)
+│   │   ├── Comunicados                 (10, Cards, cx-home-carrossel)
+│   │   └── Suas pendências             (20, home_pendencias)
+│   └── Coluna lateral                  (30, span 4, não começa linha)
+│       ├── P1_MES_ATUAL
+│       ├── Meu gestor                  (10)
+│       └── Celebrações                 (20)
+├── Dialogs, Drawers and Popups
+│   └── Celebrações                     (aniversariantes_todos)
+└── Ajax Callback
+    └── REGISTRAR_MARCACAO
+```
+
+### 7.5 Testar
+
+Use uma conta com colaborador vinculado e ponto (as contas SARAHSILVA, EDUARDOMARINS e ALAIRTONROCHA não têm colaborador). Recarregue a página 1 com **Ctrl+Shift+R**.
+
+1. **Painel:** à direita do hero, "Ponto de hoje" com a hora correndo, o selo e a linha do dia batendo com a página 30. Com a janela estreita, o painel desce para baixo da saudação.
+2. **Registrar:** clique no botão do painel. Aparece "Marcação registrada: ... Comprovante nº ..." e o painel atualiza (o passo fica marcado, o botão muda para a próxima marcação). Confira a mesma marcação na página 30.
+3. Clique de novo rápido, ou registre em outra aba antes: aparece o erro de marcação fora da sequência, sem gravar duas vezes.
+4. **Horas:** com a jornada em andamento, "trabalhadas" sobe a cada minuto sem recarregar; no intervalo, fica parado.
+5. **Banco de horas:** o mesmo saldo do card "Banco de horas" da página 30; "ver espelho" abre a página 30.
+6. **Pendências:** os mesmos dias do card "Pendências" da página 30. **Justificar** abre o modal da página 31 já com o dia e a marcação; ao enviar, o item some da lista (em análise não conta mais).
+7. Com o espelho do mês a assinar: item "Assinar o espelho de <mês>" com o prazo; **Assinar** abre a página 30.
+8. **Gestor** com pedido de ajuste pendente de alguém da equipe: item "1 pedido de ajuste de ponto"; **Responder** abre a página 32.
+9. **Conta sem colaborador:** hero sem painel e na largura toda, sem a faixa de indicadores, e "Nenhuma pendência" (ou, no RH, os pedidos de ajuste).
+10. A seção 6 continua funcionando: carrossel, Meu gestor e Celebrações.
+
+**No export** (`corlixhub/pages/p00001-início.apx`, depois do próximo backup): `htmlDomId: home_hero` na região `home_hero`; regiões com `pkg_home_ui.render_indicadores` e `pkg_home_ui.render_pendencias`, esta com `parentRegion` da Coluna principal e `htmlDomId: home_pendencias`; `home_comunicados` com `parentRegion` da Coluna principal e sem `columnSpan: 8`; e um `process` com `name: REGISTRAR_MARCACAO` e `point: ajaxCallback`.
+
+### 7.6 Se não funcionar
+
+| Sintoma | Causa provável | Correção |
+|---|---|---|
+| `PLS-00201: identifier 'PKG_PONTO' must be declared` ao instalar | Módulo do ponto não instalado no schema | Instale `modulos/ponto-eletronico` antes |
+| Painel não aparece para um colaborador | Conta sem vínculo na empresa da sessão, ou empresa sem jornada | Esperado; confira com o aviso da página 30, que usa a mesma regra |
+| Botão do painel não faz nada, ou erro de processo não encontrado | Ajax Callback ausente ou com outro nome | Passo 7.3, *Name* `REGISTRAR_MARCACAO` |
+| Marcação gravada, mas o painel não muda | Falta o HTML DOM ID `home_hero` | Passo 7.2 |
+| "Justificar" envia, mas a lista não atualiza | Falta o HTML DOM ID `home_pendencias`, ou o BLOCO 2 é o antigo | Passos 7.2 e 6.6 |
+| Pendências embaixo da coluna lateral, e não da Comunicados | Comunicados ou Suas pendências fora da Coluna principal | Passo 7.2 (*Parent Region*) |
+| Comunicados estreita dentro da coluna | *Column Span* 8 ficou na Comunicados | Passo 7.2: *Automatic* |
+| Hora do painel diferente da página 30 | Não deve acontecer: as duas usam o fuso da empresa | Registre o caso no `09` com print das duas |
+
+### Referências reutilizadas (seção 7)
+
+| De onde | O que veio | Adaptação |
+|---|---|---|
+| `modulos/ponto-eletronico/04_pkg_ponto_ui.pkb` (`render_relogio`, `render_banco`, `render_pendencias`) | Regras de exibição: próxima marcação, saída prevista, horas trabalhadas, janela de 30 dias, links para a página 31 já preenchida, aviso de 60 dias do banco | Painel compacto no hero; `saida_prevista` copiado (é privado no `pkg_ponto_ui`); pendências no formato do protótipo da Home |
+| `pkg_ponto_ui.icone` | Ícones SVG Lucide em linha (regra de ícones do `11` §3) | Classe `cx-home-icone`; ícones `clock`, `calendar-x` e `users` novos |
+| `ponto.css` (`.cx-ponto-selo`, `.cx-ponto-passo`, `.cx-ponto-registrar`) | Selos, linha do dia e botão escuro | Classes `cx-home-*` no `home.css`; as 4 cores de selo copiadas para variáveis `--cx-home-*` |
+| `ponto-pagina.js` | Relógio a partir da hora do servidor e chamada `apex.server.process` com `{ok, mensagem}` | Funções `cxHomePontoRelogio` e o clique em `data-cx-home-registrar` |
+| Página 30 (`p00030-ponto-eletronico.apx`) | Ajax Callback `REGISTRAR_MARCACAO`, colunas em Blank with Attributes, HTML DOM ID nas regiões atualizadas | O mesmo na página 1 |
+| Seção 6 deste guia | Cards `cx-home-card`, estado vazio `estado_vazio`, título com subtítulo | Suas pendências segue o Meu gestor |
+
+---
+
+## Situação na app
+
+| Data | O quê | Estado |
+|---|---|---|
+| 28/10/2026 | Seção 6 (protótipo de 28/10/2026) | Versionada; **não aplicada**: o export de 05/11/2026 (`2964a9d`) não tem carrossel, celebrações nem `home.css` |
+| 10/11/2026 | Seção 7 (blocos do ponto) e nova versão do `pkg_home_ui`, `home.css`, `home.min.css` e `home-pagina.js` | Versionada na branch `feature/home-ponto-de-hoje`; **não compilada nem aplicada**. Conferido só por leitura: os nomes usados do `pkg_ponto` batem com a especificação, o `home.min.css` foi gerado do `.css` (a parte antiga ficou idêntica à anterior) e o `home-pagina.js` passou no `node --check` |
+
+**Protótipo conferido em 10/11/2026:** o frame "Início" do `corlixhub.pen` (pen.dev) está igual ao `pen_dev/Início.png` de 28/10/2026; não há versão mais nova no repositório.
+
+**Próximo passo:** aplicar a seção 6 e a 7 no Builder, rodar os testes 6.7 e 7.5 com uma conta com colaborador e registrar aqui o resultado.

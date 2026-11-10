@@ -44,7 +44,7 @@
 | Nº | Página | Status |
 |---|---|---|
 | 0 | Global Page (header: busca, sino, config, usuário) | Implementada |
-| 1 | Home (dashboard) | Implementada; mantida durante o redesign |
+| 1 | Início (Home) | Implementada com o redesign do `modulos/home` (protótipo antigo). Protótipo de 28/10/2026 pelos §6 e §7 do `Etapas-home.md` (§7: Ponto de hoje, banco de horas e pendências do ponto), versionados e ainda não aplicados |
 | 2 | Meu Perfil | Implementada; restrição de dados pessoais aplicada e testada em 04/11/2026: `modulos/perfil/Etapas-perfil-privacidade.md` |
 | 3 | Organograma | Placeholder; o módulo existe em `modulos/organograma` |
 | 4 | Chat | Parcial (leitura, sem envio) |

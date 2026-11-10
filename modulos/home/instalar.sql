@@ -1,10 +1,11 @@
 --------------------------------------------------------------------------------
--- Corlix Hub · Home (página 28) · instalação (SQLcl)
+-- Corlix Hub · Home (página 1, "Início") · instalação (SQLcl)
 --
 --   cd modulos/home
 --   sql <usuario>@<servico> @instalar.sql
 --
 -- Só cria o package pkg_home_ui (sem tabelas). Reexecutável.
+-- Depende do pkg_ponto (modulos/ponto-eletronico) e do pkg_historico_carreira.
 --------------------------------------------------------------------------------
 whenever sqlerror exit failure rollback
 set serveroutput on size unlimited
