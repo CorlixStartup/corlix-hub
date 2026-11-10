@@ -211,7 +211,8 @@ select f.id_empresa,
   left join empresa e      on e.id_empresa = c.id_empresa
   left join departamento d on d.id_departamento = c.id_departamento
   left join cargo cg       on cg.id_cargo = c.id_cargo
- where c.id_empresa = to_number(v('G_ID_EMPRESA') default null on conversion error);
+ where c.id_empresa = to_number(v('G_ID_EMPRESA') default null on conversion error)
+    or fn_colab_e_equipe = 1;
 
   CREATE OR REPLACE FORCE EDITIONABLE VIEW "VW_HISTORICO_CARREIRA" ("ID_HISTORICO_CARREIRA", "ID_EMPRESA", "ID_COLABORADOR", "NM_COLABORADOR", "ID_TIPO_MOVIMENTACAO", "CD_TIPO", "DS_TIPO", "DS_ICONE", "DS_COR", "DT_EFETIVA", "ID_CARGO_ANTERIOR", "NM_CARGO_ANTERIOR", "ID_DEPARTAMENTO_ANTERIOR", "NM_DEPARTAMENTO_ANTERIOR", "ID_GESTOR_ANTERIOR", "NM_GESTOR_ANTERIOR", "ID_CARGO_NOVO", "NM_CARGO_NOVO", "ID_DEPARTAMENTO_NOVO", "NM_DEPARTAMENTO_NOVO", "ID_GESTOR_NOVO", "NM_GESTOR_NOVO", "VL_SALARIO_ANTERIOR", "VL_SALARIO_NOVO", "DS_MOTIVO", "DS_OBSERVACAO", "ST_REGISTRO", "ID_REGISTRO_ESTORNADO", "FL_ESTORNO", "ID_APROVADOR", "NM_APROVADOR", "DT_EFETIVACAO", "USR_EFETIVACAO", "DT_CRIACAO", "USR_CRIACAO", "DT_ALTERACAO", "USR_ALTERACAO") AS
   select h.id_historico_carreira,
@@ -373,3 +374,33 @@ select e.id_empresa,
   left join departamento d  on d.id_departamento  = e.id_departamento_novo
   left join colaborador  g  on g.id_colaborador   = e.id_gestor_novo
  where e.nr_recencia = 1;
+
+  CREATE OR REPLACE FORCE EDITIONABLE VIEW "VW_SUPORTE_FILA" ("ID_CHAMADO", "ID_EMPRESA", "CD_CHAMADO", "DS_TIPO", "DS_TITULO", "NM_ASSUNTO", "NM_SOLICITANTE", "NM_ATENDENTE", "ST_CHAMADO", "DS_STATUS", "TP_PRIORIDADE", "DS_PRIORIDADE", "NR_PRIORIDADE", "DT_PREVISAO", "DT_LIMITE_CONFIRMACAO", "NR_REABERTURAS", "DH_ABERTURA", "DH_ATUALIZACAO") AS
+  select c.id_chamado,
+       c.id_empresa,
+       c.tp_chamado || '-' || c.id_chamado as cd_chamado,
+       case c.tp_chamado when 'INC' then 'Incidente' else 'Solicitação' end as ds_tipo,
+       c.ds_titulo,
+       a.nm_assunto,
+       s.nome_completo as nm_solicitante,
+       r.nome_completo as nm_atendente,
+       c.st_chamado,
+       case c.st_chamado
+         when 'ABERTO'             then 'Na fila'
+         when 'EM_ATENDIMENTO'     then 'Em atendimento'
+         when 'AGUARDANDO_USUARIO' then 'Aguardando colaborador'
+         when 'RESOLVIDO'          then 'Resolvido'
+         else 'Encerrado'
+       end as ds_status,
+       c.tp_prioridade,
+       case c.tp_prioridade when 'ALTA' then 'Alta' when 'MEDIA' then 'Média' else 'Baixa' end as ds_prioridade,
+       case c.tp_prioridade when 'ALTA' then 1 when 'MEDIA' then 2 else 3 end as nr_prioridade,
+       c.dt_previsao,
+       c.dt_limite_confirmacao,
+       c.nr_reaberturas,
+       c.dh_abertura,
+       c.dh_atualizacao
+  from suporte_chamado c
+  join suporte_assunto a on a.id_assunto = c.id_assunto
+  join colaborador s on s.id_colaborador = c.id_solicitante
+  left join colaborador r on r.id_colaborador = c.id_atendente;

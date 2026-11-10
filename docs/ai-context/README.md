@@ -44,14 +44,14 @@
 | Nº | Página | Status |
 |---|---|---|
 | 0 | Global Page (header: busca, sino, config, usuário) | Implementada |
-| 1 | Home (dashboard) | Implementada; mantida durante o redesign |
+| 1 | Início (Home) | Implementada com o redesign do `modulos/home` (protótipo antigo). Protótipo de 28/10/2026 pelos §6 e §7 do `Etapas-home.md` (§7: Ponto de hoje, banco de horas e pendências do ponto), versionados e ainda não aplicados |
 | 2 | Meu Perfil | Implementada; restrição de dados pessoais aplicada e testada em 04/11/2026: `modulos/perfil/Etapas-perfil-privacidade.md` |
 | 3 | Organograma | Placeholder; o módulo existe em `modulos/organograma` |
 | 4 | Chat | Parcial (leitura, sem envio) |
 | 5 / 8 | Notificações (duplicadas) | Placeholder / vazia |
 | 6 | Configurações | Placeholder |
 | 7 | Monitor de Logs | Implementada; hoje exige `ADMIN_RH`. Passa a ser só da equipe do Corlix Hub (`EQUIPE_CORLIX_HUB`): `modulos/isolamento-empresas/Etapas-isolamento-empresas.md` §5 |
-| 9 | Holerite digital | Redesign aplicado e testado na app em 07/11/2026 (testes 1 a 16 e 18), com valores ocultos ao abrir e geração da folha fora da página. Falta o teste 17, a partir de 25/11/2026; pendências em `modulos/holerite/Etapas-holerite.md`, "Situação na app" |
+| 9 | Holerite digital | Redesign aplicado e testado na app em 07/11/2026 (testes 1 a 16 e 18), com valores ocultos ao abrir e geração da folha fora da página. Falta o teste 17, a partir de 25/11/2026. PDF no modelo "Aviso de crédito" proposto em 10/11/2026, ainda não aplicado; pendências em `modulos/holerite/Etapas-holerite.md`, "Situação na app" |
 | 11 | Comunicados Oficiais | Placeholder |
 | 12 | Colaboradores | Implementada e validada na app em 09/11/2026 (Faceted Search + Classic Report; guia `modulos/colaboradores/Etapas-colaboradores.md`). Pendências para o final: `modulos/colaboradores/Pendencias.md` |
 | 13 | Histórico de carreira | Implementada (módulo `modulos/historico-carreira`, §2 do guia) |
@@ -69,7 +69,7 @@
 | 30 a 33 | Ponto eletrônico, Solicitar ajuste (modal), Ajustes de ponto, Responder ajuste (modal) | Implementadas; ajustes da validação aplicados em 03/11/2026. Ajustes de `Etapas-meus-pedidos.md` também aplicados. Validadas na app, com dados de demonstração no ambiente DEV (`modulos/ponto-eletronico/Etapas-ajustes-validacao.md`, "Resultado na app") |
 | 34 a 43 | Suporte TI, Abrir chamado e Chamado (modais), Base de conhecimento, Atendimento TI e Atender chamado (modal), Status dos sistemas e Artigos (lista + modal) | Planejadas: `modulos/suporte-ti/Etapas-suporte-ti.md` |
 | 44 | Foto (entrega a foto do bucket privado, sem navegação) | Planejada: `modulos/arquivos/Etapas-fotos-object-storage.md` |
-| 9999 | Login | Implementada |
+| 9999 | Login | Implementada; redesign proposto pelo `modulos/login/Etapas-login.md` (protótipo `pen_dev/Login.png`), ainda não aplicado |
 
 ## Regras de ouro (resumo do 08)
 1. **Proibido modificar** `corlixhub/`, `backups/`, `pen_dev/` e `scripts/`: são só leitura; a app muda pelo Builder e o agente escreve guias e docs. Nunca edite `database/f100.sql`.

@@ -108,6 +108,26 @@ file "modulos/colaboradores/colaboradores.min.css" (
     charSet: utf-8
 )
 
+file "modulos/home/home.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file "modulos/home/home.min.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file "modulos/suporte-ti/suporte.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file "modulos/suporte-ti/suporte.min.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
 file organograma.css (
     mimeType: text/css
     charSet: utf-8

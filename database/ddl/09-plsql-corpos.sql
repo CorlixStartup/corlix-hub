@@ -99,11 +99,19 @@ end;
   end e_da_empresa;
 
   procedure entregar_foto (p_nome in varchar2) is
-    l_emp  constant number := to_number(v('G_ID_EMPRESA') default null on conversion error);
+    l_emp  number := to_number(v('G_ID_EMPRESA') default null on conversion error);
     l_cfg  arquivo_config%rowtype;
     l_blob blob;
     l_mime varchar2(255);
   begin
+    if apex_authorization.is_authorized('EQUIPE_CORLIX_HUB') then
+      select max(id_empresa)
+        into l_emp
+        from colaborador
+       where id_empresa is not null
+         and regexp_substr(trim(foto_url), '[^/]+$') = p_nome;
+    end if;
+
     if l_emp is null
        or p_nome is null
        or not regexp_like(p_nome, c_nome_valido, 'i')
@@ -3467,6 +3475,11 @@ end pkg_holerite_ui;
   c_nls_data    constant varchar2(60) := 'NLS_DATE_LANGUAGE=''BRAZILIAN PORTUGUESE''';
   c_pasta_fotos constant varchar2(30) := 'Fotos Colaboradores/';
 
+  -- Ponto (guia §7): mesmas janelas do pkg_ponto_ui
+  c_dias_pendencia    constant pls_integer := 30;  -- busca de marcações ausentes e faltas
+  c_max_pendencias    constant pls_integer := 5;
+  c_dias_alerta_banco constant pls_integer := 60;  -- aviso de horas a vencer
+
   g_html clob;
 
   ------------------------------------------------------------------------------
@@ -3499,6 +3512,12 @@ end pkg_holerite_ui;
   begin
     return cast(systimestamp at time zone 'America/Sao_Paulo' as date);
   end hoje;
+
+  -- Hora atual no fuso do Brasil, para a saudação
+  function hora_atual return pls_integer is
+  begin
+    return to_number(to_char(systimestamp at time zone 'America/Sao_Paulo', 'hh24'));
+  end hora_atual;
 
   function mes_por_extenso (p_data in date) return varchar2 is
   begin
@@ -3549,16 +3568,29 @@ end pkg_holerite_ui;
         || '</span>';
   end avatar;
 
-  -- Nome + linha de detalhe, com avatar
-  function pessoa (p_nome in varchar2, p_foto_url in varchar2, p_detalhe in varchar2) return varchar2 is
+  -- Nome + linha de detalhe, com avatar. p_classe_detalhe destaca a linha (ex.: "hoje").
+  function pessoa (p_nome in varchar2, p_foto_url in varchar2, p_detalhe in varchar2,
+                   p_classe_detalhe in varchar2 default null) return varchar2 is
   begin
     return '<div class="cx-pessoa">' || avatar(p_nome, p_foto_url)
         || '<div><strong class="cx-pessoa__nome">' || e(p_nome) || '</strong>'
         || case when p_detalhe is not null then
-             '<span class="cx-pessoa__detalhe">' || e(p_detalhe) || '</span>'
+             '<span class="cx-pessoa__detalhe'
+             || case when p_classe_detalhe is not null then ' ' || p_classe_detalhe end
+             || '">' || e(p_detalhe) || '</span>'
            end
         || '</div></div>';
   end pessoa;
+
+  -- Rodapé "Ver todos" dos cards da coluna lateral (o JS abre o diálogo)
+  function rodape_ver_todos (p_acao in varchar2) return varchar2 is
+  begin
+    return '<div class="cx-home-card__rodape">'
+        || '<button type="button" class="t-Button t-Button--noUI t-Button--iconRight" data-cx-acao="' || a(p_acao) || '">'
+        || '<span class="t-Button-label">Ver todos</span>'
+        || '<span class="t-Icon t-Icon--right fa fa-arrow-right" aria-hidden="true"></span>'
+        || '</button></div>';
+  end rodape_ver_todos;
 
   -- Estado vazio: ícone em círculo + título + orientação (textos já em HTML)
   function estado_vazio (p_icone in varchar2, p_titulo in varchar2, p_texto in varchar2) return varchar2 is
@@ -3586,6 +3618,223 @@ end pkg_holerite_ui;
   end atalho;
 
   ------------------------------------------------------------------------------
+  -- Ponto eletrônico (guia §7)
+  ------------------------------------------------------------------------------
+  function icone (p_nome in varchar2) return varchar2 is
+    l_svg varchar2(1000);
+  begin
+    l_svg := case p_nome
+      when 'clock'     then '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'
+      when 'log-in'    then '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/>'
+      when 'log-out'   then '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>'
+      when 'coffee'    then '<path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>'
+      when 'check'     then '<path d="M20 6 9 17l-5-5"/>'
+      when 'hourglass' then '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>'
+      when 'calendar-x' then '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="m14 14-4 4"/><path d="m10 14 4 4"/>'
+      when 'assinar'   then '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.4 2.6a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4Z"/>'
+      when 'users'     then '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'
+    end;
+    return '<svg class="cx-home-icone" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+        || l_svg || '</svg>';
+  end icone;
+
+  -- Colaborador informado ou o da conta logada; nulo se a conta não tem vínculo
+  -- (equipe do Corlix Hub, RH sem cadastro de colaborador)
+  function colaborador_ponto (p_id in number) return number is
+  begin
+    if p_id is not null then
+      return p_id;
+    end if;
+    return pkg_ponto.fn_colaborador_logado;
+  exception
+    when others then
+      if sqlcode = -20060 then
+        return null;
+      end if;
+      raise;
+  end colaborador_ponto;
+
+  -- Agora no fuso da empresa do colaborador (o mesmo que o ponto usa)
+  function agora_ponto (p_id_colaborador in number) return date is
+    l_empresa number;
+  begin
+    select id_empresa into l_empresa from colaborador where id_colaborador = p_id_colaborador;
+    return pkg_historico_carreira.fn_data_local(l_empresa, systimestamp);
+  end agora_ponto;
+
+  function hora (p_dh in date) return varchar2 is
+  begin
+    return to_char(p_dh, 'HH24:MI');
+  end hora;
+
+  -- Hora prevista de saída. Mesma conta do saida_prevista do pkg_ponto_ui, que é
+  -- privado; se a regra mudar lá, mude aqui também.
+  function saida_prevista (p_dia in pkg_ponto.t_dia, p_j in pkg_ponto.t_jornada, p_hoje in date) return date is
+    l_manha number;
+  begin
+    if p_dia.dh_entrada is null then
+      return p_hoje + p_j.nr_min_saida / 1440;
+    elsif p_dia.dh_intervalo is null then
+      return p_dia.dh_entrada + (p_j.nr_min_diarios + p_j.nr_min_intervalo) / 1440;
+    end if;
+    l_manha := round((p_dia.dh_intervalo - p_dia.dh_entrada) * 1440);
+    if p_dia.dh_retorno is null then
+      return p_dia.dh_intervalo + (p_j.nr_min_intervalo + p_j.nr_min_diarios - l_manha) / 1440;
+    end if;
+    return p_dia.dh_retorno + (p_j.nr_min_diarios - l_manha) / 1440;
+  end saida_prevista;
+
+  function selo (p_texto in varchar2, p_tipo in varchar2) return varchar2 is
+  begin
+    return '<span class="cx-home-selo cx-home-selo--' || p_tipo || '">' || e(p_texto) || '</span>';
+  end selo;
+
+  -- Painel "Ponto de hoje", à direita do hero. Nulo quando a conta não tem
+  -- colaborador ou a empresa não tem jornada cadastrada.
+  function painel_ponto (p_id_colaborador in number) return varchar2 is
+    l_id       constant number := colaborador_ponto(p_id_colaborador);
+    l_j        pkg_ponto.t_jornada;
+    l_agora    date;
+    l_hoje     date;
+    l_dias     pkg_ponto.t_dias;
+    l_dia      pkg_ponto.t_dia;
+    l_proxima  varchar2(10);
+    l_prevista date;
+    l_trab     number;
+    l_correndo varchar2(1);
+    l_tipos    apex_t_varchar2;
+    l_valor    date;
+    l_classe   varchar2(20);
+    l_rotulo   varchar2(60);
+    l_icone    varchar2(20);
+    l_resumo   varchar2(200);
+    l_html     varchar2(32767);
+  begin
+    if l_id is null then
+      return null;
+    end if;
+
+    l_j       := pkg_ponto.fn_jornada(l_id);
+    l_agora   := agora_ponto(l_id);
+    l_hoje    := trunc(l_agora);
+    l_dias    := pkg_ponto.fn_dias(l_id, l_hoje, l_hoje);
+    if l_dias.count > 0 then
+      l_dia := l_dias(1);
+    end if;
+    l_proxima  := pkg_ponto.fn_proxima_marcacao(l_id);
+    l_prevista := saida_prevista(l_dia, l_j, l_hoje);
+    l_trab     := nvl(l_dia.nr_trabalhados, 0);
+    l_correndo := case when l_dia.dh_entrada is not null and l_dia.dh_saida is null
+                        and (l_dia.dh_intervalo is null or l_dia.dh_retorno is not null)
+                       then 'S' else 'N' end;
+
+    -- "4h33 trabalhadas · faltam 3h27" (o JS da página mantém atualizado)
+    l_resumo := case
+      when l_dia.dh_entrada is null then
+        'Entrada prevista às ' || hora(l_hoje + l_j.nr_min_entrada / 1440)
+      else
+        pkg_ponto.fn_horas(l_trab) || ' trabalhadas · '
+        || case when l_trab >= l_j.nr_min_diarios then 'jornada completa'
+                when l_proxima is null then 'jornada encerrada'
+                else 'faltam ' || pkg_ponto.fn_horas(l_j.nr_min_diarios - l_trab) end
+    end;
+
+    l_html := '<aside class="cx-home-ponto" aria-labelledby="cx-home-ponto-titulo" data-cx-home-ponto'
+      || ' data-segundos="' || to_char((l_agora - l_hoje) * 86400, 'fm99990') || '"'
+      || ' data-trabalhados="' || l_trab || '"'
+      || ' data-meta="' || l_j.nr_min_diarios || '"'
+      || ' data-correndo="' || l_correndo || '">';
+
+    l_html := l_html || '<header class="cx-home-ponto__cabecalho">'
+      || '<h2 id="cx-home-ponto-titulo" class="cx-home-ponto__titulo"><a href="'
+      || a(apex_page.get_url(p_page => 30)) || '">' || icone('clock') || '<span>Ponto de hoje</span></a></h2>'
+      || case
+           when l_proxima is null              then selo('Jornada concluída', 'neutro')
+           when l_proxima = 'RETORNO'          then selo('Em intervalo', 'atencao')
+           when l_dia.dh_entrada is not null   then selo('Em jornada', 'sucesso')
+           when l_dia.cd_situacao = pkg_ponto.c_feriado then selo(l_dia.nm_feriado, 'neutro')
+           else selo('Não iniciada', 'neutro')
+         end
+      || '</header>';
+
+    l_html := l_html || '<div class="cx-home-ponto__agora"><div>'
+      || '<p class="cx-home-ponto__hora" data-cx-home-ponto-hora>' || hora(l_agora) || '</p>'
+      || '<p class="cx-home-ponto__resumo" data-cx-home-ponto-resumo>' || e(l_resumo) || '</p></div>';
+    if l_proxima is not null then
+      case l_proxima
+        when 'ENTRADA'   then l_rotulo := 'Registrar entrada';   l_icone := 'log-in';
+        when 'INTERVALO' then l_rotulo := 'Iniciar intervalo';   l_icone := 'coffee';
+        when 'RETORNO'   then l_rotulo := 'Voltar do intervalo'; l_icone := 'log-in';
+        else                  l_rotulo := 'Registrar saída';     l_icone := 'log-out';
+      end case;
+      l_html := l_html || '<button type="button" class="t-Button t-Button--hot cx-home-ponto__registrar"'
+        || ' data-cx-home-registrar="' || l_proxima || '">' || icone(l_icone)
+        || '<span class="t-Button-label">' || l_rotulo || '</span></button>';
+    end if;
+    l_html := l_html || '</div>';
+
+    -- Linha do dia: Entrada → Intervalo → Retorno → Saída (sem intervalo, só 2)
+    l_tipos := case when l_j.nr_min_intervalo = 0
+                    then apex_t_varchar2('ENTRADA', 'SAIDA')
+                    else apex_t_varchar2('ENTRADA', 'INTERVALO', 'RETORNO', 'SAIDA') end;
+    l_html := l_html || '<ol class="cx-home-ponto__linha" aria-label="Marcações de hoje">';
+    for i in 1 .. l_tipos.count loop
+      l_valor := case l_tipos(i)
+        when 'ENTRADA'   then l_dia.dh_entrada
+        when 'INTERVALO' then l_dia.dh_intervalo
+        when 'RETORNO'   then l_dia.dh_retorno
+        else l_dia.dh_saida
+      end;
+      l_classe := case when l_valor is not null then 'is-feita'
+                       when l_tipos(i) = l_proxima then 'is-atual' end;
+      l_html := l_html || '<li class="cx-home-ponto__passo ' || l_classe || '">'
+        || '<span class="cx-home-ponto__marca">' || case when l_valor is not null then icone('check') end || '</span>'
+        || '<span class="cx-home-ponto__rotulo">'
+        || case l_tipos(i)
+             when 'ENTRADA'   then 'Entrada'
+             when 'INTERVALO' then 'Intervalo'
+             when 'RETORNO'   then 'Retorno'
+             else case when l_valor is null then 'Saída prev.' else 'Saída' end
+           end || '</span>'
+        || case
+             when l_valor is not null   then '<strong class="cx-home-ponto__horario">' || hora(l_valor) || '</strong>'
+             when l_tipos(i) = 'SAIDA'  then '<strong class="cx-home-ponto__horario is-prevista">' || hora(l_prevista) || '</strong>'
+             else '<strong class="cx-home-ponto__horario is-prevista">—</strong>'
+           end
+        || '</li>';
+    end loop;
+    l_html := l_html || '</ol></aside>';
+    return l_html;
+  exception
+    when others then
+      -- -20061: empresa sem jornada cadastrada. O hero aparece sem o painel.
+      if sqlcode = -20061 then
+        return null;
+      end if;
+      raise;
+  end painel_ponto;
+
+  procedure pendencia (
+    p_icone   in varchar2,
+    p_titulo  in varchar2,
+    p_detalhe in varchar2,
+    p_selo    in varchar2,
+    p_tipo    in varchar2,
+    p_acao    in varchar2,
+    p_url     in varchar2
+  ) is
+  begin
+    p('<li class="cx-home-pendencia">'
+      || '<span class="cx-home-pendencia__icone">' || icone(p_icone) || '</span>'
+      || '<div class="cx-home-pendencia__texto"><strong>' || e(p_titulo) || '</strong>'
+      || '<span>' || e(p_detalhe) || '</span></div>'
+      || selo(p_selo, p_tipo)
+      || '<a class="t-Button cx-home-pendencia__acao" href="' || a(p_url) || '">'
+      || '<span class="t-Button-label">' || e(p_acao) || '</span></a>'
+      || '</li>');
+  end pendencia;
+
+  ------------------------------------------------------------------------------
   -- Públicas
   ------------------------------------------------------------------------------
   function mes_atual return varchar2 is
@@ -3594,9 +3843,15 @@ end pkg_holerite_ui;
   end mes_atual;
 
   function render_hero (
-    p_login in varchar2 default v('APP_USER')
+    p_login          in varchar2 default v('APP_USER'),
+    p_id_colaborador in number   default null
   ) return clob is
-    l_nome varchar2(200);
+    l_nome     varchar2(200);
+    l_ponto    varchar2(32767);
+    l_hora     constant pls_integer := hora_atual;
+    l_saudacao constant varchar2(20) := case when l_hora < 12 then 'Bom dia'
+                                             when l_hora < 18 then 'Boa tarde'
+                                             else 'Boa noite' end;
   begin
     begin
       select coalesce(trim(primeiro_nome), regexp_substr(trim(nome_completo), '^\S+'))
@@ -3612,21 +3867,191 @@ end pkg_holerite_ui;
     -- Contas sem colaborador (equipe do Corlix Hub): nome da conta APEX
     l_nome := initcap(coalesce(l_nome, regexp_substr(trim(v('G_NOME_USUARIO')), '^\S+'), p_login));
 
+    l_ponto := painel_ponto(p_id_colaborador);
+
     inicia;
-    p('<section class="cx-home-hero" aria-labelledby="cx-home-saudacao">');
+    p('<section class="cx-home-hero' || case when l_ponto is not null then ' cx-home-hero--ponto' end
+      || '" aria-labelledby="cx-home-saudacao">');
     p('<div class="cx-home-hero__conteudo">');
-    p('<h1 id="cx-home-saudacao" class="cx-home-hero__titulo">Ol&aacute;, ' || e(l_nome) || '</h1>');
+    p('<h1 id="cx-home-saudacao" class="cx-home-hero__titulo">' || l_saudacao || ', ' || e(l_nome) || '</h1>');
     p('<p class="cx-home-hero__data">' || e(data_por_extenso(hoje)) || '</p>');
     p('<ul class="cx-home-atalhos" aria-label="Links r&aacute;pidos">');
     -- Página de destino de cada link; nula enquanto a página não existir
-    p(atalho('fa-file-text-o', 'Holerite digital',      p_pagina => 9));
-    p(atalho('fa-clock-o',     'Ponto eletr&ocirc;nico', p_pagina => null));
-    p(atalho('fa-headphones',  'Suporte TI',            p_pagina => null));
+    p(atalho('fa-file-text-o', 'Holerite',    p_pagina => 9));
+    p(atalho('fa-sitemap',     'Organograma', p_pagina => 3));
+    p(atalho('fa-headphones',  'Suporte TI',  p_pagina => 34));
+    p(atalho('fa-comments-o',  'Chat',        p_pagina => 4));
     p('</ul></div>');
-    p('<div class="cx-home-hero__arte" aria-hidden="true"></div>');
+    -- "Ponto de hoje" à direita; sem colaborador, o hero ocupa a largura toda
+    p(l_ponto);
     p('</section>');
     return g_html;
   end render_hero;
+
+  function render_indicadores (
+    p_id_colaborador in number default null
+  ) return clob is
+    l_id       constant number := colaborador_ponto(p_id_colaborador);
+    l_hoje     date;
+    l_saldo    number;
+    l_vencendo number;
+    l_dt_venc  date;
+    l_extrato  pkg_ponto.t_dias;
+    l_detalhe  varchar2(200);
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+
+    begin
+      pkg_ponto.calcular_banco(l_id, l_saldo, l_vencendo, l_dt_venc, l_extrato);
+    exception
+      when others then
+        if sqlcode = -20061 then  -- empresa sem jornada
+          return g_html;
+        end if;
+        raise;
+    end;
+    l_hoje := trunc(agora_ponto(l_id));
+
+    -- O dia de hoje só entra no banco quando fecha: o saldo é "até ontem"
+    l_detalhe := case when l_dt_venc is not null and l_vencendo > 0
+                       and l_dt_venc - l_hoje <= c_dias_alerta_banco
+                      then pkg_ponto.fn_horas(l_vencendo) || ' vencem em ' || to_char(l_dt_venc, 'DD/MM/YYYY')
+                      else 'Saldo até ontem' end;
+
+    p('<ul class="cx-home-indicadores" aria-label="Indicadores">');
+    p('<li class="cx-home-indicador">'
+      || '<span class="cx-home-indicador__icone">' || icone('hourglass') || '</span>'
+      || '<div><p class="cx-home-indicador__rotulo">Banco de horas</p>'
+      || '<p class="cx-home-indicador__valor'
+      || case when l_saldo > 0 then ' is-positivo' when l_saldo < 0 then ' is-negativo' end || '">'
+      || pkg_ponto.fn_saldo(l_saldo) || '</p>'
+      || '<p class="cx-home-indicador__detalhe">' || e(l_detalhe) || ' · <a href="'
+      || a(apex_page.get_url(p_page => 30)) || '">ver espelho</a></p></div>'
+      || '</li>');
+    p('</ul>');
+    return g_html;
+  end render_indicadores;
+
+  function render_pendencias (
+    p_id_colaborador in number default null
+  ) return clob is
+    l_id       constant number := colaborador_ponto(p_id_colaborador);
+    l_hoje     date;
+    l_dias     pkg_ponto.t_dias;
+    l_mes      date;
+    l_prazo    date;
+    l_faltante varchar2(10);
+    l_qt_ponto pls_integer := 0;
+    l_qt       pls_integer := 0;
+    l_qt_aprov pls_integer := 0;
+  begin
+    inicia;
+
+    if l_id is not null then
+      begin
+        l_hoje := trunc(agora_ponto(l_id));
+        l_dias := pkg_ponto.fn_dias(l_id, l_hoje - c_dias_pendencia, l_hoje - 1);
+        l_mes  := pkg_ponto.fn_competencia_a_assinar(l_id);
+      exception
+        when others then
+          if sqlcode = -20061 then  -- empresa sem jornada: nada do ponto
+            l_dias.delete;
+            l_mes := null;
+          else
+            raise;
+          end if;
+      end;
+    end if;
+
+    -- Pedidos de ajuste que a conta pode responder (gestor direto ou RH)
+    if pkg_ponto.fn_e_aprovador = 'S' then
+      select count(*)
+        into l_qt_aprov
+        from ponto_ajuste a
+       where a.id_empresa = pkg_historico_carreira.fn_empresa_contexto
+         and a.st_ajuste  = 'PENDENTE'
+         and pkg_ponto.fn_pode_aprovar(a.id_ajuste) = 'S';
+    end if;
+
+    -- Dias com marcação faltando ou sem marcação, do mais recente para trás
+    for i in reverse 1 .. l_dias.count loop
+      exit when l_qt_ponto >= c_max_pendencias;
+      if l_dias(i).cd_situacao in (pkg_ponto.c_ausente, pkg_ponto.c_falta) then
+        l_qt_ponto := l_qt_ponto + 1;
+        l_qt := l_qt + 1;
+        if l_qt = 1 then
+          p('<ul class="cx-home-pendencias">');
+        end if;
+        if l_dias(i).cd_situacao = pkg_ponto.c_falta then
+          pendencia('calendar-x',
+            'Dia sem marcação em ' || to_char(l_dias(i).dt, 'DD/MM'),
+            'Ponto eletrônico · nenhuma marcação no dia',
+            'Pendente', 'erro', 'Justificar',
+            apex_page.get_url(p_page => 31, p_clear_cache => '31',
+              p_items  => 'P31_DT_REFERENCIA,P31_TP_AJUSTE',
+              p_values => to_char(l_dias(i).dt, 'DD/MM/YYYY') || ',ABONO'));
+        else
+          l_faltante := case when l_dias(i).dh_entrada is null   then 'ENTRADA'
+                             when l_dias(i).dh_intervalo is null then 'INTERVALO'
+                             when l_dias(i).dh_retorno is null   then 'RETORNO'
+                             else 'SAIDA' end;
+          pendencia('clock',
+            'Marcação incompleta em ' || to_char(l_dias(i).dt, 'DD/MM'),
+            'Ponto eletrônico · falta registrar '
+              || case l_faltante
+                   when 'ENTRADA'   then 'a entrada'
+                   when 'INTERVALO' then 'a saída para o intervalo'
+                   when 'RETORNO'   then 'o retorno do intervalo'
+                   else 'a saída do dia' end,
+            'Pendente', 'erro', 'Justificar',
+            apex_page.get_url(p_page => 31, p_clear_cache => '31',
+              p_items  => 'P31_DT_REFERENCIA,P31_TP_AJUSTE,P31_TP_MARCACAO',
+              p_values => to_char(l_dias(i).dt, 'DD/MM/YYYY') || ',MARCACAO,' || l_faltante));
+        end if;
+      end if;
+    end loop;
+
+    -- Espelho do mês a assinar: a assinatura é feita no diálogo da página 30
+    if l_mes is not null then
+      l_qt := l_qt + 1;
+      if l_qt = 1 then
+        p('<ul class="cx-home-pendencias">');
+      end if;
+      l_prazo := pkg_ponto.fn_prazo_assinatura(l_mes);
+      pendencia('assinar',
+        'Assinar o espelho de ' || mes_por_extenso(l_mes),
+        'Ponto eletrônico · prazo ' || to_char(l_prazo, 'DD/MM/YYYY'),
+        case when l_prazo - l_hoje <= 0 then 'Vence hoje'
+             when l_prazo - l_hoje = 1  then 'Vence amanhã'
+             else 'Vence em ' || (l_prazo - l_hoje) || ' dias' end,
+        'atencao', 'Assinar',
+        apex_page.get_url(p_page => 30));
+    end if;
+
+    if l_qt_aprov > 0 then
+      l_qt := l_qt + 1;
+      if l_qt = 1 then
+        p('<ul class="cx-home-pendencias">');
+      end if;
+      pendencia('users',
+        case when l_qt_aprov = 1 then '1 pedido de ajuste de ponto'
+             else l_qt_aprov || ' pedidos de ajuste de ponto' end,
+        'Ponto eletrônico · ' || case when l_qt_aprov = 1 then 'aguarda' else 'aguardam' end || ' sua resposta',
+        'Para responder', 'info', 'Responder',
+        apex_page.get_url(p_page => 32));
+    end if;
+
+    if l_qt = 0 then
+      p(estado_vazio('fa-check-circle', 'Nenhuma pend&ecirc;ncia',
+        'Quando algo precisar de uma a&ccedil;&atilde;o sua, aparece aqui.'));
+    else
+      p('</ul>');
+    end if;
+    return g_html;
+  end render_pendencias;
 
   function render_meu_gestor (
     p_login      in varchar2 default v('APP_USER'),
@@ -3658,10 +4083,10 @@ end pkg_holerite_ui;
       p(pessoa(g.nome_completo, g.foto_url,
                g.cargo || case when g.cargo is not null and g.departamento is not null then ' · ' end
                        || g.departamento));
-      p('<div class="cx-acoes-card">');
+      p('<div class="cx-acoes-card cx-home-gestor__acoes">');
       p('<a class="t-Button t-Button--icon t-Button--iconLeft" href="' || a(apex_page.get_url(p_page => 4)) || '">'
         || '<span class="t-Icon t-Icon--left fa fa-comments-o" aria-hidden="true"></span>'
-        || '<span class="t-Button-label">Chat</span></a>');
+        || '<span class="t-Button-label">Mensagem</span></a>');
       if g.email is not null then
         p('<a class="t-Button t-Button--icon t-Button--iconLeft" href="mailto:' || a(g.email) || '">'
           || '<span class="t-Icon t-Icon--left fa fa-envelope-o" aria-hidden="true"></span>'
@@ -3741,14 +4166,90 @@ end pkg_holerite_ui;
 
     p('</ul>');
     if p_ver_todos = 'S' then
-      p('<div class="cx-home-card__rodape">'
-        || '<button type="button" class="t-Button t-Button--noUI t-Button--iconRight" data-cx-acao="aniversariantes">'
-        || '<span class="t-Button-label">Ver todos</span>'
-        || '<span class="t-Icon t-Icon--right fa fa-arrow-right" aria-hidden="true"></span>'
-        || '</button></div>');
+      p(rodape_ver_todos('aniversariantes'));
     end if;
     return g_html;
   end render_aniversariantes;
+
+  function render_celebracoes (
+    p_id_empresa in number      default to_number(v('G_ID_EMPRESA') default null on conversion error),
+    p_limite     in pls_integer default 4,
+    p_ver_todos  in varchar2    default 'S'
+  ) return clob is
+    l_hoje    constant date := hoje;
+    l_dia_hoj constant pls_integer := to_number(to_char(l_hoje, 'dd'));
+    l_limite  constant pls_integer := coalesce(p_limite, 1000);
+    l_qt      pls_integer := 0;
+    l_detalhe varchar2(200);
+  begin
+    inicia;
+
+    -- Aniversário (nascimento) e tempo de empresa (admissão há 1 ano ou mais)
+    -- no mês atual. Próximos primeiro; os que já passaram no mês vão para o fim.
+    for r in (
+      with celebracao as (
+        select nome_completo, foto_url, 'ANIVERSARIO' as tipo,
+               to_number(to_char(data_de_nascimento, 'dd')) as dia,
+               cast(null as number) as anos
+          from colaborador
+         where id_empresa = p_id_empresa
+           and status = true
+           and to_char(data_de_nascimento, 'mm') = to_char(l_hoje, 'mm')
+        union all
+        select nome_completo, foto_url, 'EMPRESA',
+               to_number(to_char(data_admissao, 'dd')),
+               extract(year from l_hoje) - extract(year from data_admissao)
+          from colaborador
+         where id_empresa = p_id_empresa
+           and status = true
+           and to_char(data_admissao, 'mm') = to_char(l_hoje, 'mm')
+           and extract(year from data_admissao) < extract(year from l_hoje)
+      )
+      select nome_completo, foto_url, tipo, dia, anos
+        from celebracao
+       order by case when dia >= l_dia_hoj then 0 else 1 end,
+                dia,
+                case tipo when 'ANIVERSARIO' then 0 else 1 end,
+                nome_completo
+       fetch first l_limite rows only
+    ) loop
+      l_qt := l_qt + 1;
+      if l_qt = 1 then
+        p('<ul class="cx-home-lista">');
+      end if;
+
+      -- "Aniversário · hoje", "Aniversário · 28 de outubro", "2 anos de empresa · 27 de outubro"
+      l_detalhe := case r.tipo
+                     when 'ANIVERSARIO' then 'Aniversário'
+                     else r.anos || case when r.anos = 1 then ' ano' else ' anos' end || ' de empresa'
+                   end
+                || ' · '
+                || case when r.dia = l_dia_hoj then 'hoje'
+                        else r.dia || ' de ' || mes_por_extenso(l_hoje) end;
+
+      p('<li class="cx-home-lista__item">'
+        || pessoa(r.nome_completo, r.foto_url, l_detalhe,
+                  case when r.dia = l_dia_hoj then 'cx-home-celebracao--hoje' end)
+        || '</li>');
+    end loop;
+
+    if l_qt = 0 then
+      p(estado_vazio('fa-birthday-cake',
+        'Nenhuma celebração em ' || e(mes_por_extenso(l_hoje)),
+        case when p_id_empresa is null then
+          'As celebra&ccedil;&otilde;es aparecem aqui quando seu perfil estiver vinculado a uma empresa.'
+        else
+          'Anivers&aacute;rios e anos de empresa de quem trabalha com voc&ecirc; aparecem aqui.'
+        end));
+      return g_html;
+    end if;
+
+    p('</ul>');
+    if p_ver_todos = 'S' then
+      p(rodape_ver_todos('aniversariantes'));
+    end if;
+    return g_html;
+  end render_celebracoes;
 
 end pkg_home_ui;
 /
@@ -6462,4 +6963,1325 @@ end pkg_ponto;
   end ajax_baixar_espelho;
 
 end pkg_ponto_ui;
+/
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_SUPORTE" as
+
+  c_err_vinculo   constant pls_integer := -20076;
+  c_err_chamado   constant pls_integer := -20077;
+  c_err_dados     constant pls_integer := -20078;
+  c_err_anexo     constant pls_integer := -20079;
+  c_err_situacao  constant pls_integer := -20080;
+  c_err_permissao constant pls_integer := -20081;
+  c_err_mensagem  constant pls_integer := -20082;
+  c_err_previsao  constant pls_integer := -20083;
+  c_err_acao      constant pls_integer := -20084;
+
+  c_msg_chamado constant varchar2(100) := 'Chamado não encontrado.';
+
+  ------------------------------------------------------------------------------
+  -- Utilitários
+  ------------------------------------------------------------------------------
+  function em_sessao_apex return boolean is
+  begin
+    return sys_context('APEX$SESSION', 'APP_SESSION') is not null;
+  end em_sessao_apex;
+
+  function usuario_atual return varchar2 is
+  begin
+    return coalesce(sys_context('APEX$SESSION', 'APP_USER'), sys_context('USERENV', 'SESSION_USER'));
+  end usuario_atual;
+
+  function exige_texto (p_texto in varchar2, p_erro in varchar2) return varchar2 is
+    l_texto constant varchar2(32767) := trim(p_texto);
+  begin
+    if l_texto is null then
+      raise_application_error(c_err_mensagem, p_erro);
+    end if;
+    if lengthb(l_texto) > 4000 then -- a coluna é em bytes; acento ocupa mais de um
+      raise_application_error(c_err_mensagem, 'O texto ficou longo demais. Resuma em até cerca de 3.500 caracteres.');
+    end if;
+    return l_texto;
+  end exige_texto;
+
+  -- Tipos aceitos. O tipo gravado vem da extensão, e não do que o navegador
+  -- informou; o download sempre sai como anexo, nunca aberto na página.
+  function mime_permitido (p_arquivo in varchar2) return varchar2 is
+    l_extensao constant varchar2(255) := lower(regexp_substr(p_arquivo, '\.([^.]+)$', 1, 1, null, 1));
+  begin
+    return case l_extensao
+      when 'png'  then 'image/png'
+      when 'jpg'  then 'image/jpeg'
+      when 'jpeg' then 'image/jpeg'
+      when 'pdf'  then 'application/pdf'
+      when 'txt'  then 'text/plain'
+      when 'log'  then 'text/plain'
+    end;
+  end mime_permitido;
+
+  procedure guardar_anexo (p_id_chamado in number, p_id_mensagem in number, p_anexo in varchar2) is
+    l_nome  apex_application_temp_files.filename%type;
+    l_blob  blob;
+    l_bytes number;
+    l_mime  varchar2(100);
+    l_usr   constant varchar2(255) := usuario_atual;
+  begin
+    if p_anexo is null then
+      return;
+    end if;
+
+    begin
+      select filename, blob_content
+        into l_nome, l_blob
+        from apex_application_temp_files
+       where name = p_anexo;
+    exception
+      when no_data_found then
+        raise_application_error(c_err_anexo, 'O arquivo enviado não foi encontrado. Envie de novo.');
+    end;
+
+    l_nome  := regexp_replace(l_nome, '^.*[\\/]', '');
+    l_mime  := mime_permitido(l_nome);
+    l_bytes := dbms_lob.getlength(l_blob);
+
+    if l_mime is null then
+      raise_application_error(c_err_anexo, 'Envie uma imagem PNG ou JPG, um PDF ou um arquivo TXT ou LOG.');
+    end if;
+    if l_bytes > c_max_anexo then
+      raise_application_error(c_err_anexo, 'O arquivo pode ter até 5 MB.');
+    end if;
+
+    insert into suporte_anexo (id_chamado, id_mensagem, nm_arquivo, ds_mime, nr_bytes, bl_arquivo, usr_envio)
+    values (p_id_chamado, p_id_mensagem, substr(l_nome, 1, 255), l_mime, l_bytes, l_blob, l_usr);
+  end guardar_anexo;
+
+  function grava_mensagem (
+    p_id_chamado in number,
+    p_id_autor   in number,
+    p_tp_autor   in varchar2,
+    p_texto      in varchar2
+  ) return number is
+    l_id number;
+  begin
+    insert into suporte_mensagem (id_chamado, id_autor, tp_autor, ds_texto)
+    values (p_id_chamado, p_id_autor, p_tp_autor, p_texto)
+    returning id_mensagem into l_id;
+    return l_id;
+  end grava_mensagem;
+
+  -- Trava o chamado, se for da empresa da sessão. Quem pode agir é conferido por
+  -- quem chama.
+  function chamado_travado (p_id_chamado in number) return suporte_chamado%rowtype is
+    l_c       suporte_chamado%rowtype;
+    l_empresa constant number := pkg_historico_carreira.fn_empresa_contexto;
+  begin
+    select *
+      into l_c
+      from suporte_chamado
+     where id_chamado = p_id_chamado
+       and id_empresa = l_empresa
+       for update;
+    return l_c;
+  exception
+    when no_data_found then
+      raise_application_error(c_err_chamado, c_msg_chamado);
+  end chamado_travado;
+
+  -- Só o próprio solicitante. Para a TI, o chamado de outra pessoa é tratado na p39.
+  function chamado_do_solicitante (p_id_chamado in number, p_id_colaborador in number) return suporte_chamado%rowtype is
+    l_c suporte_chamado%rowtype := chamado_travado(p_id_chamado);
+  begin
+    if l_c.id_solicitante <> p_id_colaborador then
+      raise_application_error(c_err_chamado, c_msg_chamado);
+    end if;
+    return l_c;
+  end chamado_do_solicitante;
+
+  ------------------------------------------------------------------------------
+  -- Públicas: conta e permissões
+  ------------------------------------------------------------------------------
+  function fn_colaborador_logado return number is
+    l_id      number;
+    l_usuario constant varchar2(255) := usuario_atual;
+    l_empresa constant number := pkg_historico_carreira.fn_empresa_contexto;
+  begin
+    select id_colaborador
+      into l_id
+      from colaborador
+     where upper(trim(login_apex)) = upper(trim(l_usuario))
+       and id_empresa = l_empresa;
+    return l_id;
+  exception
+    when no_data_found or too_many_rows then
+      raise_application_error(c_err_vinculo, 'Sua conta não está vinculada a um colaborador desta empresa. Fale com o RH.');
+  end fn_colaborador_logado;
+
+  function fn_e_ti return varchar2 is
+  begin
+    return case when em_sessao_apex and apex_authorization.is_authorized('SUPORTE_TI') then 'S' else 'N' end;
+  end fn_e_ti;
+
+  function fn_codigo (p_tp_chamado in varchar2, p_id_chamado in number) return varchar2 is
+  begin
+    return p_tp_chamado || '-' || p_id_chamado;
+  end fn_codigo;
+
+  function fn_situacao (p_id_chamado in number) return varchar2 is
+    l_st         suporte_chamado.st_chamado%type;
+    l_solicitante number;
+    l_empresa    constant number := pkg_historico_carreira.fn_empresa_contexto;
+  begin
+    select st_chamado, id_solicitante
+      into l_st, l_solicitante
+      from suporte_chamado
+     where id_chamado = p_id_chamado
+       and id_empresa = l_empresa;
+
+    if fn_e_ti = 'S' or l_solicitante = fn_colaborador_logado then
+      return l_st;
+    end if;
+    raise_application_error(c_err_chamado, c_msg_chamado);
+  exception
+    when no_data_found then
+      raise_application_error(c_err_chamado, c_msg_chamado);
+  end fn_situacao;
+
+  ------------------------------------------------------------------------------
+  -- Públicas: colaborador
+  ------------------------------------------------------------------------------
+  function abrir_chamado (
+    p_tp_chamado in varchar2,
+    p_id_assunto in number,
+    p_ds_titulo  in varchar2,
+    p_ds_texto   in varchar2,
+    p_anexo      in varchar2 default null
+  ) return number is
+    l_autor   constant number := fn_colaborador_logado;
+    l_empresa constant number := pkg_historico_carreira.fn_empresa_contexto;
+    l_titulo  constant varchar2(32767) := trim(p_ds_titulo);
+    l_texto   constant varchar2(4000) := exige_texto(p_ds_texto, 'Descreva o que está acontecendo.');
+    l_qt      pls_integer;
+    l_id      number;
+  begin
+    if p_tp_chamado is null or p_tp_chamado not in ('INC', 'REQ') then
+      raise_application_error(c_err_dados, 'Escolha o tipo do chamado.');
+    end if;
+    if l_titulo is null or lengthb(l_titulo) > 150 then
+      raise_application_error(c_err_dados, 'Informe um título curto, de até 140 caracteres.');
+    end if;
+
+    select count(*)
+      into l_qt
+      from suporte_assunto
+     where id_assunto = p_id_assunto
+       and id_empresa = l_empresa
+       and fl_ativo = 'S';
+    if l_qt = 0 then
+      raise_application_error(c_err_dados, 'Escolha um assunto da lista.');
+    end if;
+
+    insert into suporte_chamado (id_empresa, id_solicitante, tp_chamado, id_assunto, ds_titulo, ds_descricao)
+    values (l_empresa, l_autor, p_tp_chamado, p_id_assunto, l_titulo, l_texto)
+    returning id_chamado into l_id;
+
+    guardar_anexo(l_id, null, p_anexo);
+    return l_id;
+  end abrir_chamado;
+
+  procedure responder (
+    p_id_chamado in number,
+    p_ds_texto   in varchar2,
+    p_anexo      in varchar2 default null
+  ) is
+    l_autor constant number := fn_colaborador_logado;
+    l_c     suporte_chamado%rowtype := chamado_do_solicitante(p_id_chamado, l_autor);
+    l_texto constant varchar2(4000) := exige_texto(p_ds_texto, 'Escreva a sua resposta.');
+    l_msg   number;
+    l_novo  suporte_chamado.st_chamado%type := l_c.st_chamado;
+  begin
+    if l_c.st_chamado not in (c_aberto, c_atendimento, c_aguardando) then
+      raise_application_error(c_err_situacao, 'Este chamado não aceita mais respostas. Atualize a página.');
+    end if;
+
+    if l_c.st_chamado = c_aguardando then
+      l_novo := case when l_c.id_atendente is null then c_aberto else c_atendimento end;
+    end if;
+
+    l_msg := grava_mensagem(p_id_chamado, l_autor, 'COLABORADOR', l_texto);
+    guardar_anexo(p_id_chamado, l_msg, p_anexo);
+
+    update suporte_chamado
+       set st_chamado = l_novo, dh_atualizacao = systimestamp
+     where id_chamado = p_id_chamado;
+  end responder;
+
+  procedure confirmar_solucao (p_id_chamado in number) is
+    l_autor constant number := fn_colaborador_logado;
+    l_c     suporte_chamado%rowtype := chamado_do_solicitante(p_id_chamado, l_autor);
+    l_msg   number;
+  begin
+    if l_c.st_chamado <> c_resolvido then
+      raise_application_error(c_err_situacao, 'Este chamado não está aguardando confirmação. Atualize a página.');
+    end if;
+
+    l_msg := grava_mensagem(p_id_chamado, null, 'SISTEMA', 'Solução confirmada pelo colaborador. Chamado encerrado.');
+
+    update suporte_chamado
+       set st_chamado = c_encerrado,
+           tp_encerramento = 'CONFIRMADO',
+           dh_encerramento = systimestamp,
+           dh_atualizacao = systimestamp
+     where id_chamado = p_id_chamado;
+  end confirmar_solucao;
+
+  procedure reabrir (
+    p_id_chamado in number,
+    p_ds_texto   in varchar2,
+    p_anexo      in varchar2 default null
+  ) is
+    l_autor constant number := fn_colaborador_logado;
+    l_c     suporte_chamado%rowtype := chamado_do_solicitante(p_id_chamado, l_autor);
+    l_texto constant varchar2(4000) := exige_texto(p_ds_texto, 'Conte o que ainda não funcionou.');
+    l_msg   number;
+  begin
+    if l_c.st_chamado <> c_resolvido then
+      raise_application_error(c_err_situacao, 'Só um chamado resolvido pode ser reaberto. Atualize a página.');
+    end if;
+
+    l_msg := grava_mensagem(p_id_chamado, l_autor, 'COLABORADOR', l_texto);
+    guardar_anexo(p_id_chamado, l_msg, p_anexo);
+
+    update suporte_chamado
+       set st_chamado = case when id_atendente is null then c_aberto else c_atendimento end,
+           ds_solucao = null,
+           dt_limite_confirmacao = null,
+           dh_resolucao = null,
+           nr_reaberturas = nr_reaberturas + 1,
+           dh_atualizacao = systimestamp
+     where id_chamado = p_id_chamado;
+  end reabrir;
+
+  ------------------------------------------------------------------------------
+  -- Públicas: TI
+  ------------------------------------------------------------------------------
+  procedure atender (
+    p_id_chamado    in number,
+    p_acao          in varchar2,
+    p_ds_texto      in varchar2,
+    p_tp_prioridade in varchar2,
+    p_dt_previsao   in varchar2,
+    p_anexo         in varchar2 default null
+  ) is
+    l_autor    number;
+    l_c        suporte_chamado%rowtype;
+    l_texto    varchar2(4000);
+    l_previsao date;
+    l_hoje     date;
+    l_dias     suporte_config.nr_dias_confirmacao%type;
+    l_msg      number;
+    l_novo     suporte_chamado.st_chamado%type;
+  begin
+    if fn_e_ti <> 'S' then
+      raise_application_error(c_err_permissao, 'Só a equipe de TI pode atender chamados.');
+    end if;
+    l_autor := fn_colaborador_logado;
+    l_c     := chamado_travado(p_id_chamado);
+    l_hoje  := pkg_historico_carreira.fn_hoje(l_c.id_empresa);
+
+    if l_c.st_chamado not in (c_aberto, c_atendimento, c_aguardando) then
+      raise_application_error(c_err_situacao, 'Este chamado já foi resolvido ou encerrado. Atualize a página.');
+    end if;
+    if p_tp_prioridade is null or p_tp_prioridade not in ('BAIXA', 'MEDIA', 'ALTA') then
+      raise_application_error(c_err_dados, 'Escolha a prioridade.');
+    end if;
+
+    if trim(p_dt_previsao) is not null then
+      l_previsao := to_date(p_dt_previsao default null on conversion error, 'DD/MM/YYYY');
+      if l_previsao is null or l_previsao < l_hoje then
+        raise_application_error(c_err_previsao, 'Informe uma previsão válida, a partir de hoje.');
+      end if;
+    end if;
+
+    case p_acao
+      when 'ASSUMIR' then
+        l_texto := case when trim(p_ds_texto) is not null then exige_texto(p_ds_texto, null) end;
+        l_novo  := c_atendimento;
+        l_c.id_atendente := l_autor;
+      when 'RESPONDER' then
+        l_texto := exige_texto(p_ds_texto, 'Escreva a mensagem ao colaborador.');
+        l_novo  := c_atendimento;
+      when 'PEDIR' then
+        l_texto := exige_texto(p_ds_texto, 'Escreva o que você precisa do colaborador.');
+        l_novo  := c_aguardando;
+      when 'RESOLVER' then
+        l_texto := exige_texto(p_ds_texto, 'Descreva a solução para o colaborador.');
+        l_novo  := c_resolvido;
+      else
+        raise_application_error(c_err_acao, 'Escolha o que fazer com o chamado.');
+    end case;
+
+    l_c.id_atendente := nvl(l_c.id_atendente, l_autor);
+
+    if l_texto is not null then
+      l_msg := grava_mensagem(p_id_chamado, l_autor, 'TI', l_texto);
+    elsif p_anexo is not null then
+      raise_application_error(c_err_mensagem, 'Escreva uma mensagem para enviar o arquivo.');
+    end if;
+    guardar_anexo(p_id_chamado, l_msg, p_anexo);
+
+    if p_acao = 'RESOLVER' then
+      begin
+        select nr_dias_confirmacao into l_dias from suporte_config where id_empresa = l_c.id_empresa;
+      exception
+        when no_data_found then
+          l_dias := 3;
+      end;
+    end if;
+
+    update suporte_chamado
+       set st_chamado = l_novo,
+           id_atendente = l_c.id_atendente,
+           tp_prioridade = p_tp_prioridade,
+           dt_previsao = l_previsao,
+           ds_solucao = case when p_acao = 'RESOLVER' then l_texto end,
+           dh_resolucao = case when p_acao = 'RESOLVER' then systimestamp end,
+           dt_limite_confirmacao = case when p_acao = 'RESOLVER' then l_hoje + l_dias end,
+           dh_atualizacao = systimestamp
+     where id_chamado = p_id_chamado;
+  end atender;
+
+  function encerrar_vencidos return number is
+    l_qt  pls_integer := 0;
+    l_msg number;
+  begin
+    for r in (
+      select id_chamado
+        from suporte_chamado
+       where st_chamado = c_resolvido
+         and dt_limite_confirmacao <= pkg_historico_carreira.fn_hoje(id_empresa)
+         for update
+    ) loop
+      l_msg := grava_mensagem(r.id_chamado, null, 'SISTEMA', 'Encerrado automaticamente: o prazo de confirmação terminou sem resposta.');
+      update suporte_chamado
+         set st_chamado = c_encerrado,
+             tp_encerramento = 'AUTOMATICO',
+             dh_encerramento = systimestamp,
+             dh_atualizacao = systimestamp
+       where id_chamado = r.id_chamado;
+      l_qt := l_qt + 1;
+    end loop;
+    commit;
+    return l_qt;
+  end encerrar_vencidos;
+
+  ------------------------------------------------------------------------------
+  -- Públicas: artigos e anexos
+  ------------------------------------------------------------------------------
+  procedure registrar_acesso_artigo (p_id_artigo in number) is
+    l_empresa constant number := pkg_historico_carreira.fn_empresa_contexto;
+  begin
+    update suporte_artigo
+       set nr_acessos = nr_acessos + 1
+     where id_artigo = p_id_artigo
+       and id_empresa = l_empresa
+       and fl_publicado = 'S';
+  end registrar_acesso_artigo;
+
+  procedure baixar_anexo (p_id_anexo in number) is
+    l_blob    blob;
+    l_mime    suporte_anexo.ds_mime%type;
+    l_nome    suporte_anexo.nm_arquivo%type;
+    l_chamado number;
+    l_st      suporte_chamado.st_chamado%type;
+  begin
+    begin
+      select id_chamado, bl_arquivo, ds_mime, nm_arquivo
+        into l_chamado, l_blob, l_mime, l_nome
+        from suporte_anexo
+       where id_anexo = p_id_anexo;
+    exception
+      when no_data_found then
+        raise_application_error(c_err_chamado, 'Arquivo não encontrado.');
+    end;
+
+    l_st := fn_situacao(l_chamado); -- -20077 se a conta não pode ver o chamado
+
+    apex_http.download(
+      p_blob         => l_blob,
+      p_content_type => l_mime,
+      p_filename     => l_nome,
+      p_is_inline    => false);
+  end baixar_anexo;
+
+end pkg_suporte;
+/
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_SUPORTE_UI" as
+
+  c_pag_abrir   constant pls_integer := 35;
+  c_pag_chamado constant pls_integer := 36;
+  c_pag_base    constant pls_integer := 37;
+  c_pag_chat    constant pls_integer := 4;
+
+  c_max_encerrados constant pls_integer := 20;
+  c_max_artigos    constant pls_integer := 5;
+  c_max_busca      constant pls_integer := 5;
+
+  c_com_acento constant varchar2(60) := 'áàâãäéèêëíìîïóòôõöúùûüçñ';
+  c_sem_acento constant varchar2(60) := 'aaaaaeeeeiiiiooooouuuucn';
+
+  g_html clob;
+
+  ------------------------------------------------------------------------------
+  -- Utilitários
+  ------------------------------------------------------------------------------
+  procedure inicia is
+  begin
+    dbms_lob.createtemporary(g_html, true, dbms_lob.call);
+  end inicia;
+
+  procedure p (p_txt in varchar2) is
+  begin
+    if p_txt is not null then
+      dbms_lob.writeappend(g_html, length(p_txt), p_txt);
+    end if;
+  end p;
+
+  function e (p_txt in varchar2) return varchar2 is
+  begin
+    return apex_escape.html(p_txt);
+  end e;
+
+  function a (p_txt in varchar2) return varchar2 is
+  begin
+    return apex_escape.html_attribute(p_txt);
+  end a;
+
+  -- Texto livre com as quebras de linha preservadas
+  function texto (p_txt in varchar2) return varchar2 is
+  begin
+    return replace(e(replace(p_txt, chr(13))), chr(10), '<br>');
+  end texto;
+
+  -- Colaborador da conta logada; nulo sem vínculo ou sem empresa na sessão
+  function id_logado return number is
+  begin
+    return pkg_suporte.fn_colaborador_logado;
+  exception
+    when others then
+      if sqlcode in (-20076, -20012) then
+        return null;
+      end if;
+      raise;
+  end id_logado;
+
+  function empresa_de (p_id_colaborador in number) return number is
+    l_empresa number;
+  begin
+    select id_empresa into l_empresa from colaborador where id_colaborador = p_id_colaborador;
+    return l_empresa;
+  end empresa_de;
+
+  function dia_mes (p_dt in date) return varchar2 is
+  begin
+    return to_char(p_dt, 'DD/MM');
+  end dia_mes;
+
+  -- "agora", "há 15 min", "há 2 h", "há 3 dias"
+  function ha_quanto (p_dh in timestamp with time zone) return varchar2 is
+    l_min constant number := round(
+      (cast(sys_extract_utc(systimestamp) as date) - cast(sys_extract_utc(p_dh) as date)) * 1440);
+  begin
+    return case
+      when l_min < 1    then 'agora'
+      when l_min < 60   then 'há ' || l_min || ' min'
+      when l_min < 1440 then 'há ' || trunc(l_min / 60) || ' h'
+      when l_min < 2880 then 'há 1 dia'
+      else 'há ' || trunc(l_min / 1440) || ' dias'
+    end;
+  end ha_quanto;
+
+  function iniciais (p_nome in varchar2) return varchar2 is
+    l_nome constant varchar2(200) := trim(p_nome);
+    l_esp  constant pls_integer := instr(l_nome, ' ', -1);
+  begin
+    if l_esp = 0 then
+      return upper(substr(l_nome, 1, 2));
+    end if;
+    return upper(substr(l_nome, 1, 1) || substr(l_nome, l_esp + 1, 1));
+  end iniciais;
+
+  -- "Marina Costa": primeiro e último nome
+  function nome_curto (p_nome in varchar2) return varchar2 is
+    l_nome constant varchar2(200) := trim(p_nome);
+    l_ini  constant pls_integer := instr(l_nome, ' ');
+    l_fim  constant pls_integer := instr(l_nome, ' ', -1);
+  begin
+    if l_ini = 0 then
+      return l_nome;
+    end if;
+    return substr(l_nome, 1, l_ini - 1) || substr(l_nome, l_fim);
+  end nome_curto;
+
+  function icone (p_nome in varchar2) return varchar2 is
+    l_svg varchar2(1000);
+  begin
+    l_svg := case p_nome
+      when 'key'      then '<path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/>'
+      when 'mail'     then '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>'
+      when 'laptop'   then '<rect width="18" height="12" x="3" y="4" rx="2"/><line x1="2" x2="22" y1="20" y2="20"/>'
+      when 'wifi'     then '<path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.86a10 10 0 0 1 14 0"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/>'
+      when 'janela'   then '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="M2 9h20"/><path d="M6 6.5h.01"/><path d="M10 6.5h.01"/>'
+      when 'printer'  then '<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect width="12" height="8" x="6" y="14" rx="1"/>'
+      when 'busca'    then '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'
+      when 'chevron'  then '<path d="m9 18 6-6-6-6"/>'
+      when 'seta'     then '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>'
+      when 'voltar'   then '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>'
+      when 'mais'     then '<path d="M5 12h14"/><path d="M12 5v14"/>'
+      when 'alerta'   then '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
+      when 'fechar'   then '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'
+      when 'artigo'   then '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>'
+      when 'responder' then '<polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/>'
+      when 'check'    then '<path d="M20 6 9 17l-5-5"/>'
+      when 'pessoa'   then '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+      when 'calendario' then '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m12 14v3l2 1"/>'
+      when 'chat'     then '<path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2Z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>'
+      when 'telefone' then '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/>'
+      when 'relogio'  then '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'
+      when 'anexo'    then '<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>'
+    end;
+    return '<svg class="cx-sup-icone" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+        || l_svg || '</svg>';
+  end icone;
+
+  procedure cabecalho_card (p_titulo in varchar2, p_extra in varchar2 default null) is
+  begin
+    p('<header class="cx-sup-card__cabecalho"><h2 class="cx-sup-card__titulo">' || e(p_titulo) || '</h2>');
+    p(p_extra);
+    p('</header>');
+  end cabecalho_card;
+
+  function selo_chamado (p_st in varchar2) return varchar2 is
+    l_txt    varchar2(40);
+    l_classe varchar2(20);
+  begin
+    case p_st
+      when pkg_suporte.c_aberto      then l_txt := 'Na fila';         l_classe := 'is-neutro';
+      when pkg_suporte.c_atendimento then l_txt := 'Em atendimento';  l_classe := 'is-info';
+      when pkg_suporte.c_aguardando  then l_txt := 'Aguardando você'; l_classe := 'is-atencao';
+      when pkg_suporte.c_resolvido   then l_txt := 'Resolvido';       l_classe := 'is-sucesso';
+      else                                l_txt := 'Encerrado';       l_classe := 'is-neutro';
+    end case;
+    return '<span class="cx-sup-selo ' || l_classe || '">' || l_txt || '</span>';
+  end selo_chamado;
+
+  function selo_sistema (p_st in varchar2) return varchar2 is
+  begin
+    return case p_st
+      when 'OPERANDO'   then '<span class="cx-sup-status is-sucesso">Operando</span>'
+      when 'INSTAVEL'   then '<span class="cx-sup-selo is-atencao">Instável</span>'
+      when 'MANUTENCAO' then '<span class="cx-sup-selo is-info">Manutenção</span>'
+      else '<span class="cx-sup-selo is-erro">Fora do ar</span>'
+    end;
+  end selo_sistema;
+
+  function url_chamado (p_id_chamado in number) return varchar2 is
+  begin
+    return apex_page.get_url(
+      p_page        => c_pag_chamado,
+      p_clear_cache => to_char(c_pag_chamado),
+      p_items       => 'P36_ID_CHAMADO',
+      p_values      => to_char(p_id_chamado));
+  end url_chamado;
+
+  function url_artigo (p_id_artigo in number) return varchar2 is
+  begin
+    return apex_page.get_url(
+      p_page        => c_pag_base,
+      p_clear_cache => to_char(c_pag_base),
+      p_items       => 'P37_ID_ARTIGO',
+      p_values      => to_char(p_id_artigo));
+  end url_artigo;
+
+  function url_assunto (p_id_assunto in number) return varchar2 is
+  begin
+    return apex_page.get_url(
+      p_page        => c_pag_base,
+      p_clear_cache => to_char(c_pag_base),
+      p_items       => 'P37_ID_ASSUNTO',
+      p_values      => to_char(p_id_assunto));
+  end url_assunto;
+
+  function url_abrir (p_id_assunto in number default null) return varchar2 is
+  begin
+    return apex_page.get_url(
+      p_page        => c_pag_abrir,
+      p_clear_cache => to_char(c_pag_abrir),
+      p_items       => case when p_id_assunto is not null then 'P35_ID_ASSUNTO' end,
+      p_values      => to_char(p_id_assunto));
+  end url_abrir;
+
+  -- Busca sem acento e sem diferença de maiúsculas
+  function normaliza (p_txt in varchar2) return varchar2 is
+  begin
+    return translate(lower(p_txt), c_com_acento, c_sem_acento);
+  end normaliza;
+
+  function linha_artigo (p_id in number, p_titulo in varchar2, p_min in number) return varchar2 is
+  begin
+    return '<li><a class="cx-sup-artigo" href="' || a(url_artigo(p_id)) || '">' || icone('artigo')
+        || '<span class="cx-sup-artigo__titulo">' || e(p_titulo) || '</span>'
+        || '<span class="cx-sup-artigo__tempo">' || p_min || ' min</span></a></li>';
+  end linha_artigo;
+
+  ------------------------------------------------------------------------------
+  -- Página 34
+  ------------------------------------------------------------------------------
+  function render_cabecalho return clob is
+    l_id constant number := id_logado;
+  begin
+    inicia;
+    p('<div class="cx-cabecalho-pagina cx-cabecalho-pagina--acoes">');
+    p('<div class="cx-cabecalho-pagina__texto"><h1 class="cx-cabecalho-pagina__titulo">Suporte TI</h1>');
+    p('<p class="cx-cabecalho-pagina__descricao">Encontre respostas rápidas ou abra um chamado para a equipe de TI.</p></div>');
+    if l_id is not null then
+      p('<div class="cx-cabecalho-pagina__acoes">');
+      p('<a class="t-Button cx-sup-botao cx-sup-botao--primario" href="' || a(url_abrir) || '">'
+        || icone('mais') || '<span class="t-Button-label">Abrir chamado</span></a>');
+      p('</div>');
+    end if;
+    p('</div>');
+    return g_html;
+  end render_cabecalho;
+
+  -- O "x" esconde o aviso até ele mudar: a chave leva a data da última alteração.
+  function render_aviso return clob is
+    l_id      constant number := id_logado;
+    l_empresa number;
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+    l_empresa := empresa_de(l_id);
+    for r in (
+      select s.id_sistema, s.ds_aviso_titulo, s.ds_aviso_texto,
+             to_char(s.dh_atualizacao at time zone 'UTC', 'YYYYMMDDHH24MISS') as cd_versao
+        from suporte_sistema s
+       where s.id_empresa = l_empresa
+         and s.st_sistema <> 'OPERANDO'
+         and s.ds_aviso_titulo is not null
+       order by s.nr_ordem, s.nm_sistema
+    ) loop
+      p('<div class="cx-sup-aviso" role="status" data-cx-sup-aviso="' || r.id_sistema || '-' || r.cd_versao || '">');
+      p(icone('alerta'));
+      p('<div class="cx-sup-aviso__texto"><strong>' || e(r.ds_aviso_titulo) || '</strong>');
+      if r.ds_aviso_texto is not null then
+        p('<p>' || e(r.ds_aviso_texto) || '</p>');
+      end if;
+      p('</div>');
+      p('<button type="button" class="cx-sup-aviso__fechar" data-cx-sup-fechar-aviso aria-label="Fechar aviso">'
+        || icone('fechar') || '</button>');
+      p('</div>');
+    end loop;
+    return g_html;
+  end render_aviso;
+
+  function render_ajuda return clob is
+    l_id      constant number := id_logado;
+    l_nome    varchar2(200);
+    l_empresa number;
+  begin
+    inicia;
+    if l_id is null then
+      p('<section class="cx-sup-card cx-sup-vazio"><p>Sua conta não está vinculada a um colaborador desta empresa. '
+        || 'O suporte fica disponível depois que o RH fizer esse vínculo.</p></section>');
+      return g_html;
+    end if;
+
+    select id_empresa, coalesce(trim(primeiro_nome), regexp_substr(trim(nome_completo), '^[^ ]+'))
+      into l_empresa, l_nome
+      from colaborador
+     where id_colaborador = l_id;
+
+    p('<section class="cx-sup-card cx-sup-ajuda">');
+    p('<h2 class="cx-sup-ajuda__titulo">Como podemos ajudar, ' || e(l_nome) || '?</h2>');
+    p('<p class="cx-sup-ajuda__texto">Muitas dúvidas se resolvem em poucos minutos com os artigos da base de conhecimento.</p>');
+    p('<div class="cx-sup-busca">' || icone('busca'));
+    p('<input type="search" class="cx-sup-busca__campo" data-cx-sup-busca maxlength="200" autocomplete="off" '
+      || 'aria-label="Descreva o problema" aria-controls="cx_sup_resultados" '
+      || 'placeholder="Descreva o problema. Ex.: esqueci minha senha, a VPN não conecta">');
+    p('</div>');
+    p('<div id="cx_sup_resultados" class="cx-sup-resultados" aria-live="polite"></div>');
+    p('<h3 class="cx-sup-ajuda__subtitulo">Ou escolha um assunto</h3>');
+    p('<ul class="cx-sup-assuntos">');
+    for r in (
+      select id_assunto, nm_assunto, cd_icone
+        from suporte_assunto
+       where id_empresa = l_empresa
+         and fl_ativo = 'S'
+       order by nr_ordem, nm_assunto
+    ) loop
+      p('<li><a class="cx-sup-assunto" href="' || a(url_assunto(r.id_assunto)) || '">'
+        || '<span class="cx-sup-assunto__icone">' || icone(r.cd_icone) || '</span>'
+        || '<span class="cx-sup-assunto__nome">' || e(r.nm_assunto) || '</span>'
+        || icone('chevron') || '</a></li>');
+    end loop;
+    p('</ul></section>');
+    return g_html;
+  end render_ajuda;
+
+  -- Corpo de cada chamado em aberto, conforme a situação
+  procedure chamado_aberto (r in suporte_chamado%rowtype, p_nm_assunto in varchar2, p_nm_atendente in varchar2) is
+    l_url constant varchar2(4000) := url_chamado(r.id_chamado);
+    l_ti  boolean := false;
+  begin
+    p('<li class="cx-sup-chamado">');
+    p('<div class="cx-sup-chamado__topo"><a class="cx-sup-chamado__titulo" href="' || a(l_url) || '">' || e(r.ds_titulo) || '</a>');
+    p(selo_chamado(r.st_chamado) || '</div>');
+    p('<p class="cx-sup-chamado__meta">' || e(pkg_suporte.fn_codigo(r.tp_chamado, r.id_chamado)) || ' · ' || e(p_nm_assunto) || ' · ');
+    if r.st_chamado = pkg_suporte.c_resolvido then
+      p('resolvido em ' || dia_mes(pkg_historico_carreira.fn_data_local(r.id_empresa, r.dh_resolucao)));
+    else
+      p('aberto em ' || dia_mes(pkg_historico_carreira.fn_data_local(r.id_empresa, r.dh_abertura)));
+    end if;
+    p('</p>');
+
+    if r.st_chamado = pkg_suporte.c_aguardando then
+      for m in (
+        select *
+          from (select m.ds_texto, m.dh_envio, c.nome_completo
+                  from suporte_mensagem m
+                  left join colaborador c on c.id_colaborador = m.id_autor
+                 where m.id_chamado = r.id_chamado
+                   and m.tp_autor = 'TI'
+                 order by m.id_mensagem desc)
+         where rownum = 1
+      ) loop
+        l_ti := true;
+        p('<div class="cx-sup-mensagem">');
+        p('<span class="cx-sup-avatar" aria-hidden="true">' || e(iniciais(m.nome_completo)) || '</span>');
+        p('<div class="cx-sup-mensagem__corpo"><p class="cx-sup-mensagem__autor">' || e(nome_curto(m.nome_completo))
+          || ' · TI · ' || e(ha_quanto(m.dh_envio)) || '</p>');
+        p('<p class="cx-sup-mensagem__texto">' || texto(m.ds_texto) || '</p></div></div>');
+      end loop;
+      p('<div class="cx-sup-chamado__acoes"><a class="t-Button cx-sup-botao" href="' || a(l_url) || '">'
+        || icone('responder') || '<span class="t-Button-label">Responder</span></a></div>');
+
+    elsif r.st_chamado = pkg_suporte.c_resolvido then
+      p('<p class="cx-sup-chamado__solucao">Solução: ' || texto(r.ds_solucao) || '</p>');
+      p('<div class="cx-sup-chamado__confirmar"><p>A solução funcionou? Sem resposta, o chamado é encerrado em '
+        || dia_mes(r.dt_limite_confirmacao) || '.</p>');
+      p('<div class="cx-sup-chamado__botoes"><a class="cx-sup-link" href="' || a(l_url) || '">Não, reabrir</a>');
+      p('<button type="button" class="t-Button cx-sup-botao" data-cx-sup-confirmar="' || r.id_chamado || '">'
+        || icone('check') || '<span class="t-Button-label">Sim, encerrar</span></button></div></div>');
+
+    elsif p_nm_atendente is not null or r.dt_previsao is not null then
+      p('<ul class="cx-sup-chamado__dados">');
+      if p_nm_atendente is not null then
+        p('<li>' || icone('pessoa') || e(nome_curto(p_nm_atendente)) || ' · TI</li>');
+      end if;
+      if r.dt_previsao is not null then
+        p('<li>' || icone('calendario') || 'Previsão: até ' || dia_mes(r.dt_previsao) || '</li>');
+      end if;
+      p('</ul>');
+    end if;
+    p('</li>');
+  end chamado_aberto;
+
+  function render_chamados return clob is
+    l_id      constant number := id_logado;
+    l_abertos pls_integer;
+    l_fim     pls_integer;
+    l_c       suporte_chamado%rowtype;
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+
+    select count(case when st_chamado <> pkg_suporte.c_encerrado then 1 end),
+           count(case when st_chamado =  pkg_suporte.c_encerrado then 1 end)
+      into l_abertos, l_fim
+      from suporte_chamado
+     where id_solicitante = l_id;
+
+    p('<section class="cx-sup-card">');
+    p('<header class="cx-sup-card__cabecalho cx-sup-card__cabecalho--abas"><h2 class="cx-sup-card__titulo">Meus chamados</h2>');
+    p('<div class="cx-sup-abas" role="tablist" aria-label="Meus chamados">');
+    p('<button type="button" role="tab" id="cx_sup_aba_abertos" class="cx-sup-aba is-ativa" aria-selected="true" aria-controls="cx_sup_abertos" data-cx-sup-aba="cx_sup_abertos">Em aberto · ' || l_abertos || '</button>');
+    p('<button type="button" role="tab" id="cx_sup_aba_resolvidos" class="cx-sup-aba" aria-selected="false" aria-controls="cx_sup_resolvidos" data-cx-sup-aba="cx_sup_resolvidos" tabindex="-1">Resolvidos · ' || l_fim || '</button>');
+    p('</div></header>');
+
+    p('<div id="cx_sup_abertos" role="tabpanel" aria-labelledby="cx_sup_aba_abertos">');
+    if l_abertos = 0 then
+      p('<p class="cx-sup-vazio">Você não tem chamados em aberto.</p>');
+    else
+      p('<ul class="cx-sup-chamados">');
+      -- Primeiro o que depende da pessoa; depois o que está com a TI
+      for r in (
+        select c.id_chamado, a.nm_assunto, t.nome_completo as nm_atendente
+          from suporte_chamado c
+          join suporte_assunto a on a.id_assunto = c.id_assunto
+          left join colaborador t on t.id_colaborador = c.id_atendente
+         where c.id_solicitante = l_id
+           and c.st_chamado <> pkg_suporte.c_encerrado
+         order by case c.st_chamado
+                    when pkg_suporte.c_aguardando then 1
+                    when pkg_suporte.c_resolvido  then 2
+                    else 3
+                  end,
+                  c.id_chamado desc
+      ) loop
+        select * into l_c from suporte_chamado where id_chamado = r.id_chamado;
+        chamado_aberto(l_c, r.nm_assunto, r.nm_atendente);
+      end loop;
+      p('</ul>');
+    end if;
+    p('</div>');
+
+    p('<div id="cx_sup_resolvidos" role="tabpanel" aria-labelledby="cx_sup_aba_resolvidos" hidden>');
+    if l_fim = 0 then
+      p('<p class="cx-sup-vazio">Nenhum chamado encerrado por aqui.</p>');
+    else
+      p('<ul class="cx-sup-chamados">');
+      for r in (
+        select *
+          from (select c.id_chamado, c.id_empresa, c.tp_chamado, c.ds_titulo, c.st_chamado, c.ds_solucao, c.dh_encerramento, a.nm_assunto
+                  from suporte_chamado c
+                  join suporte_assunto a on a.id_assunto = c.id_assunto
+                 where c.id_solicitante = l_id
+                   and c.st_chamado = pkg_suporte.c_encerrado
+                 order by c.dh_encerramento desc)
+         where rownum <= c_max_encerrados
+      ) loop
+        p('<li class="cx-sup-chamado"><div class="cx-sup-chamado__topo"><a class="cx-sup-chamado__titulo" href="'
+          || a(url_chamado(r.id_chamado)) || '">' || e(r.ds_titulo) || '</a>' || selo_chamado(r.st_chamado) || '</div>');
+        p('<p class="cx-sup-chamado__meta">' || e(pkg_suporte.fn_codigo(r.tp_chamado, r.id_chamado)) || ' · ' || e(r.nm_assunto)
+          || ' · encerrado em ' || dia_mes(pkg_historico_carreira.fn_data_local(r.id_empresa, r.dh_encerramento)) || '</p>');
+        if r.ds_solucao is not null then
+          p('<p class="cx-sup-chamado__solucao">Solução: ' || texto(r.ds_solucao) || '</p>');
+        end if;
+        p('</li>');
+      end loop;
+      p('</ul>');
+      if l_fim > c_max_encerrados then
+        p('<p class="cx-sup-nota">Mostrando os ' || c_max_encerrados || ' mais recentes.</p>');
+      end if;
+    end if;
+    p('</div></section>');
+    return g_html;
+  end render_chamados;
+
+  function render_status return clob is
+    l_id      constant number := id_logado;
+    l_empresa number;
+    l_ultima  date;
+    l_hoje    date;
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+    l_empresa := empresa_de(l_id);
+    l_hoje    := pkg_historico_carreira.fn_hoje(l_empresa);
+
+    select pkg_historico_carreira.fn_data_local(l_empresa, max(dh_atualizacao))
+      into l_ultima
+      from suporte_sistema
+     where id_empresa = l_empresa;
+
+    if l_ultima is null then
+      return g_html; -- empresa sem sistemas cadastrados
+    end if;
+
+    p('<section class="cx-sup-card">');
+    cabecalho_card('Status dos sistemas',
+      '<span class="cx-sup-card__nota">Atualizado '
+      || case when trunc(l_ultima) = l_hoje then 'às ' || to_char(l_ultima, 'HH24:MI')
+              else 'em ' || to_char(l_ultima, 'DD/MM') end
+      || '</span>');
+    p('<ul class="cx-sup-sistemas">');
+    for r in (
+      select nm_sistema, st_sistema, ds_detalhe
+        from suporte_sistema
+       where id_empresa = l_empresa
+       order by nr_ordem, nm_sistema
+    ) loop
+      p('<li class="cx-sup-sistema"><div><span class="cx-sup-sistema__nome">' || e(r.nm_sistema) || '</span>');
+      if r.st_sistema <> 'OPERANDO' and r.ds_detalhe is not null then
+        p('<span class="cx-sup-sistema__detalhe">' || e(r.ds_detalhe) || '</span>');
+      end if;
+      p('</div>' || selo_sistema(r.st_sistema) || '</li>');
+    end loop;
+    p('</ul></section>');
+    return g_html;
+  end render_status;
+
+  function render_artigos return clob is
+    l_id      constant number := id_logado;
+    l_qt      pls_integer := 0;
+    l_empresa number;
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+    l_empresa := empresa_de(l_id);
+    p('<section class="cx-sup-card">');
+    cabecalho_card('Artigos mais acessados');
+    p('<ul class="cx-sup-artigos">');
+    for r in (
+      select *
+        from (select id_artigo, ds_titulo, nr_min_leitura
+                from suporte_artigo
+               where id_empresa = l_empresa
+                 and fl_publicado = 'S'
+               order by nr_acessos desc, ds_titulo)
+       where rownum <= c_max_artigos
+    ) loop
+      l_qt := l_qt + 1;
+      p(linha_artigo(r.id_artigo, r.ds_titulo, r.nr_min_leitura));
+    end loop;
+    p('</ul>');
+    if l_qt = 0 then
+      p('<p class="cx-sup-vazio">Ainda não há artigos publicados.</p>');
+    end if;
+    p('<footer class="cx-sup-card__rodape"><a class="cx-sup-link" href="'
+      || a(apex_page.get_url(p_page => c_pag_base, p_clear_cache => to_char(c_pag_base)))
+      || '">Ver base de conhecimento' || icone('seta') || '</a></footer>');
+    p('</section>');
+    return g_html;
+  end render_artigos;
+
+  function render_contato return clob is
+    l_id      constant number := id_logado;
+    l_c       suporte_config%rowtype;
+    l_empresa number;
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+    l_empresa := empresa_de(l_id);
+    begin
+      select * into l_c from suporte_config where id_empresa = l_empresa;
+    exception
+      when no_data_found then
+        null; -- sem configuração: só o chat
+    end;
+
+    p('<section class="cx-sup-card cx-sup-contato">');
+    p('<h2 class="cx-sup-card__titulo">Prefere falar com alguém?</h2>');
+    p('<p class="cx-sup-contato__texto">Converse com a equipe de TI pelo chat do CorlixHub.</p>');
+    p('<a class="t-Button cx-sup-botao cx-sup-botao--largo" href="' || a(apex_page.get_url(p_page => c_pag_chat))
+      || '">' || icone('chat') || '<span class="t-Button-label">Conversar com a TI</span></a>');
+    if l_c.ds_ramal is not null or l_c.ds_telefone is not null then
+      p('<p class="cx-sup-contato__linha">' || icone('telefone') || '<span>Sem acesso ao computador? '
+        || case when l_c.ds_ramal is not null then 'Ramal ' || e(l_c.ds_ramal) end
+        || case when l_c.ds_ramal is not null and l_c.ds_telefone is not null then ' ou ' end
+        || e(l_c.ds_telefone) || '</span></p>');
+    end if;
+    if l_c.ds_horario is not null then
+      p('<p class="cx-sup-contato__linha">' || icone('relogio') || '<span>' || e(l_c.ds_horario) || '</span></p>');
+    end if;
+    p('</section>');
+    return g_html;
+  end render_contato;
+
+  ------------------------------------------------------------------------------
+  -- Conversa (páginas 36 e 39)
+  ------------------------------------------------------------------------------
+  procedure anexos_de (p_id_chamado in number, p_id_mensagem in number) is
+    l_qt pls_integer := 0;
+  begin
+    for r in (
+      select id_anexo, nm_arquivo, nr_bytes
+        from suporte_anexo
+       where id_chamado = p_id_chamado
+         and ((p_id_mensagem is null and id_mensagem is null) or id_mensagem = p_id_mensagem)
+       order by id_anexo
+    ) loop
+      l_qt := l_qt + 1;
+      if l_qt = 1 then
+        p('<ul class="cx-sup-anexos">');
+      end if;
+      -- URL simples (p_plain_url): é download, e a página de origem é um modal
+      p('<li><a class="cx-sup-link" href="'
+        || a(apex_page.get_url(
+               p_page      => c_pag_chamado,
+               p_request   => 'BAIXAR_ANEXO',
+               p_items     => 'P36_ID_ANEXO',
+               p_values    => to_char(r.id_anexo),
+               p_plain_url => true))
+        || '">' || icone('anexo') || e(r.nm_arquivo) || '</a> <span class="cx-sup-anexos__tamanho">'
+        || greatest(round(r.nr_bytes / 1024), 1) || ' KB</span></li>');
+    end loop;
+    if l_qt > 0 then
+      p('</ul>');
+    end if;
+  end anexos_de;
+
+  function render_conversa (p_id_chamado in number) return clob is
+    l_st      varchar2(20);
+    l_c       suporte_chamado%rowtype;
+    l_assunto suporte_assunto.nm_assunto%type;
+    l_solic   colaborador.nome_completo%type;
+  begin
+    inicia;
+    l_st := pkg_suporte.fn_situacao(p_id_chamado); -- -20077 se a conta não pode ver
+
+    select * into l_c from suporte_chamado where id_chamado = p_id_chamado;
+    select nm_assunto into l_assunto from suporte_assunto where id_assunto = l_c.id_assunto;
+    select nome_completo into l_solic from colaborador where id_colaborador = l_c.id_solicitante;
+
+    p('<div class="cx-sup-conversa">');
+    p('<div class="cx-sup-chamado__topo"><h2 class="cx-sup-card__titulo">' || e(l_c.ds_titulo) || '</h2>'
+      || selo_chamado(l_st) || '</div>');
+    p('<p class="cx-sup-chamado__meta">' || e(pkg_suporte.fn_codigo(l_c.tp_chamado, l_c.id_chamado)) || ' · ' || e(l_assunto)
+      || ' · aberto em ' || to_char(pkg_historico_carreira.fn_data_local(l_c.id_empresa, l_c.dh_abertura), 'DD/MM/YYYY')
+      || '</p>');
+
+    if l_st = pkg_suporte.c_resolvido then
+      p('<p class="cx-sup-nota">Sem resposta, o chamado é encerrado em ' || to_char(l_c.dt_limite_confirmacao, 'DD/MM/YYYY') || '.</p>');
+    end if;
+
+    p('<ol class="cx-sup-linha">');
+    p('<li class="cx-sup-mensagem"><span class="cx-sup-avatar" aria-hidden="true">' || e(iniciais(l_solic)) || '</span>');
+    p('<div class="cx-sup-mensagem__corpo"><p class="cx-sup-mensagem__autor">' || e(nome_curto(l_solic)) || ' · '
+      || to_char(pkg_historico_carreira.fn_data_local(l_c.id_empresa, l_c.dh_abertura), 'DD/MM HH24:MI') || '</p>');
+    p('<p class="cx-sup-mensagem__texto">' || texto(l_c.ds_descricao) || '</p>');
+    anexos_de(l_c.id_chamado, null);
+    p('</div></li>');
+
+    for r in (
+      select m.id_mensagem, m.tp_autor, m.ds_texto, m.dh_envio, c.nome_completo
+        from suporte_mensagem m
+        left join colaborador c on c.id_colaborador = m.id_autor
+       where m.id_chamado = p_id_chamado
+       order by m.id_mensagem
+    ) loop
+      if r.tp_autor = 'SISTEMA' then
+        p('<li class="cx-sup-evento">' || e(r.ds_texto) || ' '
+          || to_char(pkg_historico_carreira.fn_data_local(l_c.id_empresa, r.dh_envio), 'DD/MM HH24:MI') || '</li>');
+      else
+        p('<li class="cx-sup-mensagem' || case when r.tp_autor = 'TI' then ' cx-sup-mensagem--ti' end || '">');
+        p('<span class="cx-sup-avatar" aria-hidden="true">' || e(iniciais(r.nome_completo)) || '</span>');
+        p('<div class="cx-sup-mensagem__corpo"><p class="cx-sup-mensagem__autor">' || e(nome_curto(r.nome_completo))
+          || case when r.tp_autor = 'TI' then ' · TI' end || ' · '
+          || to_char(pkg_historico_carreira.fn_data_local(l_c.id_empresa, r.dh_envio), 'DD/MM HH24:MI') || '</p>');
+        p('<p class="cx-sup-mensagem__texto">' || texto(r.ds_texto) || '</p>');
+        anexos_de(l_c.id_chamado, r.id_mensagem);
+        p('</div></li>');
+      end if;
+    end loop;
+    p('</ol></div>');
+    return g_html;
+  end render_conversa;
+
+  ------------------------------------------------------------------------------
+  -- Base de conhecimento (página 37)
+  ------------------------------------------------------------------------------
+  procedure mostra_artigo (p_empresa in number, p_id_artigo in number) is
+    l_titulo  suporte_artigo.ds_titulo%type;
+    l_corpo   suporte_artigo.ds_corpo%type;
+    l_min     suporte_artigo.nr_min_leitura%type;
+    l_assunto number;
+    l_nome    suporte_assunto.nm_assunto%type;
+  begin
+    select t.ds_titulo, t.ds_corpo, t.nr_min_leitura, t.id_assunto, s.nm_assunto
+      into l_titulo, l_corpo, l_min, l_assunto, l_nome
+      from suporte_artigo t
+      join suporte_assunto s on s.id_assunto = t.id_assunto
+     where t.id_artigo = p_id_artigo
+       and t.id_empresa = p_empresa
+       and t.fl_publicado = 'S';
+
+    p('<article class="cx-sup-card cx-sup-leitura">');
+    p('<a class="cx-sup-link" href="' || a(url_assunto(l_assunto)) || '">' || icone('voltar') || e(l_nome) || '</a>');
+    p('<h2 class="cx-sup-leitura__titulo">' || e(l_titulo) || '</h2>');
+    p('<p class="cx-sup-chamado__meta">Leitura de ' || l_min || ' min</p>');
+    p('<div class="cx-sup-leitura__corpo">' || texto(l_corpo) || '</div>');
+    p('<footer class="cx-sup-leitura__rodape"><p>Não resolveu?</p>');
+    p('<a class="t-Button cx-sup-botao" href="' || a(url_abrir(l_assunto)) || '">'
+      || icone('mais') || '<span class="t-Button-label">Abrir chamado</span></a></footer>');
+    p('</article>');
+  exception
+    when no_data_found then
+      p('<section class="cx-sup-card cx-sup-vazio"><p>Artigo não encontrado.</p></section>');
+  end mostra_artigo;
+
+  function render_base (p_id_assunto in number default null, p_id_artigo in number default null) return clob is
+    l_id      constant number := id_logado;
+    l_empresa number;
+    l_ultimo  number := -1;
+    l_qt      pls_integer := 0;
+  begin
+    inicia;
+    if l_id is null then
+      p('<section class="cx-sup-card cx-sup-vazio"><p>Sua conta não está vinculada a um colaborador desta empresa.</p></section>');
+      return g_html;
+    end if;
+    l_empresa := empresa_de(l_id);
+
+    if p_id_artigo is not null then
+      mostra_artigo(l_empresa, p_id_artigo);
+      return g_html;
+    end if;
+
+    for r in (
+      select s.id_assunto, s.nm_assunto, t.id_artigo, t.ds_titulo, t.ds_resumo, t.nr_min_leitura
+        from suporte_artigo t
+        join suporte_assunto s on s.id_assunto = t.id_assunto
+       where t.id_empresa = l_empresa
+         and t.fl_publicado = 'S'
+         and (p_id_assunto is null or t.id_assunto = p_id_assunto)
+       order by s.nr_ordem, s.nm_assunto, t.nr_acessos desc, t.ds_titulo
+    ) loop
+      if r.id_assunto <> l_ultimo then
+        if l_ultimo <> -1 then
+          p('</ul></section>');
+        end if;
+        p('<section class="cx-sup-card">');
+        cabecalho_card(r.nm_assunto);
+        p('<ul class="cx-sup-artigos cx-sup-artigos--resumo">');
+        l_ultimo := r.id_assunto;
+      end if;
+      l_qt := l_qt + 1;
+      p('<li><a class="cx-sup-artigo" href="' || a(url_artigo(r.id_artigo)) || '">' || icone('artigo')
+        || '<span class="cx-sup-artigo__titulo">' || e(r.ds_titulo));
+      if r.ds_resumo is not null then
+        p('<small>' || e(r.ds_resumo) || '</small>');
+      end if;
+      p('</span><span class="cx-sup-artigo__tempo">' || r.nr_min_leitura || ' min</span></a></li>');
+    end loop;
+
+    if l_qt > 0 then
+      p('</ul></section>');
+    else
+      p('<section class="cx-sup-card cx-sup-vazio"><p>Ainda não há artigos publicados sobre este assunto.</p></section>');
+    end if;
+
+    p('<section class="cx-sup-card cx-sup-leitura__rodape cx-sup-leitura__rodape--solto"><p>Não encontrou o que procurava?</p>');
+    p('<a class="t-Button cx-sup-botao" href="' || a(url_abrir(p_id_assunto)) || '">'
+      || icone('mais') || '<span class="t-Button-label">Abrir chamado</span></a></section>');
+    return g_html;
+  end render_base;
+
+  ------------------------------------------------------------------------------
+  -- Ajax Callbacks
+  ------------------------------------------------------------------------------
+  procedure responder_erro (p_codigo in number, p_mensagem in varchar2) is
+  begin
+    rollback;
+    apex_debug.error('pkg_suporte_ui: %s', p_mensagem);
+    apex_json.open_object;
+    apex_json.write('ok', false);
+    apex_json.write('mensagem',
+      case when p_codigo between -20099 and -20001
+           then regexp_substr(regexp_replace(p_mensagem, '^ORA-[0-9]+: *'), '^[^' || chr(10) || ']*')
+           else 'Não foi possível concluir agora. Atualize a página e tente de novo.' end);
+    apex_json.close_object;
+  end responder_erro;
+
+  -- Soma 3 pontos por palavra no título e 1 no resumo, nas palavras-chave ou no
+  -- corpo. Vale a palavra que aparece; "não", "com" e parecidas ficam de fora.
+  procedure ajax_buscar (p_termo in varchar2) is
+    c_ignorar constant varchar2(200) :=
+      ' nao sim com sem para por uma uns umas meu minha meus minhas que dos das nos nas esta este isso aqui como tem ';
+    type t_achado is record (id number, titulo varchar2(150), minutos number, pontos number, acessos number);
+    type t_achados is table of t_achado index by pls_integer;
+
+    l_id       constant number := pkg_suporte.fn_colaborador_logado;
+    l_termos   apex_t_varchar2 := apex_t_varchar2();
+    l_achados  t_achados;
+    l_a        t_achado;
+    l_titulo   varchar2(1000);
+    l_resto    varchar2(32767);
+    l_pontos   number;
+    l_i        pls_integer;
+    l_palavra  varchar2(200);
+    l_qt       pls_integer := 0;
+    l_empresa  constant number := empresa_de(l_id);
+  begin
+    l_i := 1;
+    loop
+      l_palavra := regexp_substr(normaliza(substr(p_termo, 1, 200)), '[a-z0-9]+', 1, l_i);
+      exit when l_palavra is null;
+      if length(l_palavra) >= 3 and instr(c_ignorar, ' ' || l_palavra || ' ') = 0 then
+        l_termos.extend;
+        l_termos(l_termos.count) := l_palavra;
+      end if;
+      l_i := l_i + 1;
+    end loop;
+
+    inicia;
+    if l_termos.count > 0 then
+      for r in (
+        select id_artigo, ds_titulo, ds_resumo, ds_palavras, ds_corpo, nr_min_leitura, nr_acessos
+          from suporte_artigo
+         where id_empresa = l_empresa
+           and fl_publicado = 'S'
+      ) loop
+        l_titulo := normaliza(r.ds_titulo);
+        l_resto  := normaliza(r.ds_resumo || ' ' || r.ds_palavras || ' ' || r.ds_corpo);
+        l_pontos := 0;
+        for t in 1 .. l_termos.count loop
+          if instr(l_titulo, l_termos(t)) > 0 then
+            l_pontos := l_pontos + 3;
+          elsif instr(l_resto, l_termos(t)) > 0 then
+            l_pontos := l_pontos + 1;
+          end if;
+        end loop;
+        if l_pontos > 0 then
+          -- Inserção ordenada: mais pontos, depois mais acessos
+          l_a.id := r.id_artigo; l_a.titulo := r.ds_titulo; l_a.minutos := r.nr_min_leitura;
+          l_a.pontos := l_pontos; l_a.acessos := r.nr_acessos;
+          l_i := l_achados.count;
+          while l_i > 0
+            and (l_achados(l_i).pontos < l_pontos
+                 or (l_achados(l_i).pontos = l_pontos and l_achados(l_i).acessos < r.nr_acessos)) loop
+            l_achados(l_i + 1) := l_achados(l_i);
+            l_i := l_i - 1;
+          end loop;
+          l_achados(l_i + 1) := l_a;
+        end if;
+      end loop;
+
+      l_qt := least(l_achados.count, c_max_busca);
+      if l_qt > 0 then
+        p('<ul class="cx-sup-artigos">');
+        for i in 1 .. l_qt loop
+          p(linha_artigo(l_achados(i).id, l_achados(i).titulo, l_achados(i).minutos));
+        end loop;
+        p('</ul>');
+      end if;
+    end if;
+
+    p('<p class="cx-sup-resultados__rodape">'
+      || case when l_qt = 0 then 'Nenhum artigo encontrado. ' else 'Não resolveu? ' end
+      || '<a class="cx-sup-link" href="' || a(url_abrir) || '">Abrir chamado</a></p>');
+
+    apex_json.open_object;
+    apex_json.write('ok', true);
+    apex_json.write('html', g_html);
+    apex_json.close_object;
+  exception
+    when others then
+      responder_erro(sqlcode, sqlerrm);
+  end ajax_buscar;
+
+  procedure ajax_confirmar (p_id_chamado in number) is
+  begin
+    pkg_suporte.confirmar_solucao(p_id_chamado);
+    apex_json.open_object;
+    apex_json.write('ok', true);
+    apex_json.write('mensagem', 'Chamado encerrado. Obrigado por confirmar.');
+    apex_json.close_object;
+  exception
+    when others then
+      responder_erro(sqlcode, sqlerrm);
+  end ajax_confirmar;
+
+end pkg_suporte_ui;
 /

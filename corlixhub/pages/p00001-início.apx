@@ -13,7 +13,7 @@ page 1 (
         functionAndGlobalVariableDeclaration:
             ```javascript-browser
             // O pkg_home_ui manda as fotos como data-cx-foto="Fotos Colaboradores/x.jpg".
-            // Aqui o caminho vira URL da pasta de arquivos do app (#APP_FILES#).
+            // Aqui o nome vira URL da página 44, que entrega a foto do bucket privado.
             function cxHomeCarregarFotos(raiz) {
               (raiz || document).querySelectorAll("img[data-cx-foto]").forEach(function (img) {
                 const nome = img.dataset.cxFoto.split("/").pop();
@@ -21,22 +21,144 @@ page 1 (
                 img.src = location.pathname.replace(/[^/]*$/, "") + "foto?session=" + apex.env.APP_SESSION + "&x01=" + encodeURIComponent(nome);
               });
             }
+            
+            // Comunicados em carrossel: a Cards vira uma faixa com rolagem horizontal
+            // (CSS em home.css) e aqui ganham as setas e os pontos. Refeito a cada refresh.
+            function cxHomeCarrossel(regiao) {
+              const corpo = regiao.querySelector(".t-Region-body");
+              const trilho = regiao.querySelector(".a-CardView-items");
+              if (!corpo) return;
+              corpo.querySelectorAll(".cx-carrossel__nav").forEach(function (el) { el.remove(); });
+              if (!trilho) return;
+            
+              const slides = trilho.querySelectorAll(".a-CardView-item");
+              if (slides.length < 2) return;
+            
+              const nav = document.createElement("div");
+              nav.className = "cx-carrossel__nav";
+              nav.innerHTML =
+                '<button type="button" class="cx-carrossel__seta cx-carrossel__seta--anterior" aria-label="Comunicado anterior">' +
+                '<span class="fa fa-chevron-left" aria-hidden="true"></span></button>' +
+                '<button type="button" class="cx-carrossel__seta cx-carrossel__seta--proxima" aria-label="Próximo comunicado">' +
+                '<span class="fa fa-chevron-right" aria-hidden="true"></span></button>' +
+                '<div class="cx-carrossel__pontos"></div>';
+              const pontos = nav.querySelector(".cx-carrossel__pontos");
+              slides.forEach(function (_, i) {
+                const ponto = document.createElement("button");
+                ponto.type = "button";
+                ponto.className = "cx-carrossel__ponto";
+                ponto.setAttribute("aria-label", "Comunicado " + (i + 1) + " de " + slides.length);
+                ponto.addEventListener("click", function () { irPara(i); });
+                pontos.appendChild(ponto);
+              });
+              corpo.appendChild(nav);
+            
+              function atual() {
+                return Math.round(trilho.scrollLeft / trilho.clientWidth);
+              }
+              function irPara(i) {
+                const total = slides.length;
+                trilho.scrollTo({ left: ((i + total) % total) * trilho.clientWidth });
+              }
+              function marcar() {
+                const i = atual();
+                pontos.querySelectorAll(".cx-carrossel__ponto").forEach(function (ponto, j) {
+                  ponto.setAttribute("aria-current", j === i ? "true" : "false");
+                });
+              }
+            
+              nav.querySelector(".cx-carrossel__seta--anterior").addEventListener("click", function () { irPara(atual() - 1); });
+              nav.querySelector(".cx-carrossel__seta--proxima").addEventListener("click", function () { irPara(atual() + 1); });
+              trilho.addEventListener("scroll", function () { window.requestAnimationFrame(marcar); }, { passive: true });
+              marcar();
+            }
+            
+            // "Ponto de hoje" (guia §7): relógio e horas trabalhadas. A hora vem do servidor
+            // (data-segundos) e aqui só avança; o refresh do hero troca o painel e recomeça.
+            // Mesma conta do relógio da página 30 (ponto-pagina.js).
+            let cxHomePontoBase = null;
+            
+            function cxHomePontoRelogio() {
+              const painel = document.querySelector("[data-cx-home-ponto]");
+              if (!painel) { return; }
+            
+              function dois(n) { return String(n).padStart(2, "0"); }
+              function horas(min) { return Math.floor(min / 60) + "h" + dois(min % 60); }
+            
+              if (!cxHomePontoBase || cxHomePontoBase.painel !== painel) {
+                cxHomePontoBase = { painel: painel, inicio: Date.now(), segundos: Number(painel.dataset.segundos) };
+              }
+              const passados = Math.floor((Date.now() - cxHomePontoBase.inicio) / 1000);
+              const agora = (cxHomePontoBase.segundos + passados) % 86400;
+              const hora = painel.querySelector("[data-cx-home-ponto-hora]");
+              const texto = dois(Math.floor(agora / 3600)) + ":" + dois(Math.floor(agora / 60) % 60);
+              if (hora.textContent !== texto) { hora.textContent = texto; }
+            
+              if (painel.dataset.correndo === "S") {
+                const minutos = Math.floor(((cxHomePontoBase.segundos % 60) + passados) / 60);
+                const trabalhados = Number(painel.dataset.trabalhados) + minutos;
+                const meta = Number(painel.dataset.meta);
+                painel.querySelector("[data-cx-home-ponto-resumo]").textContent = horas(trabalhados) + " trabalhadas · "
+                  + (trabalhados >= meta ? "jornada completa" : "faltam " + horas(meta - trabalhados));
+              }
+            }
             ```
         executeWhenPageLoads:
             ```javascript-browser
             cxHomeCarregarFotos();
             
-            // "Ver todos" dos aniversariantes abre o diálogo com o mês inteiro
+            document.querySelectorAll(".cx-home-carrossel").forEach(cxHomeCarrossel);
+            
+            // Depois do "Novo comunicado" a DA dá refresh na Cards: monta as setas de novo
+            $(document).on("apexafterrefresh", ".cx-home-carrossel", function () {
+              cxHomeCarrossel(this);
+            });
+            
+            // "Ver todos" das celebrações abre o diálogo com o mês inteiro
             $(document).on("click", "[data-cx-acao='aniversariantes']", function () {
               apex.theme.openRegion("aniversariantes_todos");
             });
             
-            // Links rápidos ainda sem destino (Holerite digital, Ponto eletrônico, Suporte TI)
+            // Links rápidos ainda sem destino (Suporte TI)
             $(document).on("click", ".cx-home-atalho[aria-disabled='true']", function (evento) {
               evento.preventDefault();
               apex.message.alert("Este atalho ainda não tem destino configurado.");
             });
+            
+            // "Registrar saída" (e entrada, intervalo, retorno): Ajax Callback REGISTRAR_MARCACAO,
+            // o mesmo da página 30, que responde {ok, mensagem}. Depois, refaz o hero.
+            $(document).on("click", "[data-cx-home-registrar]", function () {
+              const botao = this;
+              botao.disabled = true;
+              apex.server.process("REGISTRAR_MARCACAO", { x01: botao.dataset.cxHomeRegistrar }, { dataType: "json" })
+                .done(function (resposta) {
+                  apex.message.clearErrors();
+                  if (resposta.ok) {
+                    apex.message.showPageSuccess(resposta.mensagem);
+                    apex.region("home_hero").refresh();
+                  } else {
+                    apex.message.showErrors([{ type: "error", location: "page", message: resposta.mensagem, unsafe: true }]);
+                  }
+                })
+                .fail(function () {
+                  apex.message.showErrors([{ type: "error", location: "page",
+                    message: "Não foi possível falar com o servidor. Confira sua conexão e tente de novo.", unsafe: false }]);
+                })
+                .always(function () { botao.disabled = false; });
+            });
+            
+            // Pedido de ajuste enviado pela página 31 ("Justificar"): a lista de pendências muda
+            $(document).on("apexafterclosedialog", function () {
+              const pendencias = apex.region("home_pendencias");
+              if (pendencias) { pendencias.refresh(); }
+            });
+            
+            cxHomePontoRelogio();
+            setInterval(cxHomePontoRelogio, 1000);
             ```
+    }
+    css {
+        fileUrls: #APP_FILES#modulos/home/home#MIN#.css
     }
     security {
         pageAccessProtection: argumentsMustHaveChecksum
@@ -44,11 +166,11 @@ page 1 (
     }
 
     region aniversariantes_todos (
-        name: Aniversariantes
-        title: Aniversariantes de &P1_MES_ATUAL.
+        name: Celebrações
+        title: Celebrações de &P1_MES_ATUAL.
         type: dynamicContent
         source {
-            plsqlFunctionBody: return pkg_home_ui.render_aniversariantes(p_limite => null, p_ver_todos => 'N');
+            plsqlFunctionBody: return pkg_home_ui.render_celebracoes(p_limite => null, p_ver_todos => 'N');
         }
         layout {
             sequence: 40
@@ -82,12 +204,26 @@ page 1 (
         }
     )
 
+    region coluna-principal (
+        name: Coluna principal
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+            columnSpan: 8
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
     region home_aniversariantes (
-        name: Aniversariantes
-        title: <span class="fa fa-birthday-cake" aria-hidden="true"></span>Aniversariantes de &P1_MES_ATUAL.
+        name: Celebrações
+        title: <span class="fa fa-birthday-cake" aria-hidden="true"></span>Celebrações de &P1_MES_ATUAL.
         type: dynamicContent
         source {
-            plsqlFunctionBody: return pkg_home_ui.render_aniversariantes;
+            plsqlFunctionBody: return pkg_home_ui.render_celebracoes;
         }
         layout {
             sequence: 20
@@ -127,20 +263,21 @@ page 1 (
                          || to_char(c.data_publicacao, 'fmmonth', 'NLS_DATE_LANGUAGE=''BRAZILIAN PORTUGUESE''')
                          || case when extract(year from c.data_publicacao) <> extract(year from sysdate)
                                  then ' de ' || to_char(c.data_publicacao, 'yyyy')
-                            end as data_publicacao_txt
+                            end as data_publicacao_txt,
+                       -- selo "Novo": publicado nos últimos 7 dias
+                       case when c.data_publicacao >= trunc(sysdate) - 7 then 'Novo' end as selo
                   from comunicado c
                   left join departamento d
                     on d.id_departamento = c.id_departamento
                  where c.id_empresa = :G_ID_EMPRESA
                  order by c.data_publicacao desc, c.id_comunicado desc
-                 fetch first 3 rows only
-                
+                 fetch first 5 rows only
                 ```
         }
         layout {
-            sequence: 20
-            slot: body
-            columnSpan: 8
+            sequence: 10
+            parentRegion: @coluna-principal
+            slot: subRegions
         }
         appearance {
             template: @/standard
@@ -152,6 +289,7 @@ page 1 (
             cssClasses: [
                 cx-home-card
                 cx-home-comunicados
+                cx-home-carrossel
             ]
         }
         componentAppearance {
@@ -165,6 +303,7 @@ page 1 (
             htmlExpression:
                 ```html
                 <span class="cx-home-comunicado__meta">
+                  {if SELO/}<span class="cx-badge cx-badge--info">&SELO.</span>{endif/}
                   <span class="cx-etiqueta">&PUBLICO.</span>
                   <span>&DATA_PUBLICACAO_TXT.</span>
                 </span>
@@ -186,6 +325,23 @@ page 1 (
         messages {
             whenNoDataFound: Nenhum comunicado publicado. Os comunicados oficiais aparecerão aqui.
         }
+
+        action action (
+            label: Ler comunicado
+            layout {
+                sequence: 10
+            }
+            behavior {
+                target: {
+                    page: 11
+                }
+            }
+            appearance {
+                displayType: textWithIcon
+                icon: fa-arrow-right
+            }
+        )
+
     )
 
     region home_hero (
@@ -201,6 +357,9 @@ page 1 (
         appearance {
             template: @/blank-with-attributes
             templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: home_hero
         }
     )
 
@@ -223,6 +382,51 @@ page 1 (
                 t-Region--scrollBody
             ]
             cssClasses: cx-home-card
+        }
+    )
+
+    region indicadores (
+        name: Indicadores
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_home_ui.render_indicadores;
+        }
+        layout {
+            sequence: 15
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: home_indicadores
+        }
+    )
+
+    region suas-pendências (
+        name: Suas pendências
+        title: Suas pendências<span class="cx-home-card__subtitulo">Itens que aguardam uma ação sua</span>
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_home_ui.render_pendencias;
+        }
+        layout {
+            sequence: 20
+            parentRegion: @coluna-principal
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+            cssClasses: cx-home-card
+        }
+        advanced {
+            htmlDomId: home_pendencias
         }
     )
 
@@ -328,6 +532,24 @@ page 1 (
                 pkg_home_ui.mes_atual
                 
                 ```
+        }
+    )
+
+    process registrar-marcacao (
+        name: REGISTRAR_MARCACAO
+        type: executeCode
+        source {
+            plsqlCode: pkg_ponto_ui.ajax_registrar(apex_application.g_x01);
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 47612812573452018
+        }
+        security {
+            authorizationScheme: @colaborador
         }
     )
 

@@ -1,6 +1,19 @@
 breadcrumb breadcrumb (
     name: Breadcrumb
 
+    entry artigos (
+        name: Artigos
+        pageNumber: 42
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 42
+            }
+        }
+    )
+
     entry cadastros (
         name: Cadastro de Usuários
         pageNumber: 14
@@ -153,6 +166,19 @@ breadcrumb breadcrumb (
         link {
             target: {
                 page: 3
+            }
+        }
+    )
+
+    entry status-dos-sistemas (
+        name: Status dos sistemas
+        pageNumber: 40
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 40
             }
         }
     )

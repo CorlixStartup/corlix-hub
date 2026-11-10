@@ -1,0 +1,264 @@
+/* ==========================================================================
+   Corlix Hub · Login (página 9999) · protótipo pen_dev/Login.png
+   Template de página "Login" do Universal Theme. Todas as regras ficam sob
+   .t-PageBody--login, a classe que o template põe no <body>: só a página de
+   login a usa.
+   Estrutura do template (lida na app em 09/11/2026):
+     .t-Login-bg > .t-Login-bgImg       camada fixa de fundo -> painel da arte
+     .t-Login-container > main > .container > .row (uma por região)
+   Arte: login-arte.jpg, na mesma pasta deste arquivo (Static Application Files).
+   ========================================================================== */
+
+/* --- 1. Página e coluna do formulário ------------------------------------ */
+.t-PageBody--login {
+    background: var(--cx-superficie);
+    color: var(--cx-texto);
+    font-family: var(--cx-fonte);
+}
+
+.t-PageBody--login .t-Login-bg {
+    display: none;
+}
+
+.t-PageBody--login .t-Login-container {
+    display: block;
+    min-height: 100vh;
+    width: 100%;
+    padding: 0;
+    background: var(--cx-superficie);
+}
+
+.t-PageBody--login .t-Login-containerBody {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+}
+
+.t-PageBody--login .t-Login-containerBody > .container {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    max-width: 37.5rem;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.t-PageBody--login .t-Login-containerBody > .container > .row {
+    margin: 0;
+}
+
+/* O rodapé desce até o fim da coluna */
+.t-PageBody--login .row:has(.cx-login-rodape) {
+    margin-top: auto;
+}
+
+/* --- 2. Região de login sem o card padrão -------------------------------- */
+.t-PageBody--login .t-Login-region {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Título e ícone do template saem: o título vem de render_cabecalho */
+.t-PageBody--login .t-Login-header {
+    display: none;
+}
+
+.t-PageBody--login .t-Login-body,
+.t-PageBody--login .t-Login-buttons {
+    padding: 0;
+}
+
+.t-PageBody--login .t-Login-buttons {
+    margin-top: 1.5rem;
+}
+
+.t-PageBody--login .t-Login-buttons .t-Button {
+    width: 100%;
+    min-height: 3rem;
+    border-radius: var(--cx-raio);
+    background: var(--cx-escuro);
+    color: var(--cx-superficie);
+    font-weight: 600;
+}
+
+.t-PageBody--login .t-Login-buttons .t-Button:hover,
+.t-PageBody--login .t-Login-buttons .t-Button:focus-visible {
+    background: var(--cx-texto);
+}
+
+/* --- 3. Cabeçalho -------------------------------------------------------- */
+.cx-login-marca {
+    margin: 0 0 clamp(2.5rem, 16vh, 9rem);
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1.75rem;
+    color: var(--cx-texto);
+}
+
+.cx-login-titulo {
+    margin: 0 0 .75rem;
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 2.75rem;
+    letter-spacing: -.01em;
+    color: var(--cx-texto);
+}
+
+.cx-login-descricao {
+    margin: 0 0 2rem;
+    font-size: 1.0625rem;
+    line-height: 1.5rem;
+    color: var(--cx-texto-2);
+}
+
+/* --- 4. Manter conectado + Esqueci minha senha --------------------------- */
+/* A classe cx-login-esqueci vai no próprio botão (Appearance › CSS Classes).
+   Botão em bloco mantém a largura do texto; margin-left: auto o leva à direita. */
+.t-PageBody--login .t-Button.cx-login-esqueci {
+    display: block;
+    margin: .375rem 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--cx-primaria);
+    font-weight: 600;
+}
+
+.t-PageBody--login .t-Button.cx-login-esqueci:hover,
+.t-PageBody--login .t-Button.cx-login-esqueci:focus-visible {
+    color: var(--cx-primaria-hover);
+    text-decoration: underline;
+}
+
+.cx-login-esqueci-texto p {
+    margin: 0 0 .75rem;
+    line-height: 1.5rem;
+    color: var(--cx-texto-2);
+}
+
+.cx-login-esqueci-texto p:last-child {
+    margin-bottom: 0;
+}
+
+/* --- 5. Primeiro acesso -------------------------------------------------- */
+.cx-login-aviso {
+    display: flex;
+    gap: .875rem;
+    margin-top: 2.25rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--cx-borda);
+}
+
+.cx-login-icone {
+    flex: none;
+    margin-top: .125rem;
+    fill: none;
+    stroke: var(--cx-texto-2);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.cx-login-aviso__titulo {
+    margin: 0 0 .25rem;
+    font-weight: 600;
+    color: var(--cx-texto);
+}
+
+.cx-login-aviso__texto {
+    margin: 0;
+    line-height: 1.5rem;
+    color: var(--cx-texto-2);
+}
+
+/* --- 6. Rodapé ----------------------------------------------------------- */
+.cx-login-rodape {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: .5rem 1.5rem;
+    padding-top: 2.5rem;
+    font-size: .9375rem;
+    color: var(--cx-texto-2);
+}
+
+.cx-login-rodape p {
+    margin: 0;
+}
+
+/* --- 7. Card sobre a arte ------------------------------------------------ */
+/* Em telas estreitas a arte some, e o card também */
+.cx-login-destaque {
+    display: none;
+}
+
+/* --- 8. Tela larga: formulário à esquerda, arte à direita ---------------- */
+@media (min-width: 64rem) {
+    .t-PageBody--login .t-Login-bg {
+        display: block;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 41.66%;
+        width: auto;
+        background: var(--cx-tag) url("login-arte.jpg") center / cover no-repeat;
+    }
+
+    .t-PageBody--login .t-Login-bgImg {
+        display: none;
+    }
+
+    .t-PageBody--login .t-Login-container {
+        width: 41.66%;
+    }
+
+    .t-PageBody--login .t-Login-containerBody {
+        padding: 3.5rem clamp(2rem, 7vw, 9rem);
+    }
+
+    .t-PageBody--login .t-Login-containerBody > .container {
+        margin: 0;
+    }
+
+    .cx-login-destaque {
+        display: block;
+        position: fixed;
+        bottom: 6vh;
+        left: calc(41.66% + 3.5vw);
+        width: min(31rem, 45vw);
+        padding: 2rem 2.25rem;
+        border-radius: var(--cx-raio-card);
+        background: var(--cx-superficie);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+    }
+
+    .cx-login-destaque__selo {
+        margin: 0 0 .75rem;
+        font-weight: 600;
+        color: var(--cx-primaria);
+    }
+
+    .cx-login-destaque__titulo {
+        margin: 0 0 1rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 2rem;
+        color: var(--cx-texto);
+    }
+
+    .cx-login-destaque__texto {
+        margin: 0;
+        line-height: 1.5rem;
+        color: var(--cx-texto-2);
+    }
+}

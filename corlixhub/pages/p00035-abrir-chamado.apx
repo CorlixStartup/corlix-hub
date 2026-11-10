@@ -1,0 +1,275 @@
+page 35 (
+    name: Abrir chamado
+    alias: ABRIR-CHAMADO
+    title: Abrir chamado
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @colaborador
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region botões (
+        name: Botões
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P35_ANEXO (
+        type: fileUpload
+        label {
+            label: Anexo
+            alignment: left
+        }
+        storage {
+            type: appTempFiles
+            purgeFileAt: endOfRequest
+            fileTypes: .png,.jpg,.jpeg,.pdf,.txt,.log
+        }
+        layout {
+            sequence: 50
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        help {
+            inlineHelpText: Opcional. PNG, JPG, PDF, TXT ou LOG, até 5 MB.
+        }
+    )
+
+    pageItem P35_DS_TEXTO (
+        type: textarea
+        label {
+            label: Descrição
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            valueRequired: true
+            maxLength: 3500
+        }
+        help {
+            inlineHelpText: Conte o que aconteceu, desde quando e a mensagem de erro, se houver.
+        }
+    )
+
+    pageItem P35_DS_TITULO (
+        type: textField
+        label {
+            label: Título
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        validation {
+            valueRequired: true
+            maxLength: 140
+        }
+        help {
+            inlineHelpText: Resuma em poucas palavras.
+        }
+    )
+
+    pageItem P35_ID_ASSUNTO (
+        type: selectList
+        label {
+            label: Assunto
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select nm_assunto as d, id_assunto as r
+                  from suporte_assunto
+                 where id_empresa = :G_ID_EMPRESA
+                   and fl_ativo = 'S'
+                 order by nr_ordem
+                ```
+            nullDisplayValue: Escolha
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    pageItem P35_TP_CHAMADO (
+        type: radioGroup
+        label {
+            label: O que você precisa?
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:Algo não está funcionando;INC,Quero pedir algo;REQ
+            displayNullValue: false
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: static
+            staticValue: INC
+        }
+    )
+
+    button abrir (
+        buttonName: ABRIR
+        label: Abrir chamado
+        layout {
+            sequence: 10
+            region: @botões
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    button cancelar (
+        buttonName: CANCELAR
+        label: Cancelar
+        layout {
+            sequence: 10
+            region: @botões
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    dynamicAction cancelar (
+        name: Cancelar
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancelar
+        }
+
+        action true (
+            name: True
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process abrir (
+        name: Abrir
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                declare
+                  l_id number;
+                begin
+                  l_id := pkg_suporte.abrir_chamado(
+                            p_tp_chamado => :P35_TP_CHAMADO,
+                            p_id_assunto => :P35_ID_ASSUNTO,
+                            p_ds_titulo  => :P35_DS_TITULO,
+                            p_ds_texto   => :P35_DS_TEXTO,
+                            p_anexo      => :P35_ANEXO);
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 46623309248225845
+        }
+        serverSideCondition {
+            whenButtonPressed: @abrir
+        }
+    )
+
+    process fechar (
+        name: Fechar
+        type: closeDialog
+        execution {
+            sequence: 20
+        }
+        successMessage {
+            successMessage: Chamado aberto. A equipe de TI vai responder por aqui.
+        }
+        advanced {
+            executionMappingIdentifier: 46623478933225846
+        }
+        serverSideCondition {
+            whenButtonPressed: @abrir
+        }
+    )
+
+)
+

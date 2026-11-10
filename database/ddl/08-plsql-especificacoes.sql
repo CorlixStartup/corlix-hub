@@ -46,6 +46,15 @@ exception
 end fn_carreira_ve_salario;
 /
 
+  CREATE OR REPLACE EDITIONABLE FUNCTION "FN_COLAB_E_EQUIPE" return number authid definer is
+begin
+  if nvl(v('APP_ID'), '0') <> '100' then
+    return 0;
+  end if;
+  return case when apex_authorization.is_authorized('EQUIPE_CORLIX_HUB') then 1 else 0 end;
+end;
+/
+
   CREATE OR REPLACE EDITIONABLE FUNCTION "FN_COLAB_TEM_PAPEL" (
     p_login in varchar2,
     p_papel in varchar2,
@@ -53,18 +62,18 @@ end fn_carreira_ve_salario;
 ) return number
 authid definer
 is
+    l_qt pls_integer;
 begin
     if p_login is null or p_app_id is null then
         return 0;
     end if;
-    if apex_acl.has_user_role(
-        p_application_id => p_app_id,
-        p_user_name => p_login,
-        p_role_static_id => p_papel
-    ) then
-        return 1;
-    end if;
-    return 0;
+    select count(*)
+      into l_qt
+      from apex_appl_acl_user_roles
+     where application_id = p_app_id
+       and upper(user_name) = upper(trim(p_login))
+       and role_static_id = p_papel;
+    return case when l_qt > 0 then 1 else 0 end;
 end;
 /
 
@@ -415,8 +424,21 @@ end pkg_holerite_ui;
 
   function mes_atual return varchar2;
 
+  -- Conta sem colaborador ou empresa sem jornada: hero sem o painel do ponto
   function render_hero (
-    p_login in varchar2 default v('APP_USER')
+    p_login          in varchar2 default v('APP_USER'),
+    p_id_colaborador in number   default null
+  ) return clob;
+
+  -- Banco de horas. Conta sem colaborador: não devolve nada.
+  function render_indicadores (
+    p_id_colaborador in number default null
+  ) return clob;
+
+  -- Marcações ausentes e faltas dos últimos 30 dias, espelho a assinar e, para
+  -- quem aprova (APROVADOR_PONTO), os pedidos de ajuste aguardando resposta.
+  function render_pendencias (
+    p_id_colaborador in number default null
   ) return clob;
 
   function render_meu_gestor (
@@ -428,6 +450,13 @@ end pkg_holerite_ui;
   function render_aniversariantes (
     p_id_empresa in number      default to_number(v('G_ID_EMPRESA') default null on conversion error),
     p_limite     in pls_integer default 3,
+    p_ver_todos  in varchar2    default 'S'
+  ) return clob;
+
+  -- Aniversários e anos de empresa (admissão) do mês. Mesmos parâmetros acima.
+  function render_celebracoes (
+    p_id_empresa in number      default to_number(v('G_ID_EMPRESA') default null on conversion error),
+    p_limite     in pls_integer default 4,
     p_ver_todos  in varchar2    default 'S'
   ) return clob;
 
@@ -665,6 +694,111 @@ end pkg_ponto;
   procedure ajax_baixar_espelho (p_competencia in varchar2);
 
 end pkg_ponto_ui;
+/
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_SUPORTE" authid definer as
+
+  c_aberto     constant varchar2(20) := 'ABERTO';
+  c_atendimento constant varchar2(20) := 'EM_ATENDIMENTO';
+  c_aguardando constant varchar2(20) := 'AGUARDANDO_USUARIO';
+  c_resolvido  constant varchar2(20) := 'RESOLVIDO';
+  c_encerrado  constant varchar2(20) := 'ENCERRADO';
+
+  -- Tamanho máximo de um anexo, em bytes (5 MB)
+  c_max_anexo constant number := 5242880;
+
+  -- Colaborador da conta logada na empresa da sessão. Sem vínculo: -20076.
+  function fn_colaborador_logado return number;
+
+  -- 'S' se a conta logada tem a autorização SUPORTE_TI nesta sessão.
+  function fn_e_ti return varchar2;
+
+  -- "INC-4821"
+  function fn_codigo (p_tp_chamado in varchar2, p_id_chamado in number) return varchar2;
+
+  -- Situação do chamado, se a conta logada pode vê-lo: o solicitante ou a TI da
+  -- mesma empresa. Caso contrário: -20077, sem dizer se o chamado existe.
+  function fn_situacao (p_id_chamado in number) return varchar2;
+
+  -- p_tp_chamado: INC (algo não funciona) ou REQ (pedido). p_anexo é o NAME do
+  -- item File Upload (apex_application_temp_files), ou nulo.
+  function abrir_chamado (
+    p_tp_chamado in varchar2,
+    p_id_assunto in number,
+    p_ds_titulo  in varchar2,
+    p_ds_texto   in varchar2,
+    p_anexo      in varchar2 default null
+  ) return number;
+
+  -- Colaborador responde no próprio chamado
+  procedure responder (
+    p_id_chamado in number,
+    p_ds_texto   in varchar2,
+    p_anexo      in varchar2 default null
+  );
+
+  -- "Sim, encerrar"
+  procedure confirmar_solucao (p_id_chamado in number);
+
+  -- "Não, reabrir". O motivo é obrigatório.
+  procedure reabrir (
+    p_id_chamado in number,
+    p_ds_texto   in varchar2,
+    p_anexo      in varchar2 default null
+  );
+
+  -- Ação da TI. p_acao:
+  --   ASSUMIR   -> fica com quem está atendendo; mensagem opcional
+  --   RESPONDER -> mensagem ao colaborador, segue em atendimento
+  --   PEDIR     -> mensagem que espera o colaborador (Aguardando você)
+  --   RESOLVER  -> a mensagem é a solução; abre o prazo de confirmação
+  -- p_dt_previsao em DD/MM/YYYY; nula apaga a previsão.
+  procedure atender (
+    p_id_chamado    in number,
+    p_acao          in varchar2,
+    p_ds_texto      in varchar2,
+    p_tp_prioridade in varchar2,
+    p_dt_previsao   in varchar2,
+    p_anexo         in varchar2 default null
+  );
+
+  -- Encerra os resolvidos cujo prazo de confirmação chegou. Roda pelo job
+  -- SUPORTE_ENCERRAR_VENCIDOS (fora de sessão APEX). Devolve quantos encerrou.
+  function encerrar_vencidos return number;
+
+  -- Soma um acesso, se o artigo é publicado e da empresa da sessão.
+  procedure registrar_acesso_artigo (p_id_artigo in number);
+
+  -- Envia o arquivo ao navegador, se a conta logada pode ver o chamado.
+  procedure baixar_anexo (p_id_anexo in number);
+
+end pkg_suporte;
+/
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_SUPORTE_UI" authid definer as
+
+  -- Página 34 · Suporte TI
+  function render_cabecalho return clob;
+  function render_aviso return clob;
+  function render_ajuda return clob;
+  function render_chamados return clob;
+  function render_status return clob;
+  function render_artigos return clob;
+  function render_contato return clob;
+
+  -- Páginas 36 e 39: resumo do chamado e conversa, com os anexos.
+  function render_conversa (p_id_chamado in number) return clob;
+
+  -- Página 37 · Base de conhecimento. Com p_id_artigo mostra o artigo; sem ele,
+  -- os artigos do assunto ou, sem assunto, todos, agrupados.
+  function render_base (p_id_assunto in number default null, p_id_artigo in number default null) return clob;
+
+  -- Ajax Callbacks da página 34. Respondem {"ok":true|false,"mensagem":"..."}.
+  -- ajax_buscar responde também "html", com os artigos encontrados.
+  procedure ajax_buscar (p_termo in varchar2);
+  procedure ajax_confirmar (p_id_chamado in number);
+
+end pkg_suporte_ui;
 /
 
   CREATE OR REPLACE EDITIONABLE PROCEDURE "PRC_GERAR_HOLERITES_PENDENTES" (

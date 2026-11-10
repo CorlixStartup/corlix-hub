@@ -31,3 +31,10 @@ role publicador-de-conteúdo (
     name: Publicador de Conteúdo
 )
 
+role suporte-ti (
+    name: Suporte TI
+    description {
+        description: Equipe de TI. Atende chamados e mantém o status dos sistemas e os artigos.
+    }
+)
+

@@ -461,15 +461,14 @@ page 14 (
                 ```sql
                 SELECT c.NOME_COMPLETO d,
                        c.ID_COLABORADOR r
-                FROM COLABORADOR c
-                WHERE c.ID_EMPRESA = :P14_EMPRESA
-                  AND EXISTS (
-                        SELECT 1
-                        FROM CARGO_PAPEL cp
-                        WHERE cp.ID_CARGO = c.ID_CARGO
-                          AND cp.CD_PAPEL = 'gestor'
-                      )
-                ORDER BY c.NOME_COMPLETO;
+                  FROM COLABORADOR c
+                 WHERE c.ID_EMPRESA = :P14_EMPRESA
+                   AND (c.ID_COLABORADOR = :P14_GESTOR
+                        OR EXISTS (SELECT 1
+                                     FROM CARGO_PAPEL cp
+                                    WHERE cp.ID_CARGO = c.ID_CARGO
+                                      AND cp.CD_PAPEL = 'gestor'))
+                 ORDER BY c.NOME_COMPLETO
                 ```
         }
         cascadingLov {
@@ -492,8 +491,12 @@ page 14 (
             column: ID_GESTOR
             dataType: number
         }
+        readOnly {
+            type: itemIsNotNull
+            item: P14_ID_COLABORADOR
+        }
         help {
-            inlineHelpText: Busque pelo nome. Deixe em branco para quem está no topo da hierarquia (ex.: CEO).
+            inlineHelpText: Quem está no topo da hierarquia (ex.: CEO) não tem gestor.
         }
     )
 
@@ -643,6 +646,13 @@ page 14 (
             label: Situação da conta
             alignment: left
         }
+        settings {
+            useDefaults: false
+            onValue: Y
+            onLabel: Ativa
+            offValue: N
+            offLabel: Inativa
+        }
         layout {
             sequence: 50
             region: @status-do-registro
@@ -665,6 +675,10 @@ page 14 (
         sessionState {
             dataType: boolean
             storage: session
+        }
+        readOnly {
+            type: itemIsNotNull
+            item: P14_ID_COLABORADOR
         }
         help {
             inlineHelpText: Contas inativas não conseguem entrar no sistema.
@@ -997,26 +1011,6 @@ page 14 (
         }
     )
 
-    process confirmar-alteração (
-        name: Confirmar alteração
-        type: executeCode
-        source {
-            plsqlCode: null;
-        }
-        execution {
-            sequence: 40
-        }
-        successMessage {
-            successMessage: Alterações salvas.
-        }
-        advanced {
-            executionMappingIdentifier: 46620741248225819
-        }
-        serverSideCondition {
-            whenButtonPressed: @salvar-alteracoes
-        }
-    )
-
     process criar-usuario-apex (
         name: Criar usuário APEX
         type: executeCode
@@ -1098,6 +1092,9 @@ page 14 (
         formRegion: @novo
         execution {
             sequence: 10
+        }
+        successMessage {
+            successMessage: Dados salvos.
         }
         advanced {
             executionMappingIdentifier: 9205500288147838

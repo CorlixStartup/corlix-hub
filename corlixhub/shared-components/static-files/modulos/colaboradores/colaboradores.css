@@ -21,11 +21,16 @@
 .cx-colab-pessoa__nome {
     font-size: 14px;
     font-weight: 600;
-    color: var(--cx-primaria);
+    color: var(--cx-texto);
     text-decoration: none;
 }
 
-.cx-colab-pessoa__nome:hover {
+/* Azul só quando o nome é link (quem pode editar). */
+a .cx-colab-pessoa__nome {
+    color: var(--cx-primaria);
+}
+
+a:hover .cx-colab-pessoa__nome {
     text-decoration: underline;
 }
 
@@ -89,7 +94,7 @@
 }
 
 .cx-colab-barra__total::after {
-    content: " colaboradores";
+    content: attr(data-sufixo);
 }
 
 .cx-colab-barra .t-Form-fieldContainer {

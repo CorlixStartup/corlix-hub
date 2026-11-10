@@ -1,0 +1,297 @@
+page 36 (
+    name: Chamado
+    alias: CHAMADO
+    title: Chamado
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        width: 760
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        fileUrls: #APP_FILES#modulos/suporte-ti/suporte#MIN#.css
+    }
+    security {
+        authorizationScheme: @colaborador
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region botões (
+        name: Botões
+        type: staticContent
+        layout {
+            sequence: 70
+            slot: contentBody
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region conversa (
+        name: Conversa
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_suporte_ui.render_conversa(:P36_ID_CHAMADO);
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P36_ANEXO (
+        type: fileUpload
+        label {
+            label: Anexo
+            alignment: left
+        }
+        storage {
+            type: appTempFiles
+            fileTypes: .png,.jpg,.jpeg,.pdf,.txt,.log
+        }
+        layout {
+            sequence: 60
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        help {
+            inlineHelpText: Opcional. PNG, JPG, PDF, TXT ou LOG, até 5 MB.
+        }
+    )
+
+    pageItem P36_DS_TEXTO (
+        type: textarea
+        label {
+            label: Sua mensagem
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            maxLength: 3500
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P36_ST_CHAMADO in ('ABERTO', 'EM_ATENDIMENTO', 'AGUARDANDO_USUARIO', 'RESOLVIDO')
+        }
+    )
+
+    pageItem P36_ID_ANEXO (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+    )
+
+    pageItem P36_ID_CHAMADO (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+    )
+
+    pageItem P36_ST_CHAMADO (
+        type: hidden
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+    )
+
+    button cancelar (
+        buttonName: CANCELAR
+        label: Cancelar
+        layout {
+            sequence: 10
+            region: @botões
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button reabrir (
+        buttonName: REABRIR
+        label: Reabrir chamado
+        layout {
+            sequence: 30
+            region: @botões
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P36_ST_CHAMADO = 'RESOLVIDO'
+        }
+    )
+
+    button responder (
+        buttonName: RESPONDER
+        label: Enviar resposta
+        layout {
+            sequence: 20
+            region: @botões
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+        serverSideCondition {
+            type: expression
+            plsqlExpression: :P36_ST_CHAMADO in ('ABERTO', 'EM_ATENDIMENTO', 'AGUARDANDO_USUARIO')
+        }
+    )
+
+    dynamicAction cancelar (
+        name: Cancelar
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancelar
+        }
+
+        action true (
+            name: True
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process baixar-anexo (
+        name: Baixar anexo
+        type: executeCode
+        source {
+            plsqlCode: pkg_suporte.baixar_anexo(:P36_ID_ANEXO);
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 47207562540079514
+        }
+        serverSideCondition {
+            type: request=Value
+            value: BAIXAR_ANEXO
+        }
+    )
+
+    process carregar (
+        name: Carregar
+        type: executeCode
+        source {
+            plsqlCode: :P36_ST_CHAMADO := pkg_suporte.fn_situacao(:P36_ID_CHAMADO);
+        }
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 47207619680079515
+        }
+    )
+
+    process fechar (
+        name: Fechar
+        type: closeDialog
+        execution {
+            sequence: 30
+        }
+        successMessage {
+            successMessage: Mensagem enviada à equipe de TI.
+        }
+        advanced {
+            executionMappingIdentifier: 47207937152079518
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: RESPONDER,REABRIR
+        }
+    )
+
+    process reabrir (
+        name: Reabrir
+        type: executeCode
+        source {
+            plsqlCode: pkg_suporte.reabrir(:P36_ID_CHAMADO, :P36_DS_TEXTO, :P36_ANEXO);
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 47207824881079517
+        }
+        serverSideCondition {
+            whenButtonPressed: @reabrir
+        }
+    )
+
+    process responder (
+        name: Responder
+        type: executeCode
+        source {
+            plsqlCode: pkg_suporte.responder(:P36_ID_CHAMADO, :P36_DS_TEXTO, :P36_ANEXO);
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 47207757091079516
+        }
+        serverSideCondition {
+            whenButtonPressed: @responder
+        }
+    )
+
+)
+

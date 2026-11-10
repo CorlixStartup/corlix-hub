@@ -7,9 +7,19 @@
    depois; nos itens da Cards, o :nth-child(n) sobe a especificidade
    para passar das regras com :first-child da §12.4.
    Sem sombras (política do tema). Tokens --cx-* do corlix-tema.css.
+   Seções 5 a 7: blocos do ponto eletrônico (guia §7), no visual do
+   ponto.css da página 30.
    ============================================================ */
 
-/* --- 1. Hero: largura toda (o card "Ponto de hoje" depende de backend) --- */
+/* Cores de selo do ponto: os mesmos valores do ponto.css (página 30) */
+.t-Body {
+    --cx-home-atencao: #8A4B00;
+    --cx-home-atencao-fundo: #FDF0DC;
+    --cx-home-erro-fundo: #FCE8E6;
+    --cx-home-sucesso-fundo: #E6F2EA;
+}
+
+/* --- 1. Hero: largura toda; com o ponto, o painel ocupa a coluna da direita (§5) --- */
 
 .cx-home-hero {
     grid-template-columns: minmax(0, 1fr);
@@ -70,7 +80,8 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgba(22, 21, 19, .88) 0%, rgba(22, 21, 19, .6) 55%, rgba(22, 21, 19, .25) 100%);
+    /* Escuro até o fim do texto (~40%) e clareando só onde fica a foto */
+    background: linear-gradient(90deg, rgba(22, 21, 19, .92) 0%, rgba(22, 21, 19, .82) 40%, rgba(22, 21, 19, .45) 70%, rgba(22, 21, 19, .15) 100%);
 }
 
 .cx-home-carrossel.cx-home-comunicados .a-CardView-item:nth-child(n) .a-CardView-header,
@@ -87,6 +98,14 @@
     color: #fff;
 }
 
+/* Com a HTML Expression no título, o APEX põe o texto direto no
+   .a-CardView-header (que tem a cor escura do tema), fora do
+   .a-CardView-title: sem isto o título sai escuro sobre a foto */
+.cx-home-carrossel.cx-home-comunicados .a-CardView-header,
+.cx-home-carrossel.cx-home-comunicados .cx-home-comunicado__titulo {
+    color: #fff;
+}
+
 .cx-home-carrossel.cx-home-comunicados .a-CardView-item:nth-child(n) .cx-home-comunicado__titulo {
     font-size: 1.75rem;
     line-height: 2.25rem;
@@ -95,7 +114,17 @@
 .cx-home-carrossel.cx-home-comunicados .a-CardView-mainContent,
 .cx-home-carrossel.cx-home-comunicados .a-CardView-desc {
     margin-top: 12px;
-    color: rgba(255, 255, 255, .85);
+    color: rgba(255, 255, 255, .9);
+}
+
+/* Resumo em 2 linhas com reticências: a query corta em 220 caracteres,
+   no meio da palavra, e o corte não deve aparecer */
+.cx-home-carrossel.cx-home-comunicados .a-CardView-mainContent {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
 }
 
 .cx-home-carrossel .cx-home-comunicado__meta .cx-etiqueta {
@@ -218,4 +247,375 @@
 .cx-home-lista .cx-pessoa__detalhe.cx-home-celebracao--hoje {
     color: var(--cx-primaria);
     font-weight: 600;
+}
+
+/* --- 5. Hero com o painel "Ponto de hoje" --- */
+
+.cx-home-hero.cx-home-hero--ponto {
+    grid-template-columns: minmax(0, 1fr) 400px;
+}
+
+.cx-home-ponto {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    border-left: 1px solid var(--cx-borda);
+    background: var(--cx-superficie-2);
+}
+
+.cx-home-ponto__cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cx-home-ponto__titulo {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.25rem;
+}
+
+.cx-home-ponto__titulo a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--cx-texto);
+    text-decoration: none;
+}
+
+.cx-home-ponto__titulo a:hover {
+    text-decoration: underline;
+}
+
+.cx-home-ponto__titulo .cx-home-icone {
+    color: var(--cx-primaria);
+}
+
+.cx-home-ponto__agora {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.cx-home-ponto__hora {
+    margin: 0;
+    font-size: 2.25rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    color: var(--cx-texto);
+}
+
+.cx-home-ponto__resumo {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+/* "Registrar saída": escuro, como o botão da página 30 */
+.cx-home-ponto__registrar.t-Button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    margin: 0;
+    border-color: var(--cx-escuro);
+    background: var(--cx-escuro);
+    color: #FFFFFF;
+}
+
+.cx-home-ponto__registrar.t-Button:hover:not(:disabled) {
+    background: var(--cx-texto);
+    color: #FFFFFF;
+}
+
+/* Linha do dia: marca, rótulo e horário de cada passo */
+.cx-home-ponto__linha {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cx-home-ponto__passo {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.cx-home-ponto__passo:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 11px;
+    right: 6px;
+    left: 30px;
+    height: 2px;
+    background: var(--cx-borda);
+}
+
+.cx-home-ponto__passo.is-feita:has(+ .cx-home-ponto__passo.is-feita)::after {
+    background: var(--cx-primaria);
+}
+
+.cx-home-ponto__marca {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--cx-borda);
+    border-radius: 50%;
+    background: var(--cx-superficie);
+    color: #FFFFFF;
+}
+
+.cx-home-ponto__marca .cx-home-icone {
+    width: 14px;
+    height: 14px;
+    stroke-width: 3;
+}
+
+.is-feita > .cx-home-ponto__marca {
+    border-color: var(--cx-primaria);
+    background: var(--cx-primaria);
+}
+
+.is-atual > .cx-home-ponto__marca {
+    border-color: var(--cx-primaria);
+}
+
+.is-atual > .cx-home-ponto__marca::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--cx-primaria);
+}
+
+.cx-home-ponto__rotulo {
+    font-size: 13px;
+    color: var(--cx-texto-2);
+}
+
+.cx-home-ponto__horario {
+    font-size: 17px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--cx-texto);
+}
+
+.cx-home-ponto__horario.is-prevista {
+    color: var(--cx-texto-2);
+}
+
+@media (max-width: 991px) {
+    .cx-home-hero.cx-home-hero--ponto {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cx-home-ponto {
+        border-top: 1px solid var(--cx-borda);
+        border-left: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .cx-home-ponto__agora {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* Ícones SVG Lucide gerados pelo pkg_home_ui (blocos do ponto) */
+.cx-home-icone {
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Selos (mesmo desenho do .cx-ponto-selo) */
+.cx-home-selo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.cx-home-selo::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.cx-home-selo--info {
+    background: var(--cx-primaria-suave);
+    color: var(--cx-primaria-texto);
+}
+
+.cx-home-selo--atencao {
+    background: var(--cx-home-atencao-fundo);
+    color: var(--cx-home-atencao);
+}
+
+.cx-home-selo--erro {
+    background: var(--cx-home-erro-fundo);
+    color: var(--cx-alerta);
+}
+
+.cx-home-selo--sucesso {
+    background: var(--cx-home-sucesso-fundo);
+    color: var(--cx-sucesso);
+}
+
+.cx-home-selo--neutro {
+    background: var(--cx-tag);
+    color: var(--cx-texto-2);
+}
+
+/* --- 6. Indicadores (hoje só o banco de horas) --- */
+
+.cx-home-indicadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 0 0 1.5rem;
+    padding: 0;
+    list-style: none;
+}
+
+.cx-home-indicador {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+    background: var(--cx-superficie);
+}
+
+.cx-home-indicador__icone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    background: var(--cx-primaria-suave);
+    color: var(--cx-primaria);
+}
+
+.cx-home-indicador__rotulo,
+.cx-home-indicador__detalhe {
+    margin: 0;
+    font-size: 13px;
+    color: var(--cx-texto-2);
+}
+
+.cx-home-indicador__valor {
+    margin: 2px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 2rem;
+    color: var(--cx-texto);
+}
+
+.cx-home-indicador__valor.is-positivo {
+    color: var(--cx-sucesso);
+}
+
+.cx-home-indicador__valor.is-negativo {
+    color: var(--cx-alerta);
+}
+
+.cx-home-indicador__detalhe a {
+    color: var(--cx-primaria);
+}
+
+/* --- 7. Suas pendências --- */
+
+.cx-home-pendencias {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cx-home-pendencia {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--cx-borda);
+}
+
+.cx-home-pendencia:last-child {
+    border-bottom: 0;
+}
+
+.cx-home-pendencia__icone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    background: var(--cx-primaria-suave);
+    color: var(--cx-primaria);
+}
+
+.cx-home-pendencia__texto {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.cx-home-pendencia__texto strong {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cx-texto);
+}
+
+.cx-home-pendencia__texto span {
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+.cx-home-pendencia__acao.t-Button {
+    flex-shrink: 0;
+    min-width: 128px;
+    margin: 0;
+    justify-content: center;
+}
+
+@media (max-width: 640px) {
+    .cx-home-pendencia {
+        flex-wrap: wrap;
+    }
+
+    .cx-home-pendencia__texto {
+        flex-basis: calc(100% - 52px);
+    }
+
+    .cx-home-pendencia__acao.t-Button {
+        flex: 1 1 auto;
+    }
 }

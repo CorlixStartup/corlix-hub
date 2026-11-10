@@ -1,0 +1,99 @@
+page 37 (
+    name: Base de conhecimento
+    alias: BASE-CONHECIMENTO
+    title: Base de conhecimento
+    appearance {
+        pageTemplate: @corlix-standard-page
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        fileUrls: #APP_FILES#modulos/suporte-ti/suporte#MIN#.css
+    }
+    security {
+        authorizationScheme: @colaborador
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region artigos (
+        name: Artigos
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_suporte_ui.render_base(:P37_ID_ASSUNTO, :P37_ID_ARTIGO);
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region cabeçalho (
+        name: Cabeçalho
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="cx-cabecalho-pagina__trilha">
+                  <a href="f?p=&APP_ID.:34:&SESSION.">Suporte TI</a>
+                </div>
+                <div class="cx-cabecalho-pagina__texto">
+                  <h1 class="cx-cabecalho-pagina__titulo">Base de conhecimento</h1>
+                  <p class="cx-cabecalho-pagina__descricao">Respostas rápidas para as dúvidas mais comuns.</p>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+            cssClasses: cx-cabecalho-pagina
+        }
+    )
+
+    pageItem P37_ID_ARTIGO (
+        type: hidden
+        layout {
+            sequence: 40
+            slot: body
+        }
+    )
+
+    pageItem P37_ID_ASSUNTO (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: body
+        }
+    )
+
+    process registrar-leitura (
+        name: Registrar leitura
+        type: executeCode
+        source {
+            plsqlCode: pkg_suporte.registrar_acesso_artigo(:P37_ID_ARTIGO);
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 47208459267079523
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P37_ID_ARTIGO
+        }
+    )
+
+)
+
