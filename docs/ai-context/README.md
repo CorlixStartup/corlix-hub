@@ -69,7 +69,7 @@
 | 30 a 33 | Ponto eletrônico, Solicitar ajuste (modal), Ajustes de ponto, Responder ajuste (modal) | Implementadas; ajustes da validação aplicados em 03/11/2026. Ajustes de `Etapas-meus-pedidos.md` também aplicados. Validadas na app, com dados de demonstração no ambiente DEV (`modulos/ponto-eletronico/Etapas-ajustes-validacao.md`, "Resultado na app") |
 | 34 a 43 | Suporte TI, Abrir chamado e Chamado (modais), Base de conhecimento, Atendimento TI e Atender chamado (modal), Status dos sistemas e Artigos (lista + modal) | Planejadas: `modulos/suporte-ti/Etapas-suporte-ti.md` |
 | 44 | Foto (entrega a foto do bucket privado, sem navegação) | Planejada: `modulos/arquivos/Etapas-fotos-object-storage.md` |
-| 9999 | Login | Implementada |
+| 9999 | Login | Implementada; redesign proposto pelo `modulos/login/Etapas-login.md` (protótipo `pen_dev/Login.png`), ainda não aplicado |
 
 ## Regras de ouro (resumo do 08)
 1. **Proibido modificar** `corlixhub/`, `backups/`, `pen_dev/` e `scripts/`: são só leitura; a app muda pelo Builder e o agente escreve guias e docs. Nunca edite `database/f100.sql`.

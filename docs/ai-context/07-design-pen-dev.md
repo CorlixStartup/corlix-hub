@@ -45,8 +45,9 @@
 | 31 | `Holerite digital.png` | Holerite digital: líquido a receber, detalhamento de proventos e descontos, bases de cálculo e FGTS, lista de holerites do ano, "Ocultar valores", "Baixar PDF" e "Solicitar correção" | p00009-holerite-digital; guia `modulos/holerite/Etapas-holerite.md` | Média |
 | 32 | `Ponto eletrônico.png` | Ponto eletrônico: relógio com "Registrar saída", linha do tempo das marcações do dia, espelho de ponto do mês, banco de horas, pendências (justificar, assinar espelho) e dados da jornada | guia pronto, páginas 30 a 33 a criar (`modulos/ponto-eletronico/`) | Baixa/Média |
 | 33 | `Suporte TI.png` | Suporte TI: aviso de instabilidade, busca e assuntos da base de conhecimento, "Meus chamados" (abertos/resolvidos), status dos sistemas, artigos mais acessados e "Conversar com a TI" | guia pronto, páginas 34 a 43 a criar (`modulos/suporte-ti/`) | Baixa/Média |
+| 34 | `Login.png` | Login: formulário à esquerda ("Acesse sua conta", login ou e-mail, senha, Manter conectado, Esqueci minha senha, Entrar, Primeiro acesso) e arte à direita com o card "Intranet Corlix" | p09999-login; guia `modulos/login/Etapas-login.md` (§4.28) | Alta |
 
-Páginas APEX existentes **sem tela no pen.dev**: p00004-chat, p00005/p00008-notificações, p00026-central-de-equipes, p00027-nova-equipe, p09999-login. Devem apenas herdar o tema/estrutura do Design System.
+Páginas APEX existentes **sem tela no pen.dev**: p00004-chat, p00005/p00008-notificações, p00026-central-de-equipes, p00027-nova-equipe. Devem apenas herdar o tema/estrutura do Design System.
 
 Prioridade: "Alta" = página já existe e o redesign é visual/estrutural; "Média" = página nova simples ou admin; "Baixa/Média" = depende de módulo inteiro sem backend (seção 5). Na tela de Configurações os toggles "Plano de desenvolvimento (PDI)", "Feedbacks", "Exportação em PDF", "Notificações" e "Links rápidos" aparecem **Inativos** e "Busca na intranet" e "Avaliações 360" **Ativos** — isso sugere a ordem pretendida de entrega.
 
@@ -359,6 +360,12 @@ Mesma página, aba "**Enviados · 2**". Cards com "Para Bruno Carvalho / Colega 
 - **Quem pode ver *** — Radio: ◉ "Só a pessoa" / ○ "A pessoa e a linha de gestão dela".
 - Alerta info: "**Feedbacks não são anônimos nem editáveis.** A pessoa vê quem enviou. Depois do envio, você pode excluir em até 24 horas."
 - Rodapé: "Cancelar" + "**Enviar feedback**".
+
+### 4.28 Login — `Login.png` → p09999-login (`modulos/login/Etapas-login.md`)
+Tela dividida: coluna branca à esquerda (cerca de 42% da largura) e arte decorativa à direita, a mesma linguagem do hero da Home.
+- Coluna: marca "**CorlixHub**" no topo; título "**Acesse sua conta**"; subtítulo "Entre com seu login corporativo ou e-mail e a sua senha."; campos com rótulo flutuante "Login ou e-mail corporativo" e "Senha" (olho para mostrar); "☐ Manter conectado" à esquerda e "**Esqueci minha senha**" (link azul) à direita; botão escuro de largura total "**Entrar**"; divisória; ⓘ "**Primeiro acesso?**" com texto de apoio; rodapé "Problemas para entrar? **Fale com o Suporte TI**" e "© 2026 Corlix".
+- Arte: card branco sobre a arte, embaixo: "Intranet Corlix" (azul), "**Comunicados, holerite, ponto e a sua carreira em um só lugar.**", "Um único acesso para tudo o que você usa no dia a dia."
+**APEX**: mantém o template de página e de região **Login**; itens Optional - Floating; Dynamic Content com `pkg_login_ui`; arte pelo `.t-Login-bg`. Decisões de 09/11/2026: "Esqueci minha senha" abre orientação (sem redefinição pelo usuário), "Primeiro acesso" com texto ajustado, Suporte TI só em texto e "Manter conectado" como login persistente nativo.
 
 ---
 
