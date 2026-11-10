@@ -26,6 +26,14 @@ function cxHomeCarrossel(regiao) {
   if (!trilho) return;
 
   const slides = trilho.querySelectorAll(".a-CardView-item");
+
+  // "Não lido" vem no corpo do card (HTML Expression) e vai para o lado do botão
+  slides.forEach(function (slide) {
+    const marca = slide.querySelector("[data-cx-nao-lido]");
+    const acoes = slide.querySelector(".a-CardView-actions");
+    if (marca && acoes) { acoes.appendChild(marca); }
+  });
+
   if (slides.length < 2) return;
 
   const nav = document.createElement("div");
@@ -97,6 +105,26 @@ function cxHomePontoRelogio() {
   }
 }
 
+// Ajax Callbacks da página 1: respondem {ok, mensagem}
+function cxHomeChamar(processo, dados, aoConcluir, botao) {
+  if (botao) { botao.disabled = true; }
+  return apex.server.process(processo, dados, { dataType: "json" })
+    .done(function (resposta) {
+      if (resposta.ok) {
+        apex.message.clearErrors();
+        if (aoConcluir) { aoConcluir(resposta); }
+      } else {
+        apex.message.clearErrors();
+        apex.message.showErrors([{ type: "error", location: "page", message: resposta.mensagem, unsafe: true }]);
+      }
+    })
+    .fail(function () {
+      apex.message.showErrors([{ type: "error", location: "page",
+        message: "Não foi possível falar com o servidor. Confira sua conexão e tente de novo.", unsafe: false }]);
+    })
+    .always(function () { if (botao) { botao.disabled = false; } });
+}
+
 // ---- BLOCO 2 · Execute when Page Loads --------------------------------------
 
 cxHomeCarregarFotos();
@@ -149,3 +177,60 @@ $(document).on("apexafterclosedialog", function () {
 
 cxHomePontoRelogio();
 setInterval(cxHomePontoRelogio, 1000);
+
+// "Ler comunicado": marca como lido e só depois abre o comunicado
+$(document).on("click", ".cx-home-carrossel .a-CardView-button", function (evento) {
+  const item = this.closest(".a-CardView-item");
+  const destino = this.href;
+  if (!item || !item.dataset.id || !destino) { return; }
+  evento.preventDefault();
+  apex.server.process("MARCAR_LIDO", { x01: item.dataset.id }, { dataType: "json" })
+    .always(function () { apex.navigation.redirect(destino); });
+});
+
+// "Mostrar valor" do pagamento: a página sempre abre com o valor oculto (como a p9)
+$(document).on("click", "[data-cx-home-mostrar]", function () {
+  const mostrar = this.getAttribute("aria-pressed") !== "true";
+  this.setAttribute("aria-pressed", mostrar ? "true" : "false");
+  this.setAttribute("aria-label", mostrar ? "Ocultar valor" : "Mostrar valor");
+  this.title = this.getAttribute("aria-label");
+  this.closest(".cx-home-indicador").querySelectorAll("[data-cx-home-valor]").forEach(function (el) {
+    el.textContent = mostrar ? el.dataset.cxHomeOriginal : "••••••";
+  });
+});
+
+// "Responder pesquisa": o link abre o formulário em outra aba; aqui só registra
+// a participação e tira o card da Home
+$(document).on("click", "[data-cx-home-pesquisa]", function () {
+  cxHomeChamar("RESPONDER_PESQUISA", { x01: this.dataset.cxHomePesquisa }, function () {
+    const regiao = apex.region("home_pesquisa");
+    if (regiao) { regiao.refresh(); }
+  });
+});
+
+// "Dar feedback" (Meu gestor) e "Parabenizar" (Celebrações): preenchem e abrem o diálogo
+$(document).on("click", "[data-cx-home-feedback]", function () {
+  apex.item("P1_FB_DESTINATARIO").setValue(this.dataset.cxHomeFeedback);
+  apex.item("P1_FB_TIPO").setValue(this.dataset.cxHomeFeedbackTipo || "RECONHECIMENTO");
+  apex.item("P1_FB_TEXTO").setValue(this.dataset.cxHomeFeedbackTexto || "");
+  document.querySelectorAll("[data-cx-home-fb-nome]").forEach(function (el) {
+    el.textContent = this.dataset.cxHomeFeedbackNome;
+  }, this);
+  apex.theme.openRegion("home_dlg_feedback");
+});
+
+$(document).on("click", ".cx-home-fb-cancelar", function () {
+  apex.theme.closeRegion("home_dlg_feedback");
+});
+
+$(document).on("click", ".cx-home-fb-enviar", function () {
+  cxHomeChamar("SALVAR_FEEDBACK", {
+    x01: apex.item("P1_FB_DESTINATARIO").getValue(),
+    x02: apex.item("P1_FB_TIPO").getValue(),
+    x03: apex.item("P1_FB_TEXTO").getValue()
+  }, function (resposta) {
+    apex.theme.closeRegion("home_dlg_feedback");
+    apex.message.showPageSuccess(resposta.mensagem);
+  }, this);
+});
+
