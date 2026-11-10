@@ -354,7 +354,7 @@ Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colabo
   - P17_ID_COMUNICADO (hidden PK, queryOnly).
   - P17_TITULO (textField, req, 200, label "Titulo").
   - P17_CONTEUDO (textarea CLOB, h=5).
-  - P17_ID_DEPARTAMENTO (selectList; LOV: departamentos da empresa do usuário logado via subquery `COLABORADOR.login_apex = :APP_USER`).
+  - P17_ID_DEPARTAMENTO (selectList; LOV: departamentos da empresa do usuário logado via subquery `COLABORADOR.login_apex = :APP_USER`); sem `upper`/`trim` e sem opção vazia, a lista vem vazia quando o `LOGIN_APEX` não está em maiúsculas. Correção em `09` §4.9 (LOV compartilhada `LOV_DEPARTAMENTO_EMPRESA`, item nulo = Todos).
   - P17_IMAGEM (imageUpload na coluna BLOB IMAGEM, `mimeTypeColumn: MIME_TYPE`, `filenameColumn: NOME_ARQUIVO`).
   - P17_MIME_TYPE, P17_NOME_ARQUIVO (hidden, colunas).
   - P17_DATA_PUBLICACAO (hidden, default expression `SYSDATE;`).
