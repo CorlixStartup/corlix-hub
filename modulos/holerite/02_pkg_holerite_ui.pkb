@@ -15,11 +15,29 @@ create or replace package body pkg_holerite_ui as
   c_dia_liberacao   constant pls_integer  := 25;
   -- Mesma máscara do holerite-pagina.js
   c_mascara         constant varchar2(30) := '••••••';
+  -- Texto legal do rodapé do PDF (art. 298 do Código Penal e art. 482 da CLT)
+  c_aviso_legal     constant varchar2(600) :=
+    'A falsificação ou alteração, no todo ou em parte, do conteúdo deste documento constitui crime previsto no '
+    || 'artigo 298 do Código Penal, sujeitando o infrator à pena de reclusão de 1 a 5 anos e multa, constituindo, '
+    || 'ainda, falta grave passível de demissão por justa causa, conforme previsto no artigo 482, letra "b", da CLT.';
+
+  -- Dados do cabeçalho do PDF que a tela não usa
+  type t_pessoa is record (
+    nome              colaborador.nome_completo%type,
+    matricula         varchar2(20),
+    nome_departamento departamento.nome%type,
+    nome_cargo        cargo.nome%type,
+    nivel_cargo       cargo.nivel%type,
+    nome_empresa      empresa.nome%type,
+    razao_social      empresa.nome%type,
+    cnpj_empresa      empresa.cnpj%type
+  );
 
   type t_holerite is record (
     id_holerite     colaborador_holerite.id_holerite%type,
     competencia     date,
     data_pagamento  colaborador_holerite.data_pagamento%type,
+    salario_base    colaborador_holerite.salario_base%type,
     total_proventos colaborador_holerite.total_proventos%type,
     total_descontos colaborador_holerite.total_descontos%type,
     valor_liquido   colaborador_holerite.valor_liquido%type
@@ -147,7 +165,7 @@ create or replace package body pkg_holerite_ui as
   begin
     select h.id_holerite,
            to_date(to_char(h.ano_referencia * 100 + h.mes_referencia) || '01', 'YYYYMMDD'),
-           h.data_pagamento, h.total_proventos, h.total_descontos, h.valor_liquido
+           h.data_pagamento, h.salario_base, h.total_proventos, h.total_descontos, h.valor_liquido
       bulk collect into l_lista
       from colaborador_holerite h
       join colaborador c on c.id_colaborador = h.id_colaborador
@@ -180,6 +198,21 @@ create or replace package body pkg_holerite_ui as
       when 'VALE TRANSPORTE' then 'Sua parte no custo do benefício'
     end;
   end nota_item;
+
+  -- Código da rubrica no PDF. A geração da folha não grava HOLERITE_ITENS.CODIGO_TIPO;
+  -- se um dia gravar, o código gravado vale mais que este.
+  function codigo_item (p_codigo_tipo in varchar2, p_descricao in varchar2) return varchar2 is
+  begin
+    if p_codigo_tipo is not null then
+      return p_codigo_tipo;
+    end if;
+    return case upper(p_descricao)
+      when 'SALÁRIO BASE'    then '1001'
+      when 'INSS'            then '5001'
+      when 'IRRF'            then '5002'
+      when 'VALE TRANSPORTE' then '5003'
+      else '—' end;
+  end codigo_item;
 
   ------------------------------------------------------------------------------
   -- Cabeçalho
@@ -216,7 +249,6 @@ create or replace package body pkg_holerite_ui as
   ------------------------------------------------------------------------------
   procedure resumo (
     p_h           in t_holerite,
-    p_nome        in varchar2,
     p_empresa     in varchar2,
     p_cnpj        in varchar2,
     p_cargo       in varchar2,
@@ -232,7 +264,6 @@ create or replace package body pkg_holerite_ui as
 
     p('<section class="cx-hol-card cx-hol-resumo">');
     p('<header class="cx-hol-resumo__topo"><div>');
-    p('<p class="cx-hol-impressao-nome">' || e(p_nome) || '</p>');
     p('<div class="cx-hol-resumo__titulo"><h2>' || e(mes_nome(p_h.competencia)) || ' de '
       || to_char(p_h.competencia, 'YYYY') || '</h2><span class="cx-hol-tag">Folha mensal</span></div>');
     p('<p class="cx-hol-resumo__meta">' || e(p_empresa)
@@ -390,6 +421,102 @@ create or replace package body pkg_holerite_ui as
   end correcao;
 
   ------------------------------------------------------------------------------
+  -- PDF: aviso de crédito
+  -- Fica oculto na tela e é a única coisa que sai na impressão ("Baixar PDF"). Os
+  -- valores usam a mesma máscara da tela; o JavaScript os revela antes de imprimir.
+  -- Grade de 5 colunas: legenda, código, referência, proventos e descontos.
+  ------------------------------------------------------------------------------
+  procedure campo (p_rotulo in varchar2, p_valor in varchar2, p_colspan in pls_integer default 1,
+                   p_classe in varchar2 default null) is
+  begin
+    p('<td' || case when p_colspan > 1 then ' colspan="' || p_colspan || '"' end
+      || case when p_classe is not null then ' class="' || p_classe || '"' end || '>'
+      || '<span class="cx-hol-aviso__rotulo">' || e(p_rotulo) || '</span>'
+      || '<span class="cx-hol-aviso__valor">' || p_valor || '</span></td>');
+  end campo;
+
+  procedure aviso_credito (p_h in t_holerite, p_pessoa in t_pessoa, p_emitido_em in date) is
+    l_inss      number := 0;
+    l_irrf      number := 0;
+    l_base_irrf number;
+    l_linhas    pls_integer := 0;
+  begin
+    select nvl(sum(case when upper(descricao) = 'INSS' then valor end), 0),
+           nvl(sum(case when upper(descricao) = 'IRRF' then valor end), 0)
+      into l_inss, l_irrf
+      from holerite_itens
+     where id_holerite = p_h.id_holerite and tipo = 'D';
+    l_base_irrf := p_h.total_proventos - l_inss;
+
+    p('<section class="cx-hol-aviso" aria-label="Aviso de crédito para impressão">');
+
+    p('<header class="cx-hol-aviso__topo">');
+    p('<div class="cx-hol-aviso__empresa"><p class="cx-hol-aviso__marca">' || e(p_pessoa.nome_empresa) || '</p>');
+    p('<p class="cx-hol-aviso__razao">'
+      || case when p_pessoa.razao_social != p_pessoa.nome_empresa then e(p_pessoa.razao_social) || ' · ' end
+      || case when p_pessoa.cnpj_empresa is not null then 'CNPJ ' || e(cnpj(p_pessoa.cnpj_empresa)) end || '</p></div>');
+    p('<h2 class="cx-hol-aviso__titulo">Aviso de crédito</h2>');
+    p('<div class="cx-hol-aviso__direita">');
+    p('<p class="cx-hol-aviso__emissao">Emitido em ' || to_char(p_emitido_em, 'DD/MM/YYYY HH24:MI') || '</p>');
+    p('<dl class="cx-hol-aviso__referencia">');
+    p('<div><dt>Número</dt><dd>' || p_h.id_holerite || '</dd></div>');
+    p('<div><dt>Mês/ano</dt><dd>' || upper(substr(mes_nome(p_h.competencia), 1, 3)) || '/'
+      || to_char(p_h.competencia, 'YYYY') || '</dd></div>');
+    p('</dl></div></header>');
+
+    p('<table class="cx-hol-aviso__grade">');
+    p('<colgroup><col class="cx-hol-aviso__col-legenda"><col class="cx-hol-aviso__col-codigo">'
+      || '<col class="cx-hol-aviso__col-referencia"><col class="cx-hol-aviso__col-valor"><col class="cx-hol-aviso__col-valor"></colgroup>');
+
+    -- Identificação
+    p('<tbody class="cx-hol-aviso__dados"><tr>');
+    campo('Departamento', e(p_pessoa.nome_departamento), 3);
+    campo('Matrícula', e(p_pessoa.matricula), 2);
+    p('</tr><tr>');
+    campo('Nome do empregado', e(p_pessoa.nome), 5);
+    p('</tr><tr>');
+    campo('Cargo', e(p_pessoa.nome_cargo));
+    campo('Salário base', v_oculto(num(p_h.salario_base)), 2);
+    campo('Nível', e(p_pessoa.nivel_cargo), 2);
+    p('</tr></tbody>');
+
+    -- Itens
+    -- Linha comum, não <thead>: um <thead> depois do <tbody> acima iria para o topo da tabela
+    p('<tbody class="cx-hol-aviso__itens"><tr class="cx-hol-aviso__colunas"><th scope="col">Legenda</th><th scope="col">Código</th>'
+      || '<th scope="col">Referência</th><th scope="col">Proventos</th><th scope="col">Descontos</th></tr>');
+    for i in (select codigo_tipo, tipo, descricao, referencia, valor
+                from holerite_itens
+               where id_holerite = p_h.id_holerite
+               order by case tipo when 'P' then 1 else 2 end, id_item) loop
+      l_linhas := l_linhas + 1;
+      p('<tr><td class="cx-hol-aviso__legenda">' || e(rotulo_item(i.descricao)) || '</td>');
+      p('<td class="cx-hol-aviso__centro">' || e(codigo_item(i.codigo_tipo, i.descricao)) || '</td>');
+      p('<td class="cx-hol-aviso__centro">' || nvl(e(i.referencia), '—') || '</td>');
+      p('<td class="cx-hol-num">' || case when i.tipo = 'P' then v_oculto(num(i.valor)) end || '</td>');
+      p('<td class="cx-hol-num">' || case when i.tipo = 'D' then v_oculto(num(i.valor)) end || '</td></tr>');
+    end loop;
+    -- Linhas vazias para a grade manter a altura do modelo
+    for i in l_linhas + 1 .. 7 loop
+      p('<tr class="cx-hol-aviso__vazia"><td></td><td></td><td></td><td></td><td></td></tr>');
+    end loop;
+    p('</tbody>');
+
+    -- Totais
+    p('<tbody class="cx-hol-aviso__totais"><tr>');
+    campo('Base de cálculo INSS', v_oculto(num(p_h.total_proventos)));
+    campo('Base de cálculo / Imposto de renda', v_oculto(num(l_base_irrf) || ' / ' || num(l_irrf)), 2);
+    campo('Bruto', v_oculto(num(p_h.total_proventos)), 1, 'cx-hol-num');
+    campo('Descontos', v_oculto(num(p_h.total_descontos)), 1, 'cx-hol-num');
+    p('</tr><tr>');
+    campo('Depósito FGTS do mês', v_oculto(num(round(p_h.total_proventos * c_aliquota_fgts, 2))), 3);
+    campo('Líquido', v_oculto(num(p_h.valor_liquido)), 2, 'cx-hol-num cx-hol-aviso__liquido');
+    p('</tr></tbody></table>');
+
+    p('<p class="cx-hol-aviso__legal">' || e(c_aviso_legal) || '</p>');
+    p('</section>');
+  end aviso_credito;
+
+  ------------------------------------------------------------------------------
   -- Página
   ------------------------------------------------------------------------------
   function render_pagina (
@@ -401,10 +528,7 @@ create or replace package body pkg_holerite_ui as
     l_atual     pls_integer := 1;
     l_lista     t_holerites;
     l_hoje      date;
-    l_nome      colaborador.nome_completo%type;
-    l_empresa   empresa.nome%type;
-    l_cnpj      empresa.cnpj%type;
-    l_cargo     cargo.nome%type;
+    l_pessoa    t_pessoa;
     l_id_empresa number;
   begin
     inicia;
@@ -414,10 +538,13 @@ create or replace package body pkg_holerite_ui as
       return g_html;
     end if;
 
-    select c.id_empresa, c.nome_completo, coalesce(em.nome_fantasia, em.nome), em.cnpj, ca.nome
-      into l_id_empresa, l_nome, l_empresa, l_cnpj, l_cargo
+    select c.id_empresa, c.nome_completo, lpad(c.id_colaborador, 6, '0'), d.nome, ca.nome, ca.nivel,
+           coalesce(em.nome_fantasia, em.nome), em.nome, em.cnpj
+      into l_id_empresa, l_pessoa.nome, l_pessoa.matricula, l_pessoa.nome_departamento, l_pessoa.nome_cargo,
+           l_pessoa.nivel_cargo, l_pessoa.nome_empresa, l_pessoa.razao_social, l_pessoa.cnpj_empresa
       from colaborador c
       join empresa em on em.id_empresa = c.id_empresa
+      left join departamento d on d.id_departamento = c.id_departamento
       left join cargo ca on ca.id_cargo = c.id_cargo
      where c.id_colaborador = l_id;
 
@@ -440,12 +567,14 @@ create or replace package body pkg_holerite_ui as
 
     p('<div class="cx-hol" data-cx-hol>');
     p('<div class="cx-hol__principal">');
-    resumo(l_lista(l_atual), l_nome, l_empresa, l_cnpj, l_cargo, l_lista(l_atual).data_pagamento > l_hoje);
+    resumo(l_lista(l_atual), l_pessoa.nome_empresa, l_pessoa.cnpj_empresa, l_pessoa.nome_cargo, l_lista(l_atual).data_pagamento > l_hoje);
     detalhamento(l_lista(l_atual));
     p('</div><aside class="cx-hol__lateral">');
     lista(l_lista, l_atual, l_hoje);
     correcao(l_lista(l_atual).competencia);
-    p('</aside></div>');
+    p('</aside>');
+    aviso_credito(l_lista(l_atual), l_pessoa, pkg_historico_carreira.fn_data_local(l_id_empresa, systimestamp));
+    p('</div>');
     return g_html;
   end render_pagina;
 
