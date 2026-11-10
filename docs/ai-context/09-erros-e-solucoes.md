@@ -268,6 +268,8 @@ Nenhuma linha: conta sem colaborador (4.2). Linha com `login_gravado` diferente 
 
 **No export da página 17**, depois da correção: em `P17_ID_DEPARTAMENTO`, `lov { type: sharedComponent  lov: @lov-departamento-empresa  nullDisplayValue: Todos (empresa inteira) }` (o `displayNullValue` só aparece quando está **desligado**); em `P17_ID_EMPRESA`, `default { type: item  item: G_ID_EMPRESA }` (como na p41); em `P17_ID_AUTOR`, o default com `upper(trim(login_apex))` e `:G_ID_EMPRESA`.
 
+**Situação:** correção aplicada na página 17 em 10/11/2026 e conferida no export colado pelo time (os três itens batem com o esperado). Falta o teste de publicar com uma conta com colaborador vinculado.
+
 **Prevenção:** filtre por empresa com `:G_ID_EMPRESA` (regra S5 do `11`) e, quando precisar achar o colaborador pelo login, compare sempre `upper(trim(login_apex)) = upper(trim(:APP_USER))` (`02` §8, item 10).
 
 ## 5. Checklist antes de entregar SQL/PL/SQL
