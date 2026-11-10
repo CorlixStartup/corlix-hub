@@ -1,3 +1,28 @@
+file "Comunicado · Confraternização.png" (
+    mimeType: image/png
+    charSet: utf-8
+)
+
+file "Comunicado · Novembro Azul.png" (
+    mimeType: image/png
+    charSet: utf-8
+)
+
+file "Comunicado · Resultados 3º tri.png" (
+    mimeType: image/png
+    charSet: utf-8
+)
+
+file "Comunicado · Segurança da informação.png" (
+    mimeType: image/png
+    charSet: utf-8
+)
+
+file "Comunicado · Trabalho híbrido.png" (
+    mimeType: image/png
+    charSet: utf-8
+)
+
 file "Meu Perfil.css" (
     mimeType: text/css
     charSet: utf-8

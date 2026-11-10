@@ -109,7 +109,12 @@ page 17 (
         }
         default {
             type: sqlQuerySingleValue
-            sqlQuerySingleValue: SELECT ID_COLABORADOR FROM COLABORADOR WHERE LOGIN_APEX = :APP_USER;
+            sqlQuerySingleValue:
+                ```sql
+                select id_colaborador from colaborador
+                 where upper(trim(login_apex)) = upper(trim(:APP_USER))
+                   and id_empresa = :G_ID_EMPRESA
+                ```
         }
     )
 
@@ -139,19 +144,9 @@ page 17 (
             alignment: left
         }
         lov {
-            type: sqlQuery
-            sqlQuery:
-                ```sql
-                SELECT DEPARTAMENTO.NOME,
-                       DEPARTAMENTO.ID_DEPARTAMENTO
-                FROM DEPARTAMENTO
-                WHERE DEPARTAMENTO.ID_EMPRESA = (
-                    SELECT COLABORADOR.ID_EMPRESA
-                    FROM COLABORADOR
-                    WHERE COLABORADOR.login_apex = :APP_USER
-                )
-                ORDER BY DEPARTAMENTO.NOME;
-                ```
+            type: sharedComponent
+            lov: @lov-departamento-empresa
+            nullDisplayValue: Todos (empresa inteira)
         }
         layout {
             sequence: 10
@@ -184,8 +179,8 @@ page 17 (
             dataType: number
         }
         default {
-            type: sqlQuerySingleValue
-            sqlQuerySingleValue: SELECT ID_EMPRESA FROM COLABORADOR WHERE LOGIN_APEX = :APP_USER;
+            type: item
+            item: G_ID_EMPRESA
         }
         security {
             sessionStateProtection: checksumRequiredSessionLevel

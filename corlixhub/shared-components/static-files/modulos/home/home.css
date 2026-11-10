@@ -80,7 +80,8 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgba(22, 21, 19, .88) 0%, rgba(22, 21, 19, .6) 55%, rgba(22, 21, 19, .25) 100%);
+    /* Escuro até o fim do texto (~40%) e clareando só onde fica a foto */
+    background: linear-gradient(90deg, rgba(22, 21, 19, .92) 0%, rgba(22, 21, 19, .82) 40%, rgba(22, 21, 19, .45) 70%, rgba(22, 21, 19, .15) 100%);
 }
 
 .cx-home-carrossel.cx-home-comunicados .a-CardView-item:nth-child(n) .a-CardView-header,
@@ -97,6 +98,14 @@
     color: #fff;
 }
 
+/* Com a HTML Expression no título, o APEX põe o texto direto no
+   .a-CardView-header (que tem a cor escura do tema), fora do
+   .a-CardView-title: sem isto o título sai escuro sobre a foto */
+.cx-home-carrossel.cx-home-comunicados .a-CardView-header,
+.cx-home-carrossel.cx-home-comunicados .cx-home-comunicado__titulo {
+    color: #fff;
+}
+
 .cx-home-carrossel.cx-home-comunicados .a-CardView-item:nth-child(n) .cx-home-comunicado__titulo {
     font-size: 1.75rem;
     line-height: 2.25rem;
@@ -105,7 +114,17 @@
 .cx-home-carrossel.cx-home-comunicados .a-CardView-mainContent,
 .cx-home-carrossel.cx-home-comunicados .a-CardView-desc {
     margin-top: 12px;
-    color: rgba(255, 255, 255, .85);
+    color: rgba(255, 255, 255, .9);
+}
+
+/* Resumo em 2 linhas com reticências: a query corta em 220 caracteres,
+   no meio da palavra, e o corte não deve aparecer */
+.cx-home-carrossel.cx-home-comunicados .a-CardView-mainContent {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
 }
 
 .cx-home-carrossel .cx-home-comunicado__meta .cx-etiqueta {
