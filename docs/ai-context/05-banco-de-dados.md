@@ -41,6 +41,8 @@
 | Organograma | `VW_ORG_COLABORADOR`, `PKG_ORGANOGRAMA` | [DDL] |
 | Perfis de acesso | `CARGO_PAPEL`, `PKG_PERFIS_ACESSO` | [DDL] |
 | Ponto eletrônico (`modulos/ponto-eletronico/`) | `PONTO_JORNADA`, `PONTO_COLABORADOR`, `PONTO_FERIADO`, `PONTO_AJUSTE`, `PONTO_MARCACAO` (só INSERT, trigger `TRG_PONTO_MARCACAO_IMUTAVEL`), `PONTO_ESPELHO_ASSINATURA`, `VW_PONTO_MARCACAO_VIGENTE`, `PKG_PONTO`, `PKG_PONTO_UI`. Erros -20060 a -20074 | [DDL] |
+| Comunicados: categorias (a instalar: `modulos/comunicados/`) | `CATEGORIA_COMUNICADO` (por empresa) e a coluna `COMUNICADO.ID_CATEGORIA` (FK `FK_COM_CATEGORIA`) | [módulo] |
+| Blocos da Home (a instalar: `modulos/home-blocos/`) | `FEEDBACK`, `PESQUISA`, `PESQUISA_RESPOSTA`, `EVENTO`, `CONVERSA_1A1`, `FERIAS_PERIODO`, `PDI`, `PDI_OBJETIVO`, todas com `ID_EMPRESA`; lidas pelo `PKG_HOME_UI` (`modulos/home/Etapas-home.md` §8) | [módulo] |
 | Suporte TI (a instalar: `modulos/suporte-ti/`) | `SUPORTE_CONFIG`, `SUPORTE_SISTEMA`, `SUPORTE_ASSUNTO`, `SUPORTE_ARTIGO`, `SUPORTE_CHAMADO`, `SUPORTE_MENSAGEM`, `SUPORTE_ANEXO`, `VW_SUPORTE_FILA`, triggers `TRG_SUPORTE_SISTEMA_AUD` e `TRG_SUPORTE_ARTIGO_AUD`, `PKG_SUPORTE`, `PKG_SUPORTE_UI`, job `SUPORTE_ENCERRAR_VENCIDOS`; erros -20076 a -20084 | [módulo] |
 
 ### 1.3 Convenções de nomes

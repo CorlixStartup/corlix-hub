@@ -745,6 +745,266 @@ Use uma conta com colaborador vinculado e ponto (as contas SARAHSILVA, EDUARDOMA
 
 ---
 
+## 8. Fidelidade ao protótipo: categoria, leitura e os blocos que faltavam (página 1)
+
+Depois das seções 6 e 7, a Home foi comparada na app com o protótipo de 28/10/2026, em 10/11/2026, com a conta `teste.rh`. Esta seção leva a página 1 até ele:
+
+| Bloco | O que muda | Dados |
+|---|---|---|
+| Carrossel | Etiqueta da **categoria** ("Institucional"); "Para: Todos · 9 de novembro" em texto; seta do "Ler comunicado" à direita, logo abaixo do resumo; "**Não lido**" ao lado do botão; "· 3 não lidos" no subtítulo | `CATEGORIA_COMUNICADO` (nova, `modulos/comunicados`) e `COMUNICADO_LEITURA` (já existia) |
+| Indicadores | Além do banco de horas: **Próximo/Último pagamento** (valor oculto até clicar no olho, como na p9), **Férias disponíveis** e **Meu PDI** com barra | `COLABORADOR_HOLERITE` (já existia); `FERIAS_PERIODO`, `PDI`, `PDI_OBJETIVO` (novas, `modulos/home-blocos`) |
+| Suas pendências | Número no título | Do §7 |
+| Feedbacks recebidos | Região nova: os 2 últimos, com autor, relação ("Gestão direta", "Colega de equipe"), tipo e texto | `FEEDBACK` (nova) |
+| Meu gestor | "Disponível agora" (mesma regra do chat), "Próxima conversa 1:1", botões **Mensagem** e **Dar feedback** (o "E-mail" sai, como no protótipo) | `PRESENCA_COLABORADOR` (já existia); `CONVERSA_1A1` (nova) |
+| Pesquisa de clima | Região nova: pesquisa aberta, "Aberta até", "Responder pesquisa" (abre o formulário em outra aba e registra a participação; o card some) | `PESQUISA`, `PESQUISA_RESPOSTA` (novas) |
+| Próximos eventos | Região nova: 4 próximos, com data em bloco e selo "Hoje"/"Amanhã"/"Feriado" | `EVENTO` (nova) + `PONTO_FERIADO` (já existia) |
+| Celebrações | "**Parabenizar**" para quem celebra hoje (abre o diálogo de feedback já preenchido) | `FEEDBACK` |
+| Avatar | "[DEMO] Karen Dias" mostrava "[D"; agora "KD" | — |
+
+**Ficam de fora**, por não haver tela de destino: os "Ver todos/Ver todas" de pendências, feedbacks e eventos ("Ver agenda"), e a página do comunicado ("Ler comunicado" continua indo para a p11, que é placeholder). "Responder pesquisa" usa um link externo (`PESQUISA.DS_LINK`), porque o app não tem formulário de pesquisa.
+
+### 8.1 Banco (nesta ordem)
+
+1. `modulos/comunicados/01_ddl_categoria.sql`: tabela de categorias, coluna `COMUNICADO.ID_CATEGORIA` e 7 categorias para cada empresa.
+2. `modulos/comunicados/02_categoria_demo.sql`: categoria dos 5 comunicados de exemplo (se você criou os exemplos).
+3. `modulos/home-blocos/01_ddl_blocos.sql`: as 8 tabelas novas.
+4. `modulos/home-blocos/02_dados_demo.sql`: troque `TROQUE_PELO_LOGIN` pelo login ou ID de quem vai ver os exemplos (ex.: o ID de `teste.rh`). Cria 2 feedbacks, a pesquisa, 3 eventos, a próxima 1:1, férias e um PDI. **Troque o `ds_link` da pesquisa** pelo formulário real quando houver.
+5. Reinstale o `pkg_home_ui` (`modulos/home/instalar.sql`, ou o `.pks` e o `.pkb` em *SQL Scripts*). Ele passa a depender das tabelas dos passos 1 e 3: sem elas, a compilação falha com `PL/SQL: ORA-00942: table or view does not exist`.
+
+**Teste** (SQL Commands, troque `123` pelo ID usado no passo 4):
+
+```sql
+select pkg_home_ui.render_indicadores(p_id_colaborador => 123) from dual
+```
+Deve voltar até 4 `<li class="cx-home-indicador">` (banco de horas, pagamento, férias e PDI).
+
+### 8.2 Arquivos estáticos e JavaScript
+
+- Suba de novo o `home.css` e o `home.min.css` em `modulos/home/` (seções 6 a 14 do arquivo).
+- A arte da pesquisa usa o `home-hero.jpg` que já está na **raiz** do *Static Application Files* (o CSS aponta para `../../home-hero.jpg`, a partir de `modulos/home/`). Se ela não existir lá, envie `modulos/home/home-hero.jpg` para a raiz.
+- No nó **Page 1**, substitua os dois campos de JavaScript pelos BLOCOS 1 e 2 do `home-pagina.js`.
+
+### 8.3 Itens e computações dos títulos
+
+Botão direito em **Coluna lateral** › **Create Page Item**, duas vezes, como o `P1_MES_ATUAL`:
+
+| Seção | Atributo | Item 1 | Item 2 |
+|---|---|---|---|
+| Identification | Name | `P1_NAO_LIDOS` | `P1_QT_PENDENCIAS` |
+| Identification | Type | **Hidden** | **Hidden** |
+
+Em *Pre-Rendering › Before Header*, crie duas **Computations**, como a do `P1_MES_ATUAL`:
+
+| Item | Type | PL/SQL Expression |
+|---|---|---|
+| `P1_NAO_LIDOS` | PL/SQL Expression | `pkg_home_ui.nao_lidos_texto` |
+| `P1_QT_PENDENCIAS` | PL/SQL Expression | `pkg_home_ui.qt_pendencias` |
+
+### 8.4 Região "Comunicados"
+
+**Identification › Title:**
+```html
+Comunicados<span class="cx-home-card__subtitulo">Publicações oficiais da empresa&P1_NAO_LIDOS.</span>
+```
+
+**Source › SQL Query** (acrescenta `CATEGORIA` e `NAO_LIDO`):
+```sql
+select c.id_comunicado,
+       c.titulo,
+       substr(trim(regexp_replace(regexp_replace(dbms_lob.substr(c.conteudo, 1000, 1),
+                                                 '<[^>]+>', ' '),
+                                  '\s+', ' ')), 1, 220) as resumo,
+       c.imagem,
+       c.mime_type,
+       'Para: ' || nvl(d.nome, 'Todos') as publico,
+       to_char(c.data_publicacao, 'fmdd') || ' de '
+         || to_char(c.data_publicacao, 'fmmonth', 'NLS_DATE_LANGUAGE=''BRAZILIAN PORTUGUESE''')
+         || case when extract(year from c.data_publicacao) <> extract(year from sysdate)
+                 then ' de ' || to_char(c.data_publicacao, 'yyyy')
+            end as data_publicacao_txt,
+       case when c.data_publicacao >= trunc(sysdate) - 7 then 'Novo' end as selo,
+       k.nm_categoria as categoria,
+       -- "Não lido": só para quem tem colaborador e ainda não abriu
+       case when eu.id_colaborador is not null
+             and not exists (select 1 from comunicado_leitura l
+                              where l.id_comunicado = c.id_comunicado
+                                and l.id_colaborador = eu.id_colaborador)
+            then 'S' end as nao_lido
+  from comunicado c
+  left join departamento d
+    on d.id_departamento = c.id_departamento
+  left join categoria_comunicado k
+    on k.id_categoria = c.id_categoria
+  left join colaborador eu
+    on upper(trim(eu.login_apex)) = upper(trim(:APP_USER))
+   and eu.id_empresa = c.id_empresa
+ where c.id_empresa = :G_ID_EMPRESA
+ order by c.data_publicacao desc, c.id_comunicado desc
+ fetch first 5 rows only
+```
+
+**Title › HTML Expression** (categoria como etiqueta; público e data em texto):
+```html
+<span class="cx-home-comunicado__meta">
+  {if SELO/}<span class="cx-badge cx-badge--info">&SELO.</span>{endif/}
+  {if CATEGORIA/}<span class="cx-etiqueta">&CATEGORIA.</span>{endif/}
+  <span class="cx-home-comunicado__para">&PUBLICO. · &DATA_PUBLICACAO_TXT.</span>
+</span>
+<span class="cx-home-comunicado__titulo">&TITULO.</span>
+```
+
+**Body:** ligue *Advanced Formatting* e use esta *HTML Expression* (confirmar no 26.1.5: o mesmo par de atributos do *Title*). No export deve aparecer `body { advancedFormatting: true  htmlExpression: ... }` no lugar de `column: RESUMO`.
+```html
+&RESUMO.{if NAO_LIDO/}<span class="cx-home-nao-lido" data-cx-nao-lido>Não lido</span>{endif/}
+```
+O JS move o "Não lido" para o lado do botão.
+
+### 8.5 Região "Suas pendências"
+
+**Identification › Title:**
+```html
+Suas pendências<span class="cx-home-contador">&P1_QT_PENDENCIAS.</span><span class="cx-home-card__subtitulo">Itens que aguardam uma ação sua</span>
+```
+Sem pendência, o item fica vazio e o CSS esconde o número.
+
+### 8.6 Regiões novas
+
+**Feedbacks recebidos.** Botão direito em **Coluna principal** › **Create Sub Region**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Feedbacks recebidos` |
+| Identification | Title | `Feedbacks recebidos<span class="cx-home-card__subtitulo">Reconhecimentos e sugestões que você recebeu</span>` |
+| Identification | Type | **Dynamic Content** |
+| Source | PL/SQL Function Body returning a CLOB | `return pkg_home_ui.render_feedbacks;` |
+| Layout | Slot | **Sub Regions** |
+| Layout | Sequence | `30` |
+| Appearance | Template | **Standard**, com as mesmas *Template Options* e a classe `cx-home-card` do Meu gestor |
+
+**Na Coluna lateral**, a ordem passa a ser: Meu gestor (10), Pesquisa de clima (20), Próximos eventos (30), Celebrações (40). Selecione **Celebrações** (`home_aniversariantes`) e mude *Layout › Sequence* para `40`. Depois, botão direito em **Coluna lateral** › **Create Sub Region**, duas vezes:
+
+| Seção | Atributo | Pesquisa de clima | Próximos eventos |
+|---|---|---|---|
+| Identification | Name | `Pesquisa de clima` | `Próximos eventos` |
+| Identification | Title | (vazio) | `<span class="fa fa-calendar-o" aria-hidden="true"></span>Próximos eventos` |
+| Identification | Type | **Dynamic Content** | **Dynamic Content** |
+| Source | PL/SQL Function Body returning a CLOB | `return pkg_home_ui.render_pesquisa;` | `return pkg_home_ui.render_eventos;` |
+| Layout | Slot | **Sub Regions** | **Sub Regions** |
+| Layout | Sequence | `20` | `30` |
+| Appearance | Template | **Blank with Attributes** (o card vem pronto do package) | **Standard**, *Template Options* e classe `cx-home-card` como o Meu gestor |
+| Advanced | HTML DOM ID | `home_pesquisa` | (vazio) |
+
+### 8.7 Diálogo "Dar feedback"
+
+Botão direito em **Dialogs, Drawers and Popups** › **Create Region**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `Dar feedback` |
+| Identification | Title | `Dar feedback` |
+| Identification | Type | **Static Content** |
+| Source | HTML Code | `<p class="cx-home-fb-para">Para <strong data-cx-home-fb-nome></strong></p>` |
+| Appearance | Template | **Inline Dialog** |
+| Advanced | HTML DOM ID | `home_dlg_feedback` (**obrigatório**: o JS abre o diálogo por ele) |
+
+Itens, com botão direito em **Dar feedback** › **Create Page Item**:
+
+| Name | Type | Configuração |
+|---|---|---|
+| `P1_FB_DESTINATARIO` | **Hidden** | *Settings › Value Protected* **No** (o JS preenche; o package confere a empresa) |
+| `P1_FB_TIPO` | **Radio Group** | *Label* `Tipo`; *List of Values* **Static Values**: `Reconhecimento` → `RECONHECIMENTO`, `Sugestão` → `SUGESTAO`; *Default* `RECONHECIMENTO`; *Template Options* exibir como botões, se houver (confirmar no 26.1.5) |
+| `P1_FB_TEXTO` | **Textarea** | *Label* `Feedback`; *Validation › Maximum Length* `1000`; *Appearance › Template* **Required - Floating** |
+
+Botões, com botão direito em **Dar feedback** › **Create Button**:
+
+| Name | Label | Slot | Hot | Behavior › Action | Advanced › CSS Classes |
+|---|---|---|---|---|---|
+| `FB_CANCELAR` | `Cancelar` | **Close** | No | **Defined by Dynamic Action** | `cx-home-fb-cancelar` |
+| `FB_ENVIAR` | `Enviar feedback` | **Create** | Yes | **Defined by Dynamic Action** | `cx-home-fb-enviar` |
+
+Não crie Dynamic Actions: o JS da página trata os dois botões pelas classes.
+
+### 8.8 Ajax Callbacks
+
+Na aba **Processing**, botão direito em **Ajax Callback** › **Create Process**, três vezes. *Type* **Execute Code**. *Security › Authorization Scheme* **COLABORADOR** nos três.
+
+| Name | PL/SQL Code |
+|---|---|
+| `MARCAR_LIDO` | `pkg_home_ui.ajax_marcar_lido(apex_application.g_x01);` |
+| `RESPONDER_PESQUISA` | `pkg_home_ui.ajax_responder_pesquisa(apex_application.g_x01);` |
+| `SALVAR_FEEDBACK` | `pkg_home_ui.ajax_salvar_feedback(apex_application.g_x01, apex_application.g_x02, apex_application.g_x03);` |
+
+### 8.9 Página 17: campo Categoria
+
+Siga `modulos/comunicados/Etapas-comunicados.md` §2: LOV `LOV_CATEGORIA_COMUNICADO` e o item `P17_ID_CATEGORIA`.
+
+### 8.10 Como deve ficar a árvore
+
+```
+Page 1: Início
+├── Body
+│   ├── Início                          (10, home_hero)
+│   ├── Indicadores                     (15, home_indicadores)
+│   ├── Coluna principal                (20, span 8)
+│   │   ├── Comunicados                 (10)
+│   │   ├── Suas pendências             (20, home_pendencias)
+│   │   └── Feedbacks recebidos         (30)
+│   └── Coluna lateral                  (30, span 4)
+│       ├── P1_MES_ATUAL, P1_NAO_LIDOS, P1_QT_PENDENCIAS
+│       ├── Meu gestor                  (10)
+│       ├── Pesquisa de clima           (20, home_pesquisa)
+│       ├── Próximos eventos            (30)
+│       └── Celebrações                 (40)
+├── Dialogs, Drawers and Popups
+│   ├── Celebrações                     (aniversariantes_todos)
+│   └── Dar feedback                    (home_dlg_feedback)
+└── Ajax Callback
+    ├── REGISTRAR_MARCACAO
+    ├── MARCAR_LIDO
+    ├── RESPONDER_PESQUISA
+    └── SALVAR_FEEDBACK
+```
+
+### 8.11 Testar
+
+Com a conta usada no passo 8.1.4 e a página recarregada com **Cmd+Shift+R**:
+
+1. **Carrossel:** etiqueta da categoria, "Para: Todos · <data>" em texto, título branco, resumo em 2 linhas com "…", botão "Ler comunicado →" logo abaixo e "• Não lido" ao lado. Subtítulo "Publicações oficiais da empresa · N não lidos".
+2. Clique em **Ler comunicado**: abre a p11. Volte: aquele comunicado não tem mais "Não lido" e o número do subtítulo diminuiu.
+3. **Indicadores:** 4 blocos numa faixa. O pagamento chega como `R$ ••••••`; o olho mostra e esconde. Recarregue: volta oculto.
+4. **Suas pendências:** número no título igual ao total da lista.
+5. **Feedbacks recebidos:** os 2 exemplos, com "Gestão direta"/"Colega" e os selos Reconhecimento/Sugestão.
+6. **Meu gestor:** com o gestor com o chat aberto (online), ponto verde e "Disponível agora"; "Próxima conversa 1:1" com dia e hora. **Dar feedback** abre o diálogo "Para <gestor>"; enviar mostra "Feedback enviado." Enviar vazio mostra "Escreva o feedback antes de enviar."
+7. **Pesquisa de clima:** card com a arte. "Responder pesquisa" abre o link em outra aba e o card some da Home.
+8. **Próximos eventos:** os 3 exemplos e os feriados do ponto, em ordem de data.
+9. **Celebrações:** quem celebra hoje tem "Parabenizar"; o diálogo abre com "Feliz aniversário! " ou "Parabéns pelos N anos de empresa! ". "[DEMO] Karen Dias" com "KD".
+10. **Conta sem colaborador:** sem indicadores, sem pesquisa, "Nenhum feedback ainda", sem botões de feedback.
+
+### 8.12 Se não funcionar
+
+| Sintoma | Causa provável | Correção |
+|---|---|---|
+| `ORA-00942` ao compilar o `pkg_home_ui` | Tabelas dos módulos `comunicados` ou `home-blocos` não instaladas | Passos 8.1.1 e 8.1.3 antes do 8.1.5 |
+| `ORA-00904: "K"."NM_CATEGORIA"` na Comunicados | Faltou o `01_ddl_categoria.sql` | Passo 8.1.1 |
+| Aparece `&P1_NAO_LIDOS.` ou `&P1_QT_PENDENCIAS.` como texto | Item não criado ou nome diferente | Passo 8.3 |
+| "Não lido" no meio do resumo | BLOCO 1 antigo (sem mover o "Não lido") | Passo 8.2 |
+| Diálogo de feedback não abre | Falta o HTML DOM ID `home_dlg_feedback` | Passo 8.7 |
+| "Enviar feedback" não faz nada | Falta a classe `cx-home-fb-enviar` no botão, ou o Ajax Callback `SALVAR_FEEDBACK` | Passos 8.7 e 8.8 |
+| Pesquisa sem a arte (bloco cinza) | `home-hero.jpg` não está na raiz do Static Application Files | Passo 8.2 |
+| Indicador de pagamento não aparece | Sem holerite liberado (antes do dia 25 do primeiro mês, ou sem geração) | Esperado; confira na p9 |
+
+### Referências reutilizadas (seção 8)
+
+| De onde | O que veio | Adaptação |
+|---|---|---|
+| `modulos/holerite` (`holerites_de`, `holerite-pagina.js`) | Regra do dia 25 e da admissão; valor oculto com `data-*-original` | Só o último holerite; olho por indicador, sempre oculto ao abrir |
+| Página 4 (chat) | Regra de presença: ping há menos de 5 min e `ONLINE` | "Disponível agora" no Meu gestor |
+| `PKG_COMUNICADO` | `MARCAR_COMO_LIDO` e `QTD_NAO_LIDOS` | Chamados pelo Ajax `MARCAR_LIDO` e pela computação `P1_NAO_LIDOS` |
+| `pkg_ponto_ui` | Ajax com `{ok, mensagem}` e `responder_erro` com o código | `responder`/`responder_erro` no `pkg_home_ui` |
+| `docs/ai-context/07` §5 | Modelo sugerido de `FEEDBACK`, `PESQUISA`, `EVENTO`, `CONVERSA_1A1`, `PDI_OBJETIVO`, `CATEGORIA_COMUNICADO` | Nomes no padrão do ponto (`id_`, `ds_`, `dt_`, `dh_`, `st_`, `tp_`, `fl_`) e `id_empresa` em todas |
+
+---
+
 ## Situação na app
 
 | Data | O quê | Estado |
@@ -754,6 +1014,7 @@ Use uma conta com colaborador vinculado e ponto (as contas SARAHSILVA, EDUARDOMA
 | 10/11/2026 | Classe `cx-home-carrossel` corrigida pelo time | Corrigida (export colado) |
 | 10/11/2026 | Seção 7 aplicada pelo time (export colado na conversa) | **Aplicada, com 1 ajuste**: `home_comunicados` ficou com `slot: regionBody` na Coluna principal; deve ser `subRegions`, como `suas-pendências` e as regiões da Coluna lateral (o passo 7.2 agora diz o *Slot*). Conferido no export: `htmlDomId` `home_hero`, `home_indicadores` e `home_pendencias`; Coluna principal span 8; Comunicados sem `columnSpan`; Suas pendências com título, `cx-home-card` e as template options do Meu gestor; Ajax Callback `REGISTRAR_MARCACAO` com `@colaborador`. Testes 7.5 não rodados |
 | 10/11/2026 | Carrossel com o título escuro e o resumo cortado, visto na app com a conta `teste.rh` | Corrigido no `home.css`/`home.min.css` (título branco no `.a-CardView-header`, degradê mais forte, resumo em 2 linhas). Testado na app só com o CSS injetado no navegador; **falta subir os dois arquivos** |
+| 10/11/2026 | Comparação com o protótipo na app (conta `teste.rh`) e seção 8: categoria, "Não lido", 3 indicadores, Feedbacks, Pesquisa, Eventos, 1:1, presença, Dar feedback, Parabenizar | Versionada na branch `feature/home-prototipo-completo`; **não compilada nem aplicada**. Testados na app, com CSS injetado, só o carrossel (título, degradê, resumo, botão e "Não lido"); o visual dos blocos novos não foi testado (a aba foi fechada) |
 | 10/11/2026 | Seção 7 (blocos do ponto) e nova versão do `pkg_home_ui`, `home.css`, `home.min.css` e `home-pagina.js` | Versionada na branch `feature/home-ponto-de-hoje`; **não compilada nem aplicada**. Conferido só por leitura: os nomes usados do `pkg_ponto` batem com a especificação, o `home.min.css` foi gerado do `.css` (a parte antiga ficou idêntica à anterior) e o `home-pagina.js` passou no `node --check` |
 
 **Protótipo conferido em 10/11/2026:** o frame "Início" do `corlixhub.pen` (pen.dev) está igual ao `pen_dev/Início.png` de 28/10/2026; não há versão mais nova no repositório.
