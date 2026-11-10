@@ -489,36 +489,45 @@
     color: var(--cx-texto-2);
 }
 
-/* --- 6. Indicadores (hoje só o banco de horas) --- */
+/* --- 6. Indicadores: faixa única com divisórias (banco, pagamento, férias, PDI) --- */
 
 .cx-home-indicadores {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     margin: 0 0 1.5rem;
     padding: 0;
+    overflow: hidden;
     list-style: none;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+    background: var(--cx-superficie);
 }
 
 .cx-home-indicador {
+    position: relative;
     display: flex;
     align-items: flex-start;
     gap: 16px;
     padding: 20px 24px;
-    border: 1px solid var(--cx-borda);
-    border-radius: var(--cx-raio-card);
-    background: var(--cx-superficie);
+    border-left: 1px solid var(--cx-borda);
+    margin-left: -1px;
 }
 
 .cx-home-indicador__icone {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     width: 36px;
     height: 36px;
     border-radius: 4px;
     background: var(--cx-primaria-suave);
     color: var(--cx-primaria);
+}
+
+.cx-home-indicador__texto {
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .cx-home-indicador__rotulo,
@@ -529,6 +538,7 @@
 }
 
 .cx-home-indicador__valor {
+    display: inline-block;
     margin: 2px 0;
     font-size: 1.5rem;
     font-weight: 700;
@@ -547,6 +557,65 @@
 
 .cx-home-indicador__detalhe a {
     color: var(--cx-primaria);
+}
+
+/* "Mostrar valor" do pagamento (o valor chega oculto, como na página 9) */
+.cx-home-indicador__olho {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin-left: 4px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--cx-texto-2);
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.cx-home-indicador__olho:hover,
+.cx-home-indicador__olho[aria-pressed="true"] {
+    background: var(--cx-tag);
+    color: var(--cx-texto);
+}
+
+/* Barra do PDI */
+.cx-home-progresso {
+    width: calc(100% - 44px);
+    height: 6px;
+    vertical-align: middle;
+    border: 0;
+    border-radius: 3px;
+    background: var(--cx-tag);
+    appearance: none;
+}
+
+.cx-home-progresso::-webkit-progress-bar {
+    border-radius: 3px;
+    background: var(--cx-tag);
+}
+
+.cx-home-progresso::-webkit-progress-value {
+    border-radius: 3px;
+    background: var(--cx-primaria);
+}
+
+.cx-home-progresso::-moz-progress-bar {
+    border-radius: 3px;
+    background: var(--cx-primaria);
+}
+
+.cx-home-progresso__pct {
+    display: inline-block;
+    width: 40px;
+    margin-left: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+    color: var(--cx-texto);
 }
 
 /* --- 7. Suas pendências --- */
@@ -618,4 +687,308 @@
     .cx-home-pendencia__acao.t-Button {
         flex: 1 1 auto;
     }
+}
+
+/* --- 8. Carrossel: metadados, botão e "Não lido" como no protótipo --- */
+
+/* O corpo crescia e empurrava o botão para baixo */
+.cx-home-carrossel.cx-home-comunicados .a-CardView-item:nth-child(n) .a-CardView-body {
+    flex-grow: 0;
+}
+
+/* "Para: Todos · 9 de novembro" em texto; a categoria é a etiqueta */
+.cx-home-carrossel .cx-home-comunicado__meta .cx-etiqueta {
+    border: 1px solid rgba(255, 255, 255, .45);
+}
+
+.cx-home-comunicado__para {
+    font-size: 13px;
+}
+
+/* "Ler comunicado →": seta depois do texto */
+.cx-home-carrossel.cx-home-comunicados .a-CardView-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.cx-home-carrossel.cx-home-comunicados .a-CardView-button {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 8px;
+}
+
+/* "Não lido" (o JS da página põe ao lado do botão) */
+.cx-home-nao-lido {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #fff;
+}
+
+.cx-home-nao-lido::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Número no título de "Suas pendências" (vazio = some) */
+.cx-home-contador {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    margin-left: 8px;
+    padding: 0 7px;
+    border-radius: 11px;
+    background: var(--cx-primaria);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    vertical-align: middle;
+}
+
+.cx-home-contador:empty {
+    display: none;
+}
+
+/* Ícones SVG dentro de botões do tema */
+.t-Button .cx-home-icone {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    vertical-align: -3px;
+}
+
+/* --- 9. Meu gestor: presença, próxima 1:1 e ações --- */
+
+.cx-home-gestor__pessoa {
+    position: relative;
+}
+
+.cx-home-gestor__pessoa.is-disponivel .cx-avatar::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--cx-superficie);
+    border-radius: 50%;
+    background: var(--cx-sucesso);
+}
+
+.cx-home-gestor__pessoa.is-disponivel .cx-avatar {
+    overflow: visible;
+}
+
+.cx-home-gestor__status {
+    display: block;
+    margin: 2px 0 0 52px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cx-sucesso);
+}
+
+.cx-home-gestor__conversa {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio);
+    background: var(--cx-superficie-2);
+    color: var(--cx-primaria);
+}
+
+.cx-home-gestor__conversa span {
+    display: block;
+    font-size: 12px;
+    color: var(--cx-texto-2);
+}
+
+.cx-home-gestor__conversa strong {
+    font-size: 15px;
+    color: var(--cx-texto);
+}
+
+/* --- 10. Feedbacks recebidos: 2 colunas com divisória --- */
+
+.cx-home-feedbacks {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cx-home-feedback {
+    padding: 20px 24px;
+    border-left: 1px solid var(--cx-borda);
+    margin-left: -1px;
+}
+
+.cx-home-feedback__topo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cx-home-feedback .cx-pessoa__nome {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.cx-home-feedback .cx-pessoa__detalhe {
+    font-size: 13px;
+    color: var(--cx-texto-2);
+}
+
+.cx-home-feedback .cx-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+}
+
+.cx-home-feedback__texto {
+    margin: 12px 0 0;
+    padding: 0;
+    border: 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--cx-texto);
+}
+
+/* --- 11. Pesquisa de clima: arte à esquerda, texto à direita --- */
+
+.cx-home-pesquisa {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+    background: var(--cx-superficie);
+}
+
+/* Mesma arte do hero antigo (home-hero.jpg, na raiz do Static Application Files) */
+.cx-home-pesquisa__arte {
+    background: var(--cx-tag) url("../../home-hero.jpg") center / cover no-repeat;
+}
+
+.cx-home-pesquisa__conteudo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 20px;
+}
+
+.cx-home-pesquisa__titulo {
+    margin: 4px 0 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--cx-texto);
+}
+
+.cx-home-pesquisa__texto {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--cx-texto-2);
+}
+
+.cx-home-pesquisa__botao.t-Button {
+    margin: 8px 0 0;
+    border-color: var(--cx-escuro);
+    background: var(--cx-escuro);
+    color: #fff;
+}
+
+.cx-home-pesquisa__botao.t-Button:hover {
+    background: var(--cx-texto);
+    color: #fff;
+}
+
+/* --- 12. Próximos eventos --- */
+
+.cx-home-eventos {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cx-home-evento {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 24px;
+}
+
+.cx-home-evento__data {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--cx-raio);
+    background: var(--cx-superficie-2);
+    line-height: 1;
+}
+
+.cx-home-evento__data span {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cx-primaria);
+}
+
+.cx-home-evento__data strong {
+    margin-top: 2px;
+    font-size: 19px;
+    color: var(--cx-texto);
+}
+
+.cx-home-evento__texto {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.cx-home-evento__texto strong {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cx-texto);
+}
+
+.cx-home-evento__texto span {
+    font-size: 13px;
+    color: var(--cx-texto-2);
+}
+
+/* --- 13. Celebrações: "Parabenizar" --- */
+
+.cx-home-parabenizar.t-Button {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+/* --- 14. Diálogo "Dar feedback" --- */
+
+.cx-home-fb-para {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+.cx-home-fb-para strong {
+    color: var(--cx-texto);
 }
