@@ -8,8 +8,12 @@
 --   2. Troque c_login_autor (linha abaixo) pelo login ou pelo ID de um
 --      colaborador da empresa que vai receber os comunicados (o autor).
 --
+-- Também aceita as imagens com o nome do pen.dev ("Comunicado · Confraternização.png"),
+-- em qualquer pasta.
+--
 -- Rodar em SQL Workshop › SQL Scripts (Upload e Run). Reexecutável: pula os
--- comunicados que já existem (mesmo NOME_ARQUIVO na empresa). As imagens são
+-- comunicados que já existem (mesmo NOME_ARQUIVO na empresa) e completa a capa
+-- dos que foram criados sem ela. As imagens são
 -- copiadas para a coluna IMAGEM; depois, os arquivos estáticos podem ser apagados.
 -- Datas relativas a hoje: os 2 primeiros saem com o selo "Novo" (até 7 dias).
 -- Para remover: 02_remover_comunicados_demo.sql.
@@ -29,6 +33,38 @@ declare
   l_mime       varchar2(100);
   l_qt         pls_integer := 0;
 
+  -- Capa no Static Application Files. Aceita o nome deste módulo
+  -- (modulos/home/comunicados-demo/demo-comunicado-N.jpg, ou sem a pasta) e o
+  -- nome do frame exportado do pen.dev ("Comunicado · Confraternização.png"),
+  -- em qualquer pasta. O nome do pen.dev é achado por um trecho sem acento,
+  -- para não depender da codificação do arquivo.
+  procedure buscar_imagem (p_arquivo in varchar2) is
+    l_trecho varchar2(30);
+  begin
+    l_trecho := case substr(p_arquivo, 17, 1)
+                  when '1' then 'Novembro Azul'
+                  when '2' then 'Trabalho h'
+                  when '3' then 'Seguran'
+                  when '4' then 'Confraterniza'
+                  when '5' then 'Resultados'
+                end;
+    select file_content, mime_type
+      into l_imagem, l_mime
+      from apex_application_static_files
+     where application_id = c_app
+       and (   file_name = c_pasta || p_arquivo
+            or file_name = p_arquivo
+            or file_name like '%Comunicado%' || l_trecho || '%')
+     order by case when file_name = c_pasta || p_arquivo then 0
+                   when file_name = p_arquivo then 1
+                   else 2 end
+     fetch first 1 rows only;
+  exception
+    when no_data_found then
+      l_imagem := null;
+      l_mime   := null;
+  end buscar_imagem;
+
   procedure inserir (
     p_arquivo  in varchar2,
     p_dias     in number,        -- publicado há N dias
@@ -37,30 +73,36 @@ declare
     p_titulo   in varchar2,
     p_conteudo in clob
   ) is
-    l_existe pls_integer;
+    l_id      number;
+    l_tamanho number;
   begin
-    select count(*) into l_existe
-      from comunicado
-     where id_empresa = l_id_empresa
-       and nome_arquivo = p_arquivo;
-    if l_existe > 0 then
-      dbms_output.put_line('Já existe, pulado: ' || p_titulo);
-      return;
-    end if;
+    buscar_imagem(p_arquivo);
 
+    -- Já criado: só completa a capa, se ela faltava e agora foi encontrada
     begin
-      select file_content, mime_type
-        into l_imagem, l_mime
-        from apex_application_static_files
-       where application_id = c_app
-         and file_name = c_pasta || p_arquivo;
+      select id_comunicado, dbms_lob.getlength(imagem)
+        into l_id, l_tamanho
+        from comunicado
+       where id_empresa = l_id_empresa
+         and nome_arquivo = p_arquivo
+       fetch first 1 rows only;
+      if nvl(l_tamanho, 0) = 0 and l_imagem is not null then
+        update comunicado set imagem = l_imagem, mime_type = l_mime where id_comunicado = l_id;
+        dbms_output.put_line('Capa adicionada: ' || p_titulo);
+      elsif nvl(l_tamanho, 0) = 0 then
+        dbms_output.put_line('AVISO: continua sem capa (imagem não encontrada): ' || p_titulo);
+      else
+        dbms_output.put_line('Já existe, pulado: ' || p_titulo);
+      end if;
+      return;
     exception
       when no_data_found then
-        l_imagem := null;
-        l_mime   := null;
-        dbms_output.put_line('AVISO: imagem ' || c_pasta || p_arquivo
-          || ' não encontrada em Static Application Files; comunicado criado sem capa.');
+        null;  -- ainda não existe: cria abaixo
     end;
+
+    if l_imagem is null then
+      dbms_output.put_line('AVISO: imagem não encontrada em Static Application Files; criado sem capa: ' || p_titulo);
+    end if;
 
     insert into comunicado (id_empresa, id_autor, id_departamento, titulo, conteudo,
                             data_publicacao, imagem, mime_type, nome_arquivo)
