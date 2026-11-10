@@ -28,6 +28,7 @@ Como nos outros guias, a mudança é feita no Builder. O backup diário traz o r
 | Quando o holerite aparece | Em qualquer data | **A partir do dia 25 do mês** (veja abaixo) |
 | Desde quando há holerites | Só para admitidos a partir de 01/06/2026 | **Para todos, desde o mês da admissão** (veja abaixo) |
 | Valores ao abrir a página | Visíveis | **Ocultos** (`••••••`), até a pessoa clicar em **Mostrar valores** (veja abaixo) |
+| PDF (**Baixar PDF**) | Cópia da tela, sem a lista | Documento **Aviso de crédito**, numa grade parecida com a de um holerite impresso (veja abaixo) |
 
 ### Por que a geração saiu da página
 
@@ -62,13 +63,42 @@ Toda vez que a pessoa entra na página, os valores chegam ocultos: o líquido, o
 
 A máscara já vem pronta no HTML do `pkg_holerite_ui`, então o valor não aparece nem por um instante antes do JavaScript rodar. O valor real fica no atributo `data-cx-hol-original` do elemento, como antes ficava no texto, porque o JavaScript precisa dele para mostrar sem recarregar a página.
 
+### O PDF: aviso de crédito
+
+**Baixar PDF** continua abrindo o diálogo de impressão do navegador, mas o que sai não é mais a tela. Sai um documento **Aviso de crédito**, no layout do modelo que o time escolheu em 10/11/2026: uma grade em preto e branco, como um holerite impresso. Do modelo, só o layout foi usado: o logo e a marca de quem o criou não entram. O documento leva o nome e a razão social da empresa do colaborador.
+
+O `pkg_holerite_ui` gera o aviso junto com a página (`aviso_credito`). Na tela ele fica oculto, e na impressão é a única coisa que aparece (§8 do `holerite.css`). Os valores usam a mesma máscara da tela, e o JavaScript, que não mudou, os revela antes de imprimir.
+
+| Bloco do modelo | No aviso | De onde vem |
+|---|---|---|
+| Logo | Nome da empresa (nome fantasia) e, abaixo, razão social e CNPJ | `EMPRESA` |
+| Emitido em | Data e hora em que a página foi aberta, no fuso da empresa | `pkg_historico_carreira.fn_data_local` |
+| Número | Número do holerite | `COLABORADOR_HOLERITE.ID_HOLERITE` |
+| Mês/ano | `OUT/2026` | Mês aberto na página |
+| Posto de trabalho | **Departamento** | `DEPARTAMENTO.NOME` |
+| Matrícula | ID do colaborador com 6 dígitos (`000123`) | `COLABORADOR.ID_COLABORADOR` |
+| Nome do empregado, Cargo, Nível | Iguais | `COLABORADOR`, `CARGO.NOME`, `CARGO.NIVEL` |
+| Salário base | Salário gravado no holerite | `COLABORADOR_HOLERITE.SALARIO_BASE` |
+| Legenda, Código, Unidade, Proventos, Descontos | Legenda, Código, **Referência**, Proventos, Descontos. A grade tem no mínimo 7 linhas, como no modelo | `HOLERITE_ITENS` |
+| Base de cálculo | **Base de cálculo INSS** (bruto) | Calculada |
+| Base de cálculo / Imposto de renda | Base do IRRF (bruto − INSS) / IRRF descontado | Calculada |
+| Bruto, Descontos, Líquido | Iguais | `COLABORADOR_HOLERITE` |
+| Depósito FGTS do mês | 8% do bruto, como na tela | Calculado |
+| Texto legal | O mesmo texto (art. 298 do Código Penal e art. 482, "b", da CLT) | Fixo no package |
+
+**Códigos das rubricas:** a geração da folha não grava `HOLERITE_ITENS.CODIGO_TIPO`, então o código sai fixo pelo nome do item: **1001** Salário base, **5001** INSS, **5002** IRRF, **5003** Vale-transporte. Um item de outro tipo sai com `—`. Se um dia a geração gravar `CODIGO_TIPO`, o código gravado vale mais que o fixo (`codigo_item` no `.pkb`).
+
+**Ficaram de fora** (decisão de 10/11/2026), porque o sistema não tem esses dados: sigla e código do posto, vínculo (CLT), função, banco, agência e conta. Para incluir algum depois, é preciso criar a coluna e o cadastro antes.
+
+**Logo da empresa:** não entra por enquanto. `EMPRESA.LOGOTIPO_EMPRESA` não é gravado pela página 16 e não tem coluna de tipo do arquivo (ver `docs/apex-26.1/11-dados-rest-arquivos-e-relatorios-pdf.md`, "logotipo da empresa (p16) não é salvo"). Quando isso estiver resolvido, o logo pode entrar no lugar do nome.
+
 ### Arquivos do módulo
 
 | Arquivo | O que é |
 |---|---|
 | `00_pkg_holerite.pks` / `.pkb` | Cálculo da folha: mesmas contas, sem o corte de 01/06/2026 e com `gerar_holerite` por pessoa. Substitui o package do banco |
 | `01_prc_gerar_holerites_pendentes.sql` | Procedure que gera, por pessoa, os holerites que faltam desde a admissão, sem tocar nos que já existem |
-| `02_pkg_holerite_ui.pks` / `.pkb` | Package que devolve o HTML (`render_cabecalho`, `render_pagina`) |
+| `02_pkg_holerite_ui.pks` / `.pkb` | Package que devolve o HTML (`render_cabecalho`, `render_pagina`, com o aviso de crédito do PDF) |
 | `03_job_folha_mensal.sql` | Job que chama a procedure todo dia |
 | `instalar.sql` | Instala os packages e a procedure pelo SQLcl |
 | `holerite.css` / `holerite.min.css` | Estilos da página (classes `cx-hol-*`); sobem como Static Application Files |
@@ -80,6 +110,8 @@ Não há tabela nova.
 
 ## 1. Banco
 
+> **Se você já aplicou este guia antes do PDF no modelo de aviso de crédito (10/11/2026):** rode só `02_pkg_holerite_ui.pkb` (no SQL Scripts, ou `@02_pkg_holerite_ui.pkb` no SQLcl), envie de novo `holerite.css` e `holerite.min.css` (§2, substituindo os atuais) e faça os testes 7, 20 e 21 do §4. O JavaScript e a página não mudam.
+>
 > **Se você já aplicou este guia antes dos valores ocultos ao abrir:** rode só `02_pkg_holerite_ui.pkb` (no SQL Scripts, ou `@02_pkg_holerite_ui.pkb` no SQLcl), cole de novo o JavaScript do §3.1 e faça os testes 5 a 7 e 19 do §4. O resto não muda.
 >
 > **Se você já rodou este §1 antes da regra do dia 25 e da regra da admissão:** instale tudo de novo (§1.1), rode a carga única (§1.2) e recrie o job (§1.3). Se a carga antiga já rodou, ela pode ter criado o mês atual: confira com a consulta do §1.2 e apague esse mês antes do dia 25, como explicado lá, para que o job o gere com os valores do dia.
@@ -265,7 +297,7 @@ Limpe o cache do navegador antes (`Cmd+Shift+R`). Compare com o protótipo.
 | 4 | Quem tem holerites em dois anos | Troque o ano no seletor | Abre o mês mais recente daquele ano |
 | 5 | Qualquer uma | Abra **Holerite** no menu | Todos os valores aparecem como `••••••`, sem mostrar o número nem por um instante, a barra fica cinza e o botão é **Mostrar valores** |
 | 6 | A mesma | Clique em **Mostrar valores**, depois troque de mês e de ano | Os valores aparecem, o botão vira **Ocultar valores** e os valores continuam visíveis nos outros meses |
-| 7 | A mesma, com os valores ocultos | Clique em **Baixar PDF** | O diálogo de impressão abre com os valores, o nome da pessoa e sem menu nem lista. Escolha *Salvar como PDF*. O documento deve caber em uma página, e a tela volta oculta ao fechar |
+| 7 | A mesma, com os valores ocultos | Clique em **Baixar PDF** | O diálogo de impressão mostra só o **Aviso de crédito** (veja "O PDF: aviso de crédito"), com os valores, sem menu, sem os cards da tela e sem a lista. Escolha *Salvar como PDF*. O documento cabe em uma página A4, e a tela volta oculta ao fechar |
 | 8 | Qualquer uma | Clique em **Solicitar correção** | O modal abre com `Holerite-10/2026` (o mês aberto) já no campo, sem erro de checksum |
 | 9 | A mesma | Complete o texto e envie | O modal fecha e aparece "Pedido enviado ao RH." |
 | 10 | RH | Abra o Dashboard RH | O pedido aparece em **Solicitações de correção**, com o mês |
@@ -278,6 +310,8 @@ Limpe o cache do navegador antes (`Cmd+Shift+R`). Compare com o protótipo.
 | 17 | A mesma, a partir do dia 25 | Abra **Holerite** depois da execução do job | O mês atual aparece primeiro, com o selo **Pagamento agendado** |
 | 18 | Colaborador com admissão futura | Abra **Holerite** | "Nenhum holerite disponível ainda.", sem os botões |
 | 19 | A do teste 6, com os valores visíveis | Recarregue a página (`F5`), e depois saia e volte pelo menu | Nas duas vezes, os valores voltam ocultos |
+| 20 | A do teste 7 | Confira o PDF com o mês aberto na tela | Mesmo mês/ano, nome, departamento, matrícula (ID com 6 dígitos), cargo e nível. Proventos e descontos de cada item, bruto, descontos e líquido iguais aos da tela; Base IRRF / IRRF iguais à linha do IRRF; FGTS = 8% do bruto. Códigos 1001, 5001, 5002 e 5003. Texto legal no rodapé |
+| 21 | A mesma | Abra um mês antigo pela lista e use `Cmd+P` (menu do navegador), sem clicar em **Baixar PDF** | Sai o aviso do mês aberto, também com os valores |
 
 O selo **Pagamento agendado** só aparece do dia 25 até a véspera da data de pagamento. Depois disso, a tela mostra **Pago**.
 
@@ -300,6 +334,10 @@ O selo **Pagamento agendado** só aparece do dia 25 até a véspera da data de p
 | Valores visíveis ao abrir a página | `.pkb` antigo no banco | Rode `02_pkg_holerite_ui.pkb` de novo (§1.1) |
 | Valores ocultos e **Mostrar valores** não revela nada | `.pkb` novo com o JavaScript antigo | Cole de novo o `holerite-pagina.js` no §3.1 |
 | Menu ou cabeçalho do app saem no PDF | O tema usa uma classe que o CSS de impressão não conhece | Mande um print. O ajuste é no §8 do `holerite.css` |
+| O PDF sai igual à tela, sem o aviso de crédito | CSS antigo no Static Application Files, ou cache | Envie de novo os dois CSS (§2) e use `Cmd+Shift+R` |
+| O PDF sai em branco | `.pkb` antigo no banco, com o CSS novo | Rode `02_pkg_holerite_ui.pkb` de novo (§1.1) |
+| O PDF sai com `••••••` | JavaScript da página ausente ou com erro | Confira o §3.1 e o console do navegador |
+| O PDF ocupa duas páginas | Margens do diálogo de impressão ou escala diferente de 100% | Em *Mais configurações*, use margens **Padrão** e escala **100%** |
 | Conta legítima recebe "acesso negado" | Conta sem o papel COLABORADOR ou sem vínculo em `LOGIN_APEX` | Veja `modulos/perfis-acesso/Registro-implantacao.md` |
 
 ## Voltar atrás
@@ -328,6 +366,16 @@ Conferido em 07/11/2026 com a conta `TESTE.RH`, admitida em 07/10/2026, pela pá
 - **OK, teste 16:** em 07/11/2026, novembro foi gerado para as 309 pessoas com `prc_gerar_holerites_pendentes(p_hoje => date '2026-11-25')`. Com `DEMO.CARREIRA.1.1`, a página continuou abrindo em outubro de 2026, sem novembro na lista nem no HTML, porque a tela usa a data real.
 - **Falta o teste 17:** a partir de 25/11/2026, novembro deve aparecer primeiro, com o selo **Pagamento agendado**. Como novembro já está gravado, basta abrir a página nesse dia, sem esperar o job.
 
+### PDF no modelo de aviso de crédito (10/11/2026): proposto, ainda não aplicado
+
+- **Pedido:** usar no **Baixar PDF** o layout de um modelo de holerite impresso ("Aviso de crédito") enviado pelo time.
+- **Decisões do time:** os campos sem dado no sistema saem do layout (sigla e código do posto, vínculo, função, banco, agência e conta); a matrícula é o ID do colaborador; os códigos das rubricas são fixos por item; o PDF sai só no layout novo.
+- **Mudou:** `02_pkg_holerite_ui.pkb` (record `t_pessoa`, `codigo_item`, `campo` e `aviso_credito`; `render_pagina` busca também departamento, nível e razão social; `t_holerite` ganhou `salario_base`; saiu o `cx-hol-impressao-nome`), `holerite.css` (§8 refeito) e `holerite.min.css`. A especificação `.pks`, o JavaScript e a página 9 não mudaram.
+- **Testado em 10/11/2026, fora da app:** num Oracle 23ai local, **sem APEX** (APIs do APEX e `pkg_historico_carreira` simuladas), o `instalar.sql` compilou tudo `VALID`, e `render_pagina` gerou o aviso para duas pessoas: uma com INSS, IRRF e vale-transporte, outra sem IRRF e sem nível. As contas conferem (bruto 4.800,00 − descontos 1.409,59 = líquido 3.390,41; Base IRRF 3.891,15; FGTS 384,00), o nome com `<` e `&` saiu escapado, e todos os valores do aviso vêm com a máscara. O HTML, com o CSS real do tema e os valores revelados, foi impresso em PDF pelo Chromium headless: uma página A4, sem nada da tela, e a tela sem o aviso.
+- **Falhas no caminho, já corrigidas:** (1) os campos do record tinham o nome das tabelas (`departamento departamento.nome%type`), e o corpo não compilava (`PLS-00320`); (2) o package tinha `&nbsp;`, que vira variável de substituição quando o script roda sem `set define off`, por exemplo no SQL Scripts; (3) o cabeçalho das colunas estava num `<thead>` depois do `<tbody>` dos dados, e o navegador o levaria para o topo da tabela.
+- **Não testado:** a página real, o diálogo de impressão do Chrome/Safari/Edge e o *Salvar como PDF*. São os testes 7, 20 e 21 do §4.
+- **Próximo passo:** aplicar pela nota do início do §1 e registrar aqui o resultado dos testes 7, 20 e 21.
+
 ### Banco, conferido no SQL Commands em 07/11/2026
 
 - **Job:** estava na versão mensal antiga (dia 25) e nunca tinha rodado. Foi recriado pelo §1.3: diário, às 06:00, próxima execução em 08/11/2026.
@@ -348,13 +396,15 @@ Testes 1 a 16 e 18 conferidos na app. Fica para depois:
 | 4 | Salários dos 37 cargos são de demonstração | Antes de usar dados reais | Troque pelos salários de verdade e, se for o caso, apague e gere de novo os holerites afetados |
 | 5 | Outubro de 2026 das 17 pessoas admitidas antes de junho e de `TESTE.RH` com 3.500,00, gravado por outra carga | Se incomodar na demonstração | Apague o outubro dessas pessoas e rode `begin prc_gerar_holerites_pendentes; end;` para gerá-lo com o salário do cargo |
 | 6 | 873 holerites de meses anteriores à admissão | Quando quiser | Não aparecem na tela. Saem com o `delete` do §1.2 |
+| 7 | PDF no modelo de aviso de crédito | Agora | Aplicar pela nota do início do §1 e fazer os testes 7, 20 e 21 |
+| 8 | Logo da empresa no PDF | Depois que a página 16 gravar o logotipo | Trocar o nome da empresa pelo logo em `aviso_credito` |
 
 ## O que fica diferente do protótipo
 
 - **Banco e conta ("Itaú, conta ••••5678"):** o sistema não guarda dados bancários. A linha mostra só "Crédito em 31/10/2026".
-- **Matrícula:** o sistema não tem esse campo, então ela saiu. O ID interno do colaborador não foi usado no lugar dela.
+- **Matrícula:** o sistema não tem esse campo, então ela saiu da tela. No PDF, por decisão de 10/11/2026, a matrícula é o ID do colaborador com 6 dígitos.
 - **Data de pagamento:** o protótipo mostra o último dia útil (30/10). `gerar_folha_mensal` grava o último dia do mês (31/10, um sábado).
-- **Baixar PDF:** abre o diálogo de impressão do navegador, onde a pessoa escolhe *Salvar como PDF*. O PDF nativo do APEX é para relatórios, não para este layout. O documento leva o nome da pessoa, que não aparece na tela.
+- **Baixar PDF:** abre o diálogo de impressão do navegador, onde a pessoa escolhe *Salvar como PDF*. O PDF nativo do APEX é para relatórios, não para este layout. Desde 10/11/2026 o documento não é a tela: é o **Aviso de crédito** (veja "O PDF: aviso de crédito").
 - **Solicitar correção:** reaproveita a página 22 e a fila do RH, sem tabela nova. O mês vai no texto, como `Holerite-10/2026`, porque não há coluna para ele. O campo "Qual registro?" do modal continua listando movimentações de carreira; deixe em "Não sei / vários".
 - **Referência:** a geração grava "Tabela Oficial" no INSS e no IRRF. A tela mostra a alíquota efetiva e a base de cálculo, calculadas na hora. A explicação de cada item vem do nome dele; um item de outro tipo aparece sem explicação.
 

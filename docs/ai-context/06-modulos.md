@@ -327,9 +327,9 @@ Redesign da página 9 conforme `pen_dev/Holerite digital.png`, na própria pági
 |---|---|
 | `00_pkg_holerite.pks` / `.pkb` | cálculo da folha, sem o corte de 01/06/2026 e com `gerar_holerite` por pessoa |
 | `01_prc_gerar_holerites_pendentes.sql` | gera, por pessoa, o que falta desde a admissão, com o mês atual só a partir do dia 25; a página deixa de gerar ao abrir |
-| `02_pkg_holerite_ui.pks` / `.pkb` | `render_cabecalho`, `render_pagina(p_competencia)`; só leitura; o holerite do mês só aparece a partir do dia 25 |
+| `02_pkg_holerite_ui.pks` / `.pkb` | `render_cabecalho`, `render_pagina(p_competencia)`; só leitura; o holerite do mês só aparece a partir do dia 25. `render_pagina` também gera o **aviso de crédito** do PDF (`aviso_credito`: grade do modelo de holerite impresso, matrícula = ID com 6 dígitos, códigos de rubrica fixos em `codigo_item`), oculto na tela |
 | `03_job_folha_mensal.sql` | job `JOB_FOLHA_MENSAL`, todo dia às 06:00 |
-| `holerite.css` / `.min.css` | classes `cx-hol-*`, inclusive `@media print` para "Baixar PDF" |
+| `holerite.css` / `.min.css` | classes `cx-hol-*`; o §8 (`@media print`) esconde a tela e imprime só o `.cx-hol-aviso` |
 | `holerite-pagina.js` | "Mostrar/Ocultar valores": a página sempre abre com os valores ocultos (máscara já no HTML do package, valor em `data-cx-hol-original`); o "mostrar" só sobrevive à troca de mês/ano, via `sessionStorage`; `window.print()`, seletor de ano e mensagem do modal |
 | `instalar.sql` | instala os packages e a procedure; não gera folha nem cria o job |
 
