@@ -1,0 +1,440 @@
+page 38 (
+    name: Atendimento TI
+    alias: ATENDIMENTO-TI
+    title: Atendimento TI
+    appearance {
+        pageTemplate: @corlix-standard-page
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        authorizationScheme: @suporte-ti
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region cabeçalho (
+        name: Cabeçalho
+        type: staticContent
+        source {
+            htmlCode:
+                ```html
+                <div class="cx-cabecalho-pagina__texto">
+                  <h1 class="cx-cabecalho-pagina__titulo">Atendimento TI</h1>
+                  <p class="cx-cabecalho-pagina__descricao">Chamados dos colaboradores desta empresa.</p>
+                </div>
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+            cssClasses: cx-cabecalho-pagina
+        }
+    )
+
+    region chamados (
+        name: Chamados
+        type: interactiveReport
+        source {
+            location: localDatabase
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select id_chamado,
+                       cd_chamado,
+                       ds_titulo,
+                       ds_tipo,
+                       nm_assunto,
+                       nm_solicitante,
+                       nm_atendente,
+                       ds_status,
+                       ds_prioridade,
+                       nr_prioridade,
+                       dt_previsao,
+                       pkg_historico_carreira.fn_data_local(id_empresa, dh_abertura) as aberto_em,
+                       pkg_historico_carreira.fn_data_local(id_empresa, dh_atualizacao) as atualizado_em,
+                       'Atender' as atender
+                  from vw_suporte_fila
+                 where id_empresa = :G_ID_EMPRESA
+                ```
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+            cssClasses: cx-relatorio
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        advanced {
+            savedReportMappingIdentifier: 47210612548079545
+        }
+
+        column ABERTO_EM (
+            type: plainText
+            heading {
+                heading: Aberto em
+            }
+            layout {
+                sequence: 120
+            }
+            appearance {
+                formatMask: DD/MM/YYYY HH24:MI
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column ATENDER (
+            type: link
+            heading {
+                heading: Ação
+            }
+            layout {
+                sequence: 140
+            }
+            link {
+                target: {
+                    page: 39
+                    items: {
+                        P39_ID_CHAMADO: #ID_CHAMADO#
+                    }
+                    clearCache: 39
+                }
+                linkText: Atender
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: N
+            }
+        )
+
+        column ATUALIZADO_EM (
+            type: plainText
+            heading {
+                heading: Atualizado em
+            }
+            layout {
+                sequence: 130
+            }
+            appearance {
+                formatMask: DD/MM/YYYY HH24:MI
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        column CD_CHAMADO (
+            type: plainText
+            heading {
+                heading: Chamado
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column DS_PRIORIDADE (
+            type: plainText
+            heading {
+                heading: Prioridade
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column DS_STATUS (
+            type: plainText
+            heading {
+                heading: Situação
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column DS_TIPO (
+            type: plainText
+            heading {
+                heading: Tipo
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column DS_TITULO (
+            type: plainText
+            heading {
+                heading: Título
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column DT_PREVISAO (
+            type: plainText
+            heading {
+                heading: Previsão
+            }
+            layout {
+                sequence: 110
+            }
+            appearance {
+                formatMask: DD/MM/YYYY
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        column ID_CHAMADO (
+            type: hidden
+            heading {
+                heading: Id Chamado
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column NM_ASSUNTO (
+            type: plainText
+            heading {
+                heading: Assunto
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column NM_ATENDENTE (
+            type: plainText
+            heading {
+                heading: Atendente
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column NM_SOLICITANTE (
+            type: plainText
+            heading {
+                heading: Colaborador
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column NR_PRIORIDADE (
+            type: hidden
+            heading {
+                heading: Nr Prioridade
+            }
+            layout {
+                sequence: 100
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn ABERTO_EM (
+                sequence: 12
+            )
+
+            displayColumn ATENDER (
+                sequence: 14
+            )
+
+            displayColumn ATUALIZADO_EM (
+                sequence: 13
+            )
+
+            displayColumn CD_CHAMADO (
+                sequence: 2
+            )
+
+            displayColumn DS_PRIORIDADE (
+                sequence: 9
+            )
+
+            displayColumn DS_STATUS (
+                sequence: 8
+            )
+
+            displayColumn DS_TIPO (
+                sequence: 4
+            )
+
+            displayColumn DS_TITULO (
+                sequence: 3
+            )
+
+            displayColumn DT_PREVISAO (
+                sequence: 11
+            )
+
+            displayColumn ID_CHAMADO (
+                sequence: 1
+            )
+
+            displayColumn NM_ASSUNTO (
+                sequence: 5
+            )
+
+            displayColumn NM_ATENDENTE (
+                sequence: 7
+            )
+
+            displayColumn NM_SOLICITANTE (
+                sequence: 6
+            )
+
+            displayColumn NR_PRIORIDADE (
+                sequence: 10
+            )
+
+            sort (
+                column: ABERTO_EM
+                sort {
+                    sequence: 1
+                }
+            )
+
+            filter ir-condition (
+                column: DS_STATUS
+                operator: !=
+                value: Encerrado
+            )
+
+        )
+
+    )
+
+    dynamicAction chamado-atendido (
+        name: Chamado atendido
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @chamados
+        }
+
+        action true (
+            name: True
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @chamados
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)
+

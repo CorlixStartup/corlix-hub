@@ -228,6 +228,33 @@ end;
 /
 ALTER TRIGGER "TRG_SOLICITACAO_CORRECAO_LOG" ENABLE;
 
+  CREATE OR REPLACE EDITIONABLE TRIGGER "TRG_SUPORTE_ARTIGO_AUD"
+  before insert or update of id_assunto, ds_titulo, ds_resumo, ds_corpo, ds_palavras, nr_min_leitura, fl_publicado
+  on suporte_artigo
+  for each row
+begin
+  :new.dh_atualizacao  := systimestamp;
+  :new.usr_atualizacao := coalesce(sys_context('APEX$SESSION', 'APP_USER'), sys_context('USERENV', 'SESSION_USER'));
+  if :new.id_empresa is null then
+    :new.id_empresa := to_number(v('G_ID_EMPRESA'));
+  end if;
+end;
+/
+ALTER TRIGGER "TRG_SUPORTE_ARTIGO_AUD" ENABLE;
+
+  CREATE OR REPLACE EDITIONABLE TRIGGER "TRG_SUPORTE_SISTEMA_AUD"
+  before insert or update on suporte_sistema
+  for each row
+begin
+  :new.dh_atualizacao  := systimestamp;
+  :new.usr_atualizacao := coalesce(sys_context('APEX$SESSION', 'APP_USER'), sys_context('USERENV', 'SESSION_USER'));
+  if :new.id_empresa is null then
+    :new.id_empresa := to_number(v('G_ID_EMPRESA'));
+  end if;
+end;
+/
+ALTER TRIGGER "TRG_SUPORTE_SISTEMA_AUD" ENABLE;
+
   CREATE OR REPLACE EDITIONABLE TRIGGER "TRG_TIPO_MOVIMENTACAO_AUD"
 before insert or update on tipo_movimentacao
 for each row

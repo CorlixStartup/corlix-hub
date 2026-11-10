@@ -30,7 +30,18 @@ authorization aprovador-ponto (
     name: APROVADOR_PONTO
     type: plSqlFunctionBody
     settings {
-        plsqlFunctionBody: return pkg_ponto.fn_e_aprovador = 'S';
+        plsqlFunctionBody:
+            ```plsql
+            begin
+              return pkg_ponto.fn_e_aprovador = 'S';
+            exception
+              when others then
+                if sqlcode = -20012 then
+                  return false;
+                end if;
+                raise;
+            end;
+            ```
     }
     error {
         errorMessage: Acesso restrito à gestão direta e ao RH.
@@ -124,6 +135,38 @@ authorization somente-diretoria (
     }
 )
 
+authorization suporte-ti (
+    name: SUPORTE_TI
+    type: isInRoleOrGroup
+    settings {
+        names: Suporte TI
+    }
+    error {
+        errorMessage: Acesso restrito à equipe de TI.
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
+authorization ver-foto-colaborador (
+    name: VER_FOTO_COLABORADOR
+    type: plSqlFunctionBody
+    settings {
+        plsqlFunctionBody:
+            ```plsql
+            return apex_authorization.is_authorized('COLABORADOR')
+                or apex_authorization.is_authorized('EQUIPE_CORLIX_HUB');
+            ```
+    }
+    error {
+        errorMessage: Acesso restrito.
+    }
+    advanced {
+        evaluationType: perSession
+    }
+)
+
 authorization ver-lista-colaboradores (
     name: VER_LISTA_COLABORADORES
     type: plSqlFunctionBody
@@ -131,6 +174,7 @@ authorization ver-lista-colaboradores (
         plsqlFunctionBody:
             ```plsql
             return apex_authorization.is_authorized('ADMIN_RH')
+                or apex_authorization.is_authorized('EQUIPE_CORLIX_HUB')
                 or apex_authorization.is_authorized('SOMENTE_DIRETORIA')
                 or apex_authorization.is_authorized('GESTOR')
                 or apex_acl.has_user_role(

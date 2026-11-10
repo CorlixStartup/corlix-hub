@@ -1,0 +1,328 @@
+page 39 (
+    name: Atender chamado
+    alias: ATENDER-CHAMADO
+    title: Atender chamado
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        width: 760
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    css {
+        fileUrls: #APP_FILES#modulos/suporte-ti/suporte#MIN#.css
+    }
+    security {
+        authorizationScheme: @suporte-ti
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region botões (
+        name: Botões
+        type: staticContent
+        layout {
+            sequence: 90
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region conversa (
+        name: Conversa
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_suporte_ui.render_conversa(:P39_ID_CHAMADO);
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P39_ACAO (
+        type: radioGroup
+        label {
+            label: O que fazer
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:Assumir o chamado;ASSUMIR,Responder ao colaborador;RESPONDER,Pedir informação ao colaborador;PEDIR,Resolver;RESOLVER
+            displayNullValue: false
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: static
+            staticValue: RESPONDER
+        }
+    )
+
+    pageItem P39_ANEXO (
+        type: fileUpload
+        label {
+            label: Anexo
+            alignment: left
+        }
+        storage {
+            type: appTempFiles
+            fileTypes: .png,.jpg,.jpeg,.pdf,.txt,.log
+        }
+        layout {
+            sequence: 80
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        help {
+            inlineHelpText: Opcional. PNG, JPG, PDF, TXT ou LOG, até 5 MB.
+        }
+    )
+
+    pageItem P39_DS_TEXTO (
+        type: textarea
+        label {
+            label: Mensagem ao colaborador
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            maxLength: 3500
+        }
+        help {
+            inlineHelpText: O colaborador lê tudo o que for escrito aqui. Em "Resolver", este texto é a solução.
+        }
+    )
+
+    pageItem P39_DT_PREVISAO (
+        type: datePicker
+        label {
+            label: Previsão
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            formatMask: DD/MM/YYYY
+            width: 30
+        }
+        help {
+            inlineHelpText: Opcional. O colaborador vê esta data.
+        }
+    )
+
+    pageItem P39_ID_CHAMADO (
+        type: hidden
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+    )
+
+    pageItem P39_ST_CHAMADO (
+        type: hidden
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+    )
+
+    pageItem P39_TP_PRIORIDADE (
+        type: selectList
+        label {
+            label: Prioridade
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:Alta;ALTA,Média;MEDIA,Baixa;BAIXA
+            displayNullValue: false
+        }
+        layout {
+            sequence: 50
+            slot: contentBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+    )
+
+    button cancelar (
+        buttonName: CANCELAR
+        label: Fechar
+        layout {
+            sequence: 10
+            region: @botões
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button salvar (
+        buttonName: SALVAR
+        label: Salvar
+        layout {
+            sequence: 20
+            region: @botões
+            slot: regionBody
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction cancelar (
+        name: Cancelar
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @cancelar
+        }
+
+        action true (
+            name: True
+            action: cancelDialog
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process atender (
+        name: Atender
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                pkg_suporte.atender(
+                  p_id_chamado    => :P39_ID_CHAMADO,
+                  p_acao          => :P39_ACAO,
+                  p_ds_texto      => :P39_DS_TEXTO,
+                  p_tp_prioridade => :P39_TP_PRIORIDADE,
+                  p_dt_previsao   => :P39_DT_PREVISAO,
+                  p_anexo         => :P39_ANEXO);
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 47210264068079541
+        }
+        serverSideCondition {
+            whenButtonPressed: @salvar
+        }
+    )
+
+    process carregar (
+        name: Carregar
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                begin
+                  select st_chamado, tp_prioridade, to_char(dt_previsao, 'DD/MM/YYYY')
+                    into :P39_ST_CHAMADO, :P39_TP_PRIORIDADE, :P39_DT_PREVISAO
+                    from suporte_chamado
+                   where id_chamado = :P39_ID_CHAMADO
+                     and id_empresa = :G_ID_EMPRESA;
+                exception
+                  when no_data_found then
+                    raise_application_error(-20077, 'Chamado não encontrado.');
+                end;
+                ```
+        }
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 47210015974079539
+        }
+    )
+
+    process fechar (
+        name: Fechar
+        type: closeDialog
+        execution {
+            sequence: 20
+        }
+        successMessage {
+            successMessage: Chamado atualizado.
+        }
+        advanced {
+            executionMappingIdentifier: 47210397604079542
+        }
+        serverSideCondition {
+            whenButtonPressed: @salvar
+        }
+    )
+
+)
+

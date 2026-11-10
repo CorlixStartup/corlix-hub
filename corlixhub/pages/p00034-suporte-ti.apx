@@ -1,0 +1,371 @@
+page 34 (
+    name: Suporte TI
+    alias: SUPORTE-TI
+    title: Suporte TI
+    appearance {
+        pageTemplate: @corlix-standard-page
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        executeWhenPageLoads:
+            ```javascript-browser
+            // =============================================================================
+            // Corlix Hub · Suporte TI (página 34)
+            // Cole em Page › JavaScript › Execute when Page Loads.
+            // Os eventos ficam no document porque as regiões são atualizadas (Refresh) e o
+            // HTML delas é trocado.
+            // =============================================================================
+            
+            const cxSupRegioes = ["suporte_chamados"];
+            let cxSupAbaAtual = "cx_sup_abertos";
+            
+            function cxSupAtualizar() {
+              cxSupRegioes.forEach(function (id) {
+                const regiao = apex.region(id);
+                if (regiao) { regiao.refresh(); }
+              });
+            }
+            
+            function cxSupErro(mensagem) {
+              apex.message.clearErrors();
+              apex.message.showErrors([{ type: "error", location: "page", message: mensagem, unsafe: true }]);
+            }
+            
+            // --- Abas de "Meus chamados" ---
+            function cxSupMostrarAba(painel, comFoco) {
+              document.querySelectorAll("[data-cx-sup-aba]").forEach(function (aba) {
+                const ativa = aba.dataset.cxSupAba === painel;
+                aba.classList.toggle("is-ativa", ativa);
+                aba.setAttribute("aria-selected", ativa ? "true" : "false");
+                aba.tabIndex = ativa ? 0 : -1;
+                const conteudo = document.getElementById(aba.dataset.cxSupAba);
+                if (conteudo) { conteudo.hidden = !ativa; }
+                if (ativa && comFoco) { aba.focus(); }
+              });
+              cxSupAbaAtual = painel;
+            }
+            
+            $(document).on("click", "[data-cx-sup-aba]", function () {
+              cxSupMostrarAba(this.dataset.cxSupAba, false);
+            });
+            
+            $(document).on("keydown", "[data-cx-sup-aba]", function (evento) {
+              if (evento.key === "ArrowRight" || evento.key === "ArrowLeft") {
+                evento.preventDefault();
+                cxSupMostrarAba(this.dataset.cxSupAba === "cx_sup_abertos" ? "cx_sup_resolvidos" : "cx_sup_abertos", true);
+              }
+            });
+            
+            // O Refresh recria as abas: volta para a que estava aberta
+            $(document).on("apexafterrefresh", "#suporte_chamados", function () {
+              cxSupMostrarAba(cxSupAbaAtual, false);
+            });
+            
+            // --- Busca na base de conhecimento ---
+            (function () {
+              let espera = null;
+              let ultima = 0;
+            
+              function mostrar(html) {
+                const caixa = document.getElementById("cx_sup_resultados");
+                if (caixa) { caixa.innerHTML = html; }
+              }
+            
+              $(document).on("input", "[data-cx-sup-busca]", function () {
+                const termo = this.value.trim();
+                clearTimeout(espera);
+                if (termo.length < 3) {
+                  ultima += 1; // descarta uma resposta que ainda esteja a caminho
+                  mostrar("");
+                  return;
+                }
+                espera = setTimeout(function () {
+                  ultima += 1;
+                  const pedido = ultima;
+                  apex.server.process("BUSCAR_ARTIGOS", { x01: termo }, { dataType: "json" }).done(function (resposta) {
+                    if (pedido !== ultima) { return; } // chegou fora de ordem
+                    if (resposta.ok) {
+                      mostrar(resposta.html); // HTML montado e escapado pelo pkg_suporte_ui
+                    } else {
+                      cxSupErro(resposta.mensagem);
+                    }
+                  }).fail(function () {
+                    cxSupErro("Não foi possível falar com o servidor. Confira sua conexão e tente de novo.");
+                  });
+                }, 300);
+              });
+            
+              // Enter não envia o formulário da página
+              $(document).on("keydown", "[data-cx-sup-busca]", function (evento) {
+                if (evento.key === "Enter") { evento.preventDefault(); }
+              });
+            })();
+            
+            // --- "Sim, encerrar" ---
+            $(document).on("click", "[data-cx-sup-confirmar]", function () {
+              const botao = this;
+              botao.disabled = true;
+              apex.server.process("CONFIRMAR_SOLUCAO", { x01: botao.dataset.cxSupConfirmar }, { dataType: "json" }).done(function (resposta) {
+                if (resposta.ok) {
+                  apex.message.clearErrors();
+                  apex.message.showPageSuccess(resposta.mensagem);
+                  cxSupAtualizar();
+                } else {
+                  cxSupErro(resposta.mensagem);
+                  botao.disabled = false;
+                }
+              }).fail(function () {
+                cxSupErro("Não foi possível falar com o servidor. Confira sua conexão e tente de novo.");
+                botao.disabled = false;
+              });
+            });
+            
+            // --- Aviso de instabilidade: o "x" vale até o aviso mudar ---
+            function cxSupAvisosFechados() {
+              try {
+                return JSON.parse(sessionStorage.getItem("cxSupAvisosFechados")) || [];
+              } catch (erro) {
+                return [];
+              }
+            }
+            
+            function cxSupEsconderAvisos() {
+              const fechados = cxSupAvisosFechados();
+              document.querySelectorAll("[data-cx-sup-aviso]").forEach(function (aviso) {
+                if (fechados.indexOf(aviso.dataset.cxSupAviso) >= 0) { aviso.hidden = true; }
+              });
+            }
+            
+            $(document).on("click", "[data-cx-sup-fechar-aviso]", function () {
+              const aviso = this.closest("[data-cx-sup-aviso]");
+              aviso.hidden = true;
+              try {
+                const fechados = cxSupAvisosFechados();
+                fechados.push(aviso.dataset.cxSupAviso);
+                sessionStorage.setItem("cxSupAvisosFechados", JSON.stringify(fechados));
+              } catch (erro) {
+                // Sem sessionStorage, o aviso só volta a aparecer ao recarregar
+              }
+            });
+            
+            cxSupEsconderAvisos();
+            
+            // Chamado aberto, respondido ou reaberto: o modal fechou
+            $(document).on("apexafterclosedialog", function (evento, dados) {
+              if (dados && dados.successMessage && dados.successMessage.text) {
+                apex.message.showPageSuccess(dados.successMessage.text);
+              }
+              cxSupAtualizar();
+            });
+            
+            ```
+    }
+    css {
+        fileUrls: #APP_FILES#modulos/suporte-ti/suporte#MIN#.css
+    }
+    security {
+        authorizationScheme: @colaborador
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region artigos-mais-acessados (
+        name: Artigos mais acessados
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_suporte_ui.render_artigos;
+        }
+        layout {
+            sequence: 20
+            parentRegion: @coluna-lateral
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region cabeçalho (
+        name: Cabeçalho
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_suporte_ui.render_cabecalho;
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/blank-with-attributes-no-grid
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region coluna-lateral (
+        name: Coluna lateral
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: body
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region coluna-principal (
+        name: Coluna principal
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+            columnSpan: 8
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region como-podemos-ajudar (
+        name: Como podemos ajudar
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_suporte_ui.render_ajuda;
+        }
+        layout {
+            sequence: 20
+            parentRegion: @coluna-principal
+            slot: subRegions
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: suporte_ajuda
+        }
+    )
+
+    region meus-chamados (
+        name: Meus chamados
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_suporte_ui.render_chamados;
+        }
+        layout {
+            sequence: 30
+            parentRegion: @coluna-principal
+            slot: subRegions
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: suporte_chamados
+        }
+    )
+
+    region new (
+        name: Aviso
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_suporte_ui.render_aviso;
+        }
+        layout {
+            sequence: 10
+            parentRegion: @coluna-principal
+            slot: subRegions
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: suporte_aviso
+        }
+    )
+
+    region prefere-falar-com-alguém (
+        name: Prefere falar com alguém
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_suporte_ui.render_contato;
+        }
+        layout {
+            sequence: 30
+            parentRegion: @coluna-lateral
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region status-dos-sistemas (
+        name: Status dos sistemas
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_suporte_ui.render_status;
+        }
+        layout {
+            sequence: 10
+            parentRegion: @coluna-lateral
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    process buscar-artigos (
+        name: BUSCAR_ARTIGOS
+        type: executeCode
+        source {
+            plsqlCode: pkg_suporte_ui.ajax_buscar(apex_application.g_x01);
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 46621819463225830
+        }
+    )
+
+    process confirmar-solucao (
+        name: CONFIRMAR_SOLUCAO
+        type: executeCode
+        source {
+            plsqlCode: pkg_suporte_ui.ajax_confirmar(to_number(apex_application.g_x01));
+        }
+        execution {
+            sequence: 20
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 46621971692225831
+        }
+    )
+
+)
+

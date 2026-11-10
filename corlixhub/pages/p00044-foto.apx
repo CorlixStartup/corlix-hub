@@ -10,7 +10,7 @@ page 44 (
         cursorFocus: doNotFocusCursor
     }
     security {
-        authorizationScheme: @colaborador
+        authorizationScheme: @ver-foto-colaborador
         formAutoComplete: false
     }
 

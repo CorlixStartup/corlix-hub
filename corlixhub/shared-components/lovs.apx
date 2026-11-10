@@ -154,3 +154,15 @@ lov lov-tipo-movimentacao (
     }
 )
 
+lov suporte-assunto-nm-assunto (
+    name: SUPORTE_ASSUNTO.NM_ASSUNTO
+    source {
+        tableName: SUPORTE_ASSUNTO
+    }
+    columnMapping {
+        return: ID_ASSUNTO
+        display: NM_ASSUNTO
+        defaultSort: NM_ASSUNTO
+    }
+)
+
