@@ -5,8 +5,8 @@
 --   1. Envie as 5 imagens desta pasta (demo-comunicado-1.jpg a 5) para
 --      Shared Components › Static Application Files, na pasta
 --      modulos/home/comunicados-demo/ (Directory = modulos/home/comunicados-demo).
---   2. Troque o login em c_login_autor (linha abaixo) por uma conta com
---      colaborador na empresa que vai receber os comunicados (o autor).
+--   2. Troque c_login_autor (linha abaixo) pelo login ou pelo ID de um
+--      colaborador da empresa que vai receber os comunicados (o autor).
 --
 -- Rodar em SQL Workshop › SQL Scripts (Upload e Run). Reexecutável: pula os
 -- comunicados que já existem (mesmo NOME_ARQUIVO na empresa). As imagens são
@@ -18,7 +18,7 @@ set define off
 set serveroutput on
 
 declare
-  c_login_autor constant varchar2(255) := 'TROQUE_PELO_LOGIN';  -- ex.: login do RH
+  c_login_autor constant varchar2(255) := 'TROQUE_PELO_LOGIN';  -- login (LOGIN_APEX) ou ID_COLABORADOR
   c_app         constant number        := 100;
   c_pasta       constant varchar2(100) := 'modulos/home/comunicados-demo/';
 
@@ -74,15 +74,19 @@ declare
 
 begin
   begin
+    -- Aceita o login (LOGIN_APEX) ou o ID_COLABORADOR
     select id_colaborador, id_empresa
       into l_id_autor, l_id_empresa
       from colaborador
      where upper(trim(login_apex)) = upper(trim(c_login_autor))
+        or id_colaborador = to_number(c_login_autor default null on conversion error)
+     order by case when id_colaborador = to_number(c_login_autor default null on conversion error)
+                   then 0 else 1 end
      fetch first 1 rows only;
   exception
     when no_data_found then
-      raise_application_error(-20000, 'Login "' || c_login_autor
-        || '" sem colaborador. Troque c_login_autor no início do script.');
+      raise_application_error(-20000, '"' || c_login_autor
+        || '" não é login nem ID de colaborador. Troque c_login_autor no início do script.');
   end;
 
   -- Departamento de TI da empresa, se houver; senão o comunicado vai para todos

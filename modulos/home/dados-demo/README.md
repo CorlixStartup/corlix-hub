@@ -15,7 +15,7 @@ As imagens têm 1600×900 (16:9) e o assunto principal fica à direita, porque o
 ## Como criar
 
 1. **Imagens:** vá em *Shared Components › Static Application Files › Create File*. Envie os 5 `demo-comunicado-N.jpg` com **Directory** `modulos/home/comunicados-demo` (a mesma convenção do `home.css`). Confirme que o *File Name* final ficou `modulos/home/comunicados-demo/demo-comunicado-1.jpg` e assim por diante.
-2. **Autor:** abra `01_comunicados_demo.sql` e troque `TROQUE_PELO_LOGIN` pelo login de uma conta **com colaborador** na empresa que vai receber os comunicados, por exemplo alguém do RH. A empresa vem desse colaborador.
+2. **Autor:** abra `01_comunicados_demo.sql` e troque `TROQUE_PELO_LOGIN` pelo login (`LOGIN_APEX`) ou pelo `ID_COLABORADOR` de alguém **com colaborador** na empresa que vai receber os comunicados, por exemplo alguém do RH. A empresa vem desse colaborador.
 3. **Rodar:** vá em *SQL Workshop › SQL Scripts › Upload*, envie o arquivo e clique em **Run**. A saída deve listar "Criado: ..." 5 vezes e terminar em "5 comunicado(s) criado(s) na empresa N." Se aparecer "AVISO: imagem ... não encontrada", o caminho do passo 1 está diferente; o comunicado é criado sem capa (remova com o script 02, corrija e rode de novo).
 4. **Conferir:** abra a página 1 com uma conta da mesma empresa. O carrossel mostra os 5, com o selo "Novo" nos dois primeiros.
 5. **Opcional:** depois de rodar, os arquivos de *Static Application Files* podem ser apagados, porque as imagens já foram copiadas para a tabela `COMUNICADO`.
