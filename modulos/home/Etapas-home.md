@@ -643,6 +643,7 @@ Selecione a região **Comunicados** (`home_comunicados`):
 | Seção | Atributo | Valor |
 |---|---|---|
 | Layout | Parent Region | `Coluna principal` |
+| Layout | Slot | **Sub Regions** (o Builder pode sugerir *Region Body*; troque) |
 | Layout | Sequence | `10` |
 | Layout | Column Span | **Automatic** (era 8; agora a coluna é que tem o 8) |
 
@@ -725,6 +726,7 @@ Use uma conta com colaborador vinculado e ponto (as contas SARAHSILVA, EDUARDOMA
 | Botão do painel não faz nada, ou erro de processo não encontrado | Ajax Callback ausente ou com outro nome | Passo 7.3, *Name* `REGISTRAR_MARCACAO` |
 | Marcação gravada, mas o painel não muda | Falta o HTML DOM ID `home_hero` | Passo 7.2 |
 | "Justificar" envia, mas a lista não atualiza | Falta o HTML DOM ID `home_pendencias`, ou o BLOCO 2 é o antigo | Passos 7.2 e 6.6 |
+| Comunicados sem espaço até Suas pendências, ou fora da grade da coluna | Comunicados no *Slot* **Region Body** da Coluna principal | Passo 7.2: *Slot* **Sub Regions**, como Suas pendências |
 | Pendências embaixo da coluna lateral, e não da Comunicados | Comunicados ou Suas pendências fora da Coluna principal | Passo 7.2 (*Parent Region*) |
 | Comunicados estreita dentro da coluna | *Column Span* 8 ficou na Comunicados | Passo 7.2: *Automatic* |
 | Hora do painel diferente da página 30 | Não deve acontecer: as duas usam o fuso da empresa | Registre o caso no `09` com print das duas |
@@ -748,6 +750,8 @@ Use uma conta com colaborador vinculado e ponto (as contas SARAHSILVA, EDUARDOMA
 |---|---|---|
 | 28/10/2026 | Seção 6 (protótipo de 28/10/2026) | Versionada; **não aplicada**: o export de 05/11/2026 (`2964a9d`) não tem carrossel, celebrações nem `home.css` |
 | 10/11/2026 | Seção 6 aplicada pelo time (export da página 1 colado na conversa, ainda não no backup) | **Aplicada com 1 erro**: *CSS Classes* da Comunicados com `x-home-carrossel` (falta o `c`), então o carrossel não liga. Resto conferido no export: query com `SELO` e 5 linhas, *Title* com `{if SELO/}`, ação "Ler comunicado" para a p11, Celebrações na região e no diálogo, JS novo (BLOCO 1 e 2, já com o ponto). Diferenças em relação ao guia: *File URLs* `#APP_FILES#modulos/home/home#MIN#.css` (pasta `modulos/home/` em vez da raiz; funciona se os dois arquivos estiverem nela) e o *Type* da ação não aparece no export (confirmar na tela que é **Button**). Falta confirmar qual versão do `pkg_home_ui` e do `home.css` foi instalada. Testes 6.7 não rodados |
+| 10/11/2026 | Classe `cx-home-carrossel` corrigida pelo time | Corrigida (export colado) |
+| 10/11/2026 | Seção 7 aplicada pelo time (export colado na conversa) | **Aplicada, com 1 ajuste**: `home_comunicados` ficou com `slot: regionBody` na Coluna principal; deve ser `subRegions`, como `suas-pendências` e as regiões da Coluna lateral (o passo 7.2 agora diz o *Slot*). Conferido no export: `htmlDomId` `home_hero`, `home_indicadores` e `home_pendencias`; Coluna principal span 8; Comunicados sem `columnSpan`; Suas pendências com título, `cx-home-card` e as template options do Meu gestor; Ajax Callback `REGISTRAR_MARCACAO` com `@colaborador`. Testes 7.5 não rodados |
 | 10/11/2026 | Seção 7 (blocos do ponto) e nova versão do `pkg_home_ui`, `home.css`, `home.min.css` e `home-pagina.js` | Versionada na branch `feature/home-ponto-de-hoje`; **não compilada nem aplicada**. Conferido só por leitura: os nomes usados do `pkg_ponto` batem com a especificação, o `home.min.css` foi gerado do `.css` (a parte antiga ficou idêntica à anterior) e o `home-pagina.js` passou no `node --check` |
 
 **Protótipo conferido em 10/11/2026:** o frame "Início" do `corlixhub.pen` (pen.dev) está igual ao `pen_dev/Início.png` de 28/10/2026; não há versão mais nova no repositório.
