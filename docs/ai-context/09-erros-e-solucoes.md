@@ -248,6 +248,26 @@ O guia monta a página 13 antes das páginas 18 e 19. O botão "Nova movimentaç
 
 **Prevenção:** depois de criar uma região editável, procure `edit {` no export APEXlang da página. Sem ele, a região é só leitura.
 
+### 4.9 Select list de departamento vazia em "Emitir novo comunicado" (p17)
+**Sintoma:** no modal "Emitir novo comunicado" (página 17), o select **Departamento** abre sem nenhuma opção. Ao publicar, o comunicado pode falhar por `ID_EMPRESA` ou `ID_AUTOR` nulos.
+
+**Causa:** a LOV de `P17_ID_DEPARTAMENTO` e os defaults de `P17_ID_EMPRESA` e `P17_ID_AUTOR` procuram o colaborador com `login_apex = :APP_USER`, sem `upper`/`trim`. O `APP_USER` vem em maiúsculas; se o `LOGIN_APEX` foi gravado em minúsculas ou com espaço, nada bate. O processo `SET_G_ID_EMPRESA` compara com `upper(trim(...))`, por isso o resto da app funciona para a mesma conta. Conta sem colaborador (4.2) também cai aqui: não há empresa para filtrar.
+
+**Diagnóstico** (SQL Commands, troque o login):
+```sql
+select id_colaborador, id_empresa, '[' || login_apex || ']' as login_gravado
+  from colaborador
+ where upper(trim(login_apex)) = upper(trim('LOGIN_DA_CONTA'))
+```
+Nenhuma linha: conta sem colaborador (4.2). Linha com `login_gravado` diferente de maiúsculas sem espaço: é esta causa.
+
+**Correção no Builder (página 17):**
+- `P17_ID_DEPARTAMENTO`: *List of Values › Type* **Shared Component**, *List of Values* **LOV_DEPARTAMENTO_EMPRESA** (a LOV compartilhada já filtra por `:G_ID_EMPRESA`). Ligue *Display Null Value* e use *Null Display Value* `Todos (empresa inteira)`: departamento nulo é o comunicado para todos, e a Home mostra "Para: Todos".
+- `P17_ID_EMPRESA`: *Default › Type* **Item**, valor `G_ID_EMPRESA`.
+- `P17_ID_AUTOR`: *Default › SQL Query* `select id_colaborador from colaborador where upper(trim(login_apex)) = upper(trim(:APP_USER)) and id_empresa = :G_ID_EMPRESA`.
+
+**Prevenção:** filtre por empresa com `:G_ID_EMPRESA` (regra S5 do `11`) e, quando precisar achar o colaborador pelo login, compare sempre `upper(trim(login_apex)) = upper(trim(:APP_USER))` (`02` §8, item 10).
+
 ## 5. Checklist antes de entregar SQL/PL/SQL
 
 - [ ] Nenhum `unistr()` em SQL sem `to_char` (2.1).
