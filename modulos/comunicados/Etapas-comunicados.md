@@ -65,6 +65,7 @@ Se *Source › Column* não listar `ID_CATEGORIA`, a região foi carregada antes
 |---|---|---|
 | Lista de categorias vazia | `01_ddl_categoria.sql` não rodou, ou a empresa foi criada depois dele | Rode o `01` de novo |
 | Comunicado publicado sem etiqueta na Home, e `ID_CATEGORIA` vazio na tabela | Item sem *Source* (no export, `P17_ID_CATEGORIA` sem o bloco `source`): o valor é validado, mas não é gravado | §2, *Source › Form Region* `emitir-comunicado`, *Column* `ID_CATEGORIA`, *Data Type* **NUMBER** |
+| Publica sem categoria, mesmo com o asterisco no campo | *Value Required* desligado: o template **Required - Floating** só desenha o asterisco, não obriga | §2, *Validation › Value Required* **On** |
 | `ORA-00904: "ID_CATEGORIA"` ao publicar | Item criado antes da coluna existir | §1, depois recarregue as colunas da região (§2) |
 
 ## Situação
@@ -73,3 +74,4 @@ Se *Source › Column* não listar `ID_CATEGORIA`, a região foi carregada antes
 |---|---|
 | 10/11/2026 | Versionado na branch `feature/home-prototipo-completo`; **não executado nem aplicado** |
 | 11/11/2026 | LOV e item `P17_ID_CATEGORIA` aplicados (export colado no chat). **Falta o *Source* do item**: sem ele a categoria não é gravada. Também falta acertar a sequência (todos os itens estão em 10 e a Categoria em 20, então ela cai no fim do formulário) |
+| 11/11/2026 (2º export) | *Source* `ID_CATEGORIA` e sequências (Departamento 10, Categoria 20, Título 30, Comunicado 40, Imagem 60) corrigidos. **O *Value Required* da Categoria saiu** (o export não tem mais `validation { valueRequired: true }`): precisa ser ligado de novo. Teste de publicação ainda não feito |
