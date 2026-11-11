@@ -10,7 +10,9 @@ O carrossel da Home usa a categoria a partir do `modulos/home/Etapas-home.md` §
 |---|---|
 | `01_ddl_categoria.sql` | Tabela `CATEGORIA_COMUNICADO`, coluna `COMUNICADO.ID_CATEGORIA` (FK) e 7 categorias para cada empresa: Institucional, Eventos, Benefícios, Saúde e bem-estar, Treinamentos, Resultados, Novos colaboradores |
 | `02_categoria_demo.sql` | Dá categoria aos 5 comunicados de `modulos/home/dados-demo` |
-| `instalar.sql` | Instala os dois pelo SQLcl |
+| `03_ddl_fixado.sql` | Coluna `COMUNICADO.FL_FIXADO` (`S`/`N`) para o "Fixar no topo" |
+| `comunicado.css` / `comunicado.min.css` | Visual do diálogo da página 17 (Público em botões, dropzone, Fixar no topo) |
+| `instalar.sql` | Instala os três scripts pelo SQLcl |
 
 ## 1. Banco
 
@@ -59,10 +61,204 @@ Se *Source › Column* não listar `ID_CATEGORIA`, a região foi carregada antes
 2. Tente publicar sem categoria: aparece o erro de campo obrigatório.
 3. Publique com "Eventos": na Home, o comunicado aparece no carrossel com a etiqueta **Eventos**.
 
+## 4. Página 17 no layout do protótipo
+
+Leva o "Emitir novo comunicado" (assistente de uma etapa) ao diálogo **Novo comunicado** do `pen_dev/Novo comunicado (diálogo).png`. Referência de modal: a **página 31** (Solicitar ajuste), que já usa o template *Modal Dialog*, os botões no rodapé, o Radio Group que mostra e esconde campos e o processo *Close Dialog*.
+
+| Protótipo | Hoje (export de 11/11/2026) | Passo |
+|---|---|---|
+| Diálogo simples "Novo comunicado", ~900 px | *Wizard Modal Dialog*, título "Emitir novo comunicado", altura fixa de 600 | 4.2 |
+| "Campos marcados com * são obrigatórios." | Não existe | 4.3 |
+| **Público \***: Todos \| Um departamento, em botões | Só o select de departamento, com "Todos (empresa inteira)" | 4.4 |
+| Departamento destinatário \* e Categoria \* lado a lado, com ajuda | Um abaixo do outro, sem ajuda | 4.5 |
+| Título \* e Comunicado \* com asterisco e ajuda | "Titulo" sem acento e sem asterisco; Comunicado opcional | 4.6 |
+| Imagem (opcional) em área de arrastar, recorte 16:9 | Upload simples, sem recorte | 4.7 |
+| Fixar no topo | Não existe (nem a coluna) | 1 e 4.8 |
+| Rodapé: Cancelar + **Publicar comunicado** | "Enviar Comunicado" com seta e confirmação | 4.9 |
+| O diálogo fecha e a Home atualiza | Não há processo *Close Dialog*: depois de gravar, o diálogo não fecha sozinho | 4.10 |
+
+**"Uma empresa" fica de fora.** No protótipo, o Público tem uma terceira opção, "Uma empresa". Na app, todo comunicado já é da empresa da sessão (`ID_EMPRESA = G_ID_EMPRESA`), e quem não tem empresa (equipe do Corlix Hub) não abre a página. Publicar para outra empresa exige outra regra de acesso, decisão do time. Por isso o guia usa **Todos** (empresa inteira) e **Um departamento**.
+
+### 4.1 Banco e arquivo
+
+1. *SQL Workshop › SQL Scripts*: rode `03_ddl_fixado.sql` (coluna `COMUNICADO.FL_FIXADO`, `'S'`/`'N'`, padrão `'N'`). Pode ser rodado de novo.
+2. *Shared Components › Static Application Files › Create File*: envie `comunicado.css` e `comunicado.min.css` com **Directory** `modulos/comunicados`.
+
+**Teste:**
+```sql
+select fl_fixado, count(*) from comunicado group by fl_fixado
+```
+Todos os comunicados existentes voltam com `N`.
+
+### 4.2 Página
+
+No nó **Page 17**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Title | `Novo comunicado` |
+| Appearance | Dialog Template | **Modal Dialog** (no lugar de *Wizard Modal Dialog*) |
+| Appearance | CSS Classes | `cx-comunicado` |
+| Dialog | Width | `900` |
+| Dialog | Height | apague o `600` (o diálogo cresce com o conteúdo) |
+| CSS | File URLs | `#APP_FILES#modulos/comunicados/comunicado#MIN#.css` |
+
+Trocar o template muda os slots disponíveis (o *Modal Dialog* não tem `wizardBody` nem `wizardButtons`):
+
+- Região **Emitir comunicado** (`step-1`): *Layout › Slot* **Content Body**. *Appearance › Template* continua **Blank with Attributes**.
+- Região **Buttons**: *Layout › Slot* **Dialog Footer**, como a região **Botões** da página 31. Os botões continuam nos slots **Close** (Cancelar) e **Next** (Publicar).
+
+Se o Page Designer mostrar regiões em "Unused Components" depois da troca, mova cada uma para o slot acima.
+
+### 4.3 Aviso dos campos obrigatórios
+
+Botão direito em **Content Body** › **Create Region** (uma região irmã, antes do formulário; como sub-região ela poderia sair depois dos campos):
+
+| Atributo | Valor |
+|---|---|
+| Name | `Aviso` |
+| Type | **Static Content** |
+| Source › HTML Code | `<p class="cx-comunicado__aviso">Campos marcados com * são obrigatórios.</p>` |
+| Layout › Slot / Sequence | **Content Body** / `5` (o formulário está no `10`) |
+| Appearance › Template | **Blank with Attributes** |
+
+### 4.4 Público
+
+Botão direito em **Emitir comunicado** › **Create Page Item**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `P17_PUBLICO` |
+| Identification | Type | **Radio Group** |
+| Label | Label | `Público` |
+| Settings | Number of Columns | `2` |
+| Layout | Sequence | `8` |
+| Appearance | Template | **Required - Floating** |
+| Appearance | Template Options | *Item Group Display*: **Display as Pill Button** (confirmar o nome no 26.1.5) |
+| Validation | Value Required | **On** |
+| List of Values | Type | **Static Values**: `Todos` / `TODOS` e `Um departamento` / `DEPARTAMENTO` |
+| List of Values | Display Null Value | **Off** |
+| Source | Type | **Null** (não é coluna da tabela) |
+| Default | Type / Static Value | **Static** / `TODOS` |
+
+**Dynamic Action** (igual à "Tipo de ajuste" da página 31): botão direito em **P17_PUBLICO** › **Create Dynamic Action**.
+
+| Onde | Atributo | Valor |
+|---|---|---|
+| Ação dinâmica | Name | `Público` |
+| When | Event / Item | **Change** / `P17_PUBLICO` |
+| Client-side Condition | Type | **Item = Value**, item `P17_PUBLICO`, valor `DEPARTAMENTO` |
+| True | Action | **Show**, item `P17_ID_DEPARTAMENTO` (*Fire on Initialization* **On**) |
+| False | Action | **Hide**, item `P17_ID_DEPARTAMENTO` (*Fire on Initialization* **On**) |
+
+**Validação e limpeza** (em *Processing*):
+
+1. **Validation** `Departamento obrigatório`: Type **Item is NOT NULL**, item `P17_ID_DEPARTAMENTO`; *Error Message* `Escolha o departamento destinatário.`; *Associated Item* `P17_ID_DEPARTAMENTO`; *Server-side Condition* **Item = Value**, `P17_PUBLICO` = `DEPARTAMENTO`.
+2. **Computation** (After Submit) em `P17_ID_DEPARTAMENTO`: Type **Static Value** vazio; *Server-side Condition* **Item = Value**, `P17_PUBLICO` = `TODOS`. Assim, quem escolhe departamento e depois volta para "Todos" publica para a empresa inteira.
+
+### 4.5 Departamento e Categoria lado a lado
+
+| Item | Atributo | Valor |
+|---|---|---|
+| `P17_ID_DEPARTAMENTO` | Label | `Departamento destinatário` |
+| | Appearance › Template | **Required - Floating** |
+| | List of Values › Null Display Value | `- Selecione -` |
+| | Help › Inline Help Text | `Só esse departamento verá o comunicado.` |
+| `P17_ID_CATEGORIA` | Layout › Start New Row | **No** |
+| | Validation › Value Required | **On** (saiu no export de 11/11/2026) |
+| | Help › Inline Help Text | `Tipo do comunicado (ex.: Eventos).` |
+
+Quando o Público é "Todos", o Departamento some e a Categoria fica sozinha na metade esquerda da linha.
+
+### 4.6 Título e Comunicado
+
+| Item | Atributo | Valor |
+|---|---|---|
+| `P17_TITULO` | Label | `Título` |
+| | Appearance › Template | **Required - Floating** |
+| | Help › Inline Help Text | `Frase curta e objetiva. Evite escrever tudo em maiúsculas.` |
+| `P17_CONTEUDO` | Appearance › Template | **Required - Floating** |
+| | Validation › Value Required | **On** |
+| | Appearance › Height | `6` |
+
+### 4.7 Imagem
+
+No `P17_IMAGEM`:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Label | Label | `Imagem (opcional)` |
+| Display | Display As | **Inline Dropzone** |
+| Display | Dropzone Title | `Arraste uma imagem ou clique para selecionar` |
+| Display | Dropzone Description | `PNG ou JPG · você poderá recortar em 16:9 após selecionar` |
+| Settings | File Types | `image/png,image/jpeg` |
+| Settings | Allow Cropping | **On**, Aspect Ratio **16:9** |
+| Settings | Maximum File Size | `5120` (KB) |
+
+Os nomes seguem a doc do 26.1 (`docs/apex-26.1/02-paginas-formularios-e-itens.md`, File Upload e Image Upload); a posição exata no Property Editor: confirmar no 26.1.5.
+
+### 4.8 Fixar no topo
+
+Botão direito em **Emitir comunicado** › **Create Page Item**:
+
+| Seção | Atributo | Valor |
+|---|---|---|
+| Identification | Name | `P17_FL_FIXADO` |
+| Identification | Type | **Checkbox** |
+| Label | Label | `Fixar no topo` |
+| Settings | Use Defaults | **Off**; Checked Value `S`, Unchecked Value `N` |
+| Layout | Sequence | `70` |
+| Appearance | Template | **Optional - Floating** |
+| Advanced | CSS Classes | `cx-comunicado__fixar` |
+| Help | Inline Help Text | `Aparece primeiro na lista de comunicados.` |
+| Source | Form Region / Column / Data Type | `Emitir comunicado` / `FL_FIXADO` / **VARCHAR2** |
+| Default | Type / Static Value | **Static** / `N` |
+
+Se *Column* não listar `FL_FIXADO`, escolha de novo `COMUNICADO` em *Source › Table Name* da região (igual ao `ID_CATEGORIA`, §2).
+
+> O "Fixar no topo" fica disponível para todo publicador. Se o time quiser restringir ao RH, ponha *Security › Authorization Scheme* `ADMIN_RH` no item.
+
+### 4.9 Botões
+
+| Botão | Atributo | Valor |
+|---|---|---|
+| **cancel** | sem mudança | já fecha com *Cancel Dialog* |
+| **next** | Label | `Publicar comunicado` |
+| | Appearance › Button Template | **Text** (sem ícone); *Hot* **On** |
+| | Appearance › Template Options | **Use Template Defaults** (tira o `t-Button--iconRight`) |
+| | Appearance › Icon | apague o `fa-chevron-right` |
+| | Behavior › Requires Confirmation | **Off** (o protótipo não pede confirmação) |
+
+### 4.10 Fechar o diálogo e data local
+
+1. Em *Processing*, botão direito › **Create Process** depois do `processo-emissao-comunicado`: Name `Fechar`, Type **Close Dialog**, Sequence `20`, *Server-side Condition › When Button Pressed* `next`, *Success Message* `Comunicado publicado.`. É o mesmo processo `fechar` da página 31. Ao fechar, a Home já atualiza o carrossel (Dynamic Action **Atualizar comunicados**, `apexafterclosedialog`).
+2. No processo `processo-emissao-comunicado`, apague a *Success Message* (quem mostra a mensagem agora é o `Fechar`).
+3. No `P17_DATA_PUBLICACAO`, *Default › PL/SQL Expression*: troque `SYSDATE` por `cast(systimestamp at time zone 'America/Sao_Paulo' as date)`. O banco está em UTC: um comunicado publicado às 22h aparecia com a data do dia seguinte.
+
+**No export** (`p00017-comunicado.apx`, depois do próximo backup), procure: `dialogTemplate: @/modal-dialog`; `fileUrls: #APP_FILES#modulos/comunicados/comunicado#MIN#.css`; a região `buttons` com `slot: dialogFooter`; `pageItem P17_PUBLICO` com `type: radioGroup`; `pageItem P17_FL_FIXADO` com `column: FL_FIXADO`; `valueRequired: true` em `P17_ID_CATEGORIA` e `P17_CONTEUDO`; e um `process` com `type: closeDialog`.
+
+### 4.11 Home: fixados primeiro
+
+No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** já ordena os fixados primeiro (`order by case c.fl_fixado when 'S' then 0 else 1 end, ...`). Por isso o §8.1 da Home pede o `03_ddl_fixado.sql` antes.
+
+## 5. Testar o diálogo
+
+1. Na Home, clique em **Novo comunicado**: abre o diálogo "Novo comunicado", sem as etapas do assistente, com "Todos" marcado em fundo escuro e com ✓.
+2. Com "Todos", o campo Departamento não aparece. Marque "Um departamento": ele aparece ao lado da Categoria.
+3. Clique em **Publicar comunicado** sem preencher nada: erros em Categoria, Título e Comunicado. Com "Um departamento" e sem departamento: "Escolha o departamento destinatário."
+4. Escolha uma imagem: abre o recorte em 16:9.
+5. Publique com "Todos", "Eventos" e **Fixar no topo**: o diálogo fecha, aparece "Comunicado publicado." e o comunicado entra primeiro no carrossel, com a etiqueta **Eventos** e "Para: Todos".
+6. No banco: `select titulo, id_departamento, id_categoria, fl_fixado, data_publicacao from comunicado order by id_comunicado desc fetch first 1 rows only` volta `id_departamento` vazio, a categoria, `S` e a hora local.
+
 ## Se não funcionar
 
 | Sintoma | Causa provável | Correção |
 |---|---|---|
+| Diálogo continua com as etapas do assistente | *Dialog Template* ainda é *Wizard Modal Dialog* | §4.2 |
+| Público aparece como bolinhas de rádio | Faltou a template option *Display as Pill Button* | §4.4 |
+| Público em botões, mas sem o fundo escuro e o ✓ | `comunicado.css` não carregou, ou falta `cx-comunicado` em *Page › CSS Classes* | §4.1 e §4.2 |
+| Diálogo não fecha depois de publicar | Falta o processo *Close Dialog* | §4.10 |
+| `ORA-00904: "FL_FIXADO"` ao abrir ou publicar, ou na Home | `03_ddl_fixado.sql` não rodou | §4.1 |
 | Lista de categorias vazia | `01_ddl_categoria.sql` não rodou, ou a empresa foi criada depois dele | Rode o `01` de novo |
 | Comunicado publicado sem etiqueta na Home, e `ID_CATEGORIA` vazio na tabela | Item sem *Source* (no export, `P17_ID_CATEGORIA` sem o bloco `source`): o valor é validado, mas não é gravado | §2, *Source › Form Region* `emitir-comunicado`, *Column* `ID_CATEGORIA`, *Data Type* **NUMBER** |
 | Publica sem categoria, mesmo com o asterisco no campo | *Value Required* desligado: o template **Required - Floating** só desenha o asterisco, não obriga | §2, *Validation › Value Required* **On** |
@@ -75,3 +271,4 @@ Se *Source › Column* não listar `ID_CATEGORIA`, a região foi carregada antes
 | 10/11/2026 | Versionado na branch `feature/home-prototipo-completo`; **não executado nem aplicado** |
 | 11/11/2026 | LOV e item `P17_ID_CATEGORIA` aplicados (export colado no chat). **Falta o *Source* do item**: sem ele a categoria não é gravada. Também falta acertar a sequência (todos os itens estão em 10 e a Categoria em 20, então ela cai no fim do formulário) |
 | 11/11/2026 (2º export) | *Source* `ID_CATEGORIA` e sequências (Departamento 10, Categoria 20, Título 30, Comunicado 40, Imagem 60) corrigidos. **O *Value Required* da Categoria saiu** (o export não tem mais `validation { valueRequired: true }`): precisa ser ligado de novo. Teste de publicação ainda não feito |
+| 11/11/2026 | §4 (diálogo no layout do protótipo, "Fixar no topo", fechar o diálogo, data local) versionado na branch `feature/comunicado-modal-prototipo`; **não aplicado nem testado** |

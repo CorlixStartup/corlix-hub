@@ -767,6 +767,7 @@ Depois das seções 6 e 7, a Home foi comparada na app com o protótipo de 28/10
 
 1. `modulos/comunicados/01_ddl_categoria.sql`: tabela de categorias, coluna `COMUNICADO.ID_CATEGORIA` e 7 categorias para cada empresa.
 2. `modulos/comunicados/02_categoria_demo.sql`: categoria dos 5 comunicados de exemplo (se você criou os exemplos).
+   Depois, `modulos/comunicados/03_ddl_fixado.sql`: coluna `COMUNICADO.FL_FIXADO` ("Fixar no topo"). A consulta do 8.4 ordena os fixados primeiro e falha sem ela.
 3. `modulos/home-blocos/01_ddl_blocos.sql`: as 8 tabelas novas.
 4. `modulos/home-blocos/02_dados_demo.sql`: troque `TROQUE_PELO_LOGIN` pelo login ou ID de quem vai ver os exemplos (ex.: o ID de `teste.rh`). Cria 2 feedbacks, a pesquisa, 3 eventos, a próxima 1:1, férias e um PDI. **Troque o `ds_link` da pesquisa** pelo formulário real quando houver.
 5. Reinstale o `pkg_home_ui` (`modulos/home/instalar.sql`, ou o `.pks` e o `.pkb` em *SQL Scripts*). Ele passa a depender das tabelas dos passos 1 e 3: sem elas, a compilação falha com `PL/SQL: ORA-00942: table or view does not exist`.
@@ -839,7 +840,7 @@ select c.id_comunicado,
     on upper(trim(eu.login_apex)) = upper(trim(:APP_USER))
    and eu.id_empresa = c.id_empresa
  where c.id_empresa = :G_ID_EMPRESA
- order by c.data_publicacao desc, c.id_comunicado desc
+ order by case c.fl_fixado when 'S' then 0 else 1 end, c.data_publicacao desc, c.id_comunicado desc
  fetch first 5 rows only
 ```
 
@@ -985,6 +986,7 @@ Com a conta usada no passo 8.1.4 e a página recarregada com **Cmd+Shift+R**:
 | Sintoma | Causa provável | Correção |
 |---|---|---|
 | `ORA-00942` ao compilar o `pkg_home_ui` | Tabelas dos módulos `comunicados` ou `home-blocos` não instaladas | Passos 8.1.1 e 8.1.3 antes do 8.1.5 |
+| `ORA-00904: "C"."FL_FIXADO"` na Comunicados | Faltou o `03_ddl_fixado.sql` | Passo 8.1.2 |
 | `ORA-00904: "K"."NM_CATEGORIA"` na Comunicados | Faltou o `01_ddl_categoria.sql` | Passo 8.1.1 |
 | Aparece `&P1_NAO_LIDOS.` ou `&P1_QT_PENDENCIAS.` como texto | Item não criado ou nome diferente | Passo 8.3 |
 | "Não lido" no meio do resumo | BLOCO 1 antigo (sem mover o "Não lido") | Passo 8.2 |

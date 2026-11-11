@@ -142,7 +142,7 @@ Arquivo: `Design System · Redwood Light (CorlixHub).png` — título "CorlixHub
 - **Imagem (opcional)** — dropzone com ícone de imagem: "Arraste uma imagem ou clique para selecionar" / "PNG ou JPG · você poderá recortar em 16:9 após selecionar". APEX: **Image Upload** com Cropping (aspect ratio 16:9), tamanho máx. pela Application Setting de imagem (5 MB).
 - Checkbox **Fixar no topo** — "Aparece primeiro na lista de comunicados."
 - Rodapé: "Cancelar" (secundário) + "**Publicar comunicado**" (Hot).
-Mudança vs. atual: substituir o *wizard-modal-dialog* por um modal simples de uma etapa.
+Mudança vs. atual: substituir o *wizard-modal-dialog* por um modal simples de uma etapa. Passo a passo em `modulos/comunicados/Etapas-comunicados.md` §4 (proposto em 11/11/2026; "Uma empresa" fica de fora porque todo comunicado é da empresa da sessão).
 
 ### 4.3 Comunicados — `Comunicados.png` → p00011-comunicados-oficiais
 **Layout**: cabeçalho "Comunicados" / "Comunicados oficiais para toda a empresa e para o seu departamento." + botão "**+ Novo comunicado**". Corpo: coluna de filtros à esquerda (~1/4) + lista à direita.

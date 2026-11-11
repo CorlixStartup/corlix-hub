@@ -1,0 +1,80 @@
+/* ==========================================================================
+   Corlix Hub · Novo comunicado (página 17)
+   Protótipo: pen_dev/Novo comunicado (diálogo).png (07-design-pen-dev §4.2)
+   Classe na página: cx-comunicado (Page › Appearance › CSS Classes).
+   Publicar: Static Application Files › modulos/comunicados/ (este arquivo e o
+   .min.css); a página carrega #APP_FILES#modulos/comunicados/comunicado#MIN#.css.
+   ========================================================================== */
+
+/* 1. Aviso "Campos marcados com * são obrigatórios." */
+.cx-comunicado .cx-comunicado__aviso {
+    margin: 0 0 .5rem;
+    font-size: .875rem;
+    color: var(--cx-texto-2);
+}
+
+/* 2. Público: Radio Group com a template option "Display as Pill Button".
+      O protótipo usa um controle segmentado: borda única, opção marcada em
+      fundo escuro com o ✓ (glifo "check" da fonte Corlix Lucide, \e070). */
+.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-group {
+    display: inline-block;
+    padding: .25rem;
+    border: 1px solid var(--cx-borda-campo);
+    border-radius: var(--cx-raio);
+    background: var(--cx-superficie);
+}
+
+.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-grid-row {
+    display: flex;
+    gap: .25rem;
+}
+
+.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-option label {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    margin: 0;
+    padding: .5rem 1rem;
+    border: 0;
+    border-radius: var(--cx-raio);
+    background: transparent;
+    color: var(--cx-texto);
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-option input:checked + label {
+    background: var(--cx-escuro);
+    color: var(--cx-superficie);
+}
+
+.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-option input:checked + label::before {
+    content: "\e070";
+    font-family: "Corlix Lucide";
+    font-weight: normal;
+    -webkit-font-smoothing: antialiased;
+}
+
+.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-option input:focus-visible + label {
+    outline: 2px solid var(--cx-primaria);
+    outline-offset: 2px;
+}
+
+/* 3. Imagem: dropzone com fundo neutro, como no protótipo */
+.cx-comunicado .apex-item-filedrop {
+    border: 1px solid var(--cx-borda-campo);
+    border-radius: var(--cx-raio);
+    background: var(--cx-tag);
+}
+
+/* 4. Fixar no topo: a ajuda fica ao lado da caixa, e não embaixo */
+.cx-comunicado .cx-comunicado__fixar .t-Form-inputContainer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 1rem;
+}
+
+.cx-comunicado .cx-comunicado__fixar .t-Form-inlineHelp {
+    margin: 0;
+}
