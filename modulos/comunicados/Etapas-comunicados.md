@@ -98,7 +98,7 @@ No nó **Page 17**:
 |---|---|---|
 | Identification | Title | `Novo comunicado` |
 | Appearance | Dialog Template | **Modal Dialog** (no lugar de *Wizard Modal Dialog*) |
-| Appearance | CSS Classes | `cx-comunicado` |
+| Appearance | CSS Classes | `cx-comunicado` (o da seção **Appearance**, que vai no `<body>` da página. **Não** use *Dialog › CSS Classes*: essa classe fica na moldura do diálogo, na página de trás, e o CSS não chega nos campos) |
 | Dialog | Width | `900` |
 | Dialog | Height | apague o `600` (o diálogo cresce com o conteúdo) |
 | CSS | File URLs | `#APP_FILES#modulos/comunicados/comunicado#MIN#.css` |
@@ -136,7 +136,7 @@ Botão direito em **Emitir comunicado** › **Create Page Item**:
 | Appearance | Template | **Required - Floating** |
 | Appearance | Template Options | *Item Group Display*: **Display as Pill Button** (confirmar o nome no 26.1.5) |
 | Validation | Value Required | **On** |
-| List of Values | Type | **Static Values**: `Todos` / `TODOS` e `Um departamento` / `DEPARTAMENTO` |
+| List of Values | Type | **Static Values**: Display `Todos` / Return `TODOS` e Display `Um departamento` / Return `DEPARTAMENTO` (o retorno em maiúsculas: o padrão, a computação e a Dynamic Action comparam com `TODOS`). No export: `staticValues: STATIC2:Todos;TODOS,Um departamento;DEPARTAMENTO` |
 | List of Values | Display Null Value | **Off** |
 | Source | Type | **Null** (não é coluna da tabela) |
 | Default | Type / Static Value | **Static** / `TODOS` |
@@ -150,6 +150,7 @@ Botão direito em **Emitir comunicado** › **Create Page Item**:
 | Client-side Condition | Type | **Item = Value**, item `P17_PUBLICO`, valor `DEPARTAMENTO` |
 | True | Action | **Show**, item `P17_ID_DEPARTAMENTO` (*Fire on Initialization* **On**) |
 | False | Action | **Hide**, item `P17_ID_DEPARTAMENTO` (*Fire on Initialization* **On**) |
+| Ação dinâmica | Server-side Condition | **nenhuma** (com condição de servidor, a ação nem vai para a página quando o Público começa em "Todos") |
 
 **Validação e limpeza** (em *Processing*):
 
@@ -206,10 +207,11 @@ Botão direito em **Emitir comunicado** › **Create Page Item**:
 | Identification | Name | `P17_FL_FIXADO` |
 | Identification | Type | **Checkbox** |
 | Label | Label | `Fixar no topo` |
-| Settings | Use Defaults | **Off**; Checked Value `S`, Unchecked Value `N` |
+| Settings | Use Defaults | **Off**; Checked Value `S` (letra S, não o número 5), Unchecked Value `N` |
+| Validation | Value Required | **Off** (num checkbox, obrigatório quer dizer "tem que marcar") |
 | Layout | Sequence | `70` |
 | Appearance | Template | **Optional - Floating** |
-| Advanced | CSS Classes | `cx-comunicado__fixar` |
+| Layout | Column CSS Classes | `cx-comunicado__fixar` (não use *Advanced › CSS Classes*, que vai só no `<input>`) |
 | Help | Inline Help Text | `Aparece primeiro na lista de comunicados.` |
 | Source | Form Region / Column / Data Type | `Emitir comunicado` / `FL_FIXADO` / **VARCHAR2** |
 | Default | Type / Static Value | **Static** / `N` |
@@ -254,6 +256,9 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 
 | Sintoma | Causa provável | Correção |
 |---|---|---|
+| Departamento sempre visível | Ação *False* da Dynamic Action com **Show** em vez de **Hide**, ou *Server-side Condition* na Dynamic Action | §4.4 |
+| Nenhuma opção marcada no Público, e o departamento não é limpo | Retorno `Todos` em vez de `TODOS` na LOV estática | §4.4 |
+| `ORA-02290: check constraint (CK_COM_FIXADO) violated` ao fixar | *Checked Value* diferente de `S` (ex.: `5`) | §4.8 |
 | Diálogo continua com as etapas do assistente | *Dialog Template* ainda é *Wizard Modal Dialog* | §4.2 |
 | Público aparece como bolinhas de rádio | Faltou a template option *Display as Pill Button* | §4.4 |
 | Público em botões, mas sem o fundo escuro e o ✓ | `comunicado.css` não carregou, ou falta `cx-comunicado` em *Page › CSS Classes* | §4.1 e §4.2 |
@@ -272,3 +277,4 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 | 11/11/2026 | LOV e item `P17_ID_CATEGORIA` aplicados (export colado no chat). **Falta o *Source* do item**: sem ele a categoria não é gravada. Também falta acertar a sequência (todos os itens estão em 10 e a Categoria em 20, então ela cai no fim do formulário) |
 | 11/11/2026 (2º export) | *Source* `ID_CATEGORIA` e sequências (Departamento 10, Categoria 20, Título 30, Comunicado 40, Imagem 60) corrigidos. **O *Value Required* da Categoria saiu** (o export não tem mais `validation { valueRequired: true }`): precisa ser ligado de novo. Teste de publicação ainda não feito |
 | 11/11/2026 | §4 (diálogo no layout do protótipo, "Fixar no topo", fechar o diálogo, data local) versionado na branch `feature/comunicado-modal-prototipo`; **não aplicado nem testado** |
+| 11/11/2026 (export do §4) | Aplicados: Modal Dialog 900, CSS da página, aviso, rodapé, ajudas, Categoria obrigatória, dropzone com recorte 16:9, validação e computação do departamento, botão sem confirmação. **A corrigir:** classe `cx-comunicado` em *Dialog* (vai em *Appearance*); `P17_PUBLICO` com retorno `Todos` e sem *Pill Button*; Dynamic Action com Show nas duas ações e com condição de servidor; `P17_FL_FIXADO` com Checked Value `5` e obrigatório; falta o *Close Dialog* (4.10), a data local e os *File Types* da imagem; título da página e rótulo do botão. Não testado |
