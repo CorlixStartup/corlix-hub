@@ -201,13 +201,17 @@ O Image Upload **não tem *File Types*** no 26.1.5 (o atributo é só do File Up
 | Atributo | Valor |
 |---|---|
 | Name | `Imagem PNG ou JPG` |
-| Type | **No Rows returned** |
-| SQL Query | `select 1 from apex_application_temp_files where name = :P17_IMAGEM and lower(mime_type) not in ('image/png', 'image/jpeg')` |
+| Type | **Expression** (Language **PL/SQL**) |
+| PL/SQL Expression | `regexp_like(:P17_IMAGEM, '\.(png\|jpe?g)$', 'i')` |
 | Error Message | `Envie uma imagem PNG ou JPG.` |
 | Associated Item | `P17_IMAGEM` |
 | Server-side Condition | **Item is NOT NULL**, `P17_IMAGEM` |
 
-No envio, o APEX guarda o arquivo em `APEX_APPLICATION_TEMP_FILES` e o item recebe o nome dele; a gravação no BLOB da tabela vem depois, no processo do formulário. Teste com um GIF: se o recorte do navegador já converter a imagem para PNG ou JPG, a validação nunca dispara, e tudo bem.
+(No Builder, digite a barra vertical sem a `\` da tabela: `'\.(png|jpe?g)$'`.)
+
+> **Não use** a consulta em `APEX_APPLICATION_TEMP_FILES` da versão anterior deste guia. O `P17_IMAGEM` grava na coluna `IMAGEM` da tabela (*Storage Type* **BLOB column specified in Item Source attribute**), e com esse tipo o arquivo não passa por `APEX_APPLICATION_TEMP_FILES`: a consulta nunca acha linha e a validação deixa tudo passar. Isso foi comprovado na app em 12/11/2026, quando um GIF chegou ao servidor como `image/gif` e não foi barrado. A expressão acima confere a extensão do nome do arquivo, que é o valor do item, e funciona com qualquer *Storage Type*. Ela não lê o conteúdo: um GIF renomeado para `.png` passa.
+
+Teste com um PNG (tem que passar) e com um GIF (tem que aparecer "Envie uma imagem PNG ou JPG."). Se o PNG também for barrado, o valor do item não termina no nome do arquivo: avise para trocarmos a regra.
 
 Os nomes seguem a doc do 26.1 (`docs/apex-26.1/02-paginas-formularios-e-itens.md`, File Upload e Image Upload); a posição exata no Property Editor: confirmar no 26.1.5.
 
@@ -272,6 +276,8 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 | Departamento sempre visível | Ação *False* da Dynamic Action com **Show** em vez de **Hide**, ou *Server-side Condition* na Dynamic Action | §4.4 |
 | Nenhuma opção marcada no Público, e o departamento não é limpo | Retorno `Todos` em vez de `TODOS` na LOV estática | §4.4 |
 | Não acha *File Types* no `P17_IMAGEM` | O Image Upload do 26.1.5 não tem esse atributo | Validação `Imagem PNG ou JPG` (§4.7) |
+| GIF aceito, sem a mensagem "Envie uma imagem PNG ou JPG." | Validação com a consulta em `APEX_APPLICATION_TEMP_FILES`: com *Storage Type* BLOB column o arquivo não passa por essa tabela | Troque pela expressão de extensão (§4.7) |
+| PNG ou JPG barrado com "Envie uma imagem PNG ou JPG." | O valor do item não termina no nome do arquivo | Avise o agente com o export; a regra do §4.7 precisa mudar |
 | `ORA-02290: check constraint (CK_COM_FIXADO) violated` ao fixar | *Checked Value* diferente de `S` (ex.: `5`) | §4.8 |
 | Diálogo continua com as etapas do assistente | *Dialog Template* ainda é *Wizard Modal Dialog* | §4.2 |
 | Público aparece como bolinhas de rádio | Falta `cx-comunicado__publico` em *Column CSS Classes* do `P17_PUBLICO`, ou o `comunicado.css` novo não foi enviado | §4.4 e §4.1 |
@@ -301,3 +307,4 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 | 12/11/2026 (4º export do §4) | Aplicados: data local no `P17_DATA_PUBLICACAO` e validação `Imagem PNG ou JPG`. **Falta só** apagar a *Success Message* do `processo-emissao-comunicado` (segue "Comunicado Publicado com Sucesso!"). Testes da §5 ainda não feitos |
 | 12/11/2026 (conferência visual na app) | Com os arquivos e o export publicados, o diálogo abre igual ao protótipo (conta `teste.rh`, sem publicar): título "Novo comunicado", 680 px, CSS carregado, selects com o rótulo dentro do campo, Público em botões com ✓; com "Um departamento", Departamento e Categoria lado a lado. Pendentes: apagar a *Success Message* do processo do formulário e os testes de publicação da §5 |
 | 12/11/2026 (5º export do §4) | **§4 aplicado por inteiro** pelo export: sem a *Success Message* no `processo-emissao-comunicado`; só o `Fechar` mostra "Comunicado publicado.". Falta rodar os testes de publicação da §5 (gravam dados; ficam com o time) |
+| 12/11/2026 (testes da §5, sem gravar) | Feitos pelo agente na app (conta `teste.rh`), com envios que o servidor recusa e o diálogo fechado em Cancelar: **1** e **2** ok (Público e Departamento); **3** ok (erros em Categoria, Título e Comunicado; com "Um departamento" o servidor devolve "Escolha o departamento destinatário."); **4** ok (o recorte abre em 16:9). **Falha:** um GIF de 640×360 chegou ao servidor como `image/gif` e não foi barrado, porque a validação `Imagem PNG ou JPG` consultava `APEX_APPLICATION_TEMP_FILES` e o item grava direto na coluna BLOB. §4.7 corrigido (expressão sobre a extensão), **falta aplicar e testar de novo**. Detalhe visto: as mensagens padrão ("… must have some value", "Crop Image") estão em inglês. Os passos **5** e **6** (publicar e conferir no banco) não foram feitos: aguardam a confirmação do texto de teste |
