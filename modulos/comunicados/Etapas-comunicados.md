@@ -134,7 +134,7 @@ Botão direito em **Emitir comunicado** › **Create Page Item**:
 | Settings | Number of Columns | `2` |
 | Layout | Sequence | `8` |
 | Appearance | Template | **Required - Floating** |
-| Appearance | Template Options | *Item Group Display*: **Display as Pill Button** (confirmar o nome no 26.1.5) |
+| Layout | Column CSS Classes | `cx-comunicado__publico` (o `comunicado.css` transforma o rádio nos botões do protótipo; o 26.1.5 não tem *Display as Pill Button* para este item) |
 | Validation | Value Required | **On** |
 | List of Values | Type | **Static Values**: Display `Todos` / Return `TODOS` e Display `Um departamento` / Return `DEPARTAMENTO` (o retorno em maiúsculas: o padrão, a computação e a Dynamic Action comparam com `TODOS`). No export: `staticValues: STATIC2:Todos;TODOS,Um departamento;DEPARTAMENTO` |
 | List of Values | Display Null Value | **Off** |
@@ -260,7 +260,7 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 | Nenhuma opção marcada no Público, e o departamento não é limpo | Retorno `Todos` em vez de `TODOS` na LOV estática | §4.4 |
 | `ORA-02290: check constraint (CK_COM_FIXADO) violated` ao fixar | *Checked Value* diferente de `S` (ex.: `5`) | §4.8 |
 | Diálogo continua com as etapas do assistente | *Dialog Template* ainda é *Wizard Modal Dialog* | §4.2 |
-| Público aparece como bolinhas de rádio | Faltou a template option *Display as Pill Button* | §4.4 |
+| Público aparece como bolinhas de rádio | Falta `cx-comunicado__publico` em *Column CSS Classes* do `P17_PUBLICO`, ou o `comunicado.css` novo não foi enviado | §4.4 e §4.1 |
 | Público em botões, mas sem o fundo escuro e o ✓ | `comunicado.css` não carregou, ou falta `cx-comunicado` em *Page › CSS Classes* | §4.1 e §4.2 |
 | Diálogo não fecha depois de publicar | Falta o processo *Close Dialog* | §4.10 |
 | `ORA-00904: "FL_FIXADO"` ao abrir ou publicar, ou na Home | `03_ddl_fixado.sql` não rodou | §4.1 |
@@ -279,3 +279,4 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 | 11/11/2026 | §4 (diálogo no layout do protótipo, "Fixar no topo", fechar o diálogo, data local) versionado na branch `feature/comunicado-modal-prototipo`; **não aplicado nem testado** |
 | 11/11/2026 (export do §4) | Aplicados: Modal Dialog 900, CSS da página, aviso, rodapé, ajudas, Categoria obrigatória, dropzone com recorte 16:9, validação e computação do departamento, botão sem confirmação. **A corrigir:** classe `cx-comunicado` em *Dialog* (vai em *Appearance*); `P17_PUBLICO` com retorno `Todos` e sem *Pill Button*; Dynamic Action com Show nas duas ações e com condição de servidor; `P17_FL_FIXADO` com Checked Value `5` e obrigatório; falta o *Close Dialog* (4.10), a data local e os *File Types* da imagem; título da página e rótulo do botão. Não testado |
 | 12/11/2026 (2º export do §4) | Corrigidos: Checked Value `S` e checkbox opcional, Column CSS Classes do Fixar, retorno `TODOS`, Dynamic Action (Hide e sem condição de servidor), rótulo do botão. `cx-comunicado` foi para a região do formulário (vale para os campos; o Aviso fica sem o estilo). **Ainda faltam:** *Display as Pill Button* no Público, processo *Close Dialog* (4.10), data local, *File Types* da imagem e o *Title* da página. Não testado |
+| 12/11/2026 | O 26.1.5 não oferece *Display as Pill Button* no Radio Group (informado pelo time). O controle segmentado passou para o `comunicado.css` (classe `cx-comunicado__publico` no item). CSS escrito sobre a marcação padrão do APEX, ainda não conferido na app |

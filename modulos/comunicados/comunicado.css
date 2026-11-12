@@ -1,7 +1,8 @@
 /* ==========================================================================
    Corlix Hub · Novo comunicado (página 17)
    Protótipo: pen_dev/Novo comunicado (diálogo).png (07-design-pen-dev §4.2)
-   Classe na página: cx-comunicado (Page › Appearance › CSS Classes).
+   Classe cx-comunicado: Page › Appearance › CSS Classes, ou nas regiões
+   Aviso e Emitir comunicado.
    Publicar: Static Application Files › modulos/comunicados/ (este arquivo e o
    .min.css); a página carrega #APP_FILES#modulos/comunicados/comunicado#MIN#.css.
    ========================================================================== */
@@ -13,49 +14,87 @@
     color: var(--cx-texto-2);
 }
 
-/* 2. Público: Radio Group com a template option "Display as Pill Button".
-      O protótipo usa um controle segmentado: borda única, opção marcada em
-      fundo escuro com o ✓ (glifo "check" da fonte Corlix Lucide, \e070). */
-.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-group {
-    display: inline-block;
+/* 2. Público: controle segmentado feito só com CSS sobre o Radio Group comum
+      (o 26.1.5 não oferece "Display as Pill Button" para este item).
+      Classe no item: Layout › Column CSS Classes = cx-comunicado__publico.
+      Marcação do APEX: .apex-item-option > input[type=radio] + label.
+      A bolinha do rádio do Universal Theme (label::before/::after) some; a
+      opção marcada ganha fundo escuro e o ✓ (glifo "check" da fonte Corlix
+      Lucide, \e070). O input continua no DOM: teclado e leitor de tela
+      funcionam como num rádio comum. */
+.cx-comunicado .cx-comunicado__publico .apex-item-grid,
+.cx-comunicado .cx-comunicado__publico .apex-item-grid-row {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-grid {
     padding: .25rem;
     border: 1px solid var(--cx-borda-campo);
     border-radius: var(--cx-raio);
     background: var(--cx-superficie);
 }
 
-.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-grid-row {
-    display: flex;
-    gap: .25rem;
+.cx-comunicado .cx-comunicado__publico .apex-item-option {
+    position: relative;
+    margin: 0;
+    padding: 0;
 }
 
-.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-option label {
+.cx-comunicado .cx-comunicado__publico .apex-item-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-option label {
     display: inline-flex;
     align-items: center;
     gap: .5rem;
     margin: 0;
     padding: .5rem 1rem;
-    border: 0;
     border-radius: var(--cx-raio);
     background: transparent;
     color: var(--cx-texto);
     font-weight: 600;
-    box-shadow: none;
+    line-height: 1.25rem;
+    cursor: pointer;
 }
 
-.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-option input:checked + label {
+.cx-comunicado .cx-comunicado__publico .apex-item-option label:hover {
+    background: var(--cx-selecionado);
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-option input + label::before,
+.cx-comunicado .cx-comunicado__publico .apex-item-option input + label::after {
+    content: none;
+    display: none;
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-option input:checked + label {
     background: var(--cx-escuro);
     color: var(--cx-superficie);
 }
 
-.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-option input:checked + label::before {
+.cx-comunicado .cx-comunicado__publico .apex-item-option input:checked + label::before {
     content: "\e070";
+    display: inline-block;
+    position: static;
+    width: auto;
+    height: auto;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    transform: none;
     font-family: "Corlix Lucide";
     font-weight: normal;
     -webkit-font-smoothing: antialiased;
 }
 
-.cx-comunicado .t-Form-fieldContainer--radioButtonGroup .apex-item-option input:focus-visible + label {
+.cx-comunicado .cx-comunicado__publico .apex-item-option input:focus-visible + label {
     outline: 2px solid var(--cx-primaria);
     outline-offset: 2px;
 }

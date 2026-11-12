@@ -135,7 +135,7 @@ Arquivo: `Design System · Redwood Light (CorlixHub).png` — título "CorlixHub
 ### 4.2 Novo comunicado (diálogo) — `Novo comunicado (diálogo).png` → p00017-comunicado
 **Layout**: **Modal Dialog** centralizado (~900px) sobre a Início escurecida. Título "Novo comunicado" + ×.
 - Texto: "Campos marcados com * são obrigatórios."
-- **Público *** — controle segmentado (3 opções): **Todos** | **Uma empresa** | **Um departamento** (selecionado mostra ✓ e fundo escuro). APEX: item **Radio Group** com template option "Pill Button" / Display as buttons.
+- **Público *** — controle segmentado (3 opções): **Todos** | **Uma empresa** | **Um departamento** (selecionado mostra ✓ e fundo escuro). APEX: item **Radio Group** comum; o visual de botões vem do `modulos/comunicados/comunicado.css` (classe `cx-comunicado__publico`), porque o 26.1.5 não oferece "Display as Pill Button" nesse item.
 - Linha de 2 campos: **Departamento destinatário *** (Select List; ajuda "Só esse departamento verá o comunicado.") — visível condicionalmente conforme Público (para "Uma empresa" seria "Empresa destinatária"); **Categoria *** (Select List; ajuda "Tipo do comunicado (ex.: Eventos).").
 - **Título *** (Text Field; ajuda "Frase curta e objetiva. Evite escrever tudo em maiúsculas.").
 - **Comunicado *** (Textarea / Rich Text, várias linhas).
