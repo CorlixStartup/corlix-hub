@@ -7,11 +7,53 @@
    .min.css); a página carrega #APP_FILES#modulos/comunicados/comunicado#MIN#.css.
    ========================================================================== */
 
-/* 1. Aviso "Campos marcados com * são obrigatórios." */
-.cx-comunicado .cx-comunicado__aviso {
+/* 1. Aviso "Campos marcados com * são obrigatórios." (fica numa região
+      separada do formulário; este arquivo só carrega na página 17). */
+.cx-comunicado__aviso {
     margin: 0 0 .5rem;
-    font-size: .875rem;
+    font-size: .8125rem;
     color: var(--cx-texto-2);
+}
+
+/* 1.1 Campos: ajuda em cinza, sem a marca vermelha no canto (o protótipo
+       usa só o * no rótulo), e rótulos de grupo (Público, Imagem) em
+       semibold acima do controle. */
+.cx-comunicado .t-Form-inlineHelp {
+    color: var(--cx-texto-2);
+}
+
+.cx-comunicado .t-Form-itemRequired-marker {
+    display: none;
+}
+
+.cx-comunicado .apex-item-wrapper--radiogroup .t-Form-label,
+.cx-comunicado .apex-item-wrapper--image-upload .t-Form-label {
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--cx-texto);
+}
+
+/* 1.2 Select: seta fina do Lucide (chevron-down, \e071) no lugar do
+       triângulo. Com Null Display Value vazio, o rótulo fica dentro do
+       campo até a escolha, como no protótipo. */
+.cx-comunicado .apex-item-wrapper--select-list select {
+    background-image: none;
+}
+
+.cx-comunicado .apex-item-wrapper--select-list .t-Form-itemWrapper {
+    position: relative;
+}
+
+.cx-comunicado .apex-item-wrapper--select-list .t-Form-itemWrapper::after {
+    content: "\e071";
+    position: absolute;
+    top: 50%;
+    right: .875rem;
+    transform: translateY(-50%);
+    font-family: "Corlix Lucide";
+    font-size: 1.125rem;
+    color: var(--cx-texto);
+    pointer-events: none;
 }
 
 /* 2. Público: controle segmentado feito só com CSS sobre o Radio Group comum
@@ -50,7 +92,8 @@
     opacity: 0;
 }
 
-.cx-comunicado .cx-comunicado__publico .apex-item-option label {
+.cx-comunicado .cx-comunicado__publico .apex-item-option label,
+.cx-comunicado .cx-comunicado__publico .apex-item-option input + label {
     display: inline-flex;
     align-items: center;
     gap: .5rem;
@@ -177,5 +220,7 @@
 }
 
 .cx-comunicado .cx-comunicado__fixar .t-Form-inlineHelp {
+    flex: 0 1 auto;
+    width: auto;
     margin: 0;
 }

@@ -99,7 +99,7 @@ No nó **Page 17**:
 | Identification | Title | `Novo comunicado` |
 | Appearance | Dialog Template | **Modal Dialog** (no lugar de *Wizard Modal Dialog*) |
 | Appearance | CSS Classes | `cx-comunicado`. Se preferir pôr nas regiões, ponha nas duas, **Aviso** e **Emitir comunicado**: o aviso fica fora do formulário (o da seção **Appearance**, que vai no `<body>` da página. **Não** use *Dialog › CSS Classes*: essa classe fica na moldura do diálogo, na página de trás, e o CSS não chega nos campos) |
-| Dialog | Width | `900` |
+| Dialog | Width | `680` (no protótipo o diálogo ocupa 45% da tela; com 900 ele fica largo demais na app, conferido ao vivo em 12/11/2026) |
 | Dialog | Height | apague o `600` (o diálogo cresce com o conteúdo) |
 | CSS | File URLs | `#APP_FILES#modulos/comunicados/comunicado#MIN#.css` |
 
@@ -163,9 +163,10 @@ Botão direito em **Emitir comunicado** › **Create Page Item**:
 |---|---|---|
 | `P17_ID_DEPARTAMENTO` | Label | `Departamento destinatário` |
 | | Appearance › Template | **Required - Floating** |
-| | List of Values › Null Display Value | `- Selecione -` |
+| | List of Values › Null Display Value | **vazio** (Display Null Value continua On). Sem texto, o rótulo "Departamento destinatário" fica dentro do campo até a escolha, como no protótipo |
 | | Help › Inline Help Text | `Só esse departamento verá o comunicado.` |
 | `P17_ID_CATEGORIA` | Layout › Start New Row | **No** |
+| | List of Values › Null Display Value | **vazio**, pelo mesmo motivo |
 | | Validation › Value Required | **On** (saiu no export de 11/11/2026) |
 | | Help › Inline Help Text | `Tipo do comunicado (ex.: Eventos).` |
 
@@ -281,3 +282,4 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 | 12/11/2026 (2º export do §4) | Corrigidos: Checked Value `S` e checkbox opcional, Column CSS Classes do Fixar, retorno `TODOS`, Dynamic Action (Hide e sem condição de servidor), rótulo do botão. `cx-comunicado` foi para a região do formulário (vale para os campos; o Aviso fica sem o estilo). **Ainda faltam:** *Display as Pill Button* no Público, processo *Close Dialog* (4.10), data local, *File Types* da imagem e o *Title* da página. Não testado |
 | 12/11/2026 | O 26.1.5 não oferece *Display as Pill Button* no Radio Group (informado pelo time). O controle segmentado passou para o `comunicado.css` (classe `cx-comunicado__publico` no item). CSS escrito sobre a marcação padrão do APEX, ainda não conferido na app |
 | 12/11/2026 (teste visual) | O CSS novo foi testado ao vivo no diálogo da app, injetado só na aba do agente (conta `teste.rh`, sem gravar nada): Público em botões com ✓ nos dois estados, Departamento some com a coluna e a Categoria sobe para a esquerda, `*` vermelho nos obrigatórios no lugar do texto "Required", ícone na área da imagem, ajuda do Fixar ao lado da caixa. Vale depois de enviar o `comunicado.css`/`.min.css` novos e pôr `cx-comunicado__publico` no `P17_PUBLICO`. O aviso no topo só ganha o estilo com `cx-comunicado` na região **Aviso** |
+| 12/11/2026 (2º teste visual) | Comparado lado a lado com o protótipo, ao vivo e só na aba do agente: diálogo de 680 px, Null Display Value vazio nos dois selects (rótulo dentro do campo), seta fina, ajudas em cinza, sem a marca vermelha no canto, rótulos de Público e Imagem em semibold, borda do Público justa e ajuda do Fixar ao lado. Diferenças que ficam: "Uma empresa" (decisão do time) e o ícone da área da imagem (o do APEX, não o "image-plus") |
