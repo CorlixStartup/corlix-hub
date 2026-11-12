@@ -193,9 +193,21 @@ No `P17_IMAGEM`:
 | Display | Display As | **Inline Dropzone** |
 | Display | Dropzone Title | `Arraste uma imagem ou clique para selecionar` |
 | Display | Dropzone Description | `PNG ou JPG · você poderá recortar em 16:9 após selecionar` |
-| Settings | File Types | `image/png,image/jpeg` |
 | Settings | Allow Cropping | **On**, Aspect Ratio **16:9** |
 | Settings | Maximum File Size | `5120` (KB) |
+
+O Image Upload **não tem *File Types*** no 26.1.5 (o atributo é só do File Upload, `docs/apex-26.1/02-paginas-formularios-e-itens.md`; na página o APEX gera `accept="image/*"` fixo). Para aceitar só PNG e JPG, crie uma validação em *Processing › Validations*:
+
+| Atributo | Valor |
+|---|---|
+| Name | `Imagem PNG ou JPG` |
+| Type | **No Rows returned** |
+| SQL Query | `select 1 from apex_application_temp_files where name = :P17_IMAGEM and lower(mime_type) not in ('image/png', 'image/jpeg')` |
+| Error Message | `Envie uma imagem PNG ou JPG.` |
+| Associated Item | `P17_IMAGEM` |
+| Server-side Condition | **Item is NOT NULL**, `P17_IMAGEM` |
+
+No envio, o APEX guarda o arquivo em `APEX_APPLICATION_TEMP_FILES` e o item recebe o nome dele; a gravação no BLOB da tabela vem depois, no processo do formulário. Teste com um GIF: se o recorte do navegador já converter a imagem para PNG ou JPG, a validação nunca dispara, e tudo bem.
 
 Os nomes seguem a doc do 26.1 (`docs/apex-26.1/02-paginas-formularios-e-itens.md`, File Upload e Image Upload); a posição exata no Property Editor: confirmar no 26.1.5.
 
@@ -259,6 +271,7 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 |---|---|---|
 | Departamento sempre visível | Ação *False* da Dynamic Action com **Show** em vez de **Hide**, ou *Server-side Condition* na Dynamic Action | §4.4 |
 | Nenhuma opção marcada no Público, e o departamento não é limpo | Retorno `Todos` em vez de `TODOS` na LOV estática | §4.4 |
+| Não acha *File Types* no `P17_IMAGEM` | O Image Upload do 26.1.5 não tem esse atributo | Validação `Imagem PNG ou JPG` (§4.7) |
 | `ORA-02290: check constraint (CK_COM_FIXADO) violated` ao fixar | *Checked Value* diferente de `S` (ex.: `5`) | §4.8 |
 | Diálogo continua com as etapas do assistente | *Dialog Template* ainda é *Wizard Modal Dialog* | §4.2 |
 | Público aparece como bolinhas de rádio | Falta `cx-comunicado__publico` em *Column CSS Classes* do `P17_PUBLICO`, ou o `comunicado.css` novo não foi enviado | §4.4 e §4.1 |
@@ -284,3 +297,4 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 | 12/11/2026 (teste visual) | O CSS novo foi testado ao vivo no diálogo da app, injetado só na aba do agente (conta `teste.rh`, sem gravar nada): Público em botões com ✓ nos dois estados, Departamento some com a coluna e a Categoria sobe para a esquerda, `*` vermelho nos obrigatórios no lugar do texto "Required", ícone na área da imagem, ajuda do Fixar ao lado da caixa. Vale depois de enviar o `comunicado.css`/`.min.css` novos e pôr `cx-comunicado__publico` no `P17_PUBLICO`. O aviso no topo só ganha o estilo com `cx-comunicado` na região **Aviso** |
 | 12/11/2026 (2º teste visual) | Comparado lado a lado com o protótipo, ao vivo e só na aba do agente: diálogo de 680 px, Null Display Value vazio nos dois selects (rótulo dentro do campo), seta fina, ajudas em cinza, sem a marca vermelha no canto, rótulos de Público e Imagem em semibold, borda do Público justa e ajuda do Fixar ao lado. Diferenças que ficam: "Uma empresa" (decisão do time) e o ícone da área da imagem (o do APEX, não o "image-plus") |
 | 12/11/2026 (3º export do §4) | Aplicados: Width 680, Title "Novo comunicado", Null Display Value vazio nos dois selects, `cx-comunicado__publico`, classe no Aviso, processo *Close Dialog* `Fechar`. **Ainda faltam:** data local no `P17_DATA_PUBLICACAO` (segue `SYSDATE;`), *File Types* da imagem (`accept` segue `image/*`) e tirar a *Success Message* do `processo-emissao-comunicado`. Conferência visual pendente: a sessão do agente expirou e o login é feito pela pessoa |
+| 12/11/2026 | Corrigido o §4.7: *File Types* não existe no Image Upload do 26.1.5 (apontado pelo time e confirmado na doc). Trocado por uma validação do MIME type em `APEX_APPLICATION_TEMP_FILES`, não testada |
