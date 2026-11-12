@@ -349,6 +349,7 @@ Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colabo
 
 ### Página 17 — Emitir Comunicado (`p00017-comunicado.apx`)
 - **Propósito**: modal (wizard template, altura 600) para publicar um comunicado.
+- **Estado em 12/11/2026:** diálogo no layout do protótipo **aplicado** pelo `modulos/comunicados/Etapas-comunicados.md` §4: Modal Dialog de 680 px, `P17_PUBLICO` (Todos/Um departamento) com Dynamic Action, validação e limpeza do departamento, Categoria obrigatória, Image Upload com recorte 16:9 e validação PNG/JPG, `P17_FL_FIXADO`, processo *Close Dialog* `Fechar`, data local e `comunicado.css`. Conferido na app sem publicar. Nos testes da §5 sem gravar, a validação PNG/JPG deixava passar GIF (consultava `APEX_APPLICATION_TEMP_FILES`, mas o item grava direto na coluna BLOB); o §4.7 foi corrigido, aplicado e retestado (PNG passa, GIF é barrado). Publicar e conferir no banco ainda pendentes. O resto desta seção descreve a versão anterior.
 - **Regiões**: `buttons` (slot wizardButtons); `step-1` "emitir-comunicado" (form sobre `COMUNICADO`, slot wizardBody, title "Emitir novo comunicado").
 - **Itens** (form `@step-1`; **todos com `sequence: 10`** → ordem de exibição indefinida/por nome):
   - P17_ID_COMUNICADO (hidden PK, queryOnly).
