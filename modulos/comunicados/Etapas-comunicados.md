@@ -98,7 +98,7 @@ No nó **Page 17**:
 |---|---|---|
 | Identification | Title | `Novo comunicado` |
 | Appearance | Dialog Template | **Modal Dialog** (no lugar de *Wizard Modal Dialog*) |
-| Appearance | CSS Classes | `cx-comunicado` (o da seção **Appearance**, que vai no `<body>` da página. **Não** use *Dialog › CSS Classes*: essa classe fica na moldura do diálogo, na página de trás, e o CSS não chega nos campos) |
+| Appearance | CSS Classes | `cx-comunicado`. Se preferir pôr nas regiões, ponha nas duas, **Aviso** e **Emitir comunicado**: o aviso fica fora do formulário (o da seção **Appearance**, que vai no `<body>` da página. **Não** use *Dialog › CSS Classes*: essa classe fica na moldura do diálogo, na página de trás, e o CSS não chega nos campos) |
 | Dialog | Width | `900` |
 | Dialog | Height | apague o `600` (o diálogo cresce com o conteúdo) |
 | CSS | File URLs | `#APP_FILES#modulos/comunicados/comunicado#MIN#.css` |
@@ -278,3 +278,4 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 | 11/11/2026 (2º export) | *Source* `ID_CATEGORIA` e sequências (Departamento 10, Categoria 20, Título 30, Comunicado 40, Imagem 60) corrigidos. **O *Value Required* da Categoria saiu** (o export não tem mais `validation { valueRequired: true }`): precisa ser ligado de novo. Teste de publicação ainda não feito |
 | 11/11/2026 | §4 (diálogo no layout do protótipo, "Fixar no topo", fechar o diálogo, data local) versionado na branch `feature/comunicado-modal-prototipo`; **não aplicado nem testado** |
 | 11/11/2026 (export do §4) | Aplicados: Modal Dialog 900, CSS da página, aviso, rodapé, ajudas, Categoria obrigatória, dropzone com recorte 16:9, validação e computação do departamento, botão sem confirmação. **A corrigir:** classe `cx-comunicado` em *Dialog* (vai em *Appearance*); `P17_PUBLICO` com retorno `Todos` e sem *Pill Button*; Dynamic Action com Show nas duas ações e com condição de servidor; `P17_FL_FIXADO` com Checked Value `5` e obrigatório; falta o *Close Dialog* (4.10), a data local e os *File Types* da imagem; título da página e rótulo do botão. Não testado |
+| 12/11/2026 (2º export do §4) | Corrigidos: Checked Value `S` e checkbox opcional, Column CSS Classes do Fixar, retorno `TODOS`, Dynamic Action (Hide e sem condição de servidor), rótulo do botão. `cx-comunicado` foi para a região do formulário (vale para os campos; o Aviso fica sem o estilo). **Ainda faltam:** *Display as Pill Button* no Público, processo *Close Dialog* (4.10), data local, *File Types* da imagem e o *Title* da página. Não testado |
