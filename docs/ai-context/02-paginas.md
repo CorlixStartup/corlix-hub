@@ -349,7 +349,7 @@ Implementada com o módulo `modulos/historico-carreira/`. Authorization `@colabo
 
 ### Página 17 — Emitir Comunicado (`p00017-comunicado.apx`)
 - **Propósito**: modal (wizard template, altura 600) para publicar um comunicado.
-- **Estado em 11/11/2026 (export colado):** itens em ordem (Departamento 10, Categoria 20, Título 30, Comunicado 40, Imagem 60) e `P17_ID_CATEGORIA` gravando em `ID_CATEGORIA`, mas sem *Value Required*. **Proposto, não aplicado:** diálogo simples no layout do protótipo (Público em botões, Departamento e Categoria lado a lado, dropzone com recorte 16:9, "Fixar no topo", "Publicar comunicado", *Close Dialog* e data local): `modulos/comunicados/Etapas-comunicados.md` §4. O resto desta seção descreve a versão anterior.
+- **Estado em 12/11/2026:** diálogo no layout do protótipo **aplicado** pelo `modulos/comunicados/Etapas-comunicados.md` §4: Modal Dialog de 680 px, `P17_PUBLICO` (Todos/Um departamento) com Dynamic Action, validação e limpeza do departamento, Categoria obrigatória, Image Upload com recorte 16:9 e validação PNG/JPG, `P17_FL_FIXADO`, processo *Close Dialog* `Fechar`, data local e `comunicado.css`. Conferido na app sem publicar; faltam os testes de publicação (§5). O resto desta seção descreve a versão anterior.
 - **Regiões**: `buttons` (slot wizardButtons); `step-1` "emitir-comunicado" (form sobre `COMUNICADO`, slot wizardBody, title "Emitir novo comunicado").
 - **Itens** (form `@step-1`; **todos com `sequence: 10`** → ordem de exibição indefinida/por nome):
   - P17_ID_COMUNICADO (hidden PK, queryOnly).
