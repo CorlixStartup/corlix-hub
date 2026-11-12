@@ -86,6 +86,8 @@
     width: auto;
     height: auto;
     border: 0;
+    border-radius: 0;
+    outline: 0;
     background: none;
     box-shadow: none;
     transform: none;
@@ -99,19 +101,79 @@
     outline-offset: 2px;
 }
 
-/* 3. Imagem: dropzone com fundo neutro, como no protótipo */
-.cx-comunicado .apex-item-filedrop {
+/* 3. Departamento escondido (Público = Todos): a coluna dele some junto,
+      e a Categoria ocupa a primeira metade da linha, sem recuo. A Dynamic
+      Action esconde o campo com style="display: none". */
+.cx-comunicado .col:has(> .t-Form-fieldContainer[style*="display: none"]) {
+    display: none;
+}
+
+.cx-comunicado .col:has(> .t-Form-fieldContainer[style*="display: none"]) + .col {
+    padding-inline-start: 0;
+}
+
+/* 4. Obrigatórios com * vermelho depois do rótulo, como no protótipo, no
+      lugar do texto "Required" embaixo do campo (a marca vermelha no canto
+      do campo continua). */
+.cx-comunicado .t-Form-itemRequired {
+    display: none;
+}
+
+.cx-comunicado .t-Form-fieldContainer.is-required .t-Form-labelContainer .t-Form-label::after {
+    content: " *";
+    display: inline;
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    border: 0;
+    background: none;
+    color: var(--cx-alerta);
+    font-size: inherit;
+    transform: none;
+}
+
+/* 5. Imagem: Inline Dropzone com o ícone num quadrado azul-claro (o APEX
+      esconde o ícone nesse modo) e texto em tamanho de campo. */
+.cx-comunicado .a-FileDrop {
     border: 1px solid var(--cx-borda-campo);
     border-radius: var(--cx-raio);
     background: var(--cx-tag);
 }
 
-/* 4. Fixar no topo: a ajuda fica ao lado da caixa, e não embaixo */
+.cx-comunicado .a-FileDrop--inlineDropzone .a-FileDrop-icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--cx-raio);
+    background: var(--cx-primaria-suave);
+    color: var(--cx-primaria);
+}
+
+.cx-comunicado .a-FileDrop-heading {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.cx-comunicado .a-FileDrop-description {
+    font-size: .875rem;
+}
+
+/* 6. Fixar no topo: a ajuda fica ao lado da caixa, e não embaixo.
+      Classe na coluna: Layout › Column CSS Classes = cx-comunicado__fixar. */
 .cx-comunicado .cx-comunicado__fixar .t-Form-inputContainer {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     column-gap: 1rem;
+}
+
+.cx-comunicado .cx-comunicado__fixar .t-Form-itemWrapper {
+    flex: 0 0 auto;
+    width: auto;
 }
 
 .cx-comunicado .cx-comunicado__fixar .t-Form-inlineHelp {
