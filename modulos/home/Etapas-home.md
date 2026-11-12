@@ -589,7 +589,7 @@ O ponto eletrônico (páginas 30 a 33, `modulos/ponto-eletronico`) já tem dados
 
 Nada além da seção 6: o package do passo 6.1 e os arquivos do passo 6.2 já têm tudo. Se instalou antes desta versão, reinstale o package (6.1) e suba de novo o `home.css` e o `home.min.css` (6.2).
 
-**Teste** (SQL Commands, um comando por vez; troque `123` por um colaborador com ponto, como na seção "Conta de teste" do `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`):
+**Teste** (**SQLcl**, um comando por vez; troque `123` por um colaborador com ponto, como na seção "Conta de teste" do `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`). **Não use o SQL Commands:** o SQL Workshop é uma sessão APEX sem `G_ID_EMPRESA`, e o `pkg_ponto` recusa com `ORA-20012: Sua sessão não está vinculada a uma empresa` (mesmo caso do `Etapas-ponto-eletronico.md`). Sem SQLcl, pule o teste e confira direto na página 1 (7.5):
 
 ```sql
 select pkg_home_ui.render_hero(p_id_colaborador => 123) from dual
@@ -722,6 +722,7 @@ Use uma conta com colaborador vinculado e ponto (as contas SARAHSILVA, EDUARDOMA
 
 | Sintoma | Causa provável | Correção |
 |---|---|---|
+| `ORA-20012` ao rodar o teste do 7.1 | Teste no SQL Commands (sessão APEX sem `G_ID_EMPRESA`) | Esperado. Use o SQLcl ou confira na página 1 |
 | `PLS-00201: identifier 'PKG_PONTO' must be declared` ao instalar | Módulo do ponto não instalado no schema | Instale `modulos/ponto-eletronico` antes |
 | Painel não aparece para um colaborador | Conta sem vínculo na empresa da sessão, ou empresa sem jornada | Esperado; confira com o aviso da página 30, que usa a mesma regra |
 | Botão do painel não faz nada, ou erro de processo não encontrado | Ajax Callback ausente ou com outro nome | Passo 7.3, *Name* `REGISTRAR_MARCACAO` |
@@ -771,7 +772,7 @@ Depois das seções 6 e 7, a Home foi comparada na app com o protótipo de 28/10
 4. `modulos/home-blocos/02_dados_demo.sql`: troque `TROQUE_PELO_LOGIN` pelo login ou ID de quem vai ver os exemplos (ex.: o ID de `teste.rh`). Cria 2 feedbacks, a pesquisa, 3 eventos, a próxima 1:1, férias e um PDI. **Troque o `ds_link` da pesquisa** pelo formulário real quando houver.
 5. Reinstale o `pkg_home_ui` (`modulos/home/instalar.sql`, ou o `.pks` e o `.pkb` em *SQL Scripts*). Ele passa a depender das tabelas dos passos 1 e 3: sem elas, a compilação falha com `PL/SQL: ORA-00942: table or view does not exist`.
 
-**Teste** (SQL Commands, troque `123` pelo ID usado no passo 4):
+**Teste** (**SQLcl**, troque `123` pelo ID usado no passo 4). No SQL Commands ele dá `ORA-20012: Sua sessão não está vinculada a uma empresa`, pelo mesmo motivo do 7.1: isso **não** indica erro no package. Sem SQLcl, pule o teste e confira na página 1 (8.11):
 
 ```sql
 select pkg_home_ui.render_indicadores(p_id_colaborador => 123) from dual
@@ -991,6 +992,7 @@ Com a conta usada no passo 8.1.4 e a página recarregada com **Cmd+Shift+R**:
 | Diálogo de feedback não abre | Falta o HTML DOM ID `home_dlg_feedback` | Passo 8.7 |
 | "Enviar feedback" não faz nada | Falta a classe `cx-home-fb-enviar` no botão, ou o Ajax Callback `SALVAR_FEEDBACK` | Passos 8.7 e 8.8 |
 | Pesquisa sem a arte (bloco cinza) | `home-hero.jpg` não está na raiz do Static Application Files | Passo 8.2 |
+| `ORA-20012: Sua sessão não está vinculada a uma empresa` ao testar `render_*` | Teste rodado no SQL Commands, que é uma sessão APEX sem `G_ID_EMPRESA` | Esperado. Teste no SQLcl ou direto na página 1 (8.11). Se aparecer **na página 1**, saia e entre de novo: o `G_ID_EMPRESA` só é preenchido no login |
 | Indicador de pagamento não aparece | Sem holerite liberado (antes do dia 25 do primeiro mês, ou sem geração) | Esperado; confira na p9 |
 
 ### Referências reutilizadas (seção 8)
