@@ -216,6 +216,10 @@ $(document).on("click", "[data-cx-home-feedback]", function () {
   document.querySelectorAll("[data-cx-home-fb-nome]").forEach(function (el) {
     el.textContent = this.dataset.cxHomeFeedbackNome;
   }, this);
+  // O APEX desenha os itens antes do HTML da região: o "Para <nome>" sobe para o topo
+  const corpo = document.querySelector("#home_dlg_feedback .t-DialogRegion-body");
+  const para = corpo && corpo.querySelector(".cx-home-fb-para");
+  if (para && corpo.firstElementChild !== para) { corpo.prepend(para); }
   apex.theme.openRegion("home_dlg_feedback");
 });
 

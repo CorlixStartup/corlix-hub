@@ -906,7 +906,7 @@ Botão direito em **Dialogs, Drawers and Popups** › **Create Region**:
 | Identification | Title | `Dar feedback` |
 | Identification | Type | **Static Content** |
 | Source | HTML Code | `<p class="cx-home-fb-para">Para <strong data-cx-home-fb-nome></strong></p>` |
-| Appearance | Template | **Inline Dialog** |
+| Appearance | Template | **Inline Dialog**; *Template Options* com **Auto Height** (no export, `js-dialog-autoheight`, como os diálogos da página 30). Sem ela o rodapé cobre o fim da caixa de texto |
 | Advanced | HTML DOM ID | `home_dlg_feedback` (**obrigatório**: o JS abre o diálogo por ele) |
 
 Itens, com botão direito em **Dar feedback** › **Create Page Item**:
@@ -914,7 +914,7 @@ Itens, com botão direito em **Dar feedback** › **Create Page Item**:
 | Name | Type | Configuração |
 |---|---|---|
 | `P1_FB_DESTINATARIO` | **Hidden** | *Settings › Value Protected* **No** (o JS preenche; o package confere a empresa) |
-| `P1_FB_TIPO` | **Radio Group** | *Label* `Tipo`; *List of Values* **Static Values**: `Reconhecimento` → `RECONHECIMENTO`, `Sugestão` → `SUGESTAO`; *Default › Type* **Static**, valor `RECONHECIMENTO` (não **Item**: com *Item* o APEX procura um item chamado RECONHECIMENTO); *Template Options* exibir como botões, se houver (confirmar no 26.1.5) |
+| `P1_FB_TIPO` | **Radio Group** | *Label* `Tipo`; *List of Values* **Static Values**: `Reconhecimento` → `RECONHECIMENTO`, `Sugestão` → `SUGESTAO`; *Default › Type* **Static**, valor `RECONHECIMENTO` (não **Item**: com *Item* o APEX procura um item chamado RECONHECIMENTO); *List of Values › Display Null Value* **Off** (ligado, aparece uma bolinha vazia acima de "Reconhecimento"; no export, `displayNullValue: false`); *Template Options* exibir como botões, se houver (confirmar no 26.1.5) |
 | `P1_FB_TEXTO` | **Textarea** | *Label* `Feedback`; *Validation › Maximum Length* `1000`; *Appearance › Template* **Required - Floating** |
 
 Botões, com botão direito em **Dar feedback** › **Create Button**:
@@ -925,6 +925,10 @@ Botões, com botão direito em **Dar feedback** › **Create Button**:
 | `FB_ENVIAR` | `Enviar feedback` | **Create** | Yes | **Defined by Dynamic Action** | `cx-home-fb-enviar` |
 
 Não crie Dynamic Actions: o JS da página trata os dois botões pelas classes.
+
+No nó **Page 1**, *Navigation › Warn on Unsaved Changes* **Off**. A Home não tem formulário para salvar; com o aviso ligado, depois de enviar um feedback o texto digitado deixa a página "alterada" e o "Ler comunicado" (e qualquer outro link) para no aviso "Sair do site?" do navegador (visto na app em 12/11/2026).
+
+O APEX desenha os itens do diálogo antes do HTML da região, então o "Para <nome>" ficaria embaixo, escondido atrás do rodapé. O BLOCO 2 do `home-pagina.js` sobe esse parágrafo para o topo ao abrir o diálogo, do mesmo jeito que move o "Não lido" no carrossel.
 
 ### 8.8 Ajax Callbacks
 
@@ -972,6 +976,7 @@ Checklist lido pelo validador de exports (skill `fechar-task`). Os componentes s
 ```export-check
 pagina: 1
 # 8.2 Arquivos e JavaScript
+page 1 | warnOnUnsavedChanges: false
 page 1 | fileUrls: #APP_FILES#modulos/home/home#MIN#.css
 page 1 | data-cx-nao-lido
 page 1 | "MARCAR_LIDO"
@@ -1015,6 +1020,9 @@ region dar-feedback | data-cx-home-fb-nome
 pageItem P1_FB_DESTINATARIO | valueProtected: false
 pageItem P1_FB_TIPO | STATIC:Reconhecimento;RECONHECIMENTO,Sugestão;SUGESTAO
 pageItem P1_FB_TIPO | staticValue: RECONHECIMENTO
+pageItem P1_FB_TIPO | displayNullValue: false
+region dar-feedback | js-dialog-autoheight
+page 1 | corpo.prepend(para)
 pageItem P1_FB_TEXTO | maxLength: 1000
 pageItem P1_FB_TEXTO | template: @/required-floating
 button fb-cancelar | cssClasses: cx-home-fb-cancelar
@@ -1058,6 +1066,12 @@ Com a conta usada no passo 8.1.4 e a página recarregada com **Cmd+Shift+R**:
 | Subtítulo sem "· N não lidos" e título das pendências sem número | Faltam as computações do 8.3 (o export mostra só a do `P1_MES_ATUAL`) | Passo 8.3 |
 | Comunicado fixado não aparece primeiro | `order by` antigo na Comunicados, sem `case c.fl_fixado` | Passo 8.4 |
 | Feedbacks e eventos com espaço interno dobrado | *Template Options* sem **Remove Body Padding** | Passo 8.6 |
+| Próxima 1:1 com o dia da semana errado (ex.: "Domingo, 13/11" numa sexta) | `pkg_home_ui` antigo: `dia_semana` não truncava a hora | Reinstale o `pkg_home_ui` (8.1.5) |
+| "[DEMO] Karen Dias" com "DD" | `pkg_home_ui` antigo: `iniciais` mantinha a palavra entre colchetes | Reinstale o `pkg_home_ui` (8.1.5) |
+| "Ler comunicado" não sai da Home e o navegador pergunta "Sair do site?" | *Warn on Unsaved Changes* ligado na página 1 (o texto do feedback conta como alteração) | 8.7, *Navigation* da página |
+| "Para <nome>" não aparece no diálogo de feedback, e o rodapé cobre a caixa de texto | BLOCO 2 antigo (sem subir o parágrafo) e diálogo sem *Auto Height* | 8.2 e 8.7 |
+| Bolinha vazia acima de "Reconhecimento" | *Display Null Value* ligado no `P1_FB_TIPO` | 8.7 |
+| Sem o indicador "Férias disponíveis" | Nenhum período aquisitivo completo e ainda no prazo (ex.: admissão há menos de 1 ano) | Esperado |
 | Diálogo de feedback não abre | Falta o HTML DOM ID `home_dlg_feedback` | Passo 8.7 |
 | "Enviar feedback" não faz nada | Falta a classe `cx-home-fb-enviar` no botão (atenção ao `r` final: `cx-home-fb-envia` não funciona), ou o Ajax Callback `SALVAR_FEEDBACK` | Passos 8.7 e 8.8 |
 | Pesquisa sem a arte (bloco cinza) | `home-hero.jpg` não está na raiz do Static Application Files | Passo 8.2 |
@@ -1090,6 +1104,8 @@ Com a conta usada no passo 8.1.4 e a página recarregada com **Cmd+Shift+R**:
 
 | 12/11/2026 | Banco do §8.1 conferido no SQL Commands (só leitura) e export da página 1 com o §8 colado na conversa | **Banco aplicado:** as 9 tabelas novas, `COMUNICADO.FL_FIXADO` e o `pkg_home_ui` válido (body de 11/11) com as 8 funções novas. **Página:** validador `fechar-task` com 44/51 regras ok (checklist novo no §8.10). Faltam: (1) as computações de `P1_NAO_LIDOS` e `P1_QT_PENDENCIAS` (8.3); (2) o `order by` com os fixados primeiro na Comunicados (8.4); (3) **Remove Body Padding** em Feedbacks recebidos e Próximos eventos (8.6); (4) *Default* do `P1_FB_TIPO` como **Static** (está **Item**); (5) classe do botão Enviar `cx-home-fb-envia` → `cx-home-fb-enviar` (8.7). O resto do §8.2 a 8.8 está como o guia pede. Testes 8.11 não rodados |
 | 12/11/2026 | 2º export da página 1 com os 5 ajustes | Validador `fechar-task`: **51/51 regras ok**. O que mudou: computações `p1-nao-lidos` e `p1-qt-pendencias`, `order by` com fixados primeiro, `t-Region--noPadding` em Feedbacks recebidos e Próximos eventos, *Default* **Static** do `P1_FB_TIPO` e a classe `cx-home-fb-enviar`. **§8 aplicado por inteiro no Builder.** Testes 8.11 não rodados |
+| 12/11/2026 | Testes 8.11 na app (conta `teste.rh`, autorizados pelo time; o que gravou foi apagado depois) | **Ok:** 1 (carrossel com categoria, "Para", "Não lido" ao lado do botão, setas e pontos, "· 5 não lidos"), 2 ("Ler comunicado" abre a p11; de volta, o 61 sem "Não lido" e "· 4 não lidos"), 3 (olho mostra e esconde o valor), 4 (7 pendências e contador 7), 5 (2 feedbacks com relação e selo), 6 (diálogo "Para Gabriel Machado"; vazio mostra "Escreva o feedback antes de enviar."; com texto, "Feedback enviado."), 7 (link abre em outra aba e o card some; o link ainda é o `example.com` do exemplo), 8 (4 eventos em ordem, "Hoje" e "Feriado"). **Achados, corrigidos neste PR:** (a) 1:1 como "Domingo, 13/11" numa sexta, por causa de `dia_semana` com hora; (b) iniciais "DD" em "[DEMO] Karen Dias"; (c) "Ler comunicado" barrado pelo aviso "Sair do site?" depois de enviar um feedback, por causa de *Warn on Unsaved Changes*; (d) "Para <nome>" escondido atrás do rodapé e caixa de texto cortada; (e) bolinha vazia no tipo do feedback. As correções das funções foram conferidas com um `select` no banco ("KD" e "Sexta"). **Não testados:** "Disponível agora" (o gestor não estava on-line), "Parabenizar" do 9 (ninguém celebra hoje) e o 10 (pede uma conta sem colaborador). "Férias disponíveis" não aparece porque `teste.rh` foi admitida em 07/10/2026 e ainda não tem período aquisitivo completo; isso é a regra, não um erro. **Limpeza:** apagados o feedback 21, a leitura do comunicado 61 e a resposta 1 da pesquisa (1 linha cada); a Home voltou a "5 não lidos" e à pesquisa aberta |
+
 
 **Protótipo conferido em 10/11/2026:** o frame "Início" do `corlixhub.pen` (pen.dev) está igual ao `pen_dev/Início.png` de 28/10/2026; não há versão mais nova no repositório.
 
