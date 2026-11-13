@@ -1,0 +1,226 @@
+/* ==========================================================================
+   Corlix Hub · Novo comunicado (página 17)
+   Protótipo: pen_dev/Novo comunicado (diálogo).png (07-design-pen-dev §4.2)
+   Classe cx-comunicado: Page › Appearance › CSS Classes, ou nas regiões
+   Aviso e Emitir comunicado.
+   Publicar: Static Application Files › modulos/comunicados/ (este arquivo e o
+   .min.css); a página carrega #APP_FILES#modulos/comunicados/comunicado#MIN#.css.
+   ========================================================================== */
+
+/* 1. Aviso "Campos marcados com * são obrigatórios." (fica numa região
+      separada do formulário; este arquivo só carrega na página 17). */
+.cx-comunicado__aviso {
+    margin: 0 0 .5rem;
+    font-size: .8125rem;
+    color: var(--cx-texto-2);
+}
+
+/* 1.1 Campos: ajuda em cinza, sem a marca vermelha no canto (o protótipo
+       usa só o * no rótulo), e rótulos de grupo (Público, Imagem) em
+       semibold acima do controle. */
+.cx-comunicado .t-Form-inlineHelp {
+    color: var(--cx-texto-2);
+}
+
+.cx-comunicado .t-Form-itemRequired-marker {
+    display: none;
+}
+
+.cx-comunicado .apex-item-wrapper--radiogroup .t-Form-label,
+.cx-comunicado .apex-item-wrapper--image-upload .t-Form-label {
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--cx-texto);
+}
+
+/* 1.2 Select: seta fina do Lucide (chevron-down, \e071) no lugar do
+       triângulo. Com Null Display Value vazio, o rótulo fica dentro do
+       campo até a escolha, como no protótipo. */
+.cx-comunicado .apex-item-wrapper--select-list select {
+    background-image: none;
+}
+
+.cx-comunicado .apex-item-wrapper--select-list .t-Form-itemWrapper {
+    position: relative;
+}
+
+.cx-comunicado .apex-item-wrapper--select-list .t-Form-itemWrapper::after {
+    content: "\e071";
+    position: absolute;
+    top: 50%;
+    right: .875rem;
+    transform: translateY(-50%);
+    font-family: "Corlix Lucide";
+    font-size: 1.125rem;
+    color: var(--cx-texto);
+    pointer-events: none;
+}
+
+/* 2. Público: controle segmentado feito só com CSS sobre o Radio Group comum
+      (o 26.1.5 não oferece "Display as Pill Button" para este item).
+      Classe no item: Layout › Column CSS Classes = cx-comunicado__publico.
+      Marcação do APEX: .apex-item-option > input[type=radio] + label.
+      A bolinha do rádio do Universal Theme (label::before/::after) some; a
+      opção marcada ganha fundo escuro e o ✓ (glifo "check" da fonte Corlix
+      Lucide, \e070). O input continua no DOM: teclado e leitor de tela
+      funcionam como num rádio comum. */
+.cx-comunicado .cx-comunicado__publico .apex-item-grid,
+.cx-comunicado .cx-comunicado__publico .apex-item-grid-row {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-grid {
+    padding: .25rem;
+    border: 1px solid var(--cx-borda-campo);
+    border-radius: var(--cx-raio);
+    background: var(--cx-superficie);
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-option {
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-option label,
+.cx-comunicado .cx-comunicado__publico .apex-item-option input + label {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    margin: 0;
+    padding: .5rem 1rem;
+    border-radius: var(--cx-raio);
+    background: transparent;
+    color: var(--cx-texto);
+    font-weight: 600;
+    line-height: 1.25rem;
+    cursor: pointer;
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-option label:hover {
+    background: var(--cx-selecionado);
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-option input + label::before,
+.cx-comunicado .cx-comunicado__publico .apex-item-option input + label::after {
+    content: none;
+    display: none;
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-option input:checked + label {
+    background: var(--cx-escuro);
+    color: var(--cx-superficie);
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-option input:checked + label::before {
+    content: "\e070";
+    display: inline-block;
+    position: static;
+    width: auto;
+    height: auto;
+    border: 0;
+    border-radius: 0;
+    outline: 0;
+    background: none;
+    box-shadow: none;
+    transform: none;
+    font-family: "Corlix Lucide";
+    font-weight: normal;
+    -webkit-font-smoothing: antialiased;
+}
+
+.cx-comunicado .cx-comunicado__publico .apex-item-option input:focus-visible + label {
+    outline: 2px solid var(--cx-primaria);
+    outline-offset: 2px;
+}
+
+/* 3. Departamento escondido (Público = Todos): a coluna dele some junto,
+      e a Categoria ocupa a primeira metade da linha, sem recuo. A Dynamic
+      Action esconde o campo com style="display: none". */
+.cx-comunicado .col:has(> .t-Form-fieldContainer[style*="display: none"]) {
+    display: none;
+}
+
+.cx-comunicado .col:has(> .t-Form-fieldContainer[style*="display: none"]) + .col {
+    padding-inline-start: 0;
+}
+
+/* 4. Obrigatórios com * vermelho depois do rótulo, como no protótipo, no
+      lugar do texto "Required" embaixo do campo (a marca vermelha no canto
+      do campo continua). */
+.cx-comunicado .t-Form-itemRequired {
+    display: none;
+}
+
+.cx-comunicado .t-Form-fieldContainer.is-required .t-Form-labelContainer .t-Form-label::after {
+    content: " *";
+    display: inline;
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    border: 0;
+    background: none;
+    color: var(--cx-alerta);
+    font-size: inherit;
+    transform: none;
+}
+
+/* 5. Imagem: Inline Dropzone com o ícone num quadrado azul-claro (o APEX
+      esconde o ícone nesse modo) e texto em tamanho de campo. */
+.cx-comunicado .a-FileDrop {
+    border: 1px solid var(--cx-borda-campo);
+    border-radius: var(--cx-raio);
+    background: var(--cx-tag);
+}
+
+.cx-comunicado .a-FileDrop--inlineDropzone .a-FileDrop-icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--cx-raio);
+    background: var(--cx-primaria-suave);
+    color: var(--cx-primaria);
+}
+
+.cx-comunicado .a-FileDrop-heading {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.cx-comunicado .a-FileDrop-description {
+    font-size: .875rem;
+}
+
+/* 6. Fixar no topo: a ajuda fica ao lado da caixa, e não embaixo.
+      Classe na coluna: Layout › Column CSS Classes = cx-comunicado__fixar. */
+.cx-comunicado .cx-comunicado__fixar .t-Form-inputContainer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 1rem;
+}
+
+.cx-comunicado .cx-comunicado__fixar .t-Form-itemWrapper {
+    flex: 0 0 auto;
+    width: auto;
+}
+
+.cx-comunicado .cx-comunicado__fixar .t-Form-inlineHelp {
+    flex: 0 1 auto;
+    width: auto;
+    margin: 0;
+}
