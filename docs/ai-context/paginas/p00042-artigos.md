@@ -1,6 +1,6 @@
 # Página 42 · Artigos
 
-> **Estado em 13/11/2026** (export colado nesta data, depois do backup `84f8625`): §11.2 aplicado. A lista filtra por `id_empresa = :G_ID_EMPRESA` e mostra só Título, Leitura (min), Acessos e Publicado. Falta o acabamento do §11.2 (textos em inglês, `S`/`N`, máscara `5,0`). Ver `Etapas-suporte-ti.md`, "Situação". **As seções abaixo descrevem o backup `84f8625`, de antes do §11.2.**
+> **Estado em 13/11/2026** (export colado nesta data, depois do backup `84f8625`): §11.2 aplicado. A lista filtra por `id_empresa = :G_ID_EMPRESA` e mostra só Título, Leitura (min), Acessos e Publicado. Acabamento do §11.2 aplicado no segundo export (16/16): `Publicado` pela LOV compartilhada `LOV_SIM_NAO`, máscara `990`, ícone "Editar", mensagens e botão "Novo artigo" em português. Sem teste na app. Ver `Etapas-suporte-ti.md`, "Situação". **As seções abaixo descrevem o backup `84f8625`, de antes do §11.2; o próximo backup traz as mudanças.**
 
 ## Resumo
 

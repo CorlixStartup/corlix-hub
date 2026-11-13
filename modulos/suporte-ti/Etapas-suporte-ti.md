@@ -923,6 +923,7 @@ No próximo backup, `corlixhub/pages/p00034-*.apx` deve ter `authorizationScheme
 | 13/11/2026 | Levantamento do que falta (backup `84f8625` + banco) | Ver "O que falta" abaixo. Nenhum teste do §14 registrado; `SUPORTE_CHAMADO` está vazia, então nenhum chamado foi aberto |
 | 13/11/2026 | Export da p42 colado na conversa | Validador: **§11.1 e §11.2 ok (9/9)**: autorização `@suporte-ti`, checksum, **Where Clause `id_empresa = :G_ID_EMPRESA`** (furo de isolamento da lista fechado), cabeçalhos em português e só `DS_TITULO`, `NR_MIN_LEITURA`, `NR_ACESSOS` e `FL_PUBLICADO` visíveis. **Acabamento novo do §11.2 pendente (7 regras):** `Publicado` mostra `S`/`N`, leitura como `5,0`, botão `Create`, ícone "Edit" e mensagens em inglês. Não testado na app: a única conta com o papel não tem colaborador e só a empresa 1 tem artigos, então o filtro não tem como mostrar diferença |
 | 13/11/2026 | Correção do guia: `FL_PUBLICADO` da p42 | **Erro do guia:** o §11.2 pedia *List of Values › Type* **Static Values**, que não existe em coluna de Interactive Report. Conferido na documentação do 26.1: lá a coluna só aceita LOV de *Shared Components*. O §11.2 agora manda criar a LOV estática `LOV_SIM_NAO` e selecioná-la. A regra do `export-check` passou de `Sim;S,Não;N` para `@lov-sim-nao`; a referência no export ainda não foi confirmada |
+| 13/11/2026 | Segundo export da p42 colado na conversa | Validador: **16/16 regras ok, §11.1 e §11.2 concluídos no export.** `FL_PUBLICADO` é `plainTextBasedOnLov` com `lov: @lov-sim-nao`, o que confirma a regra nova. Máscara `990`, ícone "Editar", mensagens em português e botão "Novo artigo". Fora do checklist, nada mudou desde o primeiro export. **Não testado na app**, pelo mesmo motivo do primeiro export; os testes ficam para o §14 |
 
 ### O que falta (13/11/2026)
 
@@ -932,7 +933,7 @@ No próximo backup, `corlixhub/pages/p00034-*.apx` deve ter `authorizationScheme
 3. **Artigos de exemplo (§1.3):** revisar os 7 artigos na p42 antes de liberar.
 
 **Páginas (Builder)**
-4. **p43 (§11.3), urgente por segurança** (a p42 já filtra por empresa desde 13/11/2026; falta o acabamento do §11.2): o formulário deixa escolher a empresa e lista assuntos de todas. O formulário também tem itens `DH_`/`USR_`/`NR_ACESSOS` na tela (o `P43_DH_ATUALIZACAO` obrigatório deve impedir salvar) e `FL_PUBLICADO` em texto livre.
+4. **p43 (§11.3), urgente por segurança** (a p42 já filtra por empresa e teve o §11.2 concluído no export em 13/11/2026): o formulário deixa escolher a empresa e lista assuntos de todas. O formulário também tem itens `DH_`/`USR_`/`NR_ACESSOS` na tela (o `P43_DH_ATUALIZACAO` obrigatório deve impedir salvar) e `FL_PUBLICADO` em texto livre.
 5. **p36 (§6.3 e §6.4):** condição no `P36_ANEXO`, *Purge File At* **End of Request**, região de botões em **Buttons Container** no *Dialog Footer*, `RESPONDER`/`REABRIR` como Hot e o rótulo "Fechar".
 6. **p39 (§8.2 e §8.3):** condição de status nos itens visíveis e no `SALVAR`, região de botões em **Buttons Container** no *Dialog Footer*, *Purge File At* do anexo.
 7. **p34 e p37 (§4.2 e §7.2):** mover o `Cabeçalho` do slot `body` para **Breadcrumb Bar**.
