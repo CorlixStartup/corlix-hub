@@ -3,6 +3,8 @@
 > Documento de contexto para IA. Fonte: leitura integral de `corlixhub/pages/*.apx` (19 arquivos) + shared components citados (`corlixhub/shared-components/lists.apx`, `breadcrumbs.apx`, `authorizations.apx`, `app-processes.apx`, `app-items.apx`, `lovs.apx`, templates em `corlixhub/shared-components/themes/universal-theme/`). Estado: branch `DEV`, commit `bac2d69` + mudanças não commitadas (ver §5).
 > `database/f100.sql` (export clássico, 12 MB) é equivalente; **não** leia inteiro, use `grep`.
 
+> **Estado atual por página: veja as [fichas das páginas](./paginas/README.md)** (42 páginas, backup de DEV `84f8625`, 13/11/2026). Este documento mantém a **sintaxe APEXlang (§1)**, o mapa de navegação e as descrições históricas de cada página; onde a seção de uma página divergir da ficha ou do `.apx`, a ficha e o `.apx` valem. Divergências já conhecidas: as páginas 34 a 44 existem desde o backup de 10/11/2026; a p17 usa `@/modal-dialog` (não o wizard); a p14 tem criação e edição; o menu tem os grupos Pessoas, Minha carreira e Administração.
+
 ---
 
 ## 1. Sintaxe APEXlang (`.apx`, mmdVersion 26.1.0) — o que é preciso para editar à mão
@@ -399,8 +401,8 @@ Montadas pelo guia `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`, a part
 - **p32 Ajustes de ponto** (`APROVADOR_PONTO`): Interactive Report dos pedidos pendentes.
 - **p33 Responder ajuste** (modal, `APROVADOR_PONTO`): chama `pkg_ponto.responder_ajuste`.
 
-### Páginas 34 a 43 — Suporte TI (planejadas)
-Ainda não existem no app. São montadas pelo guia `modulos/suporte-ti/Etapas-suporte-ti.md`, a partir do protótipo `pen_dev/Suporte TI.png`:
+### Páginas 34 a 43 — Suporte TI (criadas; ver as fichas)
+Existem no app desde o backup de 10/11/2026, ainda fora do menu e sem registro de testes; o estado de cada uma está nas [fichas](./paginas/README.md). Foram montadas pelo guia `modulos/suporte-ti/Etapas-suporte-ti.md`, a partir do protótipo `pen_dev/Suporte TI.png`:
 - **p34 Suporte TI** (`COLABORADOR`): regiões Dynamic Content do `pkg_suporte_ui` e os Ajax Callbacks `BUSCAR_ARTIGOS` e `CONFIRMAR_SOLUCAO`. A região `Meus chamados` precisa do HTML DOM ID `suporte_chamados`.
 - **p35 Abrir chamado** (modal, `COLABORADOR`): chama `pkg_suporte.abrir_chamado`, com anexo.
 - **p36 Chamado** (modal, `COLABORADOR`): conversa, `responder` e `reabrir`. Com o request `BAIXAR_ANEXO`, faz o download do anexo, inclusive para a p39.

@@ -1,25 +1,19 @@
 # 04 · Tema e estilos (sistema visual do Corlix Hub)
 
-> Contexto para IAs. Fontes lidas: `modulos/tema/README.md`, `modulos/tema/Etapas-tema-paginas.md`,
-> `corlixhub/shared-components/static-files/{corlix-tema,custom}.css` (+ `.min.css`),
-> `corlixhub/shared-components/themes/universal-theme/theme.apx`,
-> `.../page-templates/corlix-standard-page.apx`, `corlixhub/application.apx`,
-> `pen_dev/Design System · Redwood Light (CorlixHub).png` e o grep das páginas `corlixhub/pages/*.apx`.
-> Estado descrito: working tree do branch `DEV` em 2026-10-06 (com mudanças **não commitadas**: ver §11).
+> **Estado em 13/11/2026 (backup 84f8625, "Backup - Corlix Hub - 13/11/2026 as 09:52").**
+> Contexto para IAs. Fonte do estado **publicado**: `corlixhub/shared-components/static-files/` (CSS, `.min.css`, fontes, imagens), o manifesto `corlixhub/shared-components/static-files.apx`, `corlixhub/shared-components/themes/universal-theme/` (`theme.apx`, `page-templates/corlix-standard-page.apx`), `corlixhub/application.apx` e os `fileUrls` de `corlixhub/pages/*.apx`. Fonte das **versões dos módulos**: `modulos/*/*.css` e `modulos/tema/` (README e guias). Telas-alvo: `pen_dev/Design System · Redwood Light (CorlixHub).png` e [`07-design-pen-dev.md`](./07-design-pen-dev.md).
+> Os nomes dos glifos Lucide foram conferidos no `lucide.css` do pacote `lucide-static@0.460.0` (a mesma versão citada no `corlix-tema.css`).
+> Regras que valem para tudo abaixo: **sem CSS Inline** e sem atributo `style` (AGENTS.md; [08](./08-convencoes-e-pegadinhas.md) §1 regra 5; [11](./11-padroes-de-paginas.md) C1). O agente **não edita** `corlixhub/`: toda mudança de CSS é feita pelo time no Builder, a partir do arquivo do módulo.
 
 ---
 
 ## 1. Visão geral
 
-- O app usa o **Universal Theme 42** (`baseTheme: ut-26.1`) com o estilo **Redwood Light** como *Current*
-  (`theme.apx` → `currentThemeStyle: @/redwood-light`). Não existe tema próprio nem estilo de Theme Roller salvo.
-- O "Tema Corlix" é **só uma camada CSS** por cima do Redwood Light: redefine variáveis do UT
-  (`--ut-*`, `--a-*`, `--u-color-*`) a partir de tokens próprios `--cx-*`, mais alguns ajustes de componente.
-  Regra da prancha do pen.dev: *"use componentes nativos, Template Options e Theme Roller correspondentes;
-  CSS próprio só onde o nativo não chega"*.
-- Fonte: **Figtree**, como no protótipo (decisão de 26/10/2026; antes era a Oracle Sans do Redwood). Os `.woff2` ficam na raiz de `static-files/` (ao lado do CSS) e entram trocando `--a-base-font-family` na última seção do `corlix-tema.css`.
-- Ícones: **Lucide** (`lucide-static@0.460.0`, fonte reduzida em `lucide.woff2`). O app segue usando classes Font APEX; o `corlix-tema.css` troca o glifo de cada `fa-*` mapeada. Guia: `modulos/tema/Etapas-fonte-e-icones.md`.
-- **Dark mode: não existe.** Nenhum arquivo tem `prefers-color-scheme` nem variante escura; a prancha só tem versão clara (README: "fora do escopo").
+- **Universal Theme 42** (`baseTheme: ut-26.1`), estilo **Redwood Light** como *Current* (`theme.apx` → `currentThemeStyle: @/redwood-light`). Não há tema próprio nem estilo de Theme Roller salvo.
+- O "Tema Corlix" é **uma camada CSS** sobre o Redwood Light: tokens `--cx-*` + redefinição de variáveis do UT (`--ut-*`, `--a-*`, `--u-color-*`) + poucos ajustes de componente, tudo em `corlix-tema.css`. Regra da prancha: *componentes nativos, Template Options e variáveis do tema; CSS próprio só onde o nativo não chega*.
+- Cada módulo tem o seu CSS, carregado só nas páginas dele (*Page › CSS › File URLs*), com prefixo próprio de classe (`cx-home-`, `cx-hol-`, `cx-ponto-`, `cx-sup-`, `cx-comunicado`, `cx-colab-`, `perfil-`, `org-`, `hc-`).
+- **Fonte:** Figtree (variável, 300 a 900). **Ícones:** Lucide por dois caminhos, que coexistem (§5): (a) fonte reduzida "Corlix Lucide" (`lucide.woff2`), que troca o glifo das classes Font APEX `fa-*`; (b) SVG Lucide em linha, gerado pela função `icone()` dos packages `pkg_*_ui`.
+- **Dark mode: não existe.** Nenhum CSS publicado tem `prefers-color-scheme` nem variante escura de token; a prancha só tem versão clara.
 
 ---
 
@@ -27,129 +21,267 @@
 
 ### 2.1 Onde está configurado
 
-| O quê | Onde (APEXlang) | Valor |
+| O quê | Onde (APEXlang) | Valor atual |
 |---|---|---|
-| CSS do app (Application CSS) | `corlixhub/application.apx` → `css { fileUrls: [...] }` (UI Attributes > CSS > File URLs) | `#APP_FILES#corlix-tema#MIN#.css` **e depois** `#APP_FILES#custom#MIN#.css` |
+| CSS global (todas as páginas) | `corlixhub/application.apx` → `css.fileUrls` (UI Attributes › CSS › File URLs) | `#APP_FILES#corlix-tema#MIN#.css` e depois `#APP_FILES#custom#MIN#.css` |
 | CSS do tema | `theme.apx` → `css.fileUrls` | `#THEME_FILES#css/Core#MIN#.css?v=#APEX_VERSION#` (nativo) |
-| Arquivos estáticos | `corlixhub/shared-components/static-files/` + manifesto `shared-components/static-files.apx` (`file corlix-tema.css (mimeType: text/css ...)`) | `corlix-tema.css`, `corlix-tema.min.css`, `custom.css`, `custom.min.css`, `default-user.jpeg`, `icons/`, `Fotos Colaboradores/` |
-| CSS inline de página | `page { css { inline: ... } }` em cada `pXXXXX-*.apx` | ex.: Chat (p4) define `:root { --ch-* }` |
-| Theme static files | `themes/universal-theme/static-files/1024*.css` | só cabeçalho de copyright da Oracle (68 bytes); irrelevantes |
+| CSS por página | `page { css { fileUrls: ... } }` em `corlixhub/pages/pXXXXX-*.apx` | ver §3 |
+| CSS Inline de página | `page { css { inline: ... } }` | **só a p4 (Chat)**, legado (tokens `--ch-*` → `--cx-*`). Não criar novos |
+| Atributo `style` em página | HTML de região | só a p0: `style="display:none"` no `<span>` de iniciais do avatar do header (legado, §9) |
+| Arquivos estáticos | `static-files/` + manifesto `shared-components/static-files.apx` | lista em §3 |
+| Theme static files | `themes/universal-theme/static-files/1024*.css` | dois arquivos de 65 bytes, só cabeçalho; irrelevantes |
 
-### 2.2 Ordem no `<head>` (page template `corlix-standard-page`)
-
-O template padrão do app (`componentDefaults.page: @corlix-standard-page`) emite, nesta ordem:
+### 2.2 Ordem no `<head>` (page template `corlix-standard-page`, default do tema)
 
 ```
-#APEX_CSS#  →  #THEME_CSS# (Core.css)  →  #TEMPLATE_CSS#  →  #THEME_STYLE_CSS# (Redwood Light)
-→  #APPLICATION_CSS# (corlix-tema → custom)  →  #PAGE_CSS# (CSS inline da página)
+#APEX_CSS# → #THEME_CSS# (Core) → #TEMPLATE_CSS# → #THEME_STYLE_CSS# (Redwood Light)
+→ #APPLICATION_CSS# (corlix-tema → custom) → #PAGE_CSS# (File URLs da página) → #GENERATED_CSS#
 ```
 
-Consequências:
-1. `corlix-tema` vem **depois** do Redwood Light → suas variáveis em `:root` vencem as do estilo por ordem de cascata.
-2. `custom` vem **depois** de `corlix-tema` → enxerga os tokens `--cx-*`. Se a ordem for invertida, o `custom` ainda funciona em runtime (variáveis CSS são resolvidas no uso), mas a convenção documentada exige esta ordem; regras de mesmo seletor/especificidade passariam a perder para o tema.
-3. CSS inline de página vem por último → pode sobrescrever tudo (e o Chat usa isso para mapear `--ch-*` → `--cx-*`).
-4. `#GENERATED_CSS#` fica no footer (após o body).
+1. `corlix-tema` vem depois do Redwood → suas variáveis em `:root` vencem as do estilo.
+2. `custom` vem depois de `corlix-tema` → lê os tokens e, com a mesma especificidade, vence o tema.
+3. O CSS da página (módulo) vem por último → vence o `custom.css` com a mesma especificidade. É assim que o `home.css` complementa a §12 do `custom.css` (comentário no topo do `home.css`).
+4. Body: `<body class="t-PageBody t-PageBody--hideLeft t-PageBody--hideActions no-anim t-PageTemplate--standard #PAGE_CSS_CLASSES#">`, onde `#PAGE_CSS_CLASSES#` recebe *Page › Appearance › CSS Classes*. JS on load: `apex.theme42.initializePage.noSideCol();`.
 
-Outros pontos do template: `<body class="t-PageBody t-PageBody--hideLeft t-PageBody--hideActions no-anim t-PageTemplate--standard ...">`;
-slots `AFTER_LOGO` (busca do cabeçalho), `AFTER_NAVIGATION_BAR` (ícones + usuário), `REGION_POSITION_01` = **Breadcrumb Bar**
-dentro de `.t-Body-title`, `REGION_POSITION_04` = diálogos/drawers, `REGION_POSITION_05` = footer (oculto por CSS), `REGION_POSITION_07` = banner, `REGION_POSITION_08` = full width. JS on load: `apex.theme42.initializePage.noSideCol();`.
+Atenção: várias páginas ainda usam `@/standard` e não `Corlix - Standard Page` ([11](./11-padroes-de-paginas.md) §6); a ordem de CSS é a mesma do UT.
 
 ### 2.3 `#MIN#`
 
-APEX substitui `#MIN#` por `.min` quando a sessão **não** está em debug, e por string vazia em debug.
-Logo: usuário normal recebe `corlix-tema.min.css`/`custom.min.css`; com `?p_debug=YES` (ou debug ligado no builder) recebe os `.css` fonte.
-**Se o `.min` estiver desatualizado, o app fica diferente entre debug e não-debug.**
-
-### 2.4 Sincronia dos `.min` (verificado)
-
-Comparação feita removendo comentários e espaços: **ambos os pares estão em sincronia**.
-
-| Par | Seletores fonte / min | Custom properties | Declarações (sem espaços) |
-|---|---|---|---|
-| `corlix-tema.css` ↔ `.min.css` | 20 / 20, mesma ordem | idênticas | idênticas |
-| `custom.css` ↔ `.min.css` | 123 / 123 (única diferença: `@media (max-width: 768px)` vs `(max-width:768px)`) | idênticas | idênticas |
-
-Observações: não há script de minificação no repo (sem `package.json`, nada em `scripts/`). O `corlix-tema.min.css` mantém o espaçamento de alinhamento do `:root` (minificador "fraco", só tira comentários/quebras) — inofensivo. `custom.min.css` é uma linha só (`wc -l` = 0).
+O APEX troca `#MIN#` por `.min` fora do modo debug e por vazio em debug. Usuário normal recebe o `.min.css`; com debug, o `.css`. **Se o par estiver fora de sincronia, a tela muda entre debug e não-debug.** Arquivo referenciado **sem** `#MIN#` (hoje a p30) sempre recebe o `.css`, e o `.min.css` publicado fica sem uso.
 
 ---
 
-## 3. Design tokens `--cx-*` (fonte da verdade — `corlix-tema.css`, `:root`)
+## 3. Mapa de arquivos CSS (publicado em 13/11/2026)
 
-Os tokens apontam para a paleta do Redwood (`--rw-palette-*`) com fallback hex. Se uma atualização do APEX renomear a variável `--rw-*`, vale o fallback.
+Sincronia conferida comparando o conteúdo **normalizado** (sem comentários e sem espaços). "Módulo × publicado" compara o `.css` em `modulos/` com o publicado.
 
-### 3.1 Cores
+| Arquivo publicado (`static-files/`) | Linhas | O que estiliza | Prefixo de classe | Carregado por | `.min` × `.css` publicado | Fonte no módulo × publicado |
+|---|---|---|---|---|---|---|
+| `corlix-tema.css` | 783 | Tokens `--cx-*`, variáveis do UT, ajustes de componente nativo, `cx-badge`/`cx-etiqueta`, `@font-face` Figtree e Corlix Lucide, mapa `fa-*` → Lucide | `cx-badge`, `cx-etiqueta` | **todas** (`application.apx`) | em sincronia | não há cópia em `modulos/` (fonte = publicado; guias em `modulos/tema/`) |
+| `custom.css` | 1984 | Ajustes globais, header (p0), menu do usuário, legado da Home antiga (§3–§10), classes de layout `cx-*` (§11), Home (§12), Busca (§13), formulário e cabeçalho de página (§14), lista com IR (§15), form em modal (§16) | `corlix-header__`, `cx-menu-usuario`, `cx-*` de layout, legado `card-*`/`figma-*`/`cmt-*`/`log-*` | **todas** (`application.apx`) | em sincronia | idem |
+| `modulos/home/home.css` | 994 | Home: hero com "Ponto de hoje", carrossel de comunicados, indicadores, pendências, gestor, feedbacks, pesquisa, eventos, celebrações, diálogo "Dar feedback" | `cx-home-*`, `cx-carrossel__*` (setas e pontos do carrossel) | p1 (`#APP_FILES#modulos/home/home#MIN#.css`) | em sincronia | igual |
+| `modulos/comunicados/comunicado.css` | 226 | Diálogo "Novo comunicado": rádio segmentado, select com chevron Lucide, `*` nos obrigatórios, dropzone, "Fixar no topo" | `cx-comunicado`, `cx-comunicado__*` | p17 | em sincronia | igual |
+| `modulos/colaboradores/colaboradores.css` | 247 | Lista de colaboradores (Faceted Search + Classic Report), pessoa com avatar, barra de contagem | `cx-colab-*`, `cx-colaboradores-pagina`, ajustes de `.cx-relatorio` | p12 | em sincronia | `.css` igual; o `modulos/colaboradores/colaboradores.min.css` tem as **mesmas regras em outra ordem** (o publicado segue a ordem do `.css`) |
+| `modulos/suporte-ti/suporte.css` | 756 | Suporte TI (HTML do `pkg_suporte_ui`) | `cx-sup-*` | p34, p36, p37, p39 | em sincronia | igual |
+| `ponto-eletronico/ponto.css` | 614 | Ponto eletrônico (HTML do `pkg_ponto_ui`) | `cx-ponto-*` | p30 (`#APP_FILES#ponto-eletronico/ponto.css`, **sem `#MIN#`**) | em sincronia, mas o `.min` não é usado | igual |
+| `holerite.css` | 707 | Holerite (HTML do `pkg_holerite_ui`), inclusive impressão | `cx-hol-*` (+ ajustes de `.cx-cabecalho-pagina` no `@media print`) | p9 | em sincronia | **diferente**: o módulo tem o PDF "Aviso de crédito" (`.cx-hol-aviso*`, proposto em 10/11/2026, não aplicado); o publicado tem a impressão anterior (`.cx-hol-impressao-nome` etc.) |
+| `Meu Perfil.css` (nome com espaço) | 633 | Meu perfil e drawer da foto (`dialog.org-drawer`) | `perfil-*` | p2 (`#APP_FILES#Meu Perfil#MIN#.css`) | em sincronia | **diferente**: o módulo tem 3 regras a mais (`.perfil-btn:disabled`, `.perfil-modal-status`, `.is-erro`), do envio da foto ao bucket (planejado) |
+| `organograma.css` | 925 | Organograma em níveis + drawer | `org-*` (tokens `--org-*` em `.org-drawer`) | p3 | em sincronia | **diferente**: o publicado tem `#P3_BUSCA_CONTAINER { max-width: 300px; margin-left: auto }`, que não está em `modulos/organograma/organograma.css` |
+| `historico-carreira.css` | 981 | Histórico de carreira, formações e a barra do RH | `hc-*` (tokens `--hc-*` em `.hc-barra-rh`/`.hc`) | p13, p19, p20 | em sincronia | igual (o módulo não tem `.min.css`) |
 
-| Token | Definição | Valor efetivo | Uso |
+**CSS de módulo ainda não publicado** (existe só em `modulos/`): `modulos/dashboard-rh/dashboard-rh.css`/`.min.css` (redesign da p20, que hoje carrega `historico-carreira#MIN#.css`) e `modulos/login/login.css`/`.min.css` (redesign da p9999). Os pares `.css`/`.min.css` de ambos estão em sincronia.
+
+**Páginas sem CSS próprio**: as demais (p0, p4, p5–p8, p11, p14–p16, p18, p21–p23, p26, p27, p29, p31–p33, p35, p38, p40–p44, p9999) usam só o global. p14, p15, p16, p29, p32, p37 e p38 dependem de classes do `custom.css` (`cx-form-secao`, `cx-cabecalho-pagina`, `cx-relatorio`, `cx-form-modal`, `cx-busca-*`).
+
+**Outros arquivos publicados**: `figtree-latin.woff2`, `figtree-latin-ext.woff2`, `lucide.woff2` (lidos pelo `corlix-tema.css`), `home-hero.jpg` (lido pela §12 do `custom.css` e pelo `home.css` em `url("../../home-hero.jpg")`), `default-user.jpeg`, `icons/app-icon-*.png`, e cinco imagens `Comunicado · *.png` (dados de demonstração dos comunicados; três delas aparecem como *untracked* no git local em 13/11/2026).
+
+---
+
+## 4. Design tokens `--cx-*`
+
+### 4.1 Tokens do tema (fonte da verdade: `:root` de `corlix-tema.css`)
+
+Os tokens apontam para a paleta do Redwood (`--rw-palette-*`) com fallback hex; o valor efetivo é o fallback se a variável `--rw-*` não existir. **Não há valor escuro** para nenhum token. "Arquivos" = CSS publicados (sem `.min`) que usam o token.
+
+| Token | Definição | Valor claro | Para que serve | Arquivos que usam |
+|---|---|---|---|---|
+| `--cx-primaria` | `var(--rw-palette-sky-120, #00688C)` | `#00688C` azul-petróleo | links, foco, abas, item atual do menu, botão terciário, ícones | todos |
+| `--cx-primaria-hover` | `var(--rw-palette-sky-130, #025E7E)` | `#025E7E` | hover de link/terciário | tema, custom, ponto, suporte |
+| `--cx-primaria-suave` | `var(--rw-palette-sky-30, #E4F1F7)` | `#E4F1F7` | avatar de iniciais, badge info, fundo de ícone | quase todos |
+| `--cx-primaria-texto` | `#1D5F84` | `#1D5F84` | texto sobre fundo suave (avisos, pílulas, badge info) | tema, perfil, hc, holerite, home, ponto, suporte |
+| `--cx-fundo` | `var(--rw-palette-neutral-30, #F1EFED)` | `#F1EFED` | fundo das páginas | tema, hc |
+| `--cx-superficie` | `var(--rw-palette-neutral-0, #FFFFFF)` | `#FFFFFF` | regiões, cards, header, menu lateral | todos |
+| `--cx-superficie-2` | `var(--rw-palette-neutral-10, #FBF9F8)` | `#FBF9F8` | rodapés de diálogo, cabeçalho de tabela | vários |
+| `--cx-tag` | `var(--rw-palette-neutral-20, #F5F4F2)` | `#F5F4F2` | etiquetas, busca do header, dropzone | todos |
+| `--cx-borda` | `var(--rw-palette-neutral-40, #E4E1DD)` | `#E4E1DD` | bordas e divisórias | quase todos |
+| `--cx-borda-campo` | `#8A857F` | `#8A857F` | borda forte de campo | comunicado, hc, holerite, ponto, suporte |
+| `--cx-selecionado` | `#EDEBE8` | `#EDEBE8` | item atual do menu, hover do segmentado | tema, comunicado, holerite |
+| `--cx-texto` | `var(--rw-palette-neutral-190, #161513)` | `#161513` | texto principal | todos |
+| `--cx-texto-2` | `#57534F` | `#57534F` | texto secundário, rótulos | todos |
+| `--cx-texto-3` | `#6B6661` | `#6B6661` | metadados, placeholders | perfil, custom, hc, org, suporte |
+| `--cx-btn` | `#EAE7E3` | `#EAE7E3` | botão secundário | tema, perfil, custom, hc, org, ponto |
+| `--cx-btn-hover` | `#DEDAD5` | `#DEDAD5` | hover do secundário | tema, perfil, hc, org |
+| `--cx-escuro` | `var(--rw-palette-neutral-170, #312D2A)` | `#312D2A` | botão primário escuro (o Hot do Redwood), opção marcada do segmentado | perfil, comunicado, holerite, home, org, ponto, suporte |
+| `--cx-sucesso` | `#2F7D4F` | `#2F7D4F` | sucesso | holerite, home, org, ponto, suporte |
+| `--cx-alerta` | `#B3261E` | `#B3261E` | erro, `*` de obrigatório | comunicado, custom, hc, home, ponto, suporte |
+| `--cx-raio` | `.375rem` | 6px | campos, menus, chips, botões | vários |
+| `--cx-raio-card` | `.5rem` | 8px | regiões e cards | vários |
+| `--cx-fonte` | `var(--a-base-font-family)` | Figtree | referência | **nenhum** (definido e sem uso; o CSS usa `font-family: inherit`) |
+
+Não há tokens `--cx-*` de espaçamento nem de sombra: espaçamentos ficam nas variáveis do UT (§6) e a política é **sem sombra**.
+
+### 4.2 Tokens locais dos módulos (não existem no tema)
+
+Nenhum CSS usa um `--cx-*` que não esteja definido em algum lugar. Mas os tokens abaixo são **locais**: só existem quando o CSS do módulo carrega.
+
+| Token(s) | Definidos em | Escopo | Valores |
 |---|---|---|---|
-| `--cx-primaria` | `var(--rw-palette-sky-120, #00688C)` | `#00688C` azul-petróleo | links, foco, abas, item atual do menu, botão terciário, ícones de links rápidos |
-| `--cx-primaria-hover` | `var(--rw-palette-sky-130, #025E7E)` | `#025E7E` | hover de link/terciário |
-| `--cx-primaria-suave` | `var(--rw-palette-sky-30, #E4F1F7)` | `#E4F1F7` | avatar de iniciais, badge info, ícone de componente |
-| `--cx-primaria-texto` | `#1D5F84` | `#1D5F84` | texto sobre fundo suave (avisos, pílulas, badge info) |
-| `--cx-fundo` | `var(--rw-palette-neutral-30, #F1EFED)` | `#F1EFED` | fundo das páginas |
-| `--cx-superficie` | `var(--rw-palette-neutral-0, #FFFFFF)` | `#FFFFFF` | regiões, cards, cabeçalho, menu lateral |
-| `--cx-superficie-2` | `var(--rw-palette-neutral-10, #FBF9F8)` | `#FBF9F8` | rodapés de drawer, superfície do chat |
-| `--cx-tag` | `var(--rw-palette-neutral-20, #F5F4F2)` | `#F5F4F2` | etiquetas, busca do cabeçalho, links rápidos, bolha recebida do chat |
-| `--cx-borda` | `var(--rw-palette-neutral-40, #E4E1DD)` | `#E4E1DD` | bordas/divisórias |
-| `--cx-borda-campo` | `#8A857F` | `#8A857F` | borda forte de campo (usado em `historico-carreira.css`) |
-| `--cx-selecionado` | `#EDEBE8` | `#EDEBE8` | item selecionado/atual do menu lateral |
-| `--cx-texto` | `var(--rw-palette-neutral-190, #161513)` | `#161513` | texto principal/títulos |
-| `--cx-texto-2` | `#57534F` | `#57534F` | texto secundário, labels |
-| `--cx-texto-3` | `#6B6661` | `#6B6661` | metadados, placeholders |
-| `--cx-btn` | `#EAE7E3` | `#EAE7E3` | botão secundário |
-| `--cx-btn-hover` | `#DEDAD5` | `#DEDAD5` | hover do secundário |
-| `--cx-escuro` | `var(--rw-palette-neutral-170, #312D2A)` | `#312D2A` | botão primário (Hot) |
-| `--cx-sucesso` | `#2F7D4F` | `#2F7D4F` | sucesso (organograma) |
-| `--cx-alerta` | `#B3261E` | `#B3261E` | erro/alerta (histórico de carreira) |
+| `--cx-home-atencao`, `-atencao-fundo`, `-erro-fundo`, `-sucesso-fundo` | `home.css` | `.t-Body` | `#8A4B00`, `#FDF0DC`, `#FCE8E6`, `#E6F2EA` |
+| `--cx-ponto-atencao`, `-atencao-fundo`, `-erro-fundo`, `-sucesso-fundo` | `ponto.css` | `:root` | os mesmos quatro |
+| `--cx-sup-atencao`, `-atencao-fundo`, `-erro-fundo`, `-sucesso-fundo` | `suporte.css` | `:root` | os mesmos quatro |
+| `--cx-hol-barra-descontos`, `--cx-hol-sucesso-fundo` | `holerite.css` | `:root` | `#7FB2C7`, `#E6F2EA` |
+| `--cx-dash-serie-1/-2`, `--cx-dash-urgente(-fundo)`, `--cx-dash-atencao(-fundo)` | `modulos/dashboard-rh/dashboard-rh.css` (não publicado) | `:root` | `#2B78D4`, `#E8683A`, `var(--cx-alerta)`, `#FCE8E6`, `#8A4B00`, `#FDF0DC` |
+| `--org-*` (17) | `organograma.css` | `.org-drawer` (e `.org`) | `var(--cx-*, fallback)` + `--org-borda-forte #C9C4BE`, `--org-linha #D2CDC7`, `--org-escuro-hover #1F1C1A`, `--org-gap 32px` |
+| `--hc-*` (20) | `historico-carreira.css` | `.hc-barra-rh` / `.hc` | `var(--cx-*, fallback)` + `--hc-atencao #8A5A00`, `--hc-atencao-suave #FFF4DB`, `--hc-alerta-suave #FCEDEC`, `--hc-aviso-fundo #E6F1F7` |
+| `--ch-*` (17) | CSS Inline da p4 (Chat) | `:root` da página | mapeiam para `--cx-*`; `--ch-online/ausente/offline` e medidas próprias |
 
-Cores fixas fora de token (não viraram `--cx-*`): `#D2CDC7` (active do botão), `rgba(22,21,19,.04)` (hover do menu), `rgba(22,21,19,.06)` (hover dos ícones do header), `--rw-palette-sky-10 #F6FAFC` (primary-shade), cores dos badges (§5.1).
+Observações: as cores de status atenção/erro/sucesso se repetem em 4 arquivos com prefixos diferentes (candidatas a token do tema; decisão do time). `--hc-atencao` (`#8A5A00`) difere dos demais (`#8A4B00`). Os fallbacks de `--cx-primaria-suave` em `organograma.css` e `historico-carreira.css` são `#E6F2F6`, e não o `#E4F1F7` do tema (só importa se o tema não carregar).
 
-### 3.2 Fonte, raios, espaçamentos, sombras
+---
 
-| Token / var | Valor | Uso |
+## 5. Tipografia e ícones
+
+### 5.1 Figtree
+
+Dois `@font-face` "Figtree" no fim do `corlix-tema.css` (`figtree-latin.woff2` e `figtree-latin-ext.woff2`, peso `300 900`, `font-display: swap`, separados por `unicode-range`; origem `@fontsource-variable/figtree@5.1.1`, SIL OFL 1.1, conforme `modulos/tema/Etapas-fonte-e-icones.md`). A fonte entra trocando `--a-base-font-family` num segundo `:root`:
+
+```css
+--a-base-font-family: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+```
+
+Os `url()` não têm pasta: as fontes ficam na raiz dos Static Application Files, ao lado do `corlix-tema.css`. Nos módulos, use `font-family: inherit` e não fixe fonte.
+
+Tipografia efetiva (prancha + CSS): título de página 26px/32px bold (`--ut-breadcrumb-title-*`); cabeçalhos de página em região (`.cx-cabecalho-pagina__titulo`) 32px/700; título de região 15px/20px bold, sem caixa alta; nome do app 18px bold; menu 14px/20px (itens de 40px); botões peso 600; badge/etiqueta 12px/600.
+
+### 5.2 Fonte de ícones "Corlix Lucide" (`lucide.woff2`)
+
+Declaração (fim do `corlix-tema.css`):
+
+```css
+@font-face {
+    font-family: "Corlix Lucide";
+    font-style: normal; font-weight: normal; font-display: block;
+    src: url("lucide.woff2") format("woff2");
+}
+```
+
+`lucide.woff2` é a fonte do `lucide-static@0.460.0` (ISC) **reduzida** com `pyftsubset` aos 69 glifos que o tema usa (passo a passo em `modulos/tema/Etapas-fonte-e-icones.md`). Glifo fora desses 69 não existe na fonte publicada.
+
+**Como se usa:**
+
+1. **Classes Font APEX (`fa-*`)**: o app continua usando `fa-home`, `fa-users` etc. no Builder (ícone de botão, de lista, de região, HTML). O `corlix-tema.css` aplica `font-family: "Corlix Lucide" !important` no `::before` das 84 classes mapeadas e troca o `content`. O seletor tem o prefixo `.apex-icons-fontapex` porque o Font APEX aplica a fonte com `!important` (`.fa.fa-lg::before`) e é preciso vencer em especificidade. Classe fora do mapa continua sendo desenhada pelo Font APEX.
+2. **`content` direto num pseudo-elemento**, para ícones que não são classe `fa-*`:
+   ```css
+   .x::after { content: "\e071"; font-family: "Corlix Lucide"; }   /* chevron-down */
+   ```
+   Uso atual: só `comunicado.css` (`\e071` chevron-down na seta do select; `\e070` check na opção marcada do rádio segmentado).
+
+**Mapa `fa-*` → glifo** (do `corlix-tema.css`; nome conferido no `lucide.css` 0.460.0):
+
+| Código | Lucide | Classes `fa-*` |
 |---|---|---|
-| `--cx-fonte` | `var(--a-base-font-family)` (Figtree) | referência; o CSS usa `font-family: inherit` |
-| `--cx-raio` | `.375rem` (6px) | busca do header, menus, chips, componentes UT, botão "Sair" |
-| `--cx-raio-card` | `.5rem` (8px) | regiões e cards |
-| Espaçamentos | não há tokens `--cx-*` de espaço; ficam nas vars do UT (§4): conteúdo 32px (2rem), região 20×16px, breadcrumb 32×24px, nav 240px, header 56px |
-| Sombras | política "**sem sombra**": `--ut-region-box-shadow`, `--ut-body-title-box-shadow`, `--a-cv-shadow`, `--ut-cardlist-box-shadow` = `none`. Exceção legada: `.a-CardView-item` em `custom.css` ainda tem `box-shadow: 0 3px 12px rgba(0,0,0,.08)` e `border-radius: 14px` |
+| `\e0f8` | house | `fa-home` |
+| `\e235` | megaphone | `fa-bullhorn` |
+| `\e412` | messages-square | `fa-comments-o`, `fa-comments` |
+| `\e11a` | message-circle | `fa-comment-o`, `fa-comment` |
+| `\e57a` | message-square-text | `fa-commenting-o` |
+| `\e1a4` | users | `fa-users` |
+| `\e46d` | user-round | `fa-user`, `fa-user-o` |
+| `\e472` | user-round-x | `fa-user-times` |
+| `\e1a2` | user-plus | `fa-user-plus` |
+| `\e066` | briefcase | `fa-briefcase` |
+| `\e1ff` | shield-check | `fa-shield` |
+| `\e155` | search | `fa-search` |
+| `\e05d` | bell | `fa-bell-o`, `fa-bell` |
+| `\e112` | log-out | `fa-sign-out` |
+| `\e111` | log-in | `fa-sign-in` |
+| `\e141` | plus | `fa-plus` |
+| `\e1f9` | pencil | `fa-edit`, `fa-pencil` |
+| `\e0fe` | info | `fa-info-circle` |
+| `\e073` / `\e071` / `\e072` / `\e074` | chevron-right / -down / -left / -up | `fa-chevron-right` / `-down` / `-left` / `-up` |
+| `\e04d` | arrow-right | `fa-arrow-right` |
+| `\e07f` | circle-arrow-up | `fa-arrow-circle-up` |
+| `\e348` | cake | `fa-birthday-cake` |
+| `\e0d0` | file-text | `fa-file-text-o`, `fa-file-text` |
+| `\e113` | mail | `fa-envelope-o`, `fa-envelope` |
+| `\e250` | clock-3 | `fa-clock-o` |
+| `\e2a3` | chart-column | `fa-bar-chart` |
+| `\e2a1` | undo-2 | `fa-undo` |
+| `\e149` | refresh-cw | `fa-repeat`, `fa-refresh` |
+| `\e129` | network | `fa-sitemap` |
+| `\e156` | send | `fa-paper-plane` |
+| `\e056` | banknote | `fa-money` |
+| `\e5db` | briefcase-medical | `fa-medkit` |
+| `\e103` | languages | `fa-language` |
+| `\e4a8` | key-round | `fa-key` |
+| `\e1f5` | history | `fa-history` |
+| `\e5c2` | headset | `fa-headphones` |
+| `\e234` | graduation-cap | `fa-graduation-cap` |
+| `\e24a` | arrow-left-right | `fa-exchange` |
+| `\e053` | award | `fa-certificate` |
+| `\e290` | building-2 | `fa-building-o`, `fa-building` |
+| `\e063` | book-open | `fa-book` |
+| `\e158` | settings | `fa-gear`, `fa-cog` |
+| `\e067` | calendar | `fa-calendar`, `fa-calendar-o` |
+| `\e10f` | lock | `fa-lock` |
+| `\e070` | check | `fa-check` |
+| `\e226` | circle-check | `fa-check-circle` |
+| `\e1b2` | x | `fa-times`, `fa-close` |
+| `\e119` | menu | `fa-bars` |
+| `\e18e` | trash-2 | `fa-trash-o`, `fa-trash` |
+| `\e0b6` / `\e19e` | download / upload | `fa-download` / `fa-upload` |
+| `\e0d5` | filter | `fa-filter` |
+| `\e0be` | eye | `fa-eye` |
+| `\e068` | camera | `fa-camera` |
+| `\e193` | triangle-alert | `fa-exclamation-triangle`, `fa-warning` |
+| `\e07b` | circle-alert | `fa-exclamation-circle` |
+| `\e137` | phone | `fa-phone` |
+| `\e115` | map-pin | `fa-map-marker` |
+| `\e0eb` | globe | `fa-globe` |
+| `\e61c` | id-card | `fa-id-card-o` |
+| `\e145` | printer | `fa-print` |
+| `\e1c2` | lightbulb | `fa-lightbulb-o` |
+| `\e184` | target | `fa-bullseye` |
+| `\e0f5` | heart | `fa-heart` |
+| `\e108` | link | `fa-link` |
+| `\e131` | paperclip | `fa-paperclip` |
 
-Tipografia efetiva (da prancha + CSS): título de página 26px/32px bold; título de região 15px/20px bold, sem caixa alta; nome do app no header 18px bold; menu 14px/20px (itens de 40px); botões peso 600; badge/etiqueta 12px peso 600.
+**Font APEX onde ainda aparece:** todas as classes `fa-*` encontradas em `corlixhub/pages/*.apx`, `corlixhub/shared-components/*.apx` e nos packages/JS de `modulos/` estão no mapa (conferido em 13/11/2026), então hoje **nenhum ícone visível depende do desenho Font APEX**. Exemplos de uso: menu lateral (`lists.apx`: Início `fa-home`, Comunicados `fa-bullhorn`, Chat `fa-comments-o`, Pessoas `fa-users`, Minha carreira `fa-briefcase`, Ponto eletrônico `fa-clock-o`, Administração `fa-shield`); header (`fa-bell-o`, `fa-chevron-down`, `fa-user-o`, `fa-sign-out`); `pkg_home_ui` (`fa-arrow-right`, `fa-birthday-cake`, `fa-calendar-o`, `fa-check-circle`, `fa-chevron-right`, `fa-comments-o`, `fa-file-text-o`, `fa-headphones`, `fa-sitemap`, `fa-user-times`); `pkg_busca_ui` (`fa-bullhorn`, `fa-comment-o`, `fa-search`, `fa-users`); `pkg_colaboradores_ui` (`fa-chevron-right`, `fa-plus`). Para incluir um ícone novo: classe na lista do `font-family`, regra `content` e nova fonte com `pyftsubset` (guia `Etapas-fonte-e-icones.md`).
+
+### 5.3 SVG Lucide em linha (packages `pkg_*_ui`)
+
+HTML gerado por package usa SVG em linha (padrão do [11](./11-padroes-de-paginas.md), "Ícones"): função `icone(p_nome)` que devolve `<svg class="cx-<mod>-icone" width=".." viewBox="0 0 24 24" aria-hidden="true" focusable="false">` com os paths do Lucide e `stroke="currentColor"` (a cor vem do CSS). Não depende da fonte.
+
+| Package | Classe do `<svg>` | Nomes aceitos por `icone()` |
+|---|---|---|
+| `modulos/home/pkg_home_ui.pkb` | `cx-home-icone` | clock, log-in, log-out, coffee, check, hourglass, calendar-x, assinar, wallet, palm, target, eye, calendar, calendar-clock, message, feedback, party, users |
+| `modulos/ponto-eletronico/04_pkg_ponto_ui.pkb` | `cx-ponto-icone` | log-in, log-out, coffee, check, map-pin, timer, arrow, download, history, hourglass, alerta, assinar, cadeado |
+| `modulos/holerite/02_pkg_holerite_ui.pkb` | `cx-hol-icone` | olho-fechado, olho, download, banco, mais, menos, info, mensagem, cadeado |
+| `modulos/suporte-ti/04_pkg_suporte_ui.pkb` | `cx-sup-icone` | key, mail, laptop, wifi, janela, printer, busca, chevron, seta, voltar, mais, alerta, fechar, artigo, responder, check, pessoa, calendario, chat, telefone, relogio, anexo |
+| `modulos/dashboard-rh/pkg_dashboard_rh_ui.pkb` (não aplicado) | `cx-dash-icone` | trending-up, user-plus, user-minus, chevron-right, arrow-right, info |
+| `modulos/login/02_pkg_login_ui.pkb` (não aplicado) | `cx-login-icone` | info |
+
+Escolha: componente nativo ou botão com classe do tema → `fa-*` (§5.2); HTML de package → `icone()`. Não misture os dois no mesmo componente sem necessidade.
 
 ---
 
-## 4. Mapeamento para variáveis do Universal Theme
+## 6. Mapeamento para variáveis do Universal Theme (`corlix-tema.css`)
 
-Todas em `:root` de `corlix-tema.css`. Nomes extraídos do CSS do UT 26.1.5; se renomeados numa atualização, perde-se só aquele ajuste.
+Todas em `:root`. Nomes do UT 26.1.5; se uma atualização renomear, perde-se só aquele ajuste.
 
 | Grupo | Variável UT | Valor Corlix |
 |---|---|---|
 | Tipografia | `--ut-breadcrumb-title-font-size` / `-line-height` | `1.625rem` / `2rem` |
-| Primária | `--ut-palette-primary` | `var(--cx-primaria)` |
-| | `--ut-palette-primary-contrast` | `#FFFFFF` |
-| | `--ut-palette-primary-shade` | `var(--rw-palette-sky-10, #F6FAFC)` |
-| | `--ut-link-text-color` | `var(--cx-primaria)` |
+| Primária | `--ut-palette-primary` / `-contrast` / `-shade` | `--cx-primaria` / `#FFFFFF` / `var(--rw-palette-sky-10, #F6FAFC)` |
+| | `--ut-link-text-color` | `--cx-primaria` |
 | | `--ut-component-icon-background-color` / `--ut-component-icon-color` | `--cx-primaria-suave` / `--cx-primaria` |
 | | `--u-color-5` / `--u-color-5-contrast` | `--cx-primaria` / `#FFFFFF` |
-| Foco | `--ut-focus-outline` | `2px solid var(--cx-primaria)` (Redwood: tracejado 1px) |
-| | `--ut-focus-outline-color` / `-offset` | `--cx-primaria` / `2px` |
+| Foco | `--ut-focus-outline` / `-color` / `-offset` | `2px solid var(--cx-primaria)` / `--cx-primaria` / `2px` |
 | Página | `--ut-body-background-color` / `--ut-body-text-color` | `--cx-fundo` / `--cx-texto` |
 | | `--ut-body-content-padding-x` / `-y` | `2rem` / `2rem` |
 | Header | `--ut-header-background-color` / `-text-color` / `-border-color` | `--cx-superficie` / `--cx-texto` / `--cx-borda` |
 | | `--ut-header-height` / `--ut-header-padding-x` | `3.5rem` / `.5rem` |
-| Menu lateral | `--ut-nav-width` | `15rem` (240px) |
+| Menu lateral | `--ut-nav-width` | `15rem` |
 | | `--ut-body-nav-background-color` / `-border-color` / `-text-color` | `--cx-superficie` / `--cx-borda` / `--cx-texto` |
 | | `--a-treeview-node-font-size` / `-line-height` / `-padding-y` | `.875rem` / `1.25rem` / `.625rem` |
-| | `--ut-treeview-toplevel-node-font-size` / `--a-treeview-node-font-weight` | `.875rem` / `400` (o Redwood põe `1rem` e `600`; só o item atual fica em negrito) |
-| | `--a-treeview-node-text-color` | `--cx-texto` |
-| | `--a-treeview-node-hover-background-color` | `rgba(22,21,19,.04)` |
-| | `--a-treeview-node-selected-background-color` / `-selected-text-color` | `--cx-selecionado` / `--cx-texto` |
-| | `--ut-treeview-node-current-text-color` | `--cx-texto` |
+| | `--ut-treeview-toplevel-node-font-size` / `--a-treeview-node-font-weight` | `.875rem` / `400` (o Redwood põe `1rem` e `600`) |
+| | `--a-treeview-node-text-color` / `-hover-background-color` | `--cx-texto` / `rgba(22,21,19,.04)` |
+| | `--a-treeview-node-selected-background-color` / `-selected-text-color` / `--ut-treeview-node-current-text-color` | `--cx-selecionado` / `--cx-texto` / `--cx-texto` |
 | Título da página | `--ut-body-title-background-color` / `-border-color` / `-border-width` / `-box-shadow` | `--cx-superficie` / `--cx-borda` / `1px` / `none` |
 | Componentes | `--ut-component-background-color` / `-border-color` / `-border-radius` | `--cx-superficie` / `--cx-borda` / `--cx-raio` |
 | | `--ut-component-text-title-color` / `-text-muted-color` | `--cx-texto` / `--cx-texto-2` |
 | Regiões | `--ut-region-border-color` / `-border-radius` / `-box-shadow` | `--cx-borda` / `--cx-raio-card` / `none` |
-| | `--ut-region-header-border-color` | `--cx-borda` |
-| | `--ut-region-header-font-size` / `-line-height` | `.9375rem` / `1.25rem` |
+| | `--ut-region-header-border-color` / `-font-size` / `-line-height` | `--cx-borda` / `.9375rem` / `1.25rem` |
 | | `--ut-region-header-padding-x/-y`, `--ut-region-body-padding-x/-y` | `1.25rem` / `1rem` |
 | Cards | `--a-cv-shadow` / `--a-cv-border-radius` / `--ut-cardlist-box-shadow` | `none` / `--cx-raio-card` / `none` |
 | Botões | `--a-button-background-color` / `-hover-` / `-active-` | `--cx-btn` / `--cx-btn-hover` / `#D2CDC7` |
@@ -162,44 +294,27 @@ Todas em `:root` de `corlix-tema.css`. Nomes extraídos do CSS do UT 26.1.5; se 
 
 O botão **Hot** não é redefinido: o escuro `#312D2A` já é o do Redwood.
 
-### 4.1 Ajustes de componente em `corlix-tema.css` (o que variável não alcança)
+### 6.1 Ajustes de componente em `corlix-tema.css` (o que variável não alcança)
 
 | Seletor | Efeito |
 |---|---|
 | `.t-Header-logo-link, .t-Header-logo-label` | nome do app 18px, 700, `--cx-texto` |
-| `.t-TreeNav .a-TreeView-node.is-current > .a-TreeView-row`, `.is-current--top > .a-TreeView-row`, `.a-TreeView-row.is-selected` | fundo `--cx-selecionado` + `box-shadow: inset 3px 0 0 var(--cx-primaria)` (barra azul de 3px) |
+| `.t-TreeNav .a-TreeView-node.is-current > .a-TreeView-row`, `.is-current--top > …`, `.a-TreeView-row.is-selected` | fundo `--cx-selecionado` + `box-shadow: inset 3px 0 0 var(--cx-primaria)` (barra azul) |
 | `.t-TreeNav .is-current, .is-current--top` | `--a-treeview-node-font-weight: 700` |
 | `.t-TreeNav .a-TreeView-node .a-Icon/.fa` | ícones do menu em `--cx-texto-2` |
-| `.t-Body-title` / `::after` | borda 1px; fundo `--cx-superficie` e borda `--cx-borda` redefinidos aqui, porque o Redwood os redefine em `body:not([class*="rw-pillar--"])` (fundo `#F5F4F2`, borda `#7A736E`), o que vence o `:root`; remove a faixa de textura do Redwood (`content: none`) |
-| `.t-Body-title .t-BreadcrumbRegion` (+ `.t-PageBody--showLeft`) | `--ut-breadcrumb-padding-x: 2rem; -y: 1.5rem` |
-| `.t-BreadcrumbRegion-titleText` | bold |
-| `.t-Region-title` | 700, `text-transform: none` |
-| `.t-Button--link`, `.t-Button--noUI` (exceto `--noLabel`, `--header`, `--closeAlert`) | texto primário/hover primário → botão terciário azul; ícone-só e header ficam neutros |
+| `.t-Body-title` / `::after` | fundo e borda redefinidos aqui porque o Redwood os redefine em `body:not([class*="rw-pillar--"])`, que vence o `:root`; `::after` com `content: none` tira a faixa de textura |
+| `.t-Body-title .t-BreadcrumbRegion` | `--ut-breadcrumb-padding-x: 2rem; -y: 1.5rem` |
+| `.t-BreadcrumbRegion-titleText`, `.t-Region-title` | negrito; região sem caixa alta |
+| `.t-Button--link`, `.t-Button--noUI` (exceto `--noLabel`, `--header`, `--closeAlert`) | texto na primária: botão terciário azul; botões só de ícone e do header ficam neutros |
 | `.a-CardView-initials, .t-Avatar--initials` | fundo `--cx-primaria-suave`, texto `--cx-primaria` |
-| `.cx-badge*`, `.cx-etiqueta` | ver §5.1 |
 
 ---
 
-## 5. Catálogo de classes customizadas
+## 7. Catálogo de componentes e classes reutilizáveis
 
-Prefixos e onde vivem:
+### 7.1 Design system global (`corlix-tema.css`)
 
-| Prefixo | Arquivo | Escopo / página |
-|---|---|---|
-| `cx-` | `corlix-tema.css` (badge/etiqueta) e `custom.css` §11 (layout) | design system, reutilizável. Usado em p1, p4 (só tokens), p14, p16 |
-| `cx-home-*`, `cx-avatar` | `custom.css` §12 | p28 Início, a nova Home (HTML do `pkg_home_ui`, ver `modulos/home/Etapas-home.md`) |
-| `corlix-header__` | `custom.css` §2 | p0 Global Page (cabeçalho) |
-| `card-*`, `link-item`, `links-rapidos-card`, `cmt-*`, `figma-*`, `popup-todos-aniversariantes`, `lista-de-comunicados`, `emitir-comunicado`, `imagem-capa-comunicado`, `titulo-lista-de-comunicados`, `botao-emitir-comunicado` | `custom.css` §3–§10 | p1 Home (legado da Home; `emitir-comunicado` também aparece em p17) |
-| `log-*` (`log-detalhe`, `log-descricao`, `log-tag`) | `custom.css` (após §8) | p7 Monitor de logs. Atenção: `log-size600x400`, `log-autoheight`, `log-cancel`, `log-closed` encontrados por grep são falsos positivos (substrings de `dialog-*`) |
-| `ch-*` | CSS **inline** da página 4 | p4 Chat (tokens `--ch-*` + classes `ch-shell`, `ch-list`, `ch-contact`, `ch-bubble`, `ch-msg--in/--out`, `ch-dot--online/ausente/offline`...) |
-| `org-*` / `.org`, `.org-drawer` | `modulos/organograma/organograma.css` | p3 Organograma (tokens locais `--org-*` → `--cx-*` com fallback) |
-| `hc-*` / `.hc` | `modulos/historico-carreira/historico-carreira.css` | p13 Histórico de carreira (tokens `--hc-*` → `--cx-*`) |
-
-`organograma.css` e `historico-carreira.css` **ainda não estão** em `corlixhub/shared-components/static-files/` nem referenciados no app exportado: precisam ser subidos (ver `Etapas-*.md` de cada módulo).
-
-### 5.1 Componentes do design system (`corlix-tema.css`)
-
-**`.cx-badge` + variante** — pílula de status, sempre com texto (ponto colorido via `::before` em `currentColor`). Pílula 999px, 12px/16px, 600, padding `.125rem .5rem`.
+**`.cx-badge` + variante**: pílula de status, sempre com texto; ponto colorido no `::before` em `currentColor`. 999px, 12px/16px, 600, padding `.125rem .5rem`.
 
 | Variante | Fundo | Texto |
 |---|---|---|
@@ -210,242 +325,130 @@ Prefixos e onde vivem:
 | `--aviso` | `--rw-palette-orange-30 #FCEDDC` | `--rw-palette-orange-140 #724108` |
 | `--info` | `--cx-primaria-suave` | `--cx-primaria-texto` |
 
-**`.cx-etiqueta`** — etiqueta neutra de departamento (cor não pode sugerir status): raio 4px, fundo `--cx-tag`, borda interna 1px `--cx-borda`, 12px/600, `--cx-texto-2`.
+**`.cx-etiqueta`**: etiqueta neutra (departamento, categoria); raio 4px, fundo `--cx-tag`, borda interna 1px `--cx-borda`, 12px/600. Cor não pode sugerir status.
 
-```html
-<span class="cx-badge cx-badge--sucesso">Ativa</span>
-<span class="cx-etiqueta">Operações</span>
-```
-Uso: p1 Home (`cx-badge--info` no mês dos aniversariantes; `cx-etiqueta` no departamento dos comunicados).
+Uso atual: `cx-badge` em p1 (`pkg_home_ui`), p12 (`pkg_colaboradores_ui`) e p15 (situação da empresa); `cx-etiqueta` em p1 e na busca (`pkg_busca_ui`).
 
-### 5.2 Layout do design system (`custom.css` §11)
+### 7.2 Componentes do `custom.css` (globais, servem a qualquer página)
 
-| Classe | O que faz | Página |
+| Classe | Seção | O que é | Onde é usado hoje |
+|---|---|---|---|
+| `.corlix-header__search` (`__search-icon`, `__search-input`), `__actions`, `__icon-btn`, `__divisor`, `__user` (`__avatar`, `__user-name`, `__user-seta`) | §2 | Header (slots *After Logo* e *After Navigation Bar*) | p0; campo de busca vem do `pkg_busca_ui.render_campo` |
+| `.cx-menu-usuario` (`__cabecalho`, `__nome`, `__info`, `__login`, `__separador`, `__item`) | §2 | Menu do usuário com atributo HTML `popover` (sem JS) e "Sair" | p0 |
+| `.cx-avatar-iniciais` | §11 | Iniciais quando não há foto (vai com a classe de tamanho, ex. `corlix-header__avatar`) | p0 |
+| `.cx-pessoa` (`__foto`, `__nome`, `__detalhe`), `.cx-acoes-card` | §11 | Foto + nome + detalhe; botões lado a lado | `pkg_home_ui`, `pkg_busca_ui` |
+| `.cx-titulo`, `.cx-titulo-secao` | §11 | Título de página antigo; título de seção de formulário | p16 |
+| `.cx-avatar` (`--vazio`) | §12 | Avatar 40px com iniciais e `<img>` por cima | `pkg_home_ui`, `pkg_busca_ui`, p12 (com `cx-avatar--situacao-*` do `colaboradores.css`), `pkg_dashboard_rh_ui` |
+| `.cx-home-card` (`__subtitulo`, `__rodape`), `.cx-home-hero`, `.cx-home-atalho(s)`, `.cx-home-gestor`, `.cx-home-lista`, `.cx-home-vazio`, `.cx-home-comunicados` | §12 | Home (base); o `home.css` da p1 complementa | p1; `.cx-home-vazio` também na busca |
+| `.cx-busca-cabecalho`, `.cx-busca-card`, `.cx-busca-lista`, `.cx-busca__link`, `.cx-busca-comunicado`, `.cx-busca-ajuda` | §13 | Resultados da busca | p29 (`pkg_busca_ui`) |
+| `.cx-cabecalho-pagina` (`__trilha`, `__texto`, `__titulo`, `__descricao`, `__acoes`) e `--acoes` | §14/§15 | **Cabeçalho de página padrão** na Breadcrumb Bar | p15, p32, p37, p38 e packages de colaboradores, ponto, suporte e holerite |
+| `.cx-form-secao` (`__info`, `__titulo`, `__descricao`), `.cx-form-rodape` (`__nota`) | §14 | Formulário em seções 1/3 + 2/3 e rodapé fixo | p14 |
+| `.cx-relatorio` (`__nota`) | §15 | Card para Interactive Report (`.t-IRR-region`); o `colaboradores.css` estende para Classic Report | p12, p15, p32, p38 |
+| `.cx-form-modal`, `.cx-form-modal-rodape` (`__nota`) | §16 | Formulário em modal e rodapé do diálogo (via `.t-Dialog-footer:has(...)`) | p16 |
+
+### 7.3 Componentes por módulo (prefixo próprio; reutilizar copiando o padrão, não a classe)
+
+| Componente | Classes | Arquivo |
 |---|---|---|
-| `.cx-cabecalho-card` (+ `h3`) | flex título + badge, `padding: 16px 16px 12px` | p1 região `card_aniversariantes` |
-| `.figma-badge-mes` | `text-transform: capitalize`; **hook do JS** que preenche o mês | p1 |
-| `.cx-acoes-card` (+ `.t-Button { flex:1 }`) | botões secundários lado a lado, padding 0 16px | p1 `card_meu_gestor` (footer) |
-| `.cx-pessoa`, `__foto` (52px redonda), `__nome` (14px), `__detalhe` (12px `--cx-texto-3`) | foto + nome + cargo | p1 `card_meu_gestor` (HTML Expression) |
-| `.cx-titulo` (26px/32px bold) / `.cx-descricao` (14px `--cx-texto-2`) | título + descrição de página montados em região | p16; na p14 sai com o guia `Etapas-cadastro-colaborador.md` (vira `.cx-cabecalho-pagina`) |
-| `.cx-titulo-secao` (16px bold, margin-bottom 12px) | título de seção em formulário | p16 `headerText` das 3 regiões |
-| `.cx-avatar-iniciais` (fundo `--cx-primaria-suave`, texto `--cx-primaria`, 18px/600; 12px com `.corlix-header__avatar`) | avatar de iniciais para quem não tem foto. Vai num `<span style="display:none">` logo após a `<img>`, junto da classe de tamanho do avatar (`figma-avatar-img`, `corlix-header__avatar`, `cx-pessoa__foto`); o `onerror` da `<img>` esconde a imagem e limpa o `display` do span (por isso a classe não usa `display` com `!important`). A SQL deve devolver foto **nula** quando não há foto (o `src` vazio dispara o `onerror`). | header (p0), Home: gestor e aniversariantes |
+| Selo de status | `.cx-ponto-selo`, `.cx-sup-selo`, `.cx-hol-selo`, `.cx-home-selo` (`--sucesso`, `--neutro`, `--info`, `--erro`, `--atencao`) | `ponto.css`, `suporte.css`, `holerite.css`, `home.css` |
+| Botão | `.cx-hol-botao` (`--escuro`, `--largo`), `.cx-ponto-botao`, `.cx-sup-botao` (`--primario`, `--largo`), `.perfil-btn` (`--primario`), `.org-btn` (`--primario`, `--auto`), `.hc-btn` (`--bloco`) | holerite, ponto, suporte, Meu Perfil, organograma, histórico |
+| Ícone SVG | `.cx-home-icone`, `.cx-ponto-icone`, `.cx-hol-icone`, `.cx-sup-icone` | idem (§5.3) |
+| Estado vazio | `.cx-home-vazio` (custom §12), `.cx-ponto-vazio`, `.cx-sup-vazio`, `.cx-hol-vazio`, `.hc-vazio`, `.org-vazio` | idem |
+| Carrossel | `.cx-home-carrossel` (classe da região Cards; ligada pelo JS da p1) | `home.css` |
+| Segmentado (rádio) | `.cx-comunicado__publico` | `comunicado.css` |
+| Drawer | `dialog.org-drawer` (`__painel`, `__estado`) | `organograma.css` e `Meu Perfil.css` |
 
-```html
-<div class="cx-cabecalho-card">
-  <h3>Aniversariantes</h3>
-  <span class="figma-badge-mes cx-badge cx-badge--info"></span>
-</div>
+Para página nova: reaproveite `cx-badge`, `cx-etiqueta`, `cx-cabecalho-pagina`, `cx-relatorio`, `cx-avatar`/`cx-pessoa` e, para o resto, crie classes com o prefixo do módulo no CSS do módulo ([11](./11-padroes-de-paginas.md) C4).
 
-<div class="cx-pessoa">
-  <img src="&FOTO_GESTOR." alt="" class="cx-pessoa__foto"
-       onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';">
-  <span class="cx-pessoa__foto cx-avatar-iniciais" aria-hidden="true" style="display:none">&INICIAIS_GESTOR.</span>
-  <div>
-    <strong class="cx-pessoa__nome">&NOME_GESTOR.</strong>
-    <span class="cx-pessoa__detalhe">&NOME_CARGO.</span>
-  </div>
-</div>
+### 7.4 Legado no `custom.css` (sem uso nas páginas e packages em 13/11/2026)
 
-<div class="cx-acoes-card">
-  <a class="t-Button t-Button--icon t-Button--iconLeft" href="#">
-    <span class="t-Icon t-Icon--left fa fa-comment-o" aria-hidden="true"></span>
-    <span class="t-Button-label">Chat</span>
-  </a>
-</div>
-```
-
-### 5.2.1 Home redesenhada (`custom.css` §12)
-
-| Classe | O que faz |
-|---|---|
-| `.cx-home-hero` (`__conteudo`, `__titulo` 32px, `__data`, `__arte`) | card do hero em grid `1fr 340px`; a arte é `background: url("home-hero.jpg")` (arquivo na raiz dos Static Application Files, caminho relativo ao CSS) e some abaixo de 992px |
-| `.cx-home-atalhos` / `.cx-home-atalho` (`__icone` 32px azul-claro, `__texto`, `__seta`) | links rápidos do hero; `aria-disabled="true"` enquanto não têm destino (o JS da página avisa no clique) |
-| `.cx-home-card` (+ `__subtitulo`, `__rodape`) | regiões *Standard* com *No Padding*: cabeçalho 16×24px (zera o padding que o UT põe em `.t-Region-headerItems`, para o título alinhar com o conteúdo), título 18px, subtítulo dentro do título, rodapé com divisória para o "Ver todos" |
-| `.cx-avatar` (40px, iniciais com `<img>` por cima) / `--vazio` | avatar da Home; a `<img data-cx-foto>` recebe o `src` do JS (`apex.env.APP_FILES`) e some no `onerror` |
-| `.cx-home-gestor`, `.cx-home-lista` (`__item`), `.cx-home-vazio` (`__titulo`, `__texto`) | Meu gestor, lista de aniversariantes e estado vazio; reaproveitam `.cx-pessoa`, `.cx-acoes-card` e `.cx-badge--info` ("Hoje") |
-| `.cx-home-comunicados` (+ `.cx-home-comunicado__meta`, `__titulo`) | Cards de comunicados: 1º item com imagem 16:9 (300px) à esquerda e título 22px, demais em lista sem imagem e título 16px, todos em negrito; neutraliza as regras globais `.a-CardView-*` da §3 |
-
-### 5.2.2 Busca na intranet (`custom.css` §13)
-
-HTML do `pkg_busca_ui` (`modulos/busca`). `.corlix-header__search-input` ganha `appearance: none` e esconde o `::-webkit-search-cancel-button` (o campo virou `type="search"`).
-
-| Classe | Uso |
-|---|---|
-| `.cx-busca-cabecalho` (`__titulo` 32px/700, `__resumo` 15px) | cabeçalho da p29 na Breadcrumb Bar (dentro de `.t-Body-title`), padding 24×32px |
-| `.cx-busca-card` (`__titulo` 18px/700 com ícone, `__qtd` pílula cinza, `__rodape`) | cards Pessoas e Comunicados; borda 1px, raio `--cx-raio-card`, sem sombra |
-| `.cx-busca-lista` (`__item`), `.cx-busca__link` (15px/600, `--cx-primaria`) | linhas dos cards; pessoas reaproveitam `.cx-avatar`, `.cx-pessoa` e o botão `t-Button` |
-| `.cx-busca-comunicado` (`__meta`, `__titulo`, `__resumo`) | linha de comunicado: etiqueta `.cx-etiqueta` + data, título e resumo |
-| `.cx-busca-ajuda` (`__lista`, `__nota`) | card "O que a busca encontra" |
-
-O estado vazio reaproveita `.cx-home-vazio` e `.cx-avatar--vazio` (§12).
-
-### 5.2.3 Cadastro de colaborador (`custom.css` §14)
-
-Guia: `modulos/tema/Etapas-cadastro-colaborador.md` (p14, protótipo `Novo colaborador.png`).
-
-| Classe | Uso |
-|---|---|
-| `.cx-cabecalho-pagina` (`__trilha` 14px com link `--cx-primaria` e `fa-chevron-right`, `__titulo` 32px/700, `__descricao` 15px) | cabeçalho de página com trilha, numa região da Breadcrumb Bar com template Blank with Attributes (No Grid); padding 24×32px. Genérico: serve para outras páginas com trilha |
-| `.cx-form-secao` (`__info`, `__titulo` 18px/700, `__descricao` 14px) | CSS Class de região Standard com header escondido: grid 1/3 (título e descrição em `.cx-form-secao__info`, no HTML da região) + 2/3 (campos). Padding 2rem; uma coluna abaixo de 768px. Dentro dele: obrigatório com `*` vermelho no rótulo (`--cx-alerta`), escondendo `.t-Form-itemRequired` e `-marker` do Redwood; switch (`.apex-item-wrapper--yes-no`) com "Ativa"/"Inativa" via `:has(input:checked)` e ajuda embaixo |
-| `.cx-form-rodape` (`__nota`) | CSS Class de região Buttons Container: rodapé `position: sticky` no fim da tela, fundo branco e borda superior; o título da região fica só para leitores de tela |
-
-### 5.2.4 Lista de empresas (`custom.css` §15)
-
-Guia: `modulos/tema/Etapas-empresas.md` (p15, protótipo `Empresas.png`).
-
-| Classe | Uso |
-|---|---|
-| `.cx-cabecalho-pagina--acoes` (`__texto`, `__acoes`) | cabeçalho com botões à direita (flex, quebra abaixo de 768px). O botão é um `<a class="t-Button t-Button--hot">` com `apex_page.get_url` no HTML da região (p15, guia `Etapas-empresas.md`) |
-| `.cx-relatorio` (`__nota`) | CSS Class de região Interactive Report; card com borda e raio `--cx-raio-card`, barra de pesquisa e cabeçalho da tabela separados por borda, cabeçalho em `--cx-superficie-2`, links da linha em negrito `--cx-primaria`; `__nota` vai no Footer Text da região |
-
-### 5.2.5 Cadastro de empresa (`custom.css` §16)
-
-Guia: `modulos/tema/Etapas-cadastro-empresa.md` (p16, protótipo `Nova empresa (modal).png`).
-
-| Classe | Uso |
-|---|---|
-| `.cx-form-modal` | CSS Class da região do form em modal (Blank with Attributes) com seções Standard sem UI: `*` vermelho no rótulo dos obrigatórios (esconde `.t-Form-itemRequired` e `-marker`), switch com "Ativa"/"Inativa" e `.cx-titulo-secao` com respiro de 8/12px |
-| `.cx-form-modal-rodape` (`__nota`) | CSS Class da região Buttons (Buttons Container, slot Dialog Footer): pinta o `.t-Dialog-footer` de `--cx-superficie-2` com borda superior (via `:has`), centraliza a linha e deixa o título só para leitores de tela; `__nota` é o aviso de obrigatórios no HTML da região (coluna do meio) |
-
-### 5.3 Cabeçalho (`custom.css` §2, p0 Global Page)
-
-`.corlix-header__search` (360px, max 40vw, margin-left 24px; some < 768px) › `__search-icon` (absoluto a 14px, centralizado, `--cx-texto-2`; seletor com `.corlix-header__search` na frente porque o Core do UT tem `.apex-icons-fontapex .fa { position: relative }`) + `__search-input` (36px, padding-left 38px, fundo `--cx-tag`, raio `--cx-raio`; foco: fundo branco + outline 2px primária) — região no slot *After Logo*.
-`.corlix-header__actions` (flex, gap 8) › `__icon-btn` (36×36, transparente, hover `rgba(22,21,19,.06)`) `__divisor` (1×24px) e o botão `__user` (avatar `__avatar` 32px + `__user-name` 14px/600 + `__user-seta` ▾; hover `rgba(22,21,19,.06)`, também enquanto o menu está aberto) — slot *After Navigation Bar*. O botão abre o menu do usuário `.cx-menu-usuario` (atributo HTML `popover`, sem JS): `__cabecalho` (`__nome` 14px/700, `__info` 12px com `__login` em minúsculas), `__separador`, `__item` (ícone 16px + texto, hover `--cx-tag`). HTML em `modulos/tema/Etapas-header-e-menu.md` §4. `.t-Header-navBar--end` vira flex.
-
-### 5.4 Ajustes globais / Home legados (`custom.css` §1, §3–§10)
-
-| Seletor | Efeito / nota |
-|---|---|
-| `.t-NavigationBar-item.has-username .t-Button-label` | sem caixa alta no nome do usuário |
-| `.t-Footer { display:none !important }` | rodapé do APEX escondido em todas as páginas |
-| `.t-Region--noUI { margin-bottom:0 !important }` | |
-| `#t_TreeNav>ul[role="group"]>li:last-child ...` | transforma o **último item do menu lateral** ("Sair") em botão de rodapé (fundo `--cx-btn`). **Apagar quando "Sair" for para o menu do usuário** |
-| `.t-Cards { gap:24px }` | global |
-| `.card-default` (+ `h1/h2/h3`) | card branco com borda 1px e raio 8px (Home, 5 usos) |
-| `.a-CardView-item` / `-media img` / `-body` / `-title` / `-subTitle` / `-desc` | **globais** (afetam todo Cards nativo do app): raio 14px, sombra, hover `translateY(-3px)`, imagem 260px, título 1.5rem |
-| `.card-boas-vindas`, `.link-empresa` | card de boas-vindas |
-| `.card-comunicados-oficiais`, `.lista-de-comunicados`, `.cmt-meta/.cmt-date/.cmt-title`, `.imagem-capa-comunicado`, `.emitir-comunicado`, `.botao-emitir-comunicado`, `.titulo-lista-de-comunicados` (lowercase!) | lista de comunicados da Home |
-| `.card-meu-gestor` | remove sombra/hover do CardView (com `!important`) |
-| `.links-rapidos-card`, `.link-item` (`.icon` primária, `.text`, `.arrow`) | links rápidos; SVGs usam `currentColor` |
-| `.card-aniversariantes`, `.figma-row(.is-normal-day/.is-birthday-today)`, `.figma-avatar-wrapper/-img` (54px), `.figma-info-wrapper`, `.figma-name-text`, `.figma-date-text`, `.figma-cake-icon`, `.figma-footer-link` | aniversariantes; uso pesado de `!important`; aniversariante do dia = borda 3px primária e data azul. `.figma-footer-link` é a CSS class do botão `B_VER_TODOS` (posição absoluta no rodapé do card) |
-| `.popup-todos-aniversariantes ...` | mesmo visual dentro do diálogo; esconde rodapé/"Ver todos" duplicados |
-| `.ui-dialog .ui-dialog-titlebar(:before)` | **global**: remove textura do topo de **todos** os diálogos, fundo branco + borda |
-| `.log-detalhe`, `.log-descricao`, `.log-tag` | p7; ainda usam `--ut-*` com fallbacks antigos (`#056ac8`, `rgba(5,106,200,.1)`) — não migrados para `--cx-*` |
-| `.figma-footer-link:focus:not(:focus-visible)` ... | esconde outline só no clique (teclado continua com foco visível) |
+Conferido por busca em `corlixhub/pages/*.apx` e nos `.pkb`/`.js` de `modulos/`: **nenhum uso** de `card-default`, `card-boas-vindas`, `link-empresa`, `card-comunicados-oficiais`, `lista-de-comunicados`, `titulo-lista-de-comunicados`, `botao-emitir-comunicado`, `imagem-capa-comunicado`, `cmt-*`, `card-meu-gestor`, `links-rapidos-card`, `link-item`, `card-aniversariantes`, `figma-*`, `popup-todos-aniversariantes`, `cx-cabecalho-card`, `cx-descricao` (§3–§11, Home antiga). Remoção é decisão do time. **Continuam ativas e globais** no §3: `.t-Cards { gap: 24px }` e `.a-CardView-item`/`-media img`/`-body`/`-title`/`-subTitle`/`-desc` (raio 14px, sombra, hover que sobe 3px, imagem 260px), além de `.ui-dialog .ui-dialog-titlebar` (§10, todos os diálogos). `log-detalhe`, `log-descricao`, `log-tag` seguem em uso na p7.
 
 ---
 
-## 6. Diferenças `corlix-tema.css` × `custom.css`
-
-| | `corlix-tema.css` | `custom.css` |
-|---|---|---|
-| Papel | tema global: tokens `--cx-*` + redefinição de variáveis UT + poucos ajustes de componente nativo + `cx-badge`/`cx-etiqueta` | ajustes de páginas/regiões específicas (header, Home, logs) + classes de layout `cx-*` |
-| Ordem | 1º | 2º (depende dos tokens) |
-| Tamanho | 273 linhas, 20 regras | 985 linhas, 123 regras |
-| Estilo | só variáveis; zero `!important` | muito `!important`, seletores profundos (legado da Home) |
-| Novo? | arquivo novo (não commitado) | existente, refatorado para tokens |
-| Comentário de cabeçalho | cita `#APP_FILES#corlix-tema.css` (sem `#MIN#`) — desatualizado; o real é `corlix-tema#MIN#.css` | §2 ainda diz "Cole em corlix-header.css" — desatualizado; o header está dentro do `custom.css` |
-
----
-
-## 7. Regras de uso do design system no APEX (prancha + README)
+## 8. Regras de uso do design system no APEX (prancha + README do tema)
 
 | Na prancha | No APEX |
 |---|---|
-| Botão primário (escuro) | **Hot = Yes**; **uma única** ação primária por tela/contexto |
-| Secundário (cinza) | template *Text* (padrão: `componentDefaults.button: @/text`) |
+| Botão primário (escuro) | **Hot = Yes**; uma ação primária por tela/contexto |
+| Secundário (cinza) | template *Text* (`componentDefaults.button: @/text`) |
 | Terciário ("Ver todos →") | *Text with Icon*, `fa-arrow-right`, *Icon Position: Right*, *Style: Remove UI Decoration* |
 | Somente ícone | template *Icon* (fica neutro) |
-| Excluir | *Template Options > Type: Danger*, sem Hot |
-| Campos | label **Optional - Floating** / **Required - Floating** (defaults do tema); orientação em *Inline Help Text*; erro *Inline with Field* |
-| Badge de status | Template Component Badge ou `cx-badge cx-badge--*`; sempre com texto |
+| Excluir | *Template Options › Type: Danger*, sem Hot |
+| Campos | **Optional - Floating** / **Required - Floating**; ajuda em *Inline Help Text*; erro *Inline with Field* |
+| Badge de status | `cx-badge cx-badge--*` (ou selo do módulo); sempre com texto |
 | Etiqueta de departamento | `cx-etiqueta` |
-| Feedback | *Success Message* do processo; avisos persistentes em região template **Alert** |
-| Estados de região (carregando/vazio/erro) | Lazy Loading, *When No Data Found* personalizado, botões condicionados aos dados |
-| Regiões | template **Standard**, título em frase normal ("Meu gestor", não "MEU GESTOR") |
-| Navegação | Navigation Menu nativo; grupo Administração com Authorization Scheme na entrada |
+| Feedback | *Success Message* do processo; avisos persistentes em região **Alert** |
+| Regiões | template **Standard**, título em frase normal |
+| Navegação | Navigation Menu nativo; Administração com Authorization Scheme |
 
-Prancha (pen.dev) — conteúdo: Botões (Primária, Secundária, Terciária, Somente ícone, Hover, Foco teclado com anel azul, Desabilitado, Carregando "Salvando..."); Campos (Vazio, Preenchido, Foco com borda/label azul, Erro em vermelho com mensagem abaixo, Desabilitado, Switch, Checkbox); Status e etiquetas (Ativa verde, Inativa cinza, Erro vermelho, Aviso laranja, Informação azul; etiquetas Operações/Diretoria/Vendas); Feedback (alertas sucesso verde, aviso bege, erro rosa, info azul, com título + próxima ação e botão fechar); Navegação lateral (Padrão, Hover com fundo cinza, Ativo = fundo + barra azul + negrito, Grupo + subitem); Estados de região; Estrutura da aplicação (header com ☰ CorlixHub, busca "Buscar na intranet...", sino, avatar "SS Sarah Silva ▾"; menu do usuário com Meu perfil / Preferências / Sair; menu: Início, Comunicados, Chat, Pessoas › Colaboradores, Organograma, Minha equipe, Minhas aprovações [contador]; Minha carreira › Meu perfil, Avaliações, Resultados 360, Plano de desenvolvimento, Feedbacks; Administração › Empresas, Central de equipes, Monitor de logs, Configurações).
-
-Ícones do Navigation Menu (classes Font APEX; o `corlix-tema.css` desenha cada uma com o glifo Lucide do protótipo — house, megaphone, messages-square, users, network, briefcase, history, shield-check): Início `fa-home`, Comunicados `fa-bullhorn`, Chat `fa-comments-o`, Pessoas `fa-users`, Organograma `fa-sitemap`, Minha carreira `fa-briefcase`, Histórico de carreira `fa-history`, Administração `fa-shield`.
+Prancha (`pen_dev/Design System · Redwood Light (CorlixHub).png`, resumo em [07](./07-design-pen-dev.md) §3): botões (primária, secundária, terciária, só ícone, hover, foco com anel azul, desabilitado, carregando), campos (vazio, preenchido, foco, erro, desabilitado, switch, checkbox), status e etiquetas, alertas, navegação lateral (padrão, hover, ativo com barra azul), estados de região e estrutura (header com busca, sino e menu do usuário com Meu perfil e Sair).
 
 ---
 
-## 8. Processo: aplicar o tema em uma página (`Etapas-tema-paginas.md`)
+## 9. Padrões e pegadinhas de CSS aprendidos no projeto
 
-O tema vale para o app inteiro assim que o CSS carrega — não há "ligar por página". O trabalho por página é **remover o que foge** do design system. Recarregar com Ctrl/Cmd+Shift+R após cada página.
+**Onde pôr cada coisa**
+1. **Sem CSS Inline e sem `style`**, nem para teste. Estilo vai no CSS do módulo (ou no tema, se for global), publicado pelo Builder com o par `.css`/`.min.css`. Legados que ainda existem: Inline da p4 (Chat) e `style="display:none"` no `<span>` de iniciais da p0; também há `style` em packages (`width:` nas barras do `pkg_holerite_ui`, `--h`/`--y`/`--w` no `pkg_dashboard_rh_ui`, `display:none` no input de arquivo do `pkg_perfil`, `text-align` no `00_pkg_holerite`). Não copie esses casos.
+2. **Cor nova ou ajuste global** → token `--cx-*` ou variável UT no `corlix-tema.css`. Nunca no Theme Roller. Em módulo, use `var(--cx-*)` e não fixe hex novo ([11](./11-padroes-de-paginas.md) C2).
+3. **CSS de página nova**: `modulos/<modulo>/<arquivo>.css` + `.min.css`, publicados em *Static Application Files* (pasta `modulos/<modulo>/`) e referenciados em *Page › CSS › File URLs* como `#APP_FILES#modulos/<modulo>/<arquivo>#MIN#.css`. Arquivo novo entra também no manifesto `static-files.apx` (o export faz isso). Não mova arquivos que já existem ([11](./11-padroes-de-paginas.md) C3).
+4. `url()` dentro do CSS é **relativo ao arquivo CSS**: o `corlix-tema.css` (raiz) usa `url("lucide.woff2")`; o `home.css` (em `modulos/home/`) usa `url("../../home-hero.jpg")`.
 
-**Etapa 0 (uma vez):** (1) ordem dos File URLs `corlix-tema#MIN#` → `custom#MIN#`; (2) *Themes > Universal Theme > Styles*: Redwood Light *Current*; (3) Theme Roller sem estilo personalizado salvo; (4) teste: fundo `#F1EFED`, header branco, barra azul no menu, links azuis. Se nada mudou, o problema é o passo 1.
+**Onde pôr a classe no Builder**
+5. **Modal: use *Page › Appearance › CSS Classes* (ou CSS Classes da região), não *Dialog › CSS Classes*.** A classe de *Dialog* fica na moldura do diálogo, na página de trás; o conteúdo roda no iframe do modal e o CSS não alcança os campos (`Etapas-comunicados.md` §4.2). A de *Appearance* vai no `<body>` do iframe (`#PAGE_CSS_CLASSES#`).
+6. **Item: *Layout › Column CSS Classes*, não *Advanced › CSS Classes*.** A de *Advanced* vai só no `<input>`; a de *Column* vai na coluna que envolve rótulo, campo e ajuda, que é o que o CSS precisa (`cx-comunicado__publico`, `cx-comunicado__fixar`).
+7. Botão: as CSS Classes do botão (no export, `appearance.cssClasses`) ficam no próprio `<button>` (ex.: `cx-home-fb-cancelar` na p1, que é só gancho de JS, sem estilo).
+8. Região com *Template Options › Body Padding: No Padding* gera `t-Region--noPadding`; o `cx-home-card` conta com isso.
+9. Erro de digitação em CSS Classes não dá erro, só tira o estilo (caso real: `x-home-carrossel` sem o `c`, `Etapas-home.md`). Confira no export.
 
-**Checklist por página:**
-1. Botões: uma Hot; demais *Text*; "Ver todos" com Remove UI Decoration; Excluir = Danger sem Hot.
-2. Campos obrigatórios → Required - Floating; demais Optional - Floating.
-3. Regiões *Standard*, título em frase normal, sem `<span style=...>` em Title/Header Text.
-4. Remover todo `style="..."` de cor/fonte/tamanho/fundo; usar `var(--cx-*)` ou `cx-badge`/`cx-etiqueta`.
-5. SVG inline: `stroke/fill="currentColor"`.
-6. Mensagens: Success Message / Inline with Field.
-7. **Título com descrição (passo 1.1):** apagar a região *Title Bar* (breadcrumb); criar *Static Content* no slot **Breadcrumb Bar**, template **Hero** com ícone escondido, Title = nome da página, Source = descrição; botões da página no slot **Next** dessa região.
-8. Cores hardcoded → tokens: `#3B66F5 #2563EB #056ac8 #4f46e5` → `--cx-primaria`; `#eef2ff` → `--cx-tag`; `#111827 #151515 #404040 #000` → `--cx-texto`; `#6B7280 #4b5563` → `--cx-texto-2`; `#E5E7EB #F3F4F6` → `--cx-borda`.
+**Técnicas usadas**
+10. **Esconder a coluna de um campo oculto por Dynamic Action**: a DA põe `style="display: none"` no `.t-Form-fieldContainer`; o CSS esconde a coluna e puxa a vizinha:
+    ```css
+    .cx-comunicado .col:has(> .t-Form-fieldContainer[style*="display: none"]) { display: none; }
+    .cx-comunicado .col:has(> .t-Form-fieldContainer[style*="display: none"]) + .col { padding-inline-start: 0; }
+    ```
+11. **Rádio como botões segmentados só com CSS** (p17; o 26.1.5 não tem *Display as Pill Button* no Radio Group): sobre a marcação `.apex-item-option > input[type=radio] + label`, o input fica visualmente oculto (1px, `opacity: 0`, continua no DOM para teclado e leitor de tela), o `label::before/::after` do UT some, `input:checked + label` ganha `--cx-escuro` e o ✓ via `content: "\e070"` com `font-family: "Corlix Lucide"`, e `input:focus-visible + label` tem contorno 2px na primária.
+12. **Select com seta Lucide**: `background-image: none` no `<select>` e `::after` no `.t-Form-itemWrapper` com `content: "\e071"` e `pointer-events: none`.
+13. **`*` vermelho no rótulo** dos obrigatórios: esconder `.t-Form-itemRequired` (e `-marker` quando o protótipo pede) e `.is-required … .t-Form-label::after { content: " *"; color: var(--cx-alerta) }` (`custom.css` §14/§16, `comunicado.css`).
+14. Switch com "Ativa/Inativa" por `.a-Switch:has(input:checked)::after` (`cx-form-secao`, `cx-form-modal`).
+15. Rodapé de diálogo pintado pelo filho: `.t-Dialog-footer:has(.cx-form-modal-rodape)`.
+16. **Especificidade contra o legado**: o `home.css` vence a §12 do `custom.css` por vir depois; nos itens da Cards usa `:nth-child(n)` para passar das regras com `:first-child`. Escope regras de Cards numa classe de região (`cx-home-comunicados`) para não brigar com o `.a-CardView-*` global.
+17. O Font APEX usa `!important` no `::before`; para trocar o glifo, o prefixo `.apex-icons-fontapex` dá a especificidade necessária. O `.corlix-header__search-icon` precisa do pai na frente pelo mesmo motivo (`.apex-icons-fontapex .fa { position: relative }` do Core).
+18. O Redwood redefine fundo/borda do `.t-Body-title` em `body:not([class*="rw-pillar--"])`; por isso o tema repete as variáveis no próprio `.t-Body-title`.
+19. Avatar com iniciais: o `cx-avatar` põe a `<img>` por cima das iniciais e a `<img>` some no `onerror` (sem `style`); o padrão antigo (`cx-avatar-iniciais` com `style="display:none"`) só sobrevive no header.
 
-**Status por página (conforme o guia + estado atual do código):**
+**Minificação e publicação**
+20. Todo `.css` tem um `.min.css` irmão, publicado junto. **Não há script de minificação** no repositório; qualquer minificador serve. Os `.min.css` publicados **não têm comentários** (conferido) e a formatação varia (o `corlix-tema.min.css` mantém espaços do `:root`). Compare sempre pelo conteúdo normalizado, não por `diff` de texto.
+21. Depois de subir CSS, recarregue com Ctrl/Cmd+Shift+R: o navegador guarda a versão antiga (sintoma frequente nas tabelas "Se não funcionar" dos guias).
+22. Ordem das regras também importa no `.min`: o `modulos/colaboradores/colaboradores.min.css` tem as mesmas regras do `.css` em outra ordem; aqui não muda o resultado (especificidades diferentes), mas não é garantido em geral.
 
-| Página | Ação | Estado no working tree |
+**Outras armadilhas**
+- **`.a-CardView-*` (§3) e `.ui-dialog-titlebar` (§10) do `custom.css` são globais**: toda região Cards ganha raio 14px, sombra e hover, contra a política "sem sombra".
+- **`.t-Footer` está escondido** globalmente (`custom.css` §1): regiões no slot Footer não aparecem.
+- O seletor do item atual do menu (`.t-TreeNav .a-TreeView-node.is-current > .a-TreeView-row`) é o mais frágil numa atualização do APEX.
+- Não criar `prefers-color-scheme` sem antes definir a paleta escura no tema.
+
+---
+
+## 10. Inconsistências encontradas em 13/11/2026
+
+| # | Onde | O quê |
 |---|---|---|
-| 0 Global | nada (classes `corlix-header__*`) | ok |
-| 1 Home | **Redesign** pelo guia `modulos/home/Etapas-home.md`, montado na página nova 28; a página 1 fica como está. Antes: 9 itens (aniversariantes, meu gestor, comunicados com `cx-etiqueta`, remover style do link, `B_VER_TODOS`, "Novo comunicado", SVG `currentColor`, CSS de apoio, cores) | **aplicado** (HTML com `cx-*`, `B_VER_TODOS` com text-with-icon + `figma-footer-link`, botão "Novo comunicado", `currentColor`; `.dept-*`/`.cmt-badge` já removidos do CSS). Resta: coluna `CLASSE_DEPTO` ainda na query (linha ~350), sem uso |
-| 2, 5, 6, 8, 11, 12 | só barra de título; aplicar 1.1 se o protótipo tiver descrição | — |
-| 3 Organograma | seguir `modulos/organograma/Etapas-organograma.md` + 1.1 (busca no slot Next) | CSS do módulo fora do app |
-| 4 Chat | mapear `--ch-*` → `--cx-*` no `:root` inline; manter `--ch-online/ausente/offline` e medidas | **aplicado** |
-| 7 Monitor de logs | nada | ok |
-| 13 Histórico | seguir `modulos/historico-carreira/Etapas-historico-carreira.md` item 2 | CSS do módulo fora do app |
-| 14 Cadastro de usuários | **Redesign** pelo guia `modulos/tema/Etapas-cadastro-colaborador.md`: cabeçalho `.cx-cabecalho-pagina` na Breadcrumb Bar, seções `.cx-form-secao` (Dados pessoais, Vínculo profissional, Acesso ao sistema), rodapé `.cx-form-rodape` | CSS na `DEV`; página aguardando o Builder (o `.apx` ainda tem `cadastrar-colaborador-header` com `cx-titulo`/`cx-descricao`) |
-| 15 Empresas | **Redesign** pelo guia `modulos/tema/Etapas-empresas.md`: cabeçalho `.cx-cabecalho-pagina--acoes` com "+ Nova empresa", IR em SQL com sete colunas, badge de status e `.cx-relatorio`, autorização na página | **aplicado** (26/10/2026) |
-| 16 Cadastro de empresas | **Redesign** pelo guia `modulos/tema/Etapas-cadastro-empresa.md`: protótipo `Nova empresa (modal).png`, `.cx-form-modal` e `.cx-form-modal-rodape`, CNPJ pela BrasilAPI, correções de ViaCEP/máscara/logotipo; banco: `modulos/empresas/01` | CSS na `DEV`; página aguardando o Builder |
-| 17 Emitir comunicado | opcional renomear para "Novo comunicado" | — |
-| 26 Central de equipes | nada | ok |
-| 27 Nova equipe | `delete` = Danger sem Hot | modificado |
-| 9999 Login | nada | ok |
-
-Checklist final: nenhum `style=` de cor/fonte (buscar `style=` no export); uma Hot por tela; Excluir Danger; obrigatórios Required - Floating; etiquetas neutras; títulos sem caixa alta; Tab mostra contorno azul 2px.
+| 1 | p30 | `fileUrls: #APP_FILES#ponto-eletronico/ponto.css` sem `#MIN#`: o `ponto.min.css` publicado nunca é servido. O guia (`Etapas-ponto-eletronico.md`) previa `#APP_FILES#ponto#MIN#.css`. Já listado no [11](./11-padroes-de-paginas.md) §6 |
+| 2 | `holerite.css` | Módulo ≠ publicado (PDF "Aviso de crédito" proposto e não aplicado) |
+| 3 | `Meu Perfil.css` | Módulo tem 3 regras a mais que o publicado (foto no bucket, planejado) |
+| 4 | `organograma.css` | Publicado tem `#P3_BUSCA_CONTAINER {…}` que não está no módulo: a fonte do módulo está atrás da app |
+| 5 | `modulos/colaboradores/colaboradores.min.css` | Mesmas regras do `.css`, em outra ordem (o publicado está na ordem certa) |
+| 6 | `--cx-fonte` | Definido no tema e sem uso |
+| 7 | Tokens locais | `--cx-home-*`, `--cx-ponto-*`, `--cx-sup-*` repetem os mesmos 4 hex; `--hc-atencao` usa `#8A5A00` em vez de `#8A4B00` |
+| 8 | Comentários desatualizados nos CSS publicados | `corlix-tema.css`: cita a pasta `figma/` e `#APP_FILES#corlix-tema.css` sem `#MIN#`. `custom.css`: índice sem as §15 e §16; §2 diz "Cole em corlix-header.css"; §12 fala em "página 28" (a Home nova está na p1; não há p28 no backup). `home.css`: cita `#APP_FILES#home#MIN#.css`, mas a p1 usa `modulos/home/home#MIN#.css` |
+| 9 | Legado | Classes da Home antiga no `custom.css` sem uso (§7.4) |
+| 10 | Não publicados | `dashboard-rh.css` e `login.css` só em `modulos/` (redesigns pendentes) |
+| 11 | Doc 11 §6 | Diz que a p12 tem "CSS Inline ainda no export"; no backup 84f8625 a p12 não tem `css.inline` (só `fileUrls`). Corrigir no 11 |
+| 12 | Guia de suporte | `Etapas-suporte-ti.md` cita `#APP_FILES#suporte#MIN#.css`; as páginas usam `#APP_FILES#modulos/suporte-ti/suporte#MIN#.css` (o que está no app funciona) |
 
 ---
 
-## 9. Convenções para criar/alterar estilos
+## 11. Histórico
 
-1. **Cor nova ou ajuste global** → token `--cx-*` ou variável UT no `:root` de `corlix-tema.css`. Nunca no Theme Roller (competiria com o arquivo). Nunca hex solto em `custom.css`/páginas.
-2. **Componente reutilizável do design system** → classe `cx-*` (BEM: `cx-bloco__elemento`, `cx-bloco--variante`, nomes em português). Badges/etiquetas no `corlix-tema.css`; layout em `custom.css` §11.
-3. **Ajuste específico de página/região** → `custom.css`, numa seção numerada nova (atualizar o índice no topo), escopado por uma classe de região (CSS Classes da região), usando tokens.
-4. **Módulo grande** (organograma, histórico) → CSS próprio em `modulos/<modulo>/`, raiz escopada (`.org`, `.hc`), tokens locais com fallback: `--org-primaria: var(--cx-primaria, #00688C);`.
-5. **CSS só de uma página e pequeno** → *Page > CSS > Inline* é aceitável (padrão do Chat), mas cores devem apontar para `--cx-*`.
-6. **Minificação:** depois de editar `X.css`, **regenerar `X.min.css`** e subir os dois (o guia diz isso explicitamente). Não editar `.min` à mão — não há ferramenta no repo; qualquer minificador CSS serve (ex.: `npx clean-css-cli -o custom.min.css custom.css` ou `npx csso`). Conferir sincronia comparando seletores (§2.4).
-7. Arquivo estático novo: além do arquivo em `static-files/`, adicionar entrada no manifesto `shared-components/static-files.apx` (`file nome.css ( mimeType: text/css charSet: utf-8 )`) e referenciar em `application.apx` → `css.fileUrls` com `#MIN#`.
-8. Preferir variáveis UT a sobrescrever propriedades; evitar `!important` (o legado da Home usa, não replicar).
-9. Acessibilidade: status nunca só por cor; foco visível (use `:focus:not(:focus-visible)` se precisar esconder o outline de clique).
-
----
-
-## 10. Pegadinhas
-
-- **`#MIN#` + `.min` desatualizado** = visual diferente em debug vs produção.
-- **Cache**: após subir CSS, Ctrl/Cmd+Shift+R (recomendação do guia; o navegador pode manter a versão antiga do arquivo).
-- **Seletor do item atual do menu** (`.t-TreeNav .a-TreeView-node.is-current > .a-TreeView-row`) é o ponto mais frágil; se a barra azul sumir após upgrade do APEX, inspecionar a classe real no DevTools.
-- **Nomes de variáveis UT** vieram do UT 26.1.5; renomeação silenciosa só perde aquele ajuste.
-- **`.a-CardView-*` e `.ui-dialog-titlebar` em `custom.css` são globais** — afetam qualquer região Cards e todo diálogo do app (raio 14px + sombra + hover que sobe 3px, contrariando a política "sem sombra" do tema).
-- **Último item do menu lateral vira botão de rodapé** (`#t_TreeNav ... li:last-child`). Se adicionar uma entrada no fim do Navigation Menu, ela vira o "botão". Remover o bloco quando "Sair" for para o menu do usuário.
-- **`.t-Footer` está escondido** globalmente; regiões no slot Footer não aparecem.
-- **`.titulo-lista-de-comunicados` força `lowercase`.**
-- **`.figma-badge-mes` é hook de JS** da Home — não remover ao trocar o visual.
-- **Classes `log-*` em p15/p16/p17/p27** no grep são `dialog-*`, não do Monitor de logs.
-- **CSS dos módulos** (`organograma.css`, `historico-carreira.css`) ainda não estão em `static-files/` nem no `fileUrls`.
-- Comentários desatualizados: cabeçalho do `corlix-tema.css` (sem `#MIN#`) e §2 do `custom.css` ("corlix-header.css").
-- Fallbacks de `--cx-primaria-suave` nos módulos usam `#E6F2F6`, diferente do `#E4F1F7` do tema (só importa se o tema não carregar).
-- Não há dark mode; não criar regras `prefers-color-scheme` sem definir a paleta escura antes.
-
----
-
-## 11. Mudanças não commitadas (git diff no momento da escrita)
-
-- `application.apx`: `css.fileUrls` passou de só `custom#MIN#.css` para `[corlix-tema#MIN#.css, custom#MIN#.css]`.
-- `static-files.apx`: entradas novas `corlix-tema.css` e `corlix-tema.min.css`; os dois arquivos são *untracked*.
-- `custom.css` (+202/−145): cabeçalho renomeado para "AJUSTES DE PÁGINAS"; removidos `.t-Body-mainContent { background:#dddddd }`, `.t-Header-branding { background:#FFF !important }`, override `--ut-body-content-padding-y: 1.5rem`, fontes fixas ("Segoe UI", "Sora", `-apple-system`), `text-transform: uppercase` do `.card-default h3`, sombra do `.card-default`, `.cmt-badge` e `.dept-0..5/.dept-geral`; hex trocados por tokens `--cx-*`; busca do header 280→360px, input 32→36px, ícones sem fundo; botão "Sair" com `--cx-btn`/`--cx-raio`; `.figma-avatar-wrapper` novo; foco do "Ver todos" só escondido no clique; nova §11 com classes `cx-*`.
-- Páginas modificadas: p1 Home, p4 Chat, p14, p16, p27 (aplicação do tema conforme §8).
+- A versão anterior deste documento descrevia o working tree de 06/10/2026: `organograma.css` e `historico-carreira.css` fora do app, último item do menu como botão "Sair" (o "Sair" foi para o menu do usuário e a regra saiu do `custom.css`), CSS Inline de página como opção aceitável (hoje proibido), Home nova na p28 e status de aplicação do tema por página. Tudo isso foi substituído pelo estado de 13/11/2026 acima; o status por página fica nos guias `modulos/*/Etapas-*.md` e no [README](./README.md).
