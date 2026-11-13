@@ -729,12 +729,21 @@ Nas duas páginas: Authorization Scheme **SUPORTE_TI** e Page Access Protection 
 
 | Onde | Atributo | Valor |
 |---|---|---|
-| Coluna `FL_PUBLICADO` | Type | **Plain Text (based on List of Values)**; *List of Values › Type* **Static Values**: `Sim` → `S`, `Não` → `N` (sem isso a coluna mostra `S`/`N`) |
+| Coluna `FL_PUBLICADO` | Type | **Plain Text (based on List of Values)**; *List of Values* `LOV_SIM_NAO` (a LOV compartilhada do passo abaixo). Sem isso a coluna mostra `S`/`N` |
 | Coluna `NR_MIN_LEITURA` | Appearance › Format Mask | `990` (com a máscara do assistente, 5 minutos aparece como `5,0`) |
 | Região `Artigos` | Attributes › Link › Link Icon | `<span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>` |
 | Região `Artigos` | Messages › When No Data Found | `Nenhum artigo cadastrado.` |
 | Região `Artigos` | Messages › When More Data Found | `Há mais artigos do que o limite do relatório. Use a busca ou um filtro.` |
 | Botão `CREATE` | Label | `Novo artigo` |
+
+**LOV da coluna `FL_PUBLICADO`.** A p42 é um **Interactive Report**. Numa coluna de Interactive Report, *List of Values* só aceita uma LOV que já existe em *Shared Components*: não há *Type › Static Values*. O *Static Values* existe só na coluna de **Classic Report** (documentação do 26.1: "Defining a Column as a List of Values in an Interactive Report", §8.9.7.1, e "…in a Classic Report", §8.10.7.5). Crie a LOV primeiro:
+
+1. *Shared Components › Other Components › List of Values › Create*. Escolha **From Scratch** e clique em *Next*.
+2. *Name* `LOV_SIM_NAO`, *Type* **Static**. Clique em *Next*.
+3. Preencha as duas linhas (*Display Value* → *Return Value*): `Sim` → `S`, depois `Não` → `N`. Clique em *Create List of Values*.
+4. Volte à p42, coluna `FL_PUBLICADO`: *Identification › Type* **Plain Text (based on List of Values)**; *List of Values › List of Values* `LOV_SIM_NAO`. Salve.
+
+A mesma LOV pode ser usada no `P43_FL_PUBLICADO` do §11.3 (*List of Values › Type* **Shared Component**), no lugar do `STATIC2`.
 
 ```export-check
 pagina: 42
@@ -750,7 +759,7 @@ page 42 | heading: Acessos
 page 42 | heading: Publicado
 page 42 | page: 43
 # Acabamento
-page 42 | Sim;S,Não;N
+page 42 | @lov-sim-nao
 page 42 | formatMask: 990
 region artigos | aria-label="Editar"
 region artigos | whenNoDataFound: Nenhum artigo cadastrado.
@@ -898,6 +907,7 @@ No próximo backup, `corlixhub/pages/p00034-*.apx` deve ter `authorizationScheme
 | Salvar a p41 ou a p43 dá erro de conversão de data | Sobrou um item de data da tabela no formulário | Passos 10.3 e 11.3: apague os itens `DH_` e `USR_` |
 | Sistema sem empresa: `ORA-01400` em `ID_EMPRESA` | Item sem o valor padrão e `G_ID_EMPRESA` vazio | Passos 10.3 e 11.3; saia e entre de novo |
 | Aviso não aparece | Sistema **Operando** ou sem **Título do aviso** | Passo 10.3 |
+| Na coluna `FL_PUBLICADO` da p42 não aparece *Static Values* em *List of Values* | Coluna de Interactive Report só aceita LOV de *Shared Components* (o guia pedia *Static Values*, que é da coluna de Classic Report) | Passo 11.2: crie `LOV_SIM_NAO` e selecione na coluna |
 | Aviso não volta depois de fechado | Sistema não foi alterado desde que o aviso foi fechado | Esperado. Altere o sistema ou abra uma nova sessão do navegador |
 | Chamados resolvidos não encerram sozinhos | Job desligado | `select enabled, state, failure_count from user_scheduler_jobs where job_name = 'SUPORTE_ENCERRAR_VENCIDOS'` |
 | Atalho da Início diz "ainda não tem destino" | `pkg_home_ui` antigo no banco | Seção 13 |
@@ -912,6 +922,7 @@ No próximo backup, `corlixhub/pages/p00034-*.apx` deve ter `authorizationScheme
 | 10/11/2026 | Páginas 34 a 43 (§4 a §11) | Criadas no Builder (backup `acd59be`); detalhe por página nas [fichas](../../docs/ai-context/paginas/README.md) |
 | 13/11/2026 | Levantamento do que falta (backup `84f8625` + banco) | Ver "O que falta" abaixo. Nenhum teste do §14 registrado; `SUPORTE_CHAMADO` está vazia, então nenhum chamado foi aberto |
 | 13/11/2026 | Export da p42 colado na conversa | Validador: **§11.1 e §11.2 ok (9/9)**: autorização `@suporte-ti`, checksum, **Where Clause `id_empresa = :G_ID_EMPRESA`** (furo de isolamento da lista fechado), cabeçalhos em português e só `DS_TITULO`, `NR_MIN_LEITURA`, `NR_ACESSOS` e `FL_PUBLICADO` visíveis. **Acabamento novo do §11.2 pendente (7 regras):** `Publicado` mostra `S`/`N`, leitura como `5,0`, botão `Create`, ícone "Edit" e mensagens em inglês. Não testado na app: a única conta com o papel não tem colaborador e só a empresa 1 tem artigos, então o filtro não tem como mostrar diferença |
+| 13/11/2026 | Correção do guia: `FL_PUBLICADO` da p42 | **Erro do guia:** o §11.2 pedia *List of Values › Type* **Static Values**, que não existe em coluna de Interactive Report. Conferido na documentação do 26.1: lá a coluna só aceita LOV de *Shared Components*. O §11.2 agora manda criar a LOV estática `LOV_SIM_NAO` e selecioná-la. A regra do `export-check` passou de `Sim;S,Não;N` para `@lov-sim-nao`; a referência no export ainda não foi confirmada |
 
 ### O que falta (13/11/2026)
 
