@@ -54,6 +54,18 @@ lov empresa-nome (
     }
 )
 
+lov lov-categoria-comunicado (
+    name: LOV_CATEGORIA_COMUNICADO
+    source {
+        type: sqlQuery
+        sqlQuery: select nm_categoria d, id_categoria r from categoria_comunicado where id_empresa = :G_ID_EMPRESA and fl_ativo = true order by nr_ordem, nm_categoria
+    }
+    columnMapping {
+        return: R
+        display: D
+    }
+)
+
 lov lov-colaborador-ativo (
     name: LOV_COLABORADOR_ATIVO
     source {

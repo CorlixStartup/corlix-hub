@@ -74,8 +74,10 @@ create or replace package body pkg_home_ui as
   end data_por_extenso;
 
   function iniciais (p_nome in varchar2) return varchar2 is
-    -- Só letras e espaços: "[DEMO] Karen Dias" vira "DEMO Karen Dias" -> "KD"
-    l_nome varchar2(400) := trim(regexp_replace(regexp_replace(p_nome, '[^[:alpha:][:space:]]', ''), '\s+', ' '));
+    -- Tira marcadores entre colchetes ("[DEMO] Karen Dias" -> "Karen Dias" -> "KD") e
+    -- depois tudo que não for letra ou espaço
+    l_nome varchar2(400) := trim(regexp_replace(regexp_replace(regexp_replace(p_nome, '\[[^]]*\]', ' '),
+                                                               '[^[:alpha:][:space:]]', ''), '\s+', ' '));
   begin
     if l_nome is null then
       return '?';
@@ -387,7 +389,8 @@ create or replace package body pkg_home_ui as
   -- "Quinta", "Sexta"... (sem NLS: o idioma técnico da app é "en")
   function dia_semana (p_dt in date) return varchar2 is
   begin
-    return case p_dt - trunc(p_dt, 'IW')
+    -- trunc: com hora (ex.: 1:1 às 10:00) a diferença não é inteira e caía no "Domingo"
+    return case trunc(p_dt) - trunc(p_dt, 'IW')
       when 0 then 'Segunda' when 1 then 'Terça' when 2 then 'Quarta' when 3 then 'Quinta'
       when 4 then 'Sexta' when 5 then 'Sábado' else 'Domingo' end;
   end dia_semana;

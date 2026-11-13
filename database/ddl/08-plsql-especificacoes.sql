@@ -460,6 +460,37 @@ end pkg_holerite_ui;
     p_ver_todos  in varchar2    default 'S'
   ) return clob;
 
+  -- Número de pendências para o título "Suas pendências" (nulo se não houver)
+  function qt_pendencias return varchar2;
+
+  -- " · 3 não lidos" para o subtítulo de Comunicados (nulo se não houver)
+  function nao_lidos_texto return varchar2;
+
+  function render_feedbacks (
+    p_id_colaborador in number default null
+  ) return clob;
+
+  function render_pesquisa (
+    p_id_colaborador in number default null
+  ) return clob;
+
+  function render_eventos (
+    p_id_empresa in number default to_number(v('G_ID_EMPRESA') default null on conversion error)
+  ) return clob;
+
+  -- "Ler comunicado": marca como lido antes de abrir (x01 = id do comunicado)
+  procedure ajax_marcar_lido (p_id_comunicado in varchar2);
+
+  -- "Responder pesquisa": registra a participação (x01 = id da pesquisa)
+  procedure ajax_responder_pesquisa (p_id_pesquisa in varchar2);
+
+  -- "Dar feedback" e "Parabenizar" (x01 destinatário, x02 tipo, x03 texto)
+  procedure ajax_salvar_feedback (
+    p_id_destinatario in varchar2,
+    p_tp_feedback     in varchar2,
+    p_ds_texto        in varchar2
+  );
+
 end pkg_home_ui;
 /
 

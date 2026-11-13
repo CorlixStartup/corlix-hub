@@ -44,7 +44,7 @@
 | Nº | Página | Status |
 |---|---|---|
 | 0 | Global Page (header: busca, sino, config, usuário) | Implementada |
-| 1 | Início (Home) | Implementada com o redesign do `modulos/home` (protótipo antigo). §6 e §7 do `Etapas-home.md` aplicados em 10/11/2026; §8 (categoria, "Não lido", indicadores, Feedbacks, Pesquisa, Eventos, 1:1, Dar feedback) versionado e não aplicado, com os módulos novos `modulos/comunicados` e `modulos/home-blocos` |
+| 1 | Início (Home) | Implementada com o redesign do `modulos/home` (protótipo antigo). §6 e §7 do `Etapas-home.md` aplicados em 10/11/2026; §8 (categoria, "Não lido", indicadores, Feedbacks, Pesquisa, Eventos, 1:1, Dar feedback) **concluído em 13/11/2026** (export 55/55, testes 1 a 8 na app). Pendências aceitas pelo time: testes de Parabenizar (15/11), "Disponível agora" e conta sem colaborador |
 | 2 | Meu Perfil | Implementada; restrição de dados pessoais aplicada e testada em 04/11/2026: `modulos/perfil/Etapas-perfil-privacidade.md` |
 | 3 | Organograma | Placeholder; o módulo existe em `modulos/organograma` |
 | 4 | Chat | Parcial (leitura, sem envio) |
@@ -62,7 +62,7 @@
 | 22 | Solicitar correção (modal do colaborador) | Implementada (§6 do guia) |
 | 23 | Responder solicitação de correção (modal do Dashboard RH) | Implementada (§5.5 do guia) |
 | 15 / 16 | Empresas (lista / modal de cadastro com ViaCEP) | Implementada |
-| 17 | Novo comunicado (modal) | Diálogo no layout do protótipo aplicado em 12/11/2026 (`modulos/comunicados/Etapas-comunicados.md` §4) e conferido na app sem publicar. Testes da §5 sem gravar ok, inclusive a validação PNG/JPG corrigida (GIF barrado). Publicar e conferir no banco ainda pendentes |
+| 17 | Novo comunicado (modal) | Diálogo no layout do protótipo aplicado em 12/11/2026 (`modulos/comunicados/Etapas-comunicados.md` §4) e conferido na app sem publicar. **Concluída em 12/11/2026:** export validado (48/48) e todos os testes da §5 feitos, inclusive a publicação (testes apagados depois). Limite conhecido: a hora é gravada como `00:00` |
 | 26 / 27 | Central de Equipes / Nova Equipe (modal) | Implementada |
 | 28 | Início (nova Home) | Em montagem pelo `modulos/home/Etapas-home.md`; vira a Home no §5 do guia |
 | 29 | Busca (resultados da busca do header) | Em montagem pelo `modulos/busca/Etapas-busca.md` |

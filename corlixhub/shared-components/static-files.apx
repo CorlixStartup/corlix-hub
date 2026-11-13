@@ -133,6 +133,16 @@ file "modulos/colaboradores/colaboradores.min.css" (
     charSet: utf-8
 )
 
+file "modulos/comunicados/comunicado.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
+file "modulos/comunicados/comunicado.min.css" (
+    mimeType: text/css
+    charSet: utf-8
+)
+
 file "modulos/home/home.css" (
     mimeType: text/css
     charSet: utf-8
