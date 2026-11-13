@@ -1,29 +1,49 @@
 page 17 (
-    name: Emitir Comunicado
+    name: Novo comunicado
     alias: COMUNICADO
-    title: Emitir novo comunicado
+    title: Novo comunicado
     appearance {
         pageMode: modalDialog
-        dialogTemplate: @/wizard-modal-dialog
+        dialogTemplate: @/modal-dialog
         templateOptions: #DEFAULT#
     }
     dialog {
-        height: 600
+        width: 680
     }
     navigation {
         cursorFocus: doNotFocusCursor
+    }
+    css {
+        fileUrls: #APP_FILES#modulos/comunicados/comunicado#MIN#.css
     }
     security {
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
 
+    region aviso (
+        name: Aviso
+        type: staticContent
+        source {
+            htmlCode: <p class="cx-comunicado__aviso">Campos marcados com * são obrigatórios.</p>
+        }
+        layout {
+            sequence: 5
+            slot: contentBody
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+            cssClasses: cx-comunicado
+        }
+    )
+
     region buttons (
         name: Buttons
         type: staticContent
         layout {
             sequence: 10
-            slot: wizardButtons
+            slot: dialogFooter
         }
         appearance {
             template: @/buttons-container
@@ -32,8 +52,8 @@ page 17 (
     )
 
     region step-1 (
-        name: emitir-comunicado
-        title: Emitir novo comunicado
+        name: Emitir comunicado
+        title: Novo comunicado
         type: form
         source {
             location: localDatabase
@@ -41,11 +61,12 @@ page 17 (
         }
         layout {
             sequence: 10
-            slot: wizardBody
+            slot: contentBody
         }
         appearance {
             template: @/blank-with-attributes
             templateOptions: #DEFAULT#
+            cssClasses: cx-comunicado
         }
     )
 
@@ -56,16 +77,19 @@ page 17 (
             alignment: left
         }
         layout {
-            sequence: 10
+            sequence: 40
             region: @step-1
             slot: regionBody
             alignment: left
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
             width: 30
-            height: 5
+            height: 6
+        }
+        validation {
+            valueRequired: true
         }
         source {
             formRegion: @step-1
@@ -80,7 +104,7 @@ page 17 (
     pageItem P17_DATA_PUBLICACAO (
         type: hidden
         layout {
-            sequence: 10
+            sequence: 50
             region: @step-1
             slot: regionBody
         }
@@ -91,7 +115,43 @@ page 17 (
         }
         default {
             type: expression
-            plsqlExpression: SYSDATE;
+            plsqlExpression: cast(systimestamp at time zone 'America/Sao_Paulo' as date)
+        }
+    )
+
+    pageItem P17_FL_FIXADO (
+        type: checkbox
+        label {
+            label: Fixar no topo
+            alignment: left
+        }
+        settings {
+            useDefaults: false
+            checkedValue: S
+            uncheckedValue: N
+        }
+        layout {
+            sequence: 70
+            region: @step-1
+            slot: regionBody
+            alignment: left
+            columnCssClasses: cx-comunicado__fixar
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @step-1
+            column: FL_FIXADO
+            dataType: varchar2
+        }
+        default {
+            type: static
+            staticValue: N
+        }
+        help {
+            inlineHelpText: Aparece primeiro na lista de comunicados.
         }
     )
 
@@ -118,6 +178,41 @@ page 17 (
         }
     )
 
+    pageItem P17_ID_CATEGORIA (
+        type: selectList
+        label {
+            label: Categoria
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @lov-categoria-comunicado
+        }
+        layout {
+            sequence: 20
+            region: @step-1
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @step-1
+            column: ID_CATEGORIA
+            dataType: number
+        }
+        help {
+            inlineHelpText: Tipo do comunicado (ex.: Eventos).
+        }
+    )
+
     pageItem P17_ID_COMUNICADO (
         type: hidden
         layout {
@@ -140,13 +235,12 @@ page 17 (
     pageItem P17_ID_DEPARTAMENTO (
         type: selectList
         label {
-            label: Departamento
+            label: Departamento destinatário
             alignment: left
         }
         lov {
             type: sharedComponent
             lov: @lov-departamento-empresa
-            nullDisplayValue: Todos (empresa inteira)
         }
         layout {
             sequence: 10
@@ -155,7 +249,7 @@ page 17 (
             alignment: left
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
             height: 1
         }
@@ -163,6 +257,9 @@ page 17 (
             formRegion: @step-1
             column: ID_DEPARTAMENTO
             dataType: number
+        }
+        help {
+            inlineHelpText: Só esse departamento verá o comunicado.
         }
     )
 
@@ -190,15 +287,27 @@ page 17 (
     pageItem P17_IMAGEM (
         type: imageUpload
         label {
-            label: Imagem do comunicado
+            label: Imagem (opcional)
             alignment: left
+        }
+        display {
+            displayAs: inlineDropzone
+            dropzoneTitle: Arraste uma imagem ou clique para selecionar
+            dropzoneDesc: PNG ou JPG · você poderá recortar em 16:9 após selecionar
         }
         storage {
             mimeTypeColumn: MIME_TYPE
             filenameColumn: NOME_ARQUIVO
         }
+        cropping {
+            allowCropping: true
+            aspectRatio: widescreen
+        }
+        resizeTo {
+            maxFileSize: 5120
+        }
         layout {
-            sequence: 10
+            sequence: 60
             region: @step-1
             slot: regionBody
             alignment: left
@@ -218,7 +327,7 @@ page 17 (
     pageItem P17_MIME_TYPE (
         type: hidden
         layout {
-            sequence: 10
+            sequence: 70
             region: @step-1
             slot: regionBody
         }
@@ -232,7 +341,7 @@ page 17 (
     pageItem P17_NOME_ARQUIVO (
         type: hidden
         layout {
-            sequence: 10
+            sequence: 80
             region: @step-1
             slot: regionBody
         }
@@ -243,20 +352,54 @@ page 17 (
         }
     )
 
+    pageItem P17_PUBLICO (
+        type: radioGroup
+        label {
+            label: Público
+            alignment: left
+        }
+        settings {
+            noOfCols: 2
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:Todos;TODOS,Um departamento;DEPARTAMENTO
+            displayNullValue: false
+        }
+        layout {
+            sequence: 8
+            region: @step-1
+            slot: regionBody
+            alignment: left
+            columnCssClasses: cx-comunicado__publico
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        validation {
+            valueRequired: true
+        }
+        default {
+            type: static
+            staticValue: TODOS
+        }
+    )
+
     pageItem P17_TITULO (
         type: textField
         label {
-            label: Titulo
+            label: Título
             alignment: left
         }
         layout {
-            sequence: 10
+            sequence: 30
             region: @step-1
             slot: regionBody
             alignment: left
         }
         appearance {
-            template: @/optional-floating
+            template: @/required-floating
             templateOptions: #DEFAULT#
             width: 30
         }
@@ -268,6 +411,9 @@ page 17 (
             formRegion: @step-1
             column: TITULO
             dataType: varchar2
+        }
+        help {
+            inlineHelpText: Frase curta e objetiva. Evite escrever tudo em maiúsculas.
         }
     )
 
@@ -297,28 +443,132 @@ page 17 (
     )
 
     button next (
-        buttonName: enviar_comunicado
-        label: Enviar Comunicado
+        buttonName: PUBLICAR_COMUNICADO
+        label: Publicar comunicado
         layout {
             sequence: 30
             region: @buttons
             slot: next
         }
         appearance {
-            buttonTemplate: @/text-with-icon
+            buttonTemplate: @/text
             hot: true
-            templateOptions: t-Button--iconRight
-            icon: fa-chevron-right
+            templateOptions: #DEFAULT#
         }
         behavior {
             showProcessing: true
             warnOnUnsavedChanges: doNotCheck
             databaseAction: insert
-            requiresConfirmation: true
         }
-        confirmation {
-            message: Certeza que deseja emitir o comunicado?
-            style: warning
+    )
+
+    dynamicAction público (
+        name: Público
+        execution {
+            sequence: 10
+        }
+        when {
+            selectionType: items
+            items: P17_PUBLICO
+        }
+        clientSideCondition {
+            type: item=value
+            item: P17_PUBLICO
+            value: DEPARTAMENTO
+        }
+
+        action false (
+            name: False
+            action: hide
+            affectedElements {
+                selectionType: items
+                items: P17_ID_DEPARTAMENTO
+            }
+            execution {
+                sequence: 10
+                fireWhenEventResultIs: false
+            }
+        )
+
+        action true (
+            name: True
+            action: show
+            affectedElements {
+                selectionType: items
+                items: P17_ID_DEPARTAMENTO
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    validation departamento-obrigatório (
+        name: Departamento obrigatório
+        execution {
+            sequence: 10
+        }
+        validation {
+            type: itemIsNotNull
+            item: P17_ID_DEPARTAMENTO
+        }
+        error {
+            errorMessage: Escolha o departamento destinatário.
+            associatedItem: @P17_ID_DEPARTAMENTO
+        }
+        serverSideCondition {
+            type: item=value
+            item: P17_PUBLICO
+            value: DEPARTAMENTO
+        }
+    )
+
+    validation imagem-png-ou-jpg (
+        name: Imagem PNG ou JPG
+        execution {
+            sequence: 20
+        }
+        validation {
+            plsqlExpression: regexp_like(:P17_IMAGEM, '\.(png|jpe?g)$', 'i');
+        }
+        error {
+            errorMessage: Envie uma imagem PNG ou JPG.
+            associatedItem: @P17_IMAGEM
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P17_IMAGEM
+        }
+    )
+
+    computation p17-id-departamento (
+        itemName: P17_ID_DEPARTAMENTO
+        execution {
+            sequence: 10
+            point: afterSubmit
+        }
+        computation {
+            type: staticValue
+        }
+        serverSideCondition {
+            type: item=value
+            item: P17_PUBLICO
+            value: TODOS
+        }
+    )
+
+    process fechar (
+        name: Fechar
+        type: closeDialog
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 47615342302452043
+        }
+        serverSideCondition {
+            whenButtonPressed: @next
         }
     )
 
@@ -347,7 +597,7 @@ page 17 (
             sequence: 10
         }
         successMessage {
-            successMessage: Comunicado Publicado com Sucesso!
+            successMessage: Comunicado publicado.
         }
         error {
             errorMessage: Não foi possível emitir o comunicado, tente novamente.

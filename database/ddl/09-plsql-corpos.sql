@@ -3481,6 +3481,7 @@ end pkg_holerite_ui;
   c_dias_alerta_banco constant pls_integer := 60;  -- aviso de horas a vencer
 
   g_html clob;
+  g_qt_pendencias pls_integer := 0;  -- itens do último render_pendencias
 
   ------------------------------------------------------------------------------
   -- Utilitários
@@ -3534,7 +3535,10 @@ end pkg_holerite_ui;
   end data_por_extenso;
 
   function iniciais (p_nome in varchar2) return varchar2 is
-    l_nome varchar2(400) := trim(regexp_replace(p_nome, '\s+', ' '));
+    -- Tira marcadores entre colchetes ("[DEMO] Karen Dias" -> "Karen Dias" -> "KD") e
+    -- depois tudo que não for letra ou espaço
+    l_nome varchar2(400) := trim(regexp_replace(regexp_replace(regexp_replace(p_nome, '\[[^]]*\]', ' '),
+                                                               '[^[:alpha:][:space:]]', ''), '\s+', ' '));
   begin
     if l_nome is null then
       return '?';
@@ -3632,6 +3636,15 @@ end pkg_holerite_ui;
       when 'hourglass' then '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>'
       when 'calendar-x' then '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="m14 14-4 4"/><path d="m10 14 4 4"/>'
       when 'assinar'   then '<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.4 2.6a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4Z"/>'
+      when 'wallet'    then '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'
+      when 'palm'      then '<path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"/><path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"/><path d="M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"/><path d="M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"/>'
+      when 'target'    then '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'
+      when 'eye'       then '<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>'
+      when 'calendar'  then '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>'
+      when 'calendar-clock' then '<path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h5"/><path d="M17.5 17.5 16 16.3V14"/><circle cx="16" cy="16" r="6"/>'
+      when 'message'   then '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>'
+      when 'feedback'  then '<path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>'
+      when 'party'     then '<path d="M5.8 11.3 2 22l10.7-3.79"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17"/><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"/><path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"/>'
       when 'users'     then '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'
     end;
     return '<svg class="cx-home-icone" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
@@ -3834,6 +3847,50 @@ end pkg_holerite_ui;
       || '</li>');
   end pendencia;
 
+  -- "Quinta", "Sexta"... (sem NLS: o idioma técnico da app é "en")
+  function dia_semana (p_dt in date) return varchar2 is
+  begin
+    -- trunc: com hora (ex.: 1:1 às 10:00) a diferença não é inteira e caía no "Domingo"
+    return case trunc(p_dt) - trunc(p_dt, 'IW')
+      when 0 then 'Segunda' when 1 then 'Terça' when 2 then 'Quarta' when 3 then 'Quinta'
+      when 4 then 'Sexta' when 5 then 'Sábado' else 'Domingo' end;
+  end dia_semana;
+
+  -- "NOV"
+  function mes_curto (p_dt in date) return varchar2 is
+  begin
+    return case to_number(to_char(p_dt, 'MM'))
+      when 1 then 'JAN' when 2 then 'FEV' when 3 then 'MAR' when 4 then 'ABR' when 5 then 'MAI'
+      when 6 then 'JUN' when 7 then 'JUL' when 8 then 'AGO' when 9 then 'SET' when 10 then 'OUT'
+      when 11 then 'NOV' else 'DEZ' end;
+  end mes_curto;
+
+  -- "2.875,44"
+  function moeda (p_valor in number) return varchar2 is
+  begin
+    return to_char(p_valor, 'FM999G999G990D00', 'NLS_NUMERIC_CHARACTERS='',.''');
+  end moeda;
+
+  -- Resposta dos Ajax Callbacks: {"ok":true|false,"mensagem":"..."}
+  procedure responder (p_ok in boolean, p_mensagem in varchar2) is
+  begin
+    apex_json.open_object;
+    apex_json.write('ok', p_ok);
+    apex_json.write('mensagem', p_mensagem);
+    apex_json.close_object;
+  end responder;
+
+  -- Erro de regra (-20000 a -20999) sai com a mensagem; o resto, genérico
+  procedure responder_erro (p_codigo in number, p_mensagem in varchar2) is
+  begin
+    if p_codigo between -20999 and -20000 then
+      responder(false, regexp_replace(p_mensagem, '^ORA-\d+: '));
+    else
+      apex_debug.error('pkg_home_ui: %s', p_mensagem);
+      responder(false, 'Não foi possível concluir agora. Tente de novo em instantes.');
+    end if;
+  end responder_erro;
+
   ------------------------------------------------------------------------------
   -- Públicas
   ------------------------------------------------------------------------------
@@ -3898,39 +3955,107 @@ end pkg_holerite_ui;
     l_dt_venc  date;
     l_extrato  pkg_ponto.t_dias;
     l_detalhe  varchar2(200);
+    l_ultimo   date;
+    l_qt_obj   pls_integer;
+    l_qt_ok    pls_integer;
+    l_dias     number;
+    l_limite   date;
+
+    procedure indicador (p_icone in varchar2, p_rotulo in varchar2, p_valor in varchar2,
+                         p_detalhe in varchar2, p_extra in varchar2 default null,
+                         p_classe in varchar2 default null) is
+    begin
+      p('<li class="cx-home-indicador">'
+        || '<span class="cx-home-indicador__icone">' || icone(p_icone) || '</span>'
+        || '<div class="cx-home-indicador__texto"><p class="cx-home-indicador__rotulo">' || e(p_rotulo) || '</p>'
+        || '<p class="cx-home-indicador__valor' || case when p_classe is not null then ' ' || p_classe end || '">'
+        || p_valor || '</p>'
+        || p_extra
+        || '<p class="cx-home-indicador__detalhe">' || p_detalhe || '</p></div>'
+        || '</li>');
+    end indicador;
   begin
     inicia;
     if l_id is null then
       return g_html;
     end if;
+    l_hoje := trunc(hoje);
+    p('<ul class="cx-home-indicadores" aria-label="Indicadores">');
 
+    -- Banco de horas (ponto). Empresa sem jornada (-20061): sem o indicador
     begin
       pkg_ponto.calcular_banco(l_id, l_saldo, l_vencendo, l_dt_venc, l_extrato);
+      l_hoje := trunc(agora_ponto(l_id));
+      -- O dia de hoje só entra no banco quando fecha: o saldo é "até ontem"
+      l_detalhe := case when l_dt_venc is not null and l_vencendo > 0
+                         and l_dt_venc - l_hoje <= c_dias_alerta_banco
+                        then pkg_ponto.fn_horas(l_vencendo) || ' vencem em ' || to_char(l_dt_venc, 'DD/MM/YYYY')
+                        else 'Saldo até ontem' end;
+      indicador('hourglass', 'Banco de horas', pkg_ponto.fn_saldo(l_saldo),
+        e(l_detalhe) || ' · <a href="' || a(apex_page.get_url(p_page => 30)) || '">ver espelho</a>',
+        p_classe => case when l_saldo > 0 then 'is-positivo' when l_saldo < 0 then 'is-negativo' end);
     exception
       when others then
-        if sqlcode = -20061 then  -- empresa sem jornada
-          return g_html;
+        if sqlcode <> -20061 then
+          raise;
         end if;
-        raise;
     end;
-    l_hoje := trunc(agora_ponto(l_id));
 
-    -- O dia de hoje só entra no banco quando fecha: o saldo é "até ontem"
-    l_detalhe := case when l_dt_venc is not null and l_vencendo > 0
-                       and l_dt_venc - l_hoje <= c_dias_alerta_banco
-                      then pkg_ponto.fn_horas(l_vencendo) || ' vencem em ' || to_char(l_dt_venc, 'DD/MM/YYYY')
-                      else 'Saldo até ontem' end;
+    -- Pagamento (holerite). Mesmas regras da página 9 (pkg_holerite_ui.holerites_de):
+    -- o mês atual só a partir do dia 25, nada antes da admissão. Se o dia mudar
+    -- lá (c_dia_liberacao), mude aqui também. O valor chega oculto, como na p9.
+    l_ultimo := case when to_number(to_char(l_hoje, 'DD')) >= 25
+                     then trunc(l_hoje, 'MM') else add_months(trunc(l_hoje, 'MM'), -1) end;
+    for h in (select h.data_pagamento, h.valor_liquido
+                from colaborador_holerite h
+                join colaborador c on c.id_colaborador = h.id_colaborador
+               where h.id_colaborador = l_id
+                 and to_date(to_char(h.ano_referencia * 100 + h.mes_referencia) || '01', 'YYYYMMDD') <= l_ultimo
+                 and (c.data_admissao is null or c.data_admissao <= l_hoje)
+                 and (c.data_admissao is null
+                      or to_date(to_char(h.ano_referencia * 100 + h.mes_referencia) || '01', 'YYYYMMDD') >= trunc(c.data_admissao, 'MM'))
+               order by h.ano_referencia desc, h.mes_referencia desc
+               fetch first 1 rows only) loop
+      indicador('wallet',
+        case when h.data_pagamento > l_hoje then 'Próximo pagamento' else 'Último pagamento' end,
+        'R$ <span data-cx-home-valor data-cx-home-original="' || a(moeda(h.valor_liquido)) || '">••••••</span>',
+        case when h.data_pagamento > l_hoje then 'Crédito previsto em ' else 'Creditado em ' end
+          || to_char(h.data_pagamento, 'DD/MM')
+          || ' · <a href="' || a(apex_page.get_url(p_page => 9)) || '">ver holerite</a>',
+        p_extra => '<button type="button" class="cx-home-indicador__olho" data-cx-home-mostrar aria-pressed="false"'
+                || ' aria-label="Mostrar valor" title="Mostrar valor">' || icone('eye') || '</button>');
+    end loop;
 
-    p('<ul class="cx-home-indicadores" aria-label="Indicadores">');
-    p('<li class="cx-home-indicador">'
-      || '<span class="cx-home-indicador__icone">' || icone('hourglass') || '</span>'
-      || '<div><p class="cx-home-indicador__rotulo">Banco de horas</p>'
-      || '<p class="cx-home-indicador__valor'
-      || case when l_saldo > 0 then ' is-positivo' when l_saldo < 0 then ' is-negativo' end || '">'
-      || pkg_ponto.fn_saldo(l_saldo) || '</p>'
-      || '<p class="cx-home-indicador__detalhe">' || e(l_detalhe) || ' · <a href="'
-      || a(apex_page.get_url(p_page => 30)) || '">ver espelho</a></p></div>'
-      || '</li>');
+    -- Férias: saldo dos períodos aquisitivos completos e ainda no prazo
+    select sum(nr_dias_direito - nr_dias_gozados),
+           min(case when nr_dias_direito > nr_dias_gozados then dt_limite_gozo end)
+      into l_dias, l_limite
+      from ferias_periodo
+     where id_colaborador = l_id
+       and dt_fim_aquisitivo < l_hoje
+       and dt_limite_gozo >= l_hoje;
+    if l_dias is not null then
+      indicador('palm', 'Férias disponíveis', l_dias || case when l_dias = 1 then ' dia' else ' dias' end,
+        case when l_limite is not null then 'Período vence em ' || to_char(l_limite, 'DD/MM/YYYY')
+             else 'Nenhum período a vencer' end);
+    end if;
+
+    -- PDI vigente: objetivos concluídos
+    select count(o.id_objetivo), count(case when o.st_objetivo = 'CONCLUIDO' then 1 end)
+      into l_qt_obj, l_qt_ok
+      from pdi d
+      join pdi_objetivo o on o.id_pdi = d.id_pdi
+     where d.id_pdi = (select max(id_pdi) keep (dense_rank last order by id_pdi)
+                         from pdi
+                        where id_colaborador = l_id
+                          and st_pdi in ('APROVADO', 'AGUARDANDO', 'AJUSTES'));
+    if l_qt_obj > 0 then
+      indicador('target', 'Meu PDI', l_qt_ok || ' de ' || l_qt_obj || ' objetivos',
+        '<progress class="cx-home-progresso" value="' || l_qt_ok || '" max="' || l_qt_obj || '">'
+          || round(100 * l_qt_ok / l_qt_obj) || '%</progress>'
+          || '<span class="cx-home-progresso__pct">' || round(100 * l_qt_ok / l_qt_obj) || '%</span>');
+    end if;
+
     p('</ul>');
     return g_html;
   end render_indicadores;
@@ -4044,6 +4169,7 @@ end pkg_holerite_ui;
         apex_page.get_url(p_page => 32));
     end if;
 
+    g_qt_pendencias := l_qt;
     if l_qt = 0 then
       p(estado_vazio('fa-check-circle', 'Nenhuma pend&ecirc;ncia',
         'Quando algo precisar de uma a&ccedil;&atilde;o sua, aparece aqui.'));
@@ -4058,15 +4184,27 @@ end pkg_holerite_ui;
     p_id_empresa in number   default to_number(v('G_ID_EMPRESA') default null on conversion error)
   ) return clob is
     l_qt_colaborador pls_integer;
+    l_agora constant date := hoje;  -- horário de Brasília (as conversas estão em hora local)
   begin
     inicia;
 
     for g in (
-      select g.nome_completo,
+      select g.id_colaborador,
+             g.nome_completo,
              g.email,
              g.foto_url,
              cg.nome as cargo,
-             d.nome  as departamento
+             d.nome  as departamento,
+             c.id_colaborador as id_eu,
+             -- Mesma regra da presença do chat (página 4)
+             case when pr.data_ultimo_ping > systimestamp - interval '5' minute
+                   and upper(pr.status_presenca) = 'ONLINE' then 'S' else 'N' end as disponivel,
+             (select min(x.dh_conversa)
+                from conversa_1a1 x
+               where x.id_colaborador = c.id_colaborador
+                 and x.id_gestor      = g.id_colaborador
+                 and x.st_conversa    = 'AGENDADA'
+                 and x.dh_conversa   >= l_agora) as proxima_1a1
         from colaborador c
         join colaborador g
           on g.id_colaborador = c.id_gestor
@@ -4075,23 +4213,35 @@ end pkg_holerite_ui;
           on cg.id_cargo = g.id_cargo
         left join departamento d
           on d.id_departamento = g.id_departamento
+        left join presenca_colaborador pr
+          on pr.id_colaborador = g.id_colaborador
        where upper(trim(c.login_apex)) = upper(trim(p_login))
          and c.id_empresa = p_id_empresa
        fetch first 1 rows only
     ) loop
       p('<div class="cx-home-gestor">');
+      p('<div class="cx-home-gestor__pessoa' || case when g.disponivel = 'S' then ' is-disponivel' end || '">');
       p(pessoa(g.nome_completo, g.foto_url,
                g.cargo || case when g.cargo is not null and g.departamento is not null then ' · ' end
                        || g.departamento));
-      p('<div class="cx-acoes-card cx-home-gestor__acoes">');
-      p('<a class="t-Button t-Button--icon t-Button--iconLeft" href="' || a(apex_page.get_url(p_page => 4)) || '">'
-        || '<span class="t-Icon t-Icon--left fa fa-comments-o" aria-hidden="true"></span>'
-        || '<span class="t-Button-label">Mensagem</span></a>');
-      if g.email is not null then
-        p('<a class="t-Button t-Button--icon t-Button--iconLeft" href="mailto:' || a(g.email) || '">'
-          || '<span class="t-Icon t-Icon--left fa fa-envelope-o" aria-hidden="true"></span>'
-          || '<span class="t-Button-label">E-mail</span></a>');
+      if g.disponivel = 'S' then
+        p('<span class="cx-home-gestor__status">Disponível agora</span>');
       end if;
+      p('</div>');
+
+      if g.proxima_1a1 is not null then
+        p('<div class="cx-home-gestor__conversa">' || icone('calendar-clock')
+          || '<div><span>Próxima conversa 1:1</span><strong>'
+          || dia_semana(g.proxima_1a1) || ', ' || to_char(g.proxima_1a1, 'DD/MM') || ' às '
+          || to_char(g.proxima_1a1, 'HH24:MI') || '</strong></div></div>');
+      end if;
+
+      p('<div class="cx-acoes-card cx-home-gestor__acoes">');
+      p('<a class="t-Button" href="' || a(apex_page.get_url(p_page => 4)) || '">'
+        || icone('message') || '<span class="t-Button-label">Mensagem</span></a>');
+      p('<button type="button" class="t-Button" data-cx-home-feedback="' || g.id_colaborador || '"'
+        || ' data-cx-home-feedback-nome="' || a(g.nome_completo) || '" data-cx-home-feedback-tipo="RECONHECIMENTO">'
+        || icone('feedback') || '<span class="t-Button-label">Dar feedback</span></button>');
       p('</div></div>');
       return g_html;
     end loop;
@@ -4181,6 +4331,7 @@ end pkg_holerite_ui;
     l_limite  constant pls_integer := coalesce(p_limite, 1000);
     l_qt      pls_integer := 0;
     l_detalhe varchar2(200);
+    l_eu      constant number := colaborador_ponto(null);
   begin
     inicia;
 
@@ -4188,7 +4339,7 @@ end pkg_holerite_ui;
     -- no mês atual. Próximos primeiro; os que já passaram no mês vão para o fim.
     for r in (
       with celebracao as (
-        select nome_completo, foto_url, 'ANIVERSARIO' as tipo,
+        select id_colaborador, nome_completo, foto_url, 'ANIVERSARIO' as tipo,
                to_number(to_char(data_de_nascimento, 'dd')) as dia,
                cast(null as number) as anos
           from colaborador
@@ -4196,7 +4347,7 @@ end pkg_holerite_ui;
            and status = true
            and to_char(data_de_nascimento, 'mm') = to_char(l_hoje, 'mm')
         union all
-        select nome_completo, foto_url, 'EMPRESA',
+        select id_colaborador, nome_completo, foto_url, 'EMPRESA',
                to_number(to_char(data_admissao, 'dd')),
                extract(year from l_hoje) - extract(year from data_admissao)
           from colaborador
@@ -4205,7 +4356,7 @@ end pkg_holerite_ui;
            and to_char(data_admissao, 'mm') = to_char(l_hoje, 'mm')
            and extract(year from data_admissao) < extract(year from l_hoje)
       )
-      select nome_completo, foto_url, tipo, dia, anos
+      select id_colaborador, nome_completo, foto_url, tipo, dia, anos
         from celebracao
        order by case when dia >= l_dia_hoj then 0 else 1 end,
                 dia,
@@ -4230,6 +4381,14 @@ end pkg_holerite_ui;
       p('<li class="cx-home-lista__item">'
         || pessoa(r.nome_completo, r.foto_url, l_detalhe,
                   case when r.dia = l_dia_hoj then 'cx-home-celebracao--hoje' end)
+        -- "Parabenizar" só para quem celebra hoje, e nunca para si mesmo
+        || case when r.dia = l_dia_hoj and l_eu is not null and r.id_colaborador <> l_eu then
+             '<button type="button" class="t-Button cx-home-parabenizar" data-cx-home-feedback="' || r.id_colaborador || '"'
+             || ' data-cx-home-feedback-nome="' || a(r.nome_completo) || '" data-cx-home-feedback-tipo="RECONHECIMENTO"'
+             || ' data-cx-home-feedback-texto="' || a(case r.tipo when 'ANIVERSARIO' then 'Feliz aniversário! '
+                                                       else 'Parabéns pelos ' || r.anos || case when r.anos = 1 then ' ano' else ' anos' end || ' de empresa! ' end) || '">'
+             || icone('party') || '<span class="t-Button-label">Parabenizar</span></button>'
+           end
         || '</li>');
     end loop;
 
@@ -4250,6 +4409,255 @@ end pkg_holerite_ui;
     end if;
     return g_html;
   end render_celebracoes;
+
+  ------------------------------------------------------------------------------
+  -- Títulos das regiões (computações da página 1)
+  ------------------------------------------------------------------------------
+  function qt_pendencias return varchar2 is
+    l_html clob;
+  begin
+    l_html := render_pendencias;
+    return case when g_qt_pendencias > 0 then to_char(g_qt_pendencias) end;
+  end qt_pendencias;
+
+  function nao_lidos_texto return varchar2 is
+    l_id constant number := colaborador_ponto(null);
+    l_qt number;
+  begin
+    if l_id is null then
+      return null;
+    end if;
+    l_qt := pkg_comunicado.qtd_nao_lidos(l_id);
+    return case when l_qt = 1 then ' · 1 não lido'
+                when l_qt > 1 then ' · ' || l_qt || ' não lidos' end;
+  end nao_lidos_texto;
+
+  ------------------------------------------------------------------------------
+  -- Feedbacks recebidos
+  ------------------------------------------------------------------------------
+  function render_feedbacks (
+    p_id_colaborador in number default null
+  ) return clob is
+    l_id constant number := colaborador_ponto(p_id_colaborador);
+    l_qt pls_integer := 0;
+  begin
+    inicia;
+    if l_id is not null then
+      for f in (select f.tp_feedback, f.ds_texto, cast(f.dh_criacao as date) as dt,
+                       a.nome_completo, a.foto_url,
+                       case when a.id_colaborador = eu.id_gestor then 'Gestão direta'
+                            when a.id_gestor = eu.id_gestor then 'Colega de equipe'
+                            when eu.id_colaborador = a.id_gestor then 'Pessoa da sua equipe'
+                            else 'Colega' end as relacao
+                  from feedback f
+                  join colaborador a  on a.id_colaborador = f.id_autor
+                  join colaborador eu on eu.id_colaborador = f.id_destinatario
+                 where f.id_destinatario = l_id
+                   and f.dh_exclusao is null
+                 order by f.dh_criacao desc
+                 fetch first 2 rows only) loop
+        l_qt := l_qt + 1;
+        if l_qt = 1 then
+          p('<ul class="cx-home-feedbacks">');
+        end if;
+        p('<li class="cx-home-feedback">'
+          || '<div class="cx-home-feedback__topo">'
+          || pessoa(f.nome_completo, f.foto_url, f.relacao || ' · ' || to_char(f.dt, 'DD/MM'))
+          || case f.tp_feedback when 'RECONHECIMENTO' then selo('Reconhecimento', 'sucesso')
+                                else selo('Sugestão', 'info') end
+          || '</div>'
+          || '<blockquote class="cx-home-feedback__texto">“' || e(f.ds_texto) || '”</blockquote>'
+          || '</li>');
+      end loop;
+    end if;
+    if l_qt = 0 then
+      p(estado_vazio('fa-comments-o', 'Nenhum feedback ainda',
+        'Os reconhecimentos e sugest&otilde;es que voc&ecirc; receber aparecem aqui.'));
+    else
+      p('</ul>');
+    end if;
+    return g_html;
+  end render_feedbacks;
+
+  ------------------------------------------------------------------------------
+  -- Pesquisa de clima aberta (some depois que a pessoa responde)
+  ------------------------------------------------------------------------------
+  function render_pesquisa (
+    p_id_colaborador in number default null
+  ) return clob is
+    l_id   constant number := colaborador_ponto(p_id_colaborador);
+    l_hoje constant date   := trunc(hoje);  -- função privada não pode ir no SQL
+  begin
+    inicia;
+    if l_id is null then
+      return g_html;
+    end if;
+    for q in (select q.id_pesquisa, q.ds_titulo, q.ds_descricao, q.dt_fechamento, q.ds_link
+                from pesquisa q
+                join colaborador c on c.id_colaborador = l_id and c.id_empresa = q.id_empresa
+               where l_hoje between q.dt_abertura and q.dt_fechamento
+                 and not exists (select 1 from pesquisa_resposta r
+                                  where r.id_pesquisa = q.id_pesquisa and r.id_colaborador = l_id)
+               order by q.dt_fechamento
+               fetch first 1 rows only) loop
+      p('<section class="cx-home-pesquisa" aria-labelledby="cx-home-pesquisa-titulo">');
+      p('<div class="cx-home-pesquisa__arte" aria-hidden="true"></div>');
+      p('<div class="cx-home-pesquisa__conteudo">');
+      p(selo('Aberta até ' || to_char(q.dt_fechamento, 'DD/MM'), 'atencao'));
+      p('<h2 id="cx-home-pesquisa-titulo" class="cx-home-pesquisa__titulo">' || e(q.ds_titulo) || '</h2>');
+      if q.ds_descricao is not null then
+        p('<p class="cx-home-pesquisa__texto">' || e(q.ds_descricao) || '</p>');
+      end if;
+      p('<a class="t-Button t-Button--hot cx-home-pesquisa__botao" href="' || a(q.ds_link) || '"'
+        || ' target="_blank" rel="noopener" data-cx-home-pesquisa="' || q.id_pesquisa || '">'
+        || '<span class="t-Button-label">Responder pesquisa</span></a>');
+      p('</div></section>');
+    end loop;
+    return g_html;
+  end render_pesquisa;
+
+  ------------------------------------------------------------------------------
+  -- Próximos eventos (agenda da empresa + feriados do ponto)
+  ------------------------------------------------------------------------------
+  function render_eventos (
+    p_id_empresa in number default to_number(v('G_ID_EMPRESA') default null on conversion error)
+  ) return clob is
+    l_hoje constant date := trunc(hoje);
+    l_qt   pls_integer := 0;
+  begin
+    inicia;
+    for ev in (select dh_inicio, dh_fim, ds_titulo, ds_local, 'N' as feriado
+                 from evento
+                where id_empresa = p_id_empresa
+                  and dh_inicio >= l_hoje
+               union all
+               select dt_feriado, null, nm_feriado, null, 'S'
+                 from ponto_feriado
+                where id_empresa = p_id_empresa
+                  and dt_feriado >= l_hoje
+                order by 1
+                fetch first 4 rows only) loop
+      l_qt := l_qt + 1;
+      if l_qt = 1 then
+        p('<ul class="cx-home-eventos">');
+      end if;
+      p('<li class="cx-home-evento">'
+        || '<span class="cx-home-evento__data" aria-hidden="true"><span>' || mes_curto(ev.dh_inicio) || '</span>'
+        || '<strong>' || to_char(ev.dh_inicio, 'DD') || '</strong></span>'
+        || '<div class="cx-home-evento__texto"><strong>' || e(ev.ds_titulo) || '</strong>'
+        || '<span>'
+        || case when ev.feriado = 'S' then 'Feriado'
+                else to_char(ev.dh_inicio, 'HH24:MI')
+                     || case when ev.dh_fim is not null then ' às ' || to_char(ev.dh_fim, 'HH24:MI') end
+                     || case when ev.ds_local is not null then ' · ' || e(ev.ds_local) end
+           end
+        || '</span></div>'
+        || case when trunc(ev.dh_inicio) = l_hoje     then selo('Hoje', 'info')
+                when trunc(ev.dh_inicio) = l_hoje + 1 then selo('Amanhã', 'neutro')
+                when ev.feriado = 'S'                 then selo('Feriado', 'neutro') end
+        || '</li>');
+    end loop;
+    if l_qt = 0 then
+      p(estado_vazio('fa-calendar-o', 'Nenhum evento agendado',
+        'Eventos e feriados da empresa aparecem aqui.'));
+    else
+      p('</ul>');
+    end if;
+    return g_html;
+  end render_eventos;
+
+  ------------------------------------------------------------------------------
+  -- Ajax Callbacks da página 1
+  ------------------------------------------------------------------------------
+  procedure ajax_marcar_lido (p_id_comunicado in varchar2) is
+    l_id  constant number := colaborador_ponto(null);
+    l_com number;
+  begin
+    if l_id is null then
+      responder(true, null);  -- conta sem colaborador: só segue para o comunicado
+      return;
+    end if;
+    -- Só comunicado da empresa da pessoa
+    select c.id_comunicado
+      into l_com
+      from comunicado c
+      join colaborador col on col.id_colaborador = l_id and col.id_empresa = c.id_empresa
+     where c.id_comunicado = to_number(p_id_comunicado default null on conversion error);
+    pkg_comunicado.marcar_como_lido(l_com, l_id);
+    responder(true, null);
+  exception
+    when no_data_found then
+      responder(false, 'Comunicado não encontrado.');
+    when others then
+      responder_erro(sqlcode, sqlerrm);
+  end ajax_marcar_lido;
+
+  procedure ajax_responder_pesquisa (p_id_pesquisa in varchar2) is
+    l_id  constant number := colaborador_ponto(null);
+  begin
+    if l_id is null then
+      responder(true, null);
+      return;
+    end if;
+    -- Registra só a participação (a resposta fica no formulário externo, anônimo)
+    merge into pesquisa_resposta r
+    using (select q.id_pesquisa
+             from pesquisa q
+             join colaborador c on c.id_colaborador = l_id and c.id_empresa = q.id_empresa
+            where q.id_pesquisa = to_number(p_id_pesquisa default null on conversion error)) s
+       on (r.id_pesquisa = s.id_pesquisa and r.id_colaborador = l_id)
+     when not matched then insert (id_pesquisa, id_colaborador) values (s.id_pesquisa, l_id);
+    commit;
+    responder(true, null);
+  exception
+    when others then
+      responder_erro(sqlcode, sqlerrm);
+  end ajax_responder_pesquisa;
+
+  procedure ajax_salvar_feedback (
+    p_id_destinatario in varchar2,
+    p_tp_feedback     in varchar2,
+    p_ds_texto        in varchar2
+  ) is
+    l_autor   constant number := colaborador_ponto(null);
+    l_dest    number;
+    l_empresa number;
+    l_texto   constant varchar2(4000) := trim(p_ds_texto);
+  begin
+    if l_autor is null then
+      raise_application_error(-20090, 'Sua conta não está vinculada a um colaborador desta empresa.');
+    elsif p_tp_feedback not in ('RECONHECIMENTO', 'SUGESTAO') or p_tp_feedback is null then
+      raise_application_error(-20091, 'Escolha se é um reconhecimento ou uma sugestão.');
+    elsif l_texto is null then
+      raise_application_error(-20092, 'Escreva o feedback antes de enviar.');
+    elsif length(l_texto) > 1000 then
+      raise_application_error(-20093, 'O feedback pode ter no máximo 1000 caracteres.');
+    end if;
+
+    begin
+      select d.id_colaborador, d.id_empresa
+        into l_dest, l_empresa
+        from colaborador d
+        join colaborador eu on eu.id_colaborador = l_autor and eu.id_empresa = d.id_empresa
+       where d.id_colaborador = to_number(p_id_destinatario default null on conversion error)
+         and d.status = true;
+    exception
+      when no_data_found then
+        raise_application_error(-20094, 'Essa pessoa não foi encontrada na sua empresa.');
+    end;
+    if l_dest = l_autor then
+      raise_application_error(-20095, 'Não é possível enviar feedback para você mesmo.');
+    end if;
+
+    insert into feedback (id_empresa, id_autor, id_destinatario, tp_feedback, ds_texto)
+    values (l_empresa, l_autor, l_dest, p_tp_feedback, l_texto);
+    commit;
+    responder(true, 'Feedback enviado.');
+  exception
+    when others then
+      rollback;
+      responder_erro(sqlcode, sqlerrm);
+  end ajax_salvar_feedback;
 
 end pkg_home_ui;
 /

@@ -8,6 +8,7 @@ page 1 (
     }
     navigation {
         cursorFocus: doNotFocusCursor
+        warnOnUnsavedChanges: false
     }
     javaScript {
         functionAndGlobalVariableDeclaration:
@@ -32,6 +33,14 @@ page 1 (
               if (!trilho) return;
             
               const slides = trilho.querySelectorAll(".a-CardView-item");
+            
+              // "Não lido" vem no corpo do card (HTML Expression) e vai para o lado do botão
+              slides.forEach(function (slide) {
+                const marca = slide.querySelector("[data-cx-nao-lido]");
+                const acoes = slide.querySelector(".a-CardView-actions");
+                if (marca && acoes) { acoes.appendChild(marca); }
+              });
+            
               if (slides.length < 2) return;
             
               const nav = document.createElement("div");
@@ -102,6 +111,26 @@ page 1 (
                   + (trabalhados >= meta ? "jornada completa" : "faltam " + horas(meta - trabalhados));
               }
             }
+            
+            // Ajax Callbacks da página 1: respondem {ok, mensagem}
+            function cxHomeChamar(processo, dados, aoConcluir, botao) {
+              if (botao) { botao.disabled = true; }
+              return apex.server.process(processo, dados, { dataType: "json" })
+                .done(function (resposta) {
+                  if (resposta.ok) {
+                    apex.message.clearErrors();
+                    if (aoConcluir) { aoConcluir(resposta); }
+                  } else {
+                    apex.message.clearErrors();
+                    apex.message.showErrors([{ type: "error", location: "page", message: resposta.mensagem, unsafe: true }]);
+                  }
+                })
+                .fail(function () {
+                  apex.message.showErrors([{ type: "error", location: "page",
+                    message: "Não foi possível falar com o servidor. Confira sua conexão e tente de novo.", unsafe: false }]);
+                })
+                .always(function () { if (botao) { botao.disabled = false; } });
+            }
             ```
         executeWhenPageLoads:
             ```javascript-browser
@@ -155,6 +184,66 @@ page 1 (
             
             cxHomePontoRelogio();
             setInterval(cxHomePontoRelogio, 1000);
+            
+            // "Ler comunicado": marca como lido e só depois abre o comunicado
+            $(document).on("click", ".cx-home-carrossel .a-CardView-button", function (evento) {
+              const item = this.closest(".a-CardView-item");
+              const destino = this.href;
+              if (!item || !item.dataset.id || !destino) { return; }
+              evento.preventDefault();
+              apex.server.process("MARCAR_LIDO", { x01: item.dataset.id }, { dataType: "json" })
+                .always(function () { apex.navigation.redirect(destino); });
+            });
+            
+            // "Mostrar valor" do pagamento: a página sempre abre com o valor oculto (como a p9)
+            $(document).on("click", "[data-cx-home-mostrar]", function () {
+              const mostrar = this.getAttribute("aria-pressed") !== "true";
+              this.setAttribute("aria-pressed", mostrar ? "true" : "false");
+              this.setAttribute("aria-label", mostrar ? "Ocultar valor" : "Mostrar valor");
+              this.title = this.getAttribute("aria-label");
+              this.closest(".cx-home-indicador").querySelectorAll("[data-cx-home-valor]").forEach(function (el) {
+                el.textContent = mostrar ? el.dataset.cxHomeOriginal : "••••••";
+              });
+            });
+            
+            // "Responder pesquisa": o link abre o formulário em outra aba; aqui só registra
+            // a participação e tira o card da Home
+            $(document).on("click", "[data-cx-home-pesquisa]", function () {
+              cxHomeChamar("RESPONDER_PESQUISA", { x01: this.dataset.cxHomePesquisa }, function () {
+                const regiao = apex.region("home_pesquisa");
+                if (regiao) { regiao.refresh(); }
+              });
+            });
+            
+            // "Dar feedback" (Meu gestor) e "Parabenizar" (Celebrações): preenchem e abrem o diálogo
+            $(document).on("click", "[data-cx-home-feedback]", function () {
+              apex.item("P1_FB_DESTINATARIO").setValue(this.dataset.cxHomeFeedback);
+              apex.item("P1_FB_TIPO").setValue(this.dataset.cxHomeFeedbackTipo || "RECONHECIMENTO");
+              apex.item("P1_FB_TEXTO").setValue(this.dataset.cxHomeFeedbackTexto || "");
+              document.querySelectorAll("[data-cx-home-fb-nome]").forEach(function (el) {
+                el.textContent = this.dataset.cxHomeFeedbackNome;
+              }, this);
+              // O APEX desenha os itens antes do HTML da região: o "Para <nome>" sobe para o topo
+              const corpo = document.querySelector("#home_dlg_feedback .t-DialogRegion-body");
+              const para = corpo && corpo.querySelector(".cx-home-fb-para");
+              if (para && corpo.firstElementChild !== para) { corpo.prepend(para); }
+              apex.theme.openRegion("home_dlg_feedback");
+            });
+            
+            $(document).on("click", ".cx-home-fb-cancelar", function () {
+              apex.theme.closeRegion("home_dlg_feedback");
+            });
+            
+            $(document).on("click", ".cx-home-fb-enviar", function () {
+              cxHomeChamar("SALVAR_FEEDBACK", {
+                x01: apex.item("P1_FB_DESTINATARIO").getValue(),
+                x02: apex.item("P1_FB_TIPO").getValue(),
+                x03: apex.item("P1_FB_TEXTO").getValue()
+              }, function (resposta) {
+                apex.theme.closeRegion("home_dlg_feedback");
+                apex.message.showPageSuccess(resposta.mensagem);
+              }, this);
+            });
             ```
     }
     css {
@@ -218,6 +307,53 @@ page 1 (
         }
     )
 
+    region dar-feedback (
+        name: Dar feedback
+        title: Dar feedback
+        type: staticContent
+        source {
+            htmlCode: <p class="cx-home-fb-para">Para <strong data-cx-home-fb-nome></strong></p>
+        }
+        layout {
+            sequence: 50
+            slot: dialogsDrawersAndPopups
+        }
+        appearance {
+            template: @/inline-dialog
+            templateOptions: [
+                #DEFAULT#
+                js-dialog-autoheight
+                js-dialog-size600x400
+            ]
+        }
+        advanced {
+            htmlDomId: home_dlg_feedback
+        }
+    )
+
+    region feedbacks-recebidos (
+        name: Feedbacks recebidos
+        title: Feedbacks recebidos<span class="cx-home-card__subtitulo">Reconhecimentos e sugestões que você recebeu</span>
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_home_ui.render_feedbacks;
+        }
+        layout {
+            sequence: 30
+            parentRegion: @coluna-principal
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+            cssClasses: cx-home-card
+        }
+    )
+
     region home_aniversariantes (
         name: Celebrações
         title: <span class="fa fa-birthday-cake" aria-hidden="true"></span>Celebrações de &P1_MES_ATUAL.
@@ -226,7 +362,7 @@ page 1 (
             plsqlFunctionBody: return pkg_home_ui.render_celebracoes;
         }
         layout {
-            sequence: 20
+            sequence: 40
             parentRegion: @coluna-lateral
             slot: subRegions
         }
@@ -243,7 +379,7 @@ page 1 (
 
     region home_comunicados (
         name: Comunicados
-        title: Comunicados<span class="cx-home-card__subtitulo">Publicações oficiais da empresa</span>
+        title: Comunicados<span class="cx-home-card__subtitulo">Publicações oficiais da empresa&P1_NAO_LIDOS.</span>
         type: cards
         source {
             location: localDatabase
@@ -252,7 +388,6 @@ page 1 (
                 ```sql
                 select c.id_comunicado,
                        c.titulo,
-                       -- resumo em texto puro: tira as tags do editor e corta em 220 caracteres
                        substr(trim(regexp_replace(regexp_replace(dbms_lob.substr(c.conteudo, 1000, 1),
                                                                  '<[^>]+>', ' '),
                                                   '\s+', ' ')), 1, 220) as resumo,
@@ -264,14 +399,26 @@ page 1 (
                          || case when extract(year from c.data_publicacao) <> extract(year from sysdate)
                                  then ' de ' || to_char(c.data_publicacao, 'yyyy')
                             end as data_publicacao_txt,
-                       -- selo "Novo": publicado nos últimos 7 dias
-                       case when c.data_publicacao >= trunc(sysdate) - 7 then 'Novo' end as selo
+                       case when c.data_publicacao >= trunc(sysdate) - 7 then 'Novo' end as selo,
+                       k.nm_categoria as categoria,
+                       -- "Não lido": só para quem tem colaborador e ainda não abriu
+                       case when eu.id_colaborador is not null
+                             and not exists (select 1 from comunicado_leitura l
+                                              where l.id_comunicado = c.id_comunicado
+                                                and l.id_colaborador = eu.id_colaborador)
+                            then 'S' end as nao_lido
                   from comunicado c
                   left join departamento d
                     on d.id_departamento = c.id_departamento
+                  left join categoria_comunicado k
+                    on k.id_categoria = c.id_categoria
+                  left join colaborador eu
+                    on upper(trim(eu.login_apex)) = upper(trim(:APP_USER))
+                   and eu.id_empresa = c.id_empresa
                  where c.id_empresa = :G_ID_EMPRESA
-                 order by c.data_publicacao desc, c.id_comunicado desc
+                 order by case c.fl_fixado when 'S' then 0 else 1 end, c.data_publicacao desc, c.id_comunicado desc
                  fetch first 5 rows only
+                
                 ```
         }
         layout {
@@ -304,14 +451,20 @@ page 1 (
                 ```html
                 <span class="cx-home-comunicado__meta">
                   {if SELO/}<span class="cx-badge cx-badge--info">&SELO.</span>{endif/}
-                  <span class="cx-etiqueta">&PUBLICO.</span>
-                  <span>&DATA_PUBLICACAO_TXT.</span>
+                  {if CATEGORIA/}<span class="cx-etiqueta">&CATEGORIA.</span>{endif/}
+                  <span class="cx-home-comunicado__para">&PUBLICO. · &DATA_PUBLICACAO_TXT.</span>
                 </span>
                 <span class="cx-home-comunicado__titulo">&TITULO.</span>
+                
                 ```
         }
         body {
-            column: RESUMO
+            advancedFormatting: true
+            htmlExpression:
+                ```html
+                &RESUMO.{if NAO_LIDO/}<span class="cx-home-nao-lido" data-cx-nao-lido>Não lido</span>{endif/}
+                
+                ```
         }
         media {
             source: blobColumn
@@ -404,9 +557,52 @@ page 1 (
         }
     )
 
+    region pesquisa-de-clima (
+        name: Pesquisa de clima
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_home_ui.render_pesquisa;
+        }
+        layout {
+            sequence: 20
+            parentRegion: @coluna-lateral
+            slot: subRegions
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: home_pesquisa
+        }
+    )
+
+    region próximos-eventos (
+        name: Próximos eventos
+        title: <span class="fa fa-calendar-o" aria-hidden="true"></span>Próximos eventos
+        type: dynamicContent
+        source {
+            plsqlFunctionBody: return pkg_home_ui.render_eventos;
+        }
+        layout {
+            sequence: 30
+            parentRegion: @coluna-lateral
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+            cssClasses: cx-home-card
+        }
+    )
+
     region suas-pendências (
         name: Suas pendências
-        title: Suas pendências<span class="cx-home-card__subtitulo">Itens que aguardam uma ação sua</span>
+        title: Suas pendências<span class="cx-home-contador">&P1_QT_PENDENCIAS.</span><span class="cx-home-card__subtitulo">Itens que aguardam uma ação sua</span>
         type: dynamicContent
         source {
             plsqlFunctionBody: return pkg_home_ui.render_pendencias;
@@ -430,12 +626,129 @@ page 1 (
         }
     )
 
+    pageItem P1_FB_DESTINATARIO (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 10
+            region: @dar-feedback
+            slot: regionBody
+        }
+    )
+
+    pageItem P1_FB_TEXTO (
+        type: textarea
+        label {
+            label: Feedback
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @dar-feedback
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        validation {
+            maxLength: 1000
+        }
+    )
+
+    pageItem P1_FB_TIPO (
+        type: radioGroup
+        label {
+            label: Tipo
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:Reconhecimento;RECONHECIMENTO,Sugestão;SUGESTAO
+            displayNullValue: false
+        }
+        layout {
+            sequence: 20
+            region: @dar-feedback
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        default {
+            type: static
+            staticValue: RECONHECIMENTO
+        }
+    )
+
     pageItem P1_MES_ATUAL (
         type: hidden
         layout {
             sequence: 100
             region: @coluna-lateral
             slot: regionBody
+        }
+    )
+
+    pageItem P1_NAO_LIDOS (
+        type: hidden
+        layout {
+            sequence: 110
+            region: @coluna-lateral
+            slot: regionBody
+        }
+    )
+
+    pageItem P1_QT_PENDENCIAS (
+        type: hidden
+        layout {
+            sequence: 120
+            region: @coluna-lateral
+            slot: regionBody
+        }
+    )
+
+    button fb-cancelar (
+        buttonName: FB_CANCELAR
+        label: Cancelar
+        layout {
+            sequence: 40
+            region: @dar-feedback
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+            cssClasses: cx-home-fb-cancelar
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    button fb-enviar (
+        buttonName: FB_ENVIAR
+        label: Enviar feedback
+        layout {
+            sequence: 40
+            region: @dar-feedback
+            slot: create
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+            cssClasses: cx-home-fb-enviar
+        }
+        behavior {
+            action: definedByDynamicAction
         }
     )
 
@@ -519,6 +832,30 @@ page 1 (
 
     )
 
+    computation p1-nao-lidos (
+        itemName: P1_NAO_LIDOS
+        execution {
+            sequence: 20
+            point: beforeHeader
+        }
+        computation {
+            type: expression
+            plsqlExpression: pkg_home_ui.nao_lidos_texto
+        }
+    )
+
+    computation p1-qt-pendencias (
+        itemName: P1_QT_PENDENCIAS
+        execution {
+            sequence: 30
+            point: beforeHeader
+        }
+        computation {
+            type: expression
+            plsqlExpression: pkg_home_ui.qt_pendencias
+        }
+    )
+
     computation p9-mes-atual (
         itemName: P1_MES_ATUAL
         execution {
@@ -535,6 +872,24 @@ page 1 (
         }
     )
 
+    process marcar-lido (
+        name: MARCAR_LIDO
+        type: executeCode
+        source {
+            plsqlCode: pkg_home_ui.ajax_marcar_lido(apex_application.g_x01);
+        }
+        execution {
+            sequence: 20
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 47614187120452031
+        }
+        security {
+            authorizationScheme: @colaborador
+        }
+    )
+
     process registrar-marcacao (
         name: REGISTRAR_MARCACAO
         type: executeCode
@@ -547,6 +902,42 @@ page 1 (
         }
         advanced {
             executionMappingIdentifier: 47612812573452018
+        }
+        security {
+            authorizationScheme: @colaborador
+        }
+    )
+
+    process responder-pesquisa (
+        name: RESPONDER_PESQUISA
+        type: executeCode
+        source {
+            plsqlCode: pkg_home_ui.ajax_responder_pesquisa(apex_application.g_x01);
+        }
+        execution {
+            sequence: 30
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 47614217236452032
+        }
+        security {
+            authorizationScheme: @colaborador
+        }
+    )
+
+    process salvar-feedback (
+        name: SALVAR_FEEDBACK
+        type: executeCode
+        source {
+            plsqlCode: pkg_home_ui.ajax_salvar_feedback(apex_application.g_x01, apex_application.g_x02, apex_application.g_x03);
+        }
+        execution {
+            sequence: 40
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 47614302757452033
         }
         security {
             authorizationScheme: @colaborador
