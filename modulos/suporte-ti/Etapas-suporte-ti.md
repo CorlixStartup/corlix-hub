@@ -152,14 +152,14 @@ Os ícones aceitos em `cd_icone` são `key`, `mail`, `laptop`, `wifi`, `janela` 
 
 ## 2. Arquivos estáticos
 
-Em *Shared Components › Static Application Files › Create File*, envie os dois arquivos **na raiz** (sem pasta):
+Em *Shared Components › Static Application Files › Create File*, envie os dois arquivos na pasta `modulos/suporte-ti/` (como os outros módulos):
 
 | File Name | Arquivo |
 |---|---|
-| `suporte.css` | `modulos/suporte-ti/suporte.css` |
-| `suporte.min.css` | `modulos/suporte-ti/suporte.min.css` |
+| `modulos/suporte-ti/suporte.css` | `modulos/suporte-ti/suporte.css` |
+| `modulos/suporte-ti/suporte.min.css` | `modulos/suporte-ti/suporte.min.css` |
 
-As páginas 34, 36, 37 e 39 carregam `suporte#MIN#.css`, então os dois precisam existir e estar iguais. Quando mudar o `.css`, gere o `.min.css` de novo e suba os dois.
+As páginas 34, 36, 37 e 39 carregam `#APP_FILES#modulos/suporte-ti/suporte#MIN#.css` (é o que está no backup de 13/11/2026; versões antigas deste guia mandavam subir na raiz), então os dois precisam existir e estar iguais. Quando mudar o `.css`, gere o `.min.css` de novo e suba os dois.
 
 ---
 
@@ -865,3 +865,35 @@ No próximo backup, `corlixhub/pages/p00034-*.apx` deve ter `authorizationScheme
 | Aviso não volta depois de fechado | Sistema não foi alterado desde que o aviso foi fechado | Esperado. Altere o sistema ou abra uma nova sessão do navegador |
 | Chamados resolvidos não encerram sozinhos | Job desligado | `select enabled, state, failure_count from user_scheduler_jobs where job_name = 'SUPORTE_ENCERRAR_VENCIDOS'` |
 | Atalho da Início diz "ainda não tem destino" | `pkg_home_ui` antigo no banco | Seção 13 |
+
+---
+
+## Situação
+
+| Data | O quê | Estado |
+|---|---|---|
+| 09/11/2026 | Banco (§1) | **Instalado:** tabelas `SUPORTE_*`, `VW_SUPORTE_FILA`, `PKG_SUPORTE` e `PKG_SUPORTE_UI` válidos (compilados em 09/11 22:41), job `SUPORTE_ENCERRAR_VENCIDOS` ativo (última execução 12/11 23:30). Conteúdo de exemplo: 6 assuntos, 7 artigos e 5 sistemas da empresa 1. Conferido no SQL Commands em 13/11/2026, só leitura |
+| 10/11/2026 | Páginas 34 a 43 (§4 a §11) | Criadas no Builder (backup `acd59be`); detalhe por página nas [fichas](../../docs/ai-context/paginas/README.md) |
+| 13/11/2026 | Levantamento do que falta (backup `84f8625` + banco) | Ver "O que falta" abaixo. Nenhum teste do §14 registrado; `SUPORTE_CHAMADO` está vazia, então nenhum chamado foi aberto |
+
+### O que falta (13/11/2026)
+
+**Banco e acesso**
+1. **Contatos (§1.3):** `SUPORTE_CONFIG` da empresa 1 está com o texto literal do guia (`<ramal> | <telefone> | <horário>`); a p34 mostra isso na tela. Rodar o `update` com os dados reais.
+2. **Papel `Suporte TI` (§3.3):** só a conta `SARAHSILVA2` tem o papel, e ela **não tem colaborador vinculado**: vê as páginas da TI, mas não consegue atender (`-20076`). Dar o papel a quem vai atender (com colaborador). Para o §14, a conta B precisa do papel e de colaborador.
+3. **Artigos de exemplo (§1.3):** revisar os 7 artigos na p42 antes de liberar.
+
+**Páginas (Builder)**
+4. **p42 e p43 (§11.2 e §11.3), urgente por segurança:** a lista não filtra por empresa e o formulário deixa escolher a empresa e lista assuntos de todas. O formulário também tem itens `DH_`/`USR_`/`NR_ACESSOS` na tela (o `P43_DH_ATUALIZACAO` obrigatório deve impedir salvar) e `FL_PUBLICADO` em texto livre.
+5. **p36 (§6.3 e §6.4):** condição no `P36_ANEXO`, *Purge File At* **End of Request**, região de botões em **Buttons Container** no *Dialog Footer*, `RESPONDER`/`REABRIR` como Hot e o rótulo "Fechar".
+6. **p39 (§8.2 e §8.3):** condição de status nos itens visíveis e no `SALVAR`, região de botões em **Buttons Container** no *Dialog Footer*, *Purge File At* do anexo.
+7. **p34 e p37 (§4.2 e §7.2):** mover o `Cabeçalho` do slot `body` para **Breadcrumb Bar**.
+8. **p40, p41, p42 e p43:** textos do assistente em inglês (botões, cabeçalhos de coluna, "No data found") e `ST_SISTEMA` sem LOV de exibição.
+
+**Navegação**
+9. **Menu (§12):** criar as 4 entradas (Suporte TI, Atendimento TI, Status dos sistemas, Artigos de suporte). Hoje as páginas só abrem pela URL.
+10. **Atalho da Início (§13):** o `pkg_home_ui` reinstalado em 13/11/2026 já aponta para a p34; conferir na Home depois do menu.
+
+**Testes**
+11. **§14 (1 a 29)**, com duas contas com colaborador: A abre chamados, B tem o papel `Suporte TI`. Os testes gravam chamados, mensagens e anexos: registrar aqui e apagar os dados de teste depois.
+
