@@ -19,6 +19,8 @@ Resumo:
 - **Dúvida sobre o APEX (componente, atributo, API PL/SQL ou JS, APEXlang)?** Consulte `docs/apex-26.1/` e, para o detalhe exato, a documentação oficial indexada: `python3 scripts/busca-casos/casos.py buscar "<termos em inglês>" --fonte apex`. Não responda de memória quando a doc puder confirmar.
 - **Apareceu um erro ou comportamento estranho?** Antes de investigar, procure casos já ocorridos com `python3 scripts/busca-casos/casos.py buscar "<mensagem ou sintoma>"` (Elasticsearch; ver [`scripts/busca-casos/README.md`](scripts/busca-casos/README.md)). Ao resolver um caso novo, registre-o no `09` ou na tabela "Se não funcionar" do guia do módulo e rode `casos.py indexar`.
 
+- **Export colado pelo time?** Valide com a skill [`fechar-task`](.claude/skills/fechar-task/SKILL.md): ela compara o export com o bloco `export-check` do guia (`python3 .claude/skills/fechar-task/validar_export.py <guia> <export.apx>`) e diz se a tarefa pode ser fechada. Guia sem bloco: escreva o checklist a partir das instruções do guia antes de validar.
+
 - **Documentação de encerramento (obrigatória):** ao finalizar qualquer tarefa ou módulo, atualize o registro correspondente com o que foi feito, decisões, evidências, testes (inclusive falhas), estado instalado versus proposto, pendências e próximo passo. A resposta final não substitui o registro versionado. Veja 08 §1, regra 15.
 
 - **Sem CSS Inline:** estilos das páginas devem ficar nos arquivos CSS dos módulos ou no tema existente, com versão minificada sincronizada e publicação pelo Builder. Não orientar CSS Inline nem atributo style como etapa provisória de teste.
