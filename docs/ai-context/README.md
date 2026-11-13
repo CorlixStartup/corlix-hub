@@ -62,7 +62,7 @@
 | 22 | Solicitar correção (modal do colaborador) | Implementada (§6 do guia) |
 | 23 | Responder solicitação de correção (modal do Dashboard RH) | Implementada (§5.5 do guia) |
 | 15 / 16 | Empresas (lista / modal de cadastro com ViaCEP) | Implementada |
-| 17 | Novo comunicado (modal) | Diálogo no layout do protótipo aplicado em 12/11/2026 (`modulos/comunicados/Etapas-comunicados.md` §4) e conferido na app sem publicar. Testes da §5 sem gravar ok, inclusive a validação PNG/JPG corrigida (GIF barrado). Publicar e conferir no banco ainda pendentes |
+| 17 | Novo comunicado (modal) | Diálogo no layout do protótipo aplicado em 12/11/2026 (`modulos/comunicados/Etapas-comunicados.md` §4) e conferido na app sem publicar. Testes da §5 feitos em 12/11/2026, inclusive a publicação (apagada depois). Falta trocar a mensagem de sucesso (§4.10, passo 2); a hora gravada é `00:00` (limite conhecido) |
 | 26 / 27 | Central de Equipes / Nova Equipe (modal) | Implementada |
 | 28 | Início (nova Home) | Em montagem pelo `modulos/home/Etapas-home.md`; vira a Home no §5 do guia |
 | 29 | Busca (resultados da busca do header) | Em montagem pelo `modulos/busca/Etapas-busca.md` |
