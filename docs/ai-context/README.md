@@ -44,7 +44,7 @@
 | Nº | Página | Status |
 |---|---|---|
 | 0 | Global Page (header: busca, sino, config, usuário) | Implementada |
-| 1 | Início (Home) | Implementada com o redesign do `modulos/home` (protótipo antigo). §6 e §7 do `Etapas-home.md` aplicados em 10/11/2026; §8 (categoria, "Não lido", indicadores, Feedbacks, Pesquisa, Eventos, 1:1, Dar feedback) versionado e não aplicado, com os módulos novos `modulos/comunicados` e `modulos/home-blocos` |
+| 1 | Início (Home) | Implementada com o redesign do `modulos/home` (protótipo antigo). §6 e §7 do `Etapas-home.md` aplicados em 10/11/2026; §8 (categoria, "Não lido", indicadores, Feedbacks, Pesquisa, Eventos, 1:1, Dar feedback) com o banco aplicado e a página quase toda aplicada (export de 12/11/2026: 44/51 regras; faltam 5 ajustes listados na Situação do guia); testes do 8.11 não rodados |
 | 2 | Meu Perfil | Implementada; restrição de dados pessoais aplicada e testada em 04/11/2026: `modulos/perfil/Etapas-perfil-privacidade.md` |
 | 3 | Organograma | Placeholder; o módulo existe em `modulos/organograma` |
 | 4 | Chat | Parcial (leitura, sem envio) |
