@@ -256,6 +256,69 @@ Se *Column* não listar `FL_FIXADO`, escolha de novo `COMUNICADO` em *Source ›
 
 **No export** (`p00017-comunicado.apx`, depois do próximo backup), procure: `dialogTemplate: @/modal-dialog`; `fileUrls: #APP_FILES#modulos/comunicados/comunicado#MIN#.css`; a região `buttons` com `slot: dialogFooter`; `pageItem P17_PUBLICO` com `type: radioGroup`; `pageItem P17_FL_FIXADO` com `column: FL_FIXADO`; `valueRequired: true` em `P17_ID_CATEGORIA` e `P17_CONTEUDO`; e um `process` com `type: closeDialog`.
 
+Checklist lido pelo validador de exports (skill `fechar-task`, `.claude/skills/fechar-task/`). Cada linha é `componente | texto que a linha do export deve conter`, `!` para "não pode conter":
+
+```export-check
+pagina: 17
+# 4.2 Página
+page 17 | title: Novo comunicado
+page 17 | dialogTemplate: @/modal-dialog
+page 17 | width: 680
+page 17 | fileUrls: #APP_FILES#modulos/comunicados/comunicado#MIN#.css
+region buttons | slot: dialogFooter
+region step-1 | cssClasses: cx-comunicado
+# 4.3 Aviso
+region aviso | cx-comunicado__aviso
+region aviso | sequence: 5
+region aviso | slot: contentBody
+region aviso | cssClasses: cx-comunicado
+# 4.4 Público
+pageItem P17_PUBLICO | type: radioGroup
+pageItem P17_PUBLICO | staticValues: STATIC:Todos;TODOS,Um departamento;DEPARTAMENTO
+pageItem P17_PUBLICO | columnCssClasses: cx-comunicado__publico
+pageItem P17_PUBLICO | staticValue: TODOS
+pageItem P17_PUBLICO | valueRequired: true
+dynamicAction público | value: DEPARTAMENTO
+dynamicAction público | action: hide
+dynamicAction público | action: show
+dynamicAction público | !serverSideCondition
+validation departamento-obrigatório | item: P17_ID_DEPARTAMENTO
+validation departamento-obrigatório | errorMessage: Escolha o departamento destinatário.
+computation p17-id-departamento | value: TODOS
+# 4.5 Departamento e Categoria
+pageItem P17_ID_DEPARTAMENTO | !nullDisplayValue
+pageItem P17_ID_CATEGORIA | !nullDisplayValue
+pageItem P17_ID_CATEGORIA | startNewRow: false
+pageItem P17_ID_CATEGORIA | valueRequired: true
+pageItem P17_ID_CATEGORIA | column: ID_CATEGORIA
+# 4.6 Título e Comunicado
+pageItem P17_TITULO | valueRequired: true
+pageItem P17_CONTEUDO | valueRequired: true
+# 4.7 Imagem
+pageItem P17_IMAGEM | displayAs: inlineDropzone
+pageItem P17_IMAGEM | aspectRatio: widescreen
+pageItem P17_IMAGEM | maxFileSize: 5120
+validation imagem-png-ou-jpg | regexp_like(:P17_IMAGEM, '\.(png|jpe?g)$', 'i')
+validation imagem-png-ou-jpg | !apex_application_temp_files
+validation imagem-png-ou-jpg | errorMessage: Envie uma imagem PNG ou JPG.
+# 4.8 Fixar no topo
+pageItem P17_FL_FIXADO | checkedValue: S
+pageItem P17_FL_FIXADO | uncheckedValue: N
+pageItem P17_FL_FIXADO | !valueRequired: true
+pageItem P17_FL_FIXADO | columnCssClasses: cx-comunicado__fixar
+pageItem P17_FL_FIXADO | column: FL_FIXADO
+# 4.9 Botões
+button next | label: Publicar comunicado
+button next | !fa-chevron-right
+button next | !confirm
+# 4.10 Fechar e data local
+process fechar | type: closeDialog
+process fechar | successMessage: Comunicado publicado.
+process fechar | whenButtonPressed: @next
+process processo-emissao-comunicado | !successMessage
+pageItem P17_DATA_PUBLICACAO | America/Sao_Paulo
+```
+
 ### 4.11 Home: fixados primeiro
 
 No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** já ordena os fixados primeiro (`order by case c.fl_fixado when 'S' then 0 else 1 end, ...`). Por isso o §8.1 da Home pede o `03_ddl_fixado.sql` antes.
@@ -310,3 +373,4 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 | 12/11/2026 (testes da §5, sem gravar) | Feitos pelo agente na app (conta `teste.rh`), com envios que o servidor recusa e o diálogo fechado em Cancelar: **1** e **2** ok (Público e Departamento); **3** ok (erros em Categoria, Título e Comunicado; com "Um departamento" o servidor devolve "Escolha o departamento destinatário."); **4** ok (o recorte abre em 16:9). **Falha:** um GIF de 640×360 chegou ao servidor como `image/gif` e não foi barrado, porque a validação `Imagem PNG ou JPG` consultava `APEX_APPLICATION_TEMP_FILES` e o item grava direto na coluna BLOB. §4.7 corrigido (expressão sobre a extensão), **falta aplicar e testar de novo**. Detalhe visto: as mensagens padrão ("… must have some value", "Crop Image") estão em inglês. Os passos **5** e **6** (publicar e conferir no banco) não foram feitos: aguardam a confirmação do texto de teste |
 | 12/11/2026 (6º export) | Validação `Imagem PNG ou JPG` trocada pela expressão de extensão do §4.7. A expressão ficou com `;` no fim (`…'i');`), que o APEX pode recusar ao executar. **Reteste com PNG e GIF não feito**: o envio pelo agente foi bloqueado pela permissão do ambiente e aguarda autorização do time |
 | 12/11/2026 (reteste da imagem) | Autorizado pelo time e feito pelo agente sem gravar (Comunicado vazio, diálogo fechado em Cancelar): **PNG** recortado em 16:9 passa sem erro de imagem (e o `;` no fim da expressão não deu erro de execução); **GIF** é barrado com "Envie uma imagem PNG ou JPG.". Validação ok. Faltam os passos **5** e **6** da §5 (publicar e conferir no banco), que aguardam a confirmação do texto de teste |
+| 12/11/2026 (7º export, validador) | Mesmo export do reteste, conferido pelo validador `fechar-task` contra o bloco `export-check` do §4.10: **48/48 regras ok**. Para conferir que o validador pega erros, rodamos uma cópia com Width 900, Checked Value `5` e a consulta em `APEX_APPLICATION_TEMP_FILES`, e ele acusou as 4 regras certas. **Fechamento:** export e testes sem gravar ok. A tarefa só fecha depois dos passos **5** e **6** da §5 (publicar e conferir no banco), que gravam dados e esperam o time. Opcional: tirar o `;` do fim da expressão da validação de imagem |
