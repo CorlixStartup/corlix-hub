@@ -10,7 +10,7 @@
 - **App:** ID `100`, alias `CORLIXHUB`, workspace/schema `WKSP_CORLIXHUB`, autenticação por contas APEX, idioma da UI pt-BR (idioma primário técnico `en`).
 - **Fonte da app:** `corlixhub/` em formato **APEXlang** (`.apx`), **somente leitura** para agentes (ver regra 1 abaixo). `database/f100.sql` é o mesmo app num export SQL de 12 MB: use só para consultar, nunca edite.
 - **Banco:** o DDL das tabelas base (`COLABORADOR`, `CARGO`, `DEPARTAMENTO`, `EMPRESA`, `COMUNICADO`, `EQUIPE`, chat, logs…) está em `database/corlix-hub.sql`. É um snapshot só de estrutura, **sem dados**, e não serve como instalador. O módulo de histórico de carreira tem DDL próprio em `modulos/historico-carreira/`. Dados exportados ficam em `database/dados/` (hoje só `departamento.xlsx`: 6 departamentos da empresa 1).
-- **Em andamento:** redesign visual (tokens `--cx-*` em `corlix-tema.css`), módulo de Organograma (`modulos/organograma`, página 3), Histórico de carreira integrado nas páginas 13 e 18–23 (guia `modulos/historico-carreira/Etapas-historico-carreira.md`), redesign da Home numa página nova, a 28, sem apagar a 1 (`modulos/home`, guia `Etapas-home.md`, branch `feature/redesign-home`), redesign do Dashboard RH na própria página 20 (`modulos/dashboard-rh`, guia `Etapas-dashboard-rh.md`), redesign do Holerite na própria página 9 (`modulos/holerite`, guia `Etapas-holerite.md`) e ~28 telas-alvo em `pen_dev/`.
+- **Em andamento (13/11/2026):** Home (p1) e Novo comunicado (p17) concluídos; Holerite (p9) aplicado com o PDF pendente; Suporte TI (p34–43) criado e ainda sem menu e sem testes; isolamento por empresa (`modulos/isolamento-empresas`) e redesign do Dashboard RH (p20) e do Login (p9999) versionados e não aplicados. Telas-alvo em `pen_dev/`. Estado por página na tabela abaixo.
 
 ## Documentos
 
@@ -28,9 +28,11 @@
 | — | [**Base Oracle APEX 26.1**](../apex-26.1/README.md) | Referência do APEX tirada da documentação oficial (conceitos, páginas, relatórios, segurança, APIs PL/SQL/JS, APEXlang, workflows, REST, admin, novidades). Use para dúvidas sobre o APEX em si |
 | 10 | [Cookies e sessão (OCI)](./10-erro-400-cookies.md) | `400 Request Header Or Cookie Too Large` e sessão do Builder caindo/pedindo workspace: causa, diagnóstico, correção |
 | 11 | [**Padrões de páginas**](./11-padroes-de-paginas.md) | **Leia antes de criar ou alterar qualquer página.** Qual página copiar, regras obrigatórias, checklist e como propor exceção |
+| — | [**Fichas das páginas**](./paginas/README.md) | Uma ficha por página (estado, template, autorização, regiões, lógica, dados, pendências). **Leia a da página antes de mexer nela** |
+| — | [**Regras e fluxos para agentes**](../agentes/README.md) | Conduta e fluxos de trabalho para qualquer agente (validar export, testar na app, escrever guia, ficha de página, dividir trabalho) |
 
 ### Guia por tipo de tarefa
-- **Mexer numa página existente:** 11 → 08 → 02 (seção da página) → 03 (componentes que ela usa) → 04 (classes CSS).
+- **Mexer numa página existente:** ficha da página (`paginas/`) → 11 → 08 → 02 (seção da página) → 03 (componentes que ela usa) → 04 (classes CSS).
 - **Criar uma página ou tela do pen.dev:** 11 → 07 (tela) → 02 §1 (sintaxe) → 04 §8 (aplicar tema) → 08.
 - **Mexer no banco ou criar tabela:** 05 → 06 §4 (padrão de módulo) → 08.
 - **Integrar organograma ou histórico de carreira:** 06 → 05 → 02 (páginas 3/13).
@@ -41,35 +43,54 @@
 
 ## Páginas (visão rápida)
 
-| Nº | Página | Status |
-|---|---|---|
-| 0 | Global Page (header: busca, sino, config, usuário) | Implementada |
-| 1 | Início (Home) | Implementada com o redesign do `modulos/home` (protótipo antigo). §6 e §7 do `Etapas-home.md` aplicados em 10/11/2026; §8 (categoria, "Não lido", indicadores, Feedbacks, Pesquisa, Eventos, 1:1, Dar feedback) **concluído em 13/11/2026** (export 55/55, testes 1 a 8 na app). Pendências aceitas pelo time: testes de Parabenizar (15/11), "Disponível agora" e conta sem colaborador |
-| 2 | Meu Perfil | Implementada; restrição de dados pessoais aplicada e testada em 04/11/2026: `modulos/perfil/Etapas-perfil-privacidade.md` |
-| 3 | Organograma | Placeholder; o módulo existe em `modulos/organograma` |
-| 4 | Chat | Parcial (leitura, sem envio) |
-| 5 / 8 | Notificações (duplicadas) | Placeholder / vazia |
-| 6 | Configurações | Placeholder |
-| 7 | Monitor de Logs | Implementada; hoje exige `ADMIN_RH`. Passa a ser só da equipe do Corlix Hub (`EQUIPE_CORLIX_HUB`): `modulos/isolamento-empresas/Etapas-isolamento-empresas.md` §5 |
-| 9 | Holerite digital | Redesign aplicado e testado na app em 07/11/2026 (testes 1 a 16 e 18), com valores ocultos ao abrir e geração da folha fora da página. Falta o teste 17, a partir de 25/11/2026. PDF no modelo "Aviso de crédito" proposto em 10/11/2026, ainda não aplicado; pendências em `modulos/holerite/Etapas-holerite.md`, "Situação na app" |
-| 11 | Comunicados Oficiais | Placeholder |
-| 12 | Colaboradores | Implementada e validada na app em 09/11/2026 (Faceted Search + Classic Report; guia `modulos/colaboradores/Etapas-colaboradores.md`). Pendências para o final: `modulos/colaboradores/Pendencias.md` |
-| 13 | Histórico de carreira | Implementada (módulo `modulos/historico-carreira`, §2 do guia) |
-| 14 | Cadastro de Usuários (cria usuário APEX e a admissão no histórico) | Implementada (`ADMIN_RH`); edição validada em 09/11/2026. Criar pelo RH falha (`CREATE_USER` exige admin do workspace): `modulos/colaboradores/Pendencias.md` §1 |
-| 18 | Movimentação (modal do histórico de carreira) | Implementada (§3 do guia) |
-| 19 / 21 | Formações e certificações (lista) / Formação (modal) | Implementadas (§4 do guia) |
-| 20 | Dashboard RH | Implementada (§5 do guia); redesign pelo `modulos/dashboard-rh/Etapas-dashboard-rh.md` |
-| 22 | Solicitar correção (modal do colaborador) | Implementada (§6 do guia) |
-| 23 | Responder solicitação de correção (modal do Dashboard RH) | Implementada (§5.5 do guia) |
-| 15 / 16 | Empresas (lista / modal de cadastro com ViaCEP) | Implementada |
-| 17 | Novo comunicado (modal) | Diálogo no layout do protótipo aplicado em 12/11/2026 (`modulos/comunicados/Etapas-comunicados.md` §4) e conferido na app sem publicar. **Concluída em 12/11/2026:** export validado (48/48) e todos os testes da §5 feitos, inclusive a publicação (testes apagados depois). Limite conhecido: a hora é gravada como `00:00` |
-| 26 / 27 | Central de Equipes / Nova Equipe (modal) | Implementada |
-| 28 | Início (nova Home) | Em montagem pelo `modulos/home/Etapas-home.md`; vira a Home no §5 do guia |
-| 29 | Busca (resultados da busca do header) | Em montagem pelo `modulos/busca/Etapas-busca.md` |
-| 30 a 33 | Ponto eletrônico, Solicitar ajuste (modal), Ajustes de ponto, Responder ajuste (modal) | Implementadas; ajustes da validação aplicados em 03/11/2026. Ajustes de `Etapas-meus-pedidos.md` também aplicados. Validadas na app, com dados de demonstração no ambiente DEV (`modulos/ponto-eletronico/Etapas-ajustes-validacao.md`, "Resultado na app") |
-| 34 a 43 | Suporte TI, Abrir chamado e Chamado (modais), Base de conhecimento, Atendimento TI e Atender chamado (modal), Status dos sistemas e Artigos (lista + modal) | Planejadas: `modulos/suporte-ti/Etapas-suporte-ti.md` |
-| 44 | Foto (entrega a foto do bucket privado, sem navegação) | Planejada: `modulos/arquivos/Etapas-fotos-object-storage.md` |
-| 9999 | Login | Implementada; redesign proposto pelo `modulos/login/Etapas-login.md` (protótipo `pen_dev/Login.png`), ainda não aplicado |
+Estado em 13/11/2026 (backup de DEV `84f8625`), com link para a **ficha de cada página** ([`paginas/`](./paginas/README.md)), que traz template, autorização, regiões, lógica, dados e pendências. Os guias ficam em `modulos/<pasta>/`.
+
+| Nº | Página | Estado | Guia |
+|---|---|---|---|
+| 0 | [Global Page](./paginas/p00000-global-page.md) | Implementada: busca do header (`pkg_busca_ui`) e menu do usuário em popover. Sem registro de teste | `busca`, `tema/Etapas-header-e-menu.md` |
+| 1 | [Início](./paginas/p00001-início.md) | **§8 concluído** (55/55, testes 1 a 8). Pendentes: Parabenizar, "Disponível agora" e conta sem colaborador | `home/Etapas-home.md` |
+| 2 | [Meu Perfil](./paginas/p00002-meu-perfil.md) | Implementada e testada (privacidade e protótipo). "Salvar foto" sem ação | `perfil/` |
+| 3 | [Organograma](./paginas/p00003-organograma.md) | Implementada com `pkg_organograma` e drawer; sem registro de isolamento por empresa | `organograma/Etapas-organograma.md` |
+| 4 | [Chat](./paginas/p00004-chat.md) | Implementada com envio e polling de 1 s; sem guia no repositório; CSS inline | — |
+| 5 | [Notificações](./paginas/p00005-notificacoes.md) | Placeholder (destino do sino) | — |
+| 6 | [Configurações](./paginas/p00006-configuracoes.md) | Placeholder, sem autorização | — |
+| 7 | [Monitor de Logs](./paginas/p00007-monitor-logs.md) | Implementada com `@admin-rh`; a troca para `EQUIPE_CORLIX_HUB` não foi aplicada | `isolamento-empresas/` §5 |
+| 8 | [Notificações (vazia)](./paginas/p00008-notificações.md) | Vazia, duplicada da 5, sem referências | — |
+| 9 | [Holerite Digital](./paginas/p00009-holerite-digital.md) | Redesign aplicado e testado (falta o teste 17); PDF "Aviso de crédito" não aplicado | `holerite/Etapas-holerite.md` |
+| 11 | [Comunicados Oficiais](./paginas/p00011-comunicados-oficiais.md) | Placeholder; destino de "Ler comunicado" e "Ver todos" | — |
+| 12 | [Colaboradores](./paginas/p00012-colaboradores.md) | Implementada e validada (09/11/2026) | `colaboradores/Etapas-colaboradores.md` |
+| 13 | [Histórico de carreira](./paginas/p00013-historico-de-carreira.md) | Implementada e validada (19/10/2026) | `historico-carreira/` §2 |
+| 14 | [Cadastro de Usuários](./paginas/p00014-cadastros-de-usuarios.md) | Criação e edição; edição validada; criar pelo RH falha (`CREATE_USER`) | `colaboradores/` |
+| 15 | [Empresas Cadastradas](./paginas/p00015-empresas-cadastradas.md) | Implementada no visual do protótipo | `tema/Etapas-empresas.md` |
+| 16 | [Cadastro de Empresas](./paginas/p00016-cadastro-de-empresas.md) | Modal com BrasilAPI e ViaCEP | `tema/Etapas-cadastro-empresa.md` |
+| 17 | [Novo comunicado](./paginas/p00017-comunicado.md) | **Concluída** (48/48, testes da §5). Sem autorização própria na página | `comunicados/Etapas-comunicados.md` |
+| 18 | [Movimentação](./paginas/p00018-movimentacao.md) | Implementada e validada; falta o filtro por empresa do isolamento | `historico-carreira/` §3 |
+| 19 | [Formações e certificações](./paginas/p00019-formacoes-e-certificacoes.md) | Implementada e validada | `historico-carreira/` §4 |
+| 20 | [Dashboard RH](./paginas/p00020-dashboard-rh.md) | Versão antiga validada; redesign não aplicado | `dashboard-rh/Etapas-dashboard-rh.md` |
+| 21 | [Formação](./paginas/p00021-formacao.md) | Implementada e validada; falta o filtro por empresa do isolamento | `historico-carreira/` §4.5 |
+| 22 | [Solicitar correção](./paginas/p00022-solicitar-correcao.md) | Implementada e validada | `historico-carreira/` §6 |
+| 23 | [Responder solicitação](./paginas/p00023-responder-solicitacao.md) | Implementada e validada | `historico-carreira/` §5.5 |
+| 26 | [Central de Equipes](./paginas/p00026-central-de-equipes.md) | Versão do assistente, **sem autorização e sem filtro por empresa** | `isolamento-empresas/` §3 e §4.1 |
+| 27 | [Nova Equipe](./paginas/p00027-nova-equipe.md) | Modal do assistente, **sem autorização e sem filtro por empresa** | `isolamento-empresas/` §3 e §4.2 |
+| 29 | [Busca](./paginas/p00029-busca.md) | Montada conforme o guia; sem registro de teste | `busca/Etapas-busca.md` |
+| 30 | [Ponto eletrônico](./paginas/p00030-ponto-eletronico.md) | Implementada e validada (03/11/2026); carrega `ponto.css` sem `#MIN#` | `ponto-eletronico/` |
+| 31 | [Solicitar ajuste](./paginas/p00031-solicitar-ajuste.md) | Implementada e validada | `ponto-eletronico/` §5 |
+| 32 | [Ajustes de ponto](./paginas/p00032-ajustes-de-ponto.md) | Implementada e validada | `ponto-eletronico/` §7 |
+| 33 | [Responder ajuste](./paginas/p00033-responder-ajuste.md) | Implementada e validada | `ponto-eletronico/` §6 |
+| 34 | [Suporte TI](./paginas/p00034-suporte-ti.md) | Criada; fora do menu; sem registro de testes | `suporte-ti/Etapas-suporte-ti.md` §4 |
+| 35 | [Abrir chamado](./paginas/p00035-abrir-chamado.md) | Criada conforme o guia; sem registro de testes | `suporte-ti/` §5 |
+| 36 | [Chamado](./paginas/p00036-chamado.md) | Criada; botões fora do guia; sem registro de testes | `suporte-ti/` §6 |
+| 37 | [Base de conhecimento](./paginas/p00037-base-conhecimento.md) | Criada; cabeçalho no slot `body`; sem registro de testes | `suporte-ti/` §7 |
+| 38 | [Atendimento TI](./paginas/p00038-atendimento-ti.md) | Criada; fora do menu; sem registro de testes | `suporte-ti/` §9 |
+| 39 | [Atender chamado](./paginas/p00039-atender-chamado.md) | Criada sem as condições do guia; sem registro de testes | `suporte-ti/` §8 |
+| 40 | [Status dos sistemas](./paginas/p00040-status-dos-sistemas.md) | Criada pelo assistente com os ajustes do §10.2; textos em inglês | `suporte-ti/` §10 |
+| 41 | [Sistema](./paginas/p00041-sistema.md) | Criada pelo assistente com os ajustes do §10.3 | `suporte-ti/` §10.3 |
+| 42 | [Artigos](./paginas/p00042-artigos.md) | Só o assistente; **lista sem filtro por empresa** | `suporte-ti/` §11 |
+| 43 | [Artigo](./paginas/p00043-artigo.md) | Só o assistente; **empresa escolhível** e campos de controle obrigatórios | `suporte-ti/` §11.3 |
+| 44 | [Foto](./paginas/p00044-foto.md) | Em uso (entrega as fotos do bucket), validada em 09/11/2026 | `arquivos/Etapas-fotos-object-storage.md` |
+| 9999 | [Login](./paginas/p09999-login.md) | Login padrão do APEX, em inglês; redesign proposto, não aplicado | `login/Etapas-login.md` |
+
+Pontos de atenção encontrados ao montar as fichas (isolamento por empresa, autorização, menu do Suporte TI): [`paginas/README.md`](./paginas/README.md#pontos-de-atenção-achados-na-criação-das-fichas).
 
 ## Regras de ouro (resumo do 08)
 1. **Proibido modificar** `corlixhub/`, `backups/`, `pen_dev/` e `scripts/`: são só leitura; a app muda pelo Builder e o agente escreve guias e docs. Nunca edite `database/f100.sql`.

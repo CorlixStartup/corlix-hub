@@ -351,7 +351,7 @@ Pessoas: `colaborador` ativo (`status = true`) da empresa, por nome, cargo ou de
 
 ## 2E. Suporte TI (`modulos/suporte-ti/`)
 
-Guia: `modulos/suporte-ti/Etapas-suporte-ti.md`. Protótipo `pen_dev/Suporte TI.png`. Páginas 34 a 43, ainda não criadas no app. Os packages foram compilados e testados em Oracle 23ai local com as APIs do APEX simuladas; falta instalar no banco do app.
+Guia: `modulos/suporte-ti/Etapas-suporte-ti.md`. Protótipo `pen_dev/Suporte TI.png`. Páginas 34 a 43, criadas no app (backup de 10/11/2026), ainda fora do menu e sem registro de testes; ver as [fichas](./paginas/README.md). Os packages foram compilados e testados em Oracle 23ai local com as APIs do APEX simuladas; falta instalar no banco do app.
 
 | Arquivo | Conteúdo |
 |---|---|

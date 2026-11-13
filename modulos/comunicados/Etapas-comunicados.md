@@ -256,7 +256,7 @@ Se *Column* não listar `FL_FIXADO`, escolha de novo `COMUNICADO` em *Source ›
 
 **No export** (`p00017-comunicado.apx`, depois do próximo backup), procure: `dialogTemplate: @/modal-dialog`; `fileUrls: #APP_FILES#modulos/comunicados/comunicado#MIN#.css`; a região `buttons` com `slot: dialogFooter`; `pageItem P17_PUBLICO` com `type: radioGroup`; `pageItem P17_FL_FIXADO` com `column: FL_FIXADO`; `valueRequired: true` em `P17_ID_CATEGORIA` e `P17_CONTEUDO`; e um `process` com `type: closeDialog`.
 
-Checklist lido pelo validador de exports (skill `fechar-task`, `.claude/skills/fechar-task/`). Cada linha é `componente | texto que a linha do export deve conter`, `!` para "não pode conter":
+Checklist lido pelo validador de exports ([`docs/agentes/fluxos/validar-export.md`](../../docs/agentes/fluxos/validar-export.md)). Cada linha é `componente | texto que a linha do export deve conter`, `!` para "não pode conter":
 
 ```export-check
 pagina: 17

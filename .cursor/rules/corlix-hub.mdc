@@ -1,0 +1,8 @@
+---
+description: Regras do projeto Corlix Hub (APEX 26.1). Valem para qualquer tarefa neste repositório.
+alwaysApply: true
+---
+
+Siga as regras de [AGENTS.md](mdc:AGENTS.md) antes de qualquer tarefa. A conduta e os fluxos de trabalho (validar export, testar na app, escrever guia de Builder, ficha de página, dividir trabalho) estão em [docs/agentes/README.md](mdc:docs/agentes/README.md). O contexto do projeto está em [docs/ai-context/README.md](mdc:docs/ai-context/README.md).
+
+Nunca edite `corlixhub/`, `backups/`, `pen_dev/` nem `scripts/`. Escreva em pt-BR. Toda alteração vai numa branch `feature/` ou `fix/` com PR para `DEV`.

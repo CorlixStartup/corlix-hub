@@ -2,7 +2,7 @@
 """Compara um export APEXlang de página com o checklist do guia do módulo.
 
 Uso:
-    python3 validar_export.py <guia Etapas-*.md> <export.apx | -> [--pagina N]
+    python3 docs/agentes/ferramentas/validar_export.py <guia Etapas-*.md> <export.apx | -> [--pagina N]
 
 O guia traz um ou mais blocos cercados por ```export-check (um por página).
 Cada linha do bloco é uma regra:
