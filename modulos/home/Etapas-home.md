@@ -971,7 +971,7 @@ Page 1: Início
     └── SALVAR_FEEDBACK
 ```
 
-Checklist lido pelo validador de exports (skill `fechar-task`). Os componentes sem nome fixo no guia, como as computações, são conferidos pelo bloco `page 1` inteiro:
+Checklist lido pelo validador de exports ([`docs/agentes/fluxos/validar-export.md`](../../docs/agentes/fluxos/validar-export.md)). Os componentes sem nome fixo no guia, como as computações, são conferidos pelo bloco `page 1` inteiro:
 
 ```export-check
 pagina: 1

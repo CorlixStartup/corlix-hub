@@ -1,7 +1,7 @@
 # 08 · Convenções, regras de trabalho e pegadinhas conhecidas
 
 > Consolida as regras de trabalho e os problemas encontrados nos demais documentos (02–07). Detalhes e números de linha estão nos documentos de origem.
-> Estado: 06/10/2026, branch `DEV`, com mudanças não commitadas.
+> Estado: §1 atualizado continuamente; §3 revisado em 13/11/2026 contra o backup de DEV `84f8625` e as [fichas das páginas](./paginas/README.md). Regras de conduta e fluxos de trabalho para qualquer agente: [`docs/agentes/`](../agentes/README.md).
 
 ## 1. Regras para uma IA trabalhando neste repositório
 
@@ -67,38 +67,30 @@
 ## 3. Pegadinhas por área
 
 ### Segurança / multi-tenant
-- **Nenhuma página tem authorization própria**: as 3 authorizations (`administration-rights`, `publicador-de-conteudo`, `somente-diretoria`) só escondem entradas do menu. Pela URL, qualquer usuário logado abre p7 (logs), p16 (modal de empresas; o guia `modulos/tema/Etapas-empresas.md` §2 manda proteger, falta conferir) e p17 (emitir comunicado). A p15 (lista de empresas) exige `administration-rights` desde 26/10/2026. A p14 (cria usuários APEX via `apex_util.create_user`) e o menu dela exigem `ADMIN_RH` desde 18/10/2026.
+- **Autorização na página (estado em 13/11/2026, backup `84f8625`):** várias páginas já têm `authorizationScheme` próprio (2, 7, 9, 12–16, 18–23, 30–44; ver as fichas em [`paginas/`](./paginas/README.md)). **Continuam sem:** 1, 3, 4, 5, 6, 8, 11, **17** (Novo comunicado: só o botão da Home exige `publicador-de-conteudo`), **26 e 27** (Equipes, que ficam no grupo Administração do menu). A lista completa de autorizações e de quem usa cada uma está no [`03`](./03-componentes-compartilhados.md) §2.
 - Menus sem a autorização da página: "Dashboard RH" (p20 exige `ADMIN_RH`) e "Solicitar correção" (p22 exige `COLABORADOR`). Quem não tem o papel vê o item e recebe "acesso negado".
-- As queries de comunicados, aniversariantes, organograma, LOVs e equipes **não filtram por `id_empresa`**.
+- **Filtro por `id_empresa`:** comunicados e as LOVs `LOV_*` já filtram por `:G_ID_EMPRESA`. Ainda não filtram: equipes (p26/p27), os forms da p18 e da p21, os artigos do suporte (p42; a p43 deixa escolher a empresa) e a `vw_org_colaborador` do organograma. Correções em `modulos/isolamento-empresas/Etapas-isolamento-empresas.md` e no §11 do guia do suporte, não aplicadas.
 - Os app processes (4, `BEFORE_HEADER`, sem condição) rodam em todas as páginas, inclusive no login. Eles ligam o usuário ao colaborador por `COLABORADOR.login_apex = :APP_USER`; algumas comparações usam `UPPER` e outras não.
 
 ### Páginas
 - **Edição de regiões no 26.1.5**: Form e Interactive Grid só são editáveis com o bloco `edit { enabled: true ... }`, que nos exports só aparece em regiões criadas pelo assistente de criação de página; o painel de propriedades não oferece onde ligar. Para cadastros, prefira lista (Interactive Report) + formulário em modal criado pelo assistente (padrão p15/p16). Ver `09` §4.8.
-- **Placeholders** (só breadcrumb): p2 Meu perfil, p3 Organograma, p5 Notificações, p6 Configurações, p11 Comunicados, p12 Colaboradores, p13 Histórico de carreira. A p8 `NOTIFICAÇÕES` está vazia e duplica a p5.
-- **p4 Chat**:
-  - O envio funciona, mas não há atualização automática: mensagens recebidas só aparecem ao clicar de novo no contato.
-- **p17 Comunicado** (modal wizard):
-  - O default é `plsqlExpression: SYSDATE;`, com um `;` a mais.
-  - Não há processo *Close Dialog*.
-  - A lista do wizard (não usada) aponta para p18/p19, que hoje são páginas do histórico de carreira. Não reaproveite a lista; apague-a ou crie outra.
-  - Todos os itens estão com `sequence: 10`.
-- **p16 Cadastro de empresa**: os defeitos antigos (endereço desabilitado, `maxLength` curtos, logo em `appTempFiles`) foram corrigidos no Builder em 27/10/2026 pelo `modulos/tema/Etapas-cadastro-empresa.md`. O `.apx` do repositório só reflete isso depois do próximo backup. Faltam no Builder as validações de CNPJ repetido e de remoção com vínculos (§6.1 do guia).
-- **p1 Home** (o redesign de `modulos/home/Etapas-home.md` vai para a página nova 28 e **não altera a página 1**; os itens abaixo continuam valendo para a 1 e deixam de afetar o usuário quando a Home for trocada para a 28 no §5 do guia):
-  - Os links rápidos Holerite/Ponto/Suporte TI levam às páginas 5/6/7 (Home antiga). Na Início (`pkg_home_ui.render_hero`), o Holerite leva à página 9, o Suporte TI leva à 34 depois do `modulos/suporte-ti/Etapas-suporte-ti.md` §13, e o Ponto ainda não tem destino.
-  - Os botões Chat/E-mail do gestor têm `href="#"`.
-  - Em `columnCssClasses` há um `.` sobrando.
-  - A coluna `CLASSE_DEPTO` não é usada.
-- **p0 Global**: a busca global do cabeçalho não tem comportamento até aplicar `modulos/busca/Etapas-busca.md` (região "Barra de Busca" vira Dynamic Content do `pkg_busca_ui`). Os links do header usam o caminho fixo `r/corlixhub/...` até aplicar `modulos/tema/Etapas-header-e-menu.md` §4.
+- **Placeholders** (só breadcrumb, em 13/11/2026): p5 Notificações, p6 Configurações e p11 Comunicados Oficiais. A p8 `NOTIFICAÇÕES` está vazia e duplica a p5. As páginas 2, 3, 12 e 13 deixaram de ser placeholders (ver as fichas).
+- **p4 Chat:** tem envio e atualização automática (polling de 1 s, `CH_VERIFICAR_MSGS`), mas ainda carrega CSS inline grande e não tem guia no repositório.
+- **p17 Novo comunicado:** os problemas do wizard antigo (`SYSDATE;`, sem *Close Dialog*, itens em `sequence: 10`) foram corrigidos em 12/11/2026. Ficam: a página sem autorização própria e a hora gravada como `00:00` (formato `DS` no item *Hidden*), registrada no guia §4.10.
+- **p16 Cadastro de empresa**: faltam no Builder as validações de CNPJ repetido e de remoção com vínculos (`modulos/tema/Etapas-cadastro-empresa.md` §6.1).
+- **p1 Início:** o redesign foi aplicado na própria página 1 (não existe página 28). As pegadinhas da Home antiga (links para 5/6/7, `href="#"`, `.` em `columnCssClasses`) não valem mais. O botão Suporte TI do hero depende do `modulos/suporte-ti/Etapas-suporte-ti.md` §13.
+- **p0 Global:** a busca do cabeçalho já é Dynamic Content do `pkg_busca_ui` e os links do menu do usuário usam `f?p=` num popover. Ainda há `style="display:none"` no avatar de iniciais (contra a regra sem CSS inline).
+- **Suporte TI (p34–43):** criadas, mas fora do menu (§12 do guia não aplicado) e sem registro de testes do §14.
 - **Gráficos (JET) com mais de uma série**: o APEX junta os rótulos de todas as séries e os ordena **como texto**, ignorando o `order by` da query. Rótulo de mês em `mm/yyyy` sai fora de ordem ("01/2026" antes de "11/2025"). Use um rótulo que ordene certo como texto, como `to_char(mes, 'yyyy/mm')` (ex.: turnover da p20, `Etapas-historico-carreira.md` §5.2).
 
 - **p9 Holerite**: até aplicar `modulos/holerite/Etapas-holerite.md`, abrir um mês vazio gera a folha de todos os colaboradores, com `COMMIT`, inclusive de meses futuros (`pkg_holerite.render`), e a página não tem autorização própria. Depois do guia, a folha vem do job `JOB_FOLHA_MENSAL`; se o job parar, nenhum holerite novo aparece. Cada pessoa tem holerites desde o mês da admissão, e o do mês atual só a partir do dia 25.
 
 ### Arquivos e tema
-- As fotos ficam em `static-files/Fotos Colaboradores/` (`nome_sobrenome.jpg`, ~291 fotos fictícias) e são montadas como `#APP_FILES#Fotos Colaboradores/<foto_url>`. Sem foto, o avatar mostra as iniciais (`.cx-avatar-iniciais`, ver 04); a SQL precisa devolver a foto **nula** nesse caso.
+- As fotos vêm do bucket privado pela **página 44** (`pkg_arquivos.entregar_foto`, autorização `VER_FOTO_COLABORADOR`); os packages mandam `data-cx-foto` e o JS da página monta a URL (`modulos/arquivos/Etapas-fotos-object-storage.md`). A p12 e a p29 ainda tratam o caminho antigo `Fotos Colaboradores/`. Sem foto, o avatar mostra as iniciais (`.cx-avatar-iniciais`, ver 04); a SQL precisa devolver a foto **nula** nesse caso.
 - `custom.css` tem regras globais (`.a-CardView-*` com sombra e raio 14px, `.ui-dialog-titlebar`) que contrariam a política "sem sombra" do tema.
-- `organograma.css` e `historico-carreira.css` ainda não estão em `static-files/`.
+- A p30 carrega `ponto.css` sem `#MIN#`, então o `ponto.min.css` publicado nunca é usado (ver 04 §10).
 - Static IDs e aliases com acento (`publicador-de-conteúdo`, `histórico-de-carreira`, `NOTIFICAÇÕES`) são frágeis em URLs e scripts.
-- **Static ID ≠ id do HTML (26.1):** o nome depois de `region` no `.apx` (Static ID) só identifica o componente no export. O `id` do elemento vem de **Advanced › HTML DOM ID** (`advanced { htmlDomId: … }`); sem ele, o APEX gera `R<número>`. Todo JS que busca uma região pelo id (`apex.theme.openRegion`, `apex.region(...)`, `$("#...")`) precisa do HTML DOM ID preenchido. Nenhuma região do app tem `htmlDomId` hoje; o diálogo de aniversariantes da Início caiu nisso (`Region does not support being opened and closed`, `modulos/home/Etapas-home.md` §3.7), e o organograma (p3, `organograma`) e o histórico (p13, `historico_carreira`) dependem do mesmo id.
+- **Static ID ≠ id do HTML (26.1):** o nome depois de `region` no `.apx` (Static ID) só identifica o componente no export. O `id` do elemento vem de **Advanced › HTML DOM ID** (`advanced { htmlDomId: … }`); sem ele, o APEX gera `R<número>`. Todo JS que busca uma região pelo id (`apex.theme.openRegion`, `apex.region(...)`, `$("#...")`) precisa do HTML DOM ID preenchido. A p1 e a p30 já usam `htmlDomId` em várias regiões; o diálogo de aniversariantes da Início caiu nisso (`Region does not support being opened and closed`, `modulos/home/Etapas-home.md` §3.7), e o organograma (p3, `organograma`) e o histórico (p13, `historico_carreira`) dependem do mesmo id.
 
 ### Módulos
 - O guia do organograma usa a página 10 (`P10_ID_FOCO`), mas a página real é a **3**.
@@ -129,7 +121,6 @@ Regras gerais para scripts PL/SQL:
 
 ### Configuração
 - O idioma primário da app é `en`, com máscaras de data `DS`. Para pt-BR, formate explicitamente com `to_char(..., 'dd/mm/yyyy')`. A LOV `BOOLEAN` mostra "Yes/No".
-- `deployments/default.json` está com `debugging: true`.
 - `400 Request Header Or Cookie Too Large` no host do Autonomous: são cookies acumulados, e o limite do proxy da OCI não pode ser alterado. Limpe **só o host** (DevTools → Application → Clear site data). Veja [`10-erro-400-cookies.md`](./10-erro-400-cookies.md).
 - A sessão do Builder cai e pede o workspace de novo: ou os cookies foram perdidos, ou houve timeout (padrão de 1 h de inatividade e 8 h de duração; a app não define timeout próprio). Diagnóstico com `scripts/apex-sessao-timeouts.sql`; ver `10` §8.
 - O último commit (`feature: …`) não segue o padrão do hook `commit-msg`.
