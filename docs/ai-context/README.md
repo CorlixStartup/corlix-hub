@@ -85,7 +85,7 @@ Estado em 13/11/2026 (backup de DEV `84f8625`), com link para a **ficha de cada 
 | 39 | [Atender chamado](./paginas/p00039-atender-chamado.md) | Criada sem as condições do guia; sem registro de testes | `suporte-ti/` §8 |
 | 40 | [Status dos sistemas](./paginas/p00040-status-dos-sistemas.md) | Criada pelo assistente com os ajustes do §10.2; textos em inglês | `suporte-ti/` §10 |
 | 41 | [Sistema](./paginas/p00041-sistema.md) | Criada pelo assistente com os ajustes do §10.3 | `suporte-ti/` §10.3 |
-| 42 | [Artigos](./paginas/p00042-artigos.md) | Só o assistente; **lista sem filtro por empresa** | `suporte-ti/` §11 |
+| 42 | [Artigos](./paginas/p00042-artigos.md) | §11.2 aplicado em 13/11/2026 (filtra por empresa); falta o acabamento (textos em inglês) | `suporte-ti/` §11 |
 | 43 | [Artigo](./paginas/p00043-artigo.md) | Só o assistente; **empresa escolhível** e campos de controle obrigatórios | `suporte-ti/` §11.3 |
 | 44 | [Foto](./paginas/p00044-foto.md) | Em uso (entrega as fotos do bucket), validada em 09/11/2026 | `arquivos/Etapas-fotos-object-storage.md` |
 | 9999 | [Login](./paginas/p09999-login.md) | Login padrão do APEX, em inglês; redesign proposto, não aplicado | `login/Etapas-login.md` |

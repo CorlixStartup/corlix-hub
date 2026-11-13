@@ -725,6 +725,42 @@ Nas duas páginas: Authorization Scheme **SUPORTE_TI** e Page Access Protection 
 
 *Source › Where Clause*: `id_empresa = :G_ID_EMPRESA`. Deixe visíveis `DS_TITULO`, `NR_MIN_LEITURA`, `NR_ACESSOS` e `FL_PUBLICADO`, com os Headings `Título`, `Leitura (min)`, `Acessos` e `Publicado`. Esconda as outras com **Hidden Column**, incluindo a `DS_CORPO`.
 
+**Acabamento** (o assistente deixa textos em inglês e códigos na tela):
+
+| Onde | Atributo | Valor |
+|---|---|---|
+| Coluna `FL_PUBLICADO` | Type | **Plain Text (based on List of Values)**; *List of Values › Type* **Static Values**: `Sim` → `S`, `Não` → `N` (sem isso a coluna mostra `S`/`N`) |
+| Coluna `NR_MIN_LEITURA` | Appearance › Format Mask | `990` (com a máscara do assistente, 5 minutos aparece como `5,0`) |
+| Região `Artigos` | Attributes › Link › Link Icon | `<span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>` |
+| Região `Artigos` | Messages › When No Data Found | `Nenhum artigo cadastrado.` |
+| Região `Artigos` | Messages › When More Data Found | `Há mais artigos do que o limite do relatório. Use a busca ou um filtro.` |
+| Botão `CREATE` | Label | `Novo artigo` |
+
+```export-check
+pagina: 42
+# 11.1 Página
+page 42 | authorizationScheme: @suporte-ti
+page 42 | pageAccessProtection: argumentsMustHaveChecksum
+# 11.2 Lista
+region artigos | tableName: SUPORTE_ARTIGO
+region artigos | whereClause: id_empresa = :G_ID_EMPRESA
+page 42 | heading: Título
+page 42 | heading: Leitura (min)
+page 42 | heading: Acessos
+page 42 | heading: Publicado
+page 42 | page: 43
+# Acabamento
+page 42 | Sim;S,Não;N
+page 42 | formatMask: 990
+region artigos | aria-label="Editar"
+region artigos | whenNoDataFound: Nenhum artigo cadastrado.
+region artigos | !No data found.
+region artigos | !The maximum row count
+button create | label: Novo artigo
+```
+
+As colunas escondidas não entram no checklist pelo nome (o validador lê blocos de página, região, item, botão e processo); confira no export que só `DS_TITULO`, `NR_MIN_LEITURA`, `NR_ACESSOS` e `FL_PUBLICADO` têm `type: plainText` (ou `plainTextBasedOnLov`).
+
 ### 11.3 Formulário (p43)
 
 **Apague** `P43_DH_ATUALIZACAO`, `P43_USR_ATUALIZACAO` e `P43_NR_ACESSOS`. Ajuste os outros:
@@ -875,6 +911,7 @@ No próximo backup, `corlixhub/pages/p00034-*.apx` deve ter `authorizationScheme
 | 09/11/2026 | Banco (§1) | **Instalado:** tabelas `SUPORTE_*`, `VW_SUPORTE_FILA`, `PKG_SUPORTE` e `PKG_SUPORTE_UI` válidos (compilados em 09/11 22:41), job `SUPORTE_ENCERRAR_VENCIDOS` ativo (última execução 12/11 23:30). Conteúdo de exemplo: 6 assuntos, 7 artigos e 5 sistemas da empresa 1. Conferido no SQL Commands em 13/11/2026, só leitura |
 | 10/11/2026 | Páginas 34 a 43 (§4 a §11) | Criadas no Builder (backup `acd59be`); detalhe por página nas [fichas](../../docs/ai-context/paginas/README.md) |
 | 13/11/2026 | Levantamento do que falta (backup `84f8625` + banco) | Ver "O que falta" abaixo. Nenhum teste do §14 registrado; `SUPORTE_CHAMADO` está vazia, então nenhum chamado foi aberto |
+| 13/11/2026 | Export da p42 colado na conversa | Validador: **§11.1 e §11.2 ok (9/9)**: autorização `@suporte-ti`, checksum, **Where Clause `id_empresa = :G_ID_EMPRESA`** (furo de isolamento da lista fechado), cabeçalhos em português e só `DS_TITULO`, `NR_MIN_LEITURA`, `NR_ACESSOS` e `FL_PUBLICADO` visíveis. **Acabamento novo do §11.2 pendente (7 regras):** `Publicado` mostra `S`/`N`, leitura como `5,0`, botão `Create`, ícone "Edit" e mensagens em inglês. Não testado na app: a única conta com o papel não tem colaborador e só a empresa 1 tem artigos, então o filtro não tem como mostrar diferença |
 
 ### O que falta (13/11/2026)
 
@@ -884,7 +921,7 @@ No próximo backup, `corlixhub/pages/p00034-*.apx` deve ter `authorizationScheme
 3. **Artigos de exemplo (§1.3):** revisar os 7 artigos na p42 antes de liberar.
 
 **Páginas (Builder)**
-4. **p42 e p43 (§11.2 e §11.3), urgente por segurança:** a lista não filtra por empresa e o formulário deixa escolher a empresa e lista assuntos de todas. O formulário também tem itens `DH_`/`USR_`/`NR_ACESSOS` na tela (o `P43_DH_ATUALIZACAO` obrigatório deve impedir salvar) e `FL_PUBLICADO` em texto livre.
+4. **p43 (§11.3), urgente por segurança** (a p42 já filtra por empresa desde 13/11/2026; falta o acabamento do §11.2): o formulário deixa escolher a empresa e lista assuntos de todas. O formulário também tem itens `DH_`/`USR_`/`NR_ACESSOS` na tela (o `P43_DH_ATUALIZACAO` obrigatório deve impedir salvar) e `FL_PUBLICADO` em texto livre.
 5. **p36 (§6.3 e §6.4):** condição no `P36_ANEXO`, *Purge File At* **End of Request**, região de botões em **Buttons Container** no *Dialog Footer*, `RESPONDER`/`REABRIR` como Hot e o rótulo "Fechar".
 6. **p39 (§8.2 e §8.3):** condição de status nos itens visíveis e no `SALVAR`, região de botões em **Buttons Container** no *Dialog Footer*, *Purge File At* do anexo.
 7. **p34 e p37 (§4.2 e §7.2):** mover o `Cabeçalho` do slot `body` para **Breadcrumb Bar**.
