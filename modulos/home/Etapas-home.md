@@ -881,7 +881,7 @@ Sem pendência, o item fica vazio e o CSS esconde o número.
 | Source | PL/SQL Function Body returning a CLOB | `return pkg_home_ui.render_feedbacks;` |
 | Layout | Slot | **Sub Regions** |
 | Layout | Sequence | `30` |
-| Appearance | Template | **Standard**, com as mesmas *Template Options* e a classe `cx-home-card` do Meu gestor |
+| Appearance | Template | **Standard**, com as mesmas *Template Options* e a classe `cx-home-card` do Meu gestor: **Remove Body Padding** e corpo com rolagem (no export, `t-Region--noPadding` e `t-Region--scrollBody`; os itens já trazem o espaçamento no `home.css`) |
 
 **Na Coluna lateral**, a ordem passa a ser: Meu gestor (10), Pesquisa de clima (20), Próximos eventos (30), Celebrações (40). Selecione **Celebrações** (`home_aniversariantes`) e mude *Layout › Sequence* para `40`. Depois, botão direito em **Coluna lateral** › **Create Sub Region**, duas vezes:
 
@@ -893,7 +893,7 @@ Sem pendência, o item fica vazio e o CSS esconde o número.
 | Source | PL/SQL Function Body returning a CLOB | `return pkg_home_ui.render_pesquisa;` | `return pkg_home_ui.render_eventos;` |
 | Layout | Slot | **Sub Regions** | **Sub Regions** |
 | Layout | Sequence | `20` | `30` |
-| Appearance | Template | **Blank with Attributes** (o card vem pronto do package) | **Standard**, *Template Options* e classe `cx-home-card` como o Meu gestor |
+| Appearance | Template | **Blank with Attributes** (o card vem pronto do package) | **Standard**, *Template Options* (`t-Region--noPadding` e `t-Region--scrollBody`) e classe `cx-home-card` como o Meu gestor |
 | Advanced | HTML DOM ID | `home_pesquisa` | (vazio) |
 
 ### 8.7 Diálogo "Dar feedback"
@@ -906,7 +906,7 @@ Botão direito em **Dialogs, Drawers and Popups** › **Create Region**:
 | Identification | Title | `Dar feedback` |
 | Identification | Type | **Static Content** |
 | Source | HTML Code | `<p class="cx-home-fb-para">Para <strong data-cx-home-fb-nome></strong></p>` |
-| Appearance | Template | **Inline Dialog** |
+| Appearance | Template | **Inline Dialog**; *Template Options* com **Auto Height** (no export, `js-dialog-autoheight`, como os diálogos da página 30). Sem ela o rodapé cobre o fim da caixa de texto |
 | Advanced | HTML DOM ID | `home_dlg_feedback` (**obrigatório**: o JS abre o diálogo por ele) |
 
 Itens, com botão direito em **Dar feedback** › **Create Page Item**:
@@ -914,7 +914,7 @@ Itens, com botão direito em **Dar feedback** › **Create Page Item**:
 | Name | Type | Configuração |
 |---|---|---|
 | `P1_FB_DESTINATARIO` | **Hidden** | *Settings › Value Protected* **No** (o JS preenche; o package confere a empresa) |
-| `P1_FB_TIPO` | **Radio Group** | *Label* `Tipo`; *List of Values* **Static Values**: `Reconhecimento` → `RECONHECIMENTO`, `Sugestão` → `SUGESTAO`; *Default* `RECONHECIMENTO`; *Template Options* exibir como botões, se houver (confirmar no 26.1.5) |
+| `P1_FB_TIPO` | **Radio Group** | *Label* `Tipo`; *List of Values* **Static Values**: `Reconhecimento` → `RECONHECIMENTO`, `Sugestão` → `SUGESTAO`; *Default › Type* **Static**, valor `RECONHECIMENTO` (não **Item**: com *Item* o APEX procura um item chamado RECONHECIMENTO); *List of Values › Display Null Value* **Off** (ligado, aparece uma bolinha vazia acima de "Reconhecimento"; no export, `displayNullValue: false`); *Template Options* exibir como botões, se houver (confirmar no 26.1.5) |
 | `P1_FB_TEXTO` | **Textarea** | *Label* `Feedback`; *Validation › Maximum Length* `1000`; *Appearance › Template* **Required - Floating** |
 
 Botões, com botão direito em **Dar feedback** › **Create Button**:
@@ -925,6 +925,10 @@ Botões, com botão direito em **Dar feedback** › **Create Button**:
 | `FB_ENVIAR` | `Enviar feedback` | **Create** | Yes | **Defined by Dynamic Action** | `cx-home-fb-enviar` |
 
 Não crie Dynamic Actions: o JS da página trata os dois botões pelas classes.
+
+No nó **Page 1**, *Navigation › Warn on Unsaved Changes* **Off**. A Home não tem formulário para salvar; com o aviso ligado, depois de enviar um feedback o texto digitado deixa a página "alterada" e o "Ler comunicado" (e qualquer outro link) para no aviso "Sair do site?" do navegador (visto na app em 12/11/2026).
+
+O APEX desenha os itens do diálogo antes do HTML da região, então o "Para <nome>" ficaria embaixo, escondido atrás do rodapé. O BLOCO 2 do `home-pagina.js` sobe esse parágrafo para o topo ao abrir o diálogo, do mesmo jeito que move o "Não lido" no carrossel.
 
 ### 8.8 Ajax Callbacks
 
@@ -967,6 +971,74 @@ Page 1: Início
     └── SALVAR_FEEDBACK
 ```
 
+Checklist lido pelo validador de exports (skill `fechar-task`). Os componentes sem nome fixo no guia, como as computações, são conferidos pelo bloco `page 1` inteiro:
+
+```export-check
+pagina: 1
+# 8.2 Arquivos e JavaScript
+page 1 | warnOnUnsavedChanges: false
+page 1 | fileUrls: #APP_FILES#modulos/home/home#MIN#.css
+page 1 | data-cx-nao-lido
+page 1 | "MARCAR_LIDO"
+page 1 | "RESPONDER_PESQUISA"
+page 1 | "SALVAR_FEEDBACK"
+page 1 | home_dlg_feedback
+# 8.3 Itens e computações
+pageItem P1_NAO_LIDOS | type: hidden
+pageItem P1_QT_PENDENCIAS | type: hidden
+page 1 | pkg_home_ui.nao_lidos_texto
+page 1 | pkg_home_ui.qt_pendencias
+# 8.4 Comunicados
+region home_comunicados | &P1_NAO_LIDOS.
+region home_comunicados | k.nm_categoria as categoria
+region home_comunicados | as nao_lido
+region home_comunicados | order by case c.fl_fixado when 'S' then 0 else 1 end
+region home_comunicados | {if CATEGORIA/}<span class="cx-etiqueta">&CATEGORIA.</span>{endif/}
+region home_comunicados | {if NAO_LIDO/}
+region home_comunicados | !column: RESUMO
+# 8.5 Suas pendências
+region suas-pendências | &P1_QT_PENDENCIAS.
+# 8.6 Regiões novas
+region feedbacks-recebidos | pkg_home_ui.render_feedbacks
+region feedbacks-recebidos | parentRegion: @coluna-principal
+region feedbacks-recebidos | sequence: 30
+region feedbacks-recebidos | cssClasses: cx-home-card
+region feedbacks-recebidos | t-Region--noPadding
+region pesquisa-de-clima | pkg_home_ui.render_pesquisa
+region pesquisa-de-clima | sequence: 20
+region pesquisa-de-clima | template: @/blank-with-attributes
+region pesquisa-de-clima | htmlDomId: home_pesquisa
+region próximos-eventos | pkg_home_ui.render_eventos
+region próximos-eventos | sequence: 30
+region próximos-eventos | cssClasses: cx-home-card
+region próximos-eventos | t-Region--noPadding
+region home_aniversariantes | sequence: 40
+# 8.7 Dar feedback
+region dar-feedback | template: @/inline-dialog
+region dar-feedback | htmlDomId: home_dlg_feedback
+region dar-feedback | data-cx-home-fb-nome
+pageItem P1_FB_DESTINATARIO | valueProtected: false
+pageItem P1_FB_TIPO | STATIC:Reconhecimento;RECONHECIMENTO,Sugestão;SUGESTAO
+pageItem P1_FB_TIPO | staticValue: RECONHECIMENTO
+pageItem P1_FB_TIPO | displayNullValue: false
+region dar-feedback | js-dialog-autoheight
+page 1 | corpo.prepend(para)
+pageItem P1_FB_TEXTO | maxLength: 1000
+pageItem P1_FB_TEXTO | template: @/required-floating
+button fb-cancelar | cssClasses: cx-home-fb-cancelar
+button fb-cancelar | action: definedByDynamicAction
+button fb-enviar | cssClasses: cx-home-fb-enviar
+button fb-enviar | hot: true
+button fb-enviar | action: definedByDynamicAction
+# 8.8 Ajax Callbacks
+process marcar-lido | pkg_home_ui.ajax_marcar_lido(apex_application.g_x01)
+process marcar-lido | authorizationScheme: @colaborador
+process responder-pesquisa | pkg_home_ui.ajax_responder_pesquisa(apex_application.g_x01)
+process responder-pesquisa | authorizationScheme: @colaborador
+process salvar-feedback | pkg_home_ui.ajax_salvar_feedback(apex_application.g_x01, apex_application.g_x02, apex_application.g_x03)
+process salvar-feedback | authorizationScheme: @colaborador
+```
+
 ### 8.11 Testar
 
 Com a conta usada no passo 8.1.4 e a página recarregada com **Cmd+Shift+R**:
@@ -991,8 +1063,17 @@ Com a conta usada no passo 8.1.4 e a página recarregada com **Cmd+Shift+R**:
 | `ORA-00904: "K"."NM_CATEGORIA"` na Comunicados | Faltou o `01_ddl_categoria.sql` | Passo 8.1.1 |
 | Aparece `&P1_NAO_LIDOS.` ou `&P1_QT_PENDENCIAS.` como texto | Item não criado ou nome diferente | Passo 8.3 |
 | "Não lido" no meio do resumo | BLOCO 1 antigo (sem mover o "Não lido") | Passo 8.2 |
+| Subtítulo sem "· N não lidos" e título das pendências sem número | Faltam as computações do 8.3 (o export mostra só a do `P1_MES_ATUAL`) | Passo 8.3 |
+| Comunicado fixado não aparece primeiro | `order by` antigo na Comunicados, sem `case c.fl_fixado` | Passo 8.4 |
+| Feedbacks e eventos com espaço interno dobrado | *Template Options* sem **Remove Body Padding** | Passo 8.6 |
+| Próxima 1:1 com o dia da semana errado (ex.: "Domingo, 13/11" numa sexta) | `pkg_home_ui` antigo: `dia_semana` não truncava a hora | Reinstale o `pkg_home_ui` (8.1.5) |
+| "[DEMO] Karen Dias" com "DD" | `pkg_home_ui` antigo: `iniciais` mantinha a palavra entre colchetes | Reinstale o `pkg_home_ui` (8.1.5) |
+| "Ler comunicado" não sai da Home e o navegador pergunta "Sair do site?" | *Warn on Unsaved Changes* ligado na página 1 (o texto do feedback conta como alteração) | 8.7, *Navigation* da página |
+| "Para <nome>" não aparece no diálogo de feedback, e o rodapé cobre a caixa de texto | BLOCO 2 antigo (sem subir o parágrafo) e diálogo sem *Auto Height* | 8.2 e 8.7 |
+| Bolinha vazia acima de "Reconhecimento" | *Display Null Value* ligado no `P1_FB_TIPO` | 8.7 |
+| Sem o indicador "Férias disponíveis" | Nenhum período aquisitivo completo e ainda no prazo (ex.: admissão há menos de 1 ano) | Esperado |
 | Diálogo de feedback não abre | Falta o HTML DOM ID `home_dlg_feedback` | Passo 8.7 |
-| "Enviar feedback" não faz nada | Falta a classe `cx-home-fb-enviar` no botão, ou o Ajax Callback `SALVAR_FEEDBACK` | Passos 8.7 e 8.8 |
+| "Enviar feedback" não faz nada | Falta a classe `cx-home-fb-enviar` no botão (atenção ao `r` final: `cx-home-fb-envia` não funciona), ou o Ajax Callback `SALVAR_FEEDBACK` | Passos 8.7 e 8.8 |
 | Pesquisa sem a arte (bloco cinza) | `home-hero.jpg` não está na raiz do Static Application Files | Passo 8.2 |
 | `ORA-20012: Sua sessão não está vinculada a uma empresa` ao testar `render_*` | Teste rodado no SQL Commands, que é uma sessão APEX sem `G_ID_EMPRESA` | Esperado. Teste no SQLcl ou direto na página 1 (8.11). Se aparecer **na página 1**, saia e entre de novo: o `G_ID_EMPRESA` só é preenchido no login |
 | Indicador de pagamento não aparece | Sem holerite liberado (antes do dia 25 do primeiro mês, ou sem geração) | Esperado; confira na p9 |
@@ -1021,6 +1102,13 @@ Com a conta usada no passo 8.1.4 e a página recarregada com **Cmd+Shift+R**:
 | 10/11/2026 | Comparação com o protótipo na app (conta `teste.rh`) e seção 8: categoria, "Não lido", 3 indicadores, Feedbacks, Pesquisa, Eventos, 1:1, presença, Dar feedback, Parabenizar | Versionada na branch `feature/home-prototipo-completo`; **não compilada nem aplicada**. Testados na app, com CSS injetado, só o carrossel (título, degradê, resumo, botão e "Não lido"); o visual dos blocos novos não foi testado (a aba foi fechada) |
 | 10/11/2026 | Seção 7 (blocos do ponto) e nova versão do `pkg_home_ui`, `home.css`, `home.min.css` e `home-pagina.js` | Versionada na branch `feature/home-ponto-de-hoje`; **não compilada nem aplicada**. Conferido só por leitura: os nomes usados do `pkg_ponto` batem com a especificação, o `home.min.css` foi gerado do `.css` (a parte antiga ficou idêntica à anterior) e o `home-pagina.js` passou no `node --check` |
 
+| 12/11/2026 | Banco do §8.1 conferido no SQL Commands (só leitura) e export da página 1 com o §8 colado na conversa | **Banco aplicado:** as 9 tabelas novas, `COMUNICADO.FL_FIXADO` e o `pkg_home_ui` válido (body de 11/11) com as 8 funções novas. **Página:** validador `fechar-task` com 44/51 regras ok (checklist novo no §8.10). Faltam: (1) as computações de `P1_NAO_LIDOS` e `P1_QT_PENDENCIAS` (8.3); (2) o `order by` com os fixados primeiro na Comunicados (8.4); (3) **Remove Body Padding** em Feedbacks recebidos e Próximos eventos (8.6); (4) *Default* do `P1_FB_TIPO` como **Static** (está **Item**); (5) classe do botão Enviar `cx-home-fb-envia` → `cx-home-fb-enviar` (8.7). O resto do §8.2 a 8.8 está como o guia pede. Testes 8.11 não rodados |
+| 12/11/2026 | 2º export da página 1 com os 5 ajustes | Validador `fechar-task`: **51/51 regras ok**. O que mudou: computações `p1-nao-lidos` e `p1-qt-pendencias`, `order by` com fixados primeiro, `t-Region--noPadding` em Feedbacks recebidos e Próximos eventos, *Default* **Static** do `P1_FB_TIPO` e a classe `cx-home-fb-enviar`. **§8 aplicado por inteiro no Builder.** Testes 8.11 não rodados |
+| 12/11/2026 | Testes 8.11 na app (conta `teste.rh`, autorizados pelo time; o que gravou foi apagado depois) | **Ok:** 1 (carrossel com categoria, "Para", "Não lido" ao lado do botão, setas e pontos, "· 5 não lidos"), 2 ("Ler comunicado" abre a p11; de volta, o 61 sem "Não lido" e "· 4 não lidos"), 3 (olho mostra e esconde o valor), 4 (7 pendências e contador 7), 5 (2 feedbacks com relação e selo), 6 (diálogo "Para Gabriel Machado"; vazio mostra "Escreva o feedback antes de enviar."; com texto, "Feedback enviado."), 7 (link abre em outra aba e o card some; o link ainda é o `example.com` do exemplo), 8 (4 eventos em ordem, "Hoje" e "Feriado"). **Achados, corrigidos neste PR:** (a) 1:1 como "Domingo, 13/11" numa sexta, por causa de `dia_semana` com hora; (b) iniciais "DD" em "[DEMO] Karen Dias"; (c) "Ler comunicado" barrado pelo aviso "Sair do site?" depois de enviar um feedback, por causa de *Warn on Unsaved Changes*; (d) "Para <nome>" escondido atrás do rodapé e caixa de texto cortada; (e) bolinha vazia no tipo do feedback. As correções das funções foram conferidas com um `select` no banco ("KD" e "Sexta"). **Não testados:** "Disponível agora" (o gestor não estava on-line), "Parabenizar" do 9 (ninguém celebra hoje) e o 10 (pede uma conta sem colaborador). "Férias disponíveis" não aparece porque `teste.rh` foi admitida em 07/10/2026 e ainda não tem período aquisitivo completo; isso é a regra, não um erro. **Limpeza:** apagados o feedback 21, a leitura do comunicado 61 e a resposta 1 da pesquisa (1 linha cada); a Home voltou a "5 não lidos" e à pesquisa aberta |
+
+| 13/11/2026 | 3º export da página 1 e reconferência na app (conta `teste.rh`, sem gravar nada) | Validador `fechar-task`: **55/55 regras ok** (*Warn on Unsaved Changes* desligado, BLOCO 2 novo, *Auto Height*, *Display Null Value* desligado). Na app: `pkg_home_ui` reinstalado (1:1 "Sexta, 13/11 às 10:00"; "[DEMO] Karen Dias" com "KD"); diálogo com "Para Gabriel Machado" no topo, só as duas opções e a caixa inteira; com texto digitado e o diálogo cancelado, "Ver todos" abriu a p11 sem o aviso "Sair do site?". **Falta para fechar o §8:** "Parabenizar" (teste 9; o próximo aniversário é 15/11), "Disponível agora" com o gestor on-line (teste 6) e a conta sem colaborador (teste 10, feito por quem tem a conta). Fora do escopo: trocar o `ds_link` da pesquisa (`example.com`) pelo formulário real |
+| 13/11/2026 | **Fechamento do §8** (decisão do time) | **§8 concluído:** banco e página aplicados (export 55/55), testes 1 a 8 do 8.11 feitos na app, achados corrigidos e reconferidos, e dados de teste apagados. **Pendências aceitas pelo time:** (1) teste 9, "Parabenizar", no próximo aniversário (Guilherme Martins, 15/11/2026), apagando o feedback depois; (2) teste 6, "Disponível agora", com o gestor (Gabriel Machado) com o chat aberto; (3) teste 10, conta sem colaborador, feito por quem tem a conta. Fora do escopo: trocar o `ds_link` da pesquisa (`example.com`) pelo formulário real |
+
 **Protótipo conferido em 10/11/2026:** o frame "Início" do `corlixhub.pen` (pen.dev) está igual ao `pen_dev/Início.png` de 28/10/2026; não há versão mais nova no repositório.
 
-**Próximo passo:** aplicar a seção 6 e a 7 no Builder, rodar os testes 6.7 e 7.5 com uma conta com colaborador e registrar aqui o resultado.
+**Próximo passo:** as três pendências do §8 (Parabenizar em 15/11, "Disponível agora" com o gestor on-line e conta sem colaborador). Os testes 6.7 e 7.5 das seções 6 e 7 continuam sem registro próprio; os blocos delas foram exercitados nos testes do §8.11.
