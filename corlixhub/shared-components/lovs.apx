@@ -103,6 +103,26 @@ lov lov-departamento-empresa (
     }
 )
 
+lov lov-sim-nao (
+    name: LOV_SIM_NAO
+    source {
+        location: staticValues
+    }
+
+    entry n (
+        sequence: 2
+        display: Não
+        return: N
+    )
+
+    entry s (
+        sequence: 1
+        display: Sim
+        return: S
+    )
+
+)
+
 lov lov-tipo-formacao (
     name: LOV_TIPO_FORMACAO
     source {

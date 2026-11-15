@@ -21,6 +21,7 @@ page 42 (
         source {
             location: localDatabase
             tableName: SUPORTE_ARTIGO
+            whereClause: id_empresa = :G_ID_EMPRESA
         }
         layout {
             sequence: 10
@@ -42,37 +43,37 @@ page 42 (
                 }
                 action: resetPagination
             }
-            linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+            linkIcon: <span role="img" aria-label="Editar" class="fa fa-edit" title="Editar"></span>
         }
         pagination {
             type: rowRangesXToY
         }
         messages {
-            whenNoDataFound: No data found.
-            whenMoreDataFound: The maximum row count for this report is #MAX_ROW_COUNT# rows.  Please apply a filter to reduce the number of records in your query.
+            whenNoDataFound: Nenhum artigo cadastrado.
+            whenMoreDataFound: Há mais artigos do que o limite do relatório. Use a busca ou um filtro.
         }
         advanced {
             savedReportMappingIdentifier: 47667284536854463
         }
 
         column DH_ATUALIZACAO (
-            type: plainText
+            type: hidden
             heading {
                 heading: Dh Atualizacao
             }
             layout {
-                sequence: 11
+                sequence: 40
             }
             source {
                 dataType: DATE
             }
             advanced {
-                endUserAlias: K
+                endUserAlias: M
             }
         )
 
         column DS_CORPO (
-            type: plainText
+            type: hidden
             heading {
                 heading: Ds Corpo
             }
@@ -88,7 +89,7 @@ page 42 (
         )
 
         column DS_PALAVRAS (
-            type: plainText
+            type: hidden
             heading {
                 heading: Ds Palavras
             }
@@ -104,7 +105,7 @@ page 42 (
         )
 
         column DS_RESUMO (
-            type: plainText
+            type: hidden
             heading {
                 heading: Ds Resumo
             }
@@ -122,7 +123,7 @@ page 42 (
         column DS_TITULO (
             type: plainText
             heading {
-                heading: Ds Titulo
+                heading: Título
             }
             layout {
                 sequence: 4
@@ -136,9 +137,12 @@ page 42 (
         )
 
         column FL_PUBLICADO (
-            type: plainText
+            type: plainTextBasedOnLov
             heading {
-                heading: Fl Publicado
+                heading: Publicado
+            }
+            lov {
+                lov: @lov-sim-nao
             }
             layout {
                 sequence: 10
@@ -169,47 +173,41 @@ page 42 (
         )
 
         column ID_ASSUNTO (
-            type: plainTextBasedOnLov
+            type: hidden
             heading {
                 heading: Id Assunto
             }
-            lov {
-                lov: @suporte-assunto-nm-assunto
-            }
             layout {
-                sequence: 3
+                sequence: 30
             }
             source {
-                dataType: STRING
+                dataType: NUMBER
             }
             advanced {
-                endUserAlias: C
+                endUserAlias: L
             }
         )
 
         column ID_EMPRESA (
-            type: plainTextBasedOnLov
+            type: hidden
             heading {
                 heading: Id Empresa
             }
-            lov {
-                lov: @empresa-nome
-            }
             layout {
-                sequence: 2
+                sequence: 20
             }
             source {
-                dataType: STRING
+                dataType: NUMBER
             }
             advanced {
-                endUserAlias: B
+                endUserAlias: K
             }
         )
 
         column NR_ACESSOS (
             type: plainText
             heading {
-                heading: Nr Acessos
+                heading: Acessos
                 alignment: end
             }
             layout {
@@ -230,7 +228,7 @@ page 42 (
         column NR_MIN_LEITURA (
             type: plainText
             heading {
-                heading: Nr Min Leitura
+                heading: Leitura (min)
                 alignment: end
             }
             layout {
@@ -238,7 +236,7 @@ page 42 (
                 columnAlignment: end
             }
             appearance {
-                formatMask: 999G999G999G999G999G999G999G999G999G990D0
+                formatMask: 990
             }
             source {
                 dataType: NUMBER
@@ -249,18 +247,18 @@ page 42 (
         )
 
         column USR_ATUALIZACAO (
-            type: plainText
+            type: hidden
             heading {
                 heading: Usr Atualizacao
             }
             layout {
-                sequence: 12
+                sequence: 50
             }
             source {
                 dataType: STRING
             }
             advanced {
-                endUserAlias: L
+                endUserAlias: N
             }
         )
 
@@ -295,7 +293,7 @@ page 42 (
 
     button create (
         buttonName: CREATE
-        label: Create
+        label: Novo artigo
         layout {
             sequence: 10
             region: @artigos
