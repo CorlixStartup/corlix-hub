@@ -1,6 +1,6 @@
 # Página 42 · Artigos
 
-> **Estado em 13/11/2026** (backup `84f8625`): criada na app (backup de 10/11/2026, `acd59be`) só pelo assistente de Interactive Report + formulário. Os ajustes do §11.2 de [`Etapas-suporte-ti.md`](../../../modulos/suporte-ti/Etapas-suporte-ti.md) **não foram aplicados**: falta o filtro por empresa, e as colunas e headings são os do assistente. Sem seção "Situação" no guia e sem registro dos testes 5 e 22 do §14.
+> **Estado em 13/11/2026** (export colado nesta data, depois do backup `84f8625`): §11.2 aplicado. A lista filtra por `id_empresa = :G_ID_EMPRESA` e mostra só Título, Leitura (min), Acessos e Publicado. Acabamento do §11.2 aplicado no segundo export (16/16): `Publicado` pela LOV compartilhada `LOV_SIM_NAO`, máscara `990`, ícone "Editar", mensagens e botão "Novo artigo" em português. Sem teste na app. Ver `Etapas-suporte-ti.md`, "Situação". **As seções abaixo descrevem o backup `84f8625`, de antes do §11.2; o próximo backup traz as mudanças.**
 
 ## Resumo
 
