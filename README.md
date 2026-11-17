@@ -12,7 +12,7 @@ Projeto do **Enterprise Challenge (StartupOne) — FIAP, turma 4ESOA, 2026**. Co
 
 | | |
 |---|---|
-| Aplicação no ar | https://gfe80286062641f-corlixhub.adb.sa-saopaulo-1.oraclecloudapps.com/ords/r/corlixhub/corlixhub/home |
+| Aplicação no ar | https://gfe80286062641f-corlixhub.adb.sa-saopaulo-1.oraclecloudapps.com/ords/r/corlixhub/corlixhub/início |
 | Layout das telas (pen.dev, só leitura) | https://app.pen.dev/s/PlssXzG4SKpa2Q1RWgBkUFb4TudN1CYP2en5pN3D-ME |
 
 Contas de teste, todas com dados fictícios e a senha `CorlixHub2026@`:
