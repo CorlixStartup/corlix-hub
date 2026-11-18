@@ -29,6 +29,7 @@
 | 10 | [Cookies e sessão (OCI)](./10-erro-400-cookies.md) | `400 Request Header Or Cookie Too Large` e sessão do Builder caindo/pedindo workspace: causa, diagnóstico, correção |
 | 11 | [**Padrões de páginas**](./11-padroes-de-paginas.md) | **Leia antes de criar ou alterar qualquer página.** Qual página copiar, regras obrigatórias, checklist e como propor exceção |
 | 12 | [Ambientes DEV, UAT e PRD](./12-ambientes-dev-uat-prd.md) | **Decidido, não aplicado** (passo a passo em `modulos/ambientes/`). Como ter DEV, UAT e PRD com os 2 bancos gratuitos da OCI, e como uma versão vai do DEV ao PRD |
+| — | [**Mapas de testes (QA manual)**](../testes/README.md) | Roteiros de teste manual por perfil, em `.docx`. Hoje: visão do colaborador (126 casos) |
 | — | [**Fichas das páginas**](./paginas/README.md) | Uma ficha por página (estado, template, autorização, regiões, lógica, dados, pendências). **Leia a da página antes de mexer nela** |
 | — | [**Regras e fluxos para agentes**](../agentes/README.md) | Conduta e fluxos de trabalho para qualquer agente (validar export, testar na app, escrever guia, ficha de página, dividir trabalho) |
 
