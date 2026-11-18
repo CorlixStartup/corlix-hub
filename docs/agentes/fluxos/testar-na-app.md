@@ -8,7 +8,7 @@ Leia antes a [conduta](../conduta.md): login é do time, gravar exige autorizaç
 
 - App (DEV): `https://gfe80286062641f-corlixhub.adb.sa-saopaulo-1.oraclecloudapps.com/ords/r/corlixhub/corlixhub/início`. O formato `f?p=100:N` funciona em `/ords/f?p=100:N`, não sob `/ords/r/...`.
 - Conta de teste do RH: `teste.rh` (tem colaborador vinculado). A senha nunca passa pelo agente: se cair no login, peça ao time para entrar **na aba que o agente está usando** (uma aba que o agente não controla não serve).
-- Builder e SQL Commands: `/ords/apex` → workspace `CORLIXHUB` → SQL Workshop › SQL Commands. A sessão do Builder é do time; o agente só escolhe o workspace.
+- Builder e SQL Commands: `/ords/apex` → workspace `WKSP_CORLIXHUB` → SQL Workshop › SQL Commands. A sessão do Builder é do time; o agente só escolhe o workspace.
 - `render_*` dos packages no SQL Commands dá `ORA-20012` (sessão APEX sem `G_ID_EMPRESA`): isso é esperado. Teste esses no SQLcl ou direto na página.
 - Data local: o banco está em UTC. Use `cast(systimestamp at time zone 'America/Sao_Paulo' as date)` para "agora" em Brasília.
 
