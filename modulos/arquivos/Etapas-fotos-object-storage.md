@@ -72,8 +72,9 @@ Depois de salvar, apague a chave `.pem` da pasta de downloads, ou guarde-a num c
 Em *SQL Workshop › SQL Scripts › Upload*, envie e rode um arquivo por vez, **nesta ordem**:
 
 1. `modulos/arquivos/01_ddl_arquivos.sql`
-2. `modulos/arquivos/02_pkg_arquivos.pks`
-3. `modulos/arquivos/02_pkg_arquivos.pkb`
+2. `modulos/arquivos/05_ddl_prefixo_ambiente.sql` (coluna `DS_PREFIXO`, que o package lê; no PRD fica vazia, em DEV e UAT recebe `dev/` ou `uat/`: ver `modulos/ambientes/Etapas-ambientes.md`)
+3. `modulos/arquivos/02_pkg_arquivos.pks`
+4. `modulos/arquivos/02_pkg_arquivos.pkb`
 
 No SQL Commands, troque `<namespace>` e rode:
 
@@ -253,3 +254,5 @@ Até o §7, os arquivos antigos continuam nos Static Files. Basta desfazer os §
 ## Documentos de RH
 
 Este guia cobre só as **fotos**. Documentos confidenciais têm requisitos mais fortes e **não devem usar** este bucket, esta credencial ou o padrão `x01`. Os requisitos estão em `Requisitos-documentos-rh.md`.
+
+> **17/11/2026, prefixo por ambiente:** `pkg_arquivos` passou a montar o caminho como `<DS_PREFIXO>empresa/<id>/fotos/<nome>`. **Antes de recompilar o `02_pkg_arquivos.pkb` num banco que já tem o módulo (inclusive o PRD), rode o `05_ddl_prefixo_ambiente.sql`**; sem a coluna, o package fica inválido e as fotos param. No PRD não rode o `update`: com a coluna vazia, o caminho é o mesmo de antes. Versionado, não aplicado.

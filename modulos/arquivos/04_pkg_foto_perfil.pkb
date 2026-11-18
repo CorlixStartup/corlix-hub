@@ -26,7 +26,8 @@ create or replace package body pkg_foto_perfil as
     return 'https://objectstorage.' || p_cfg.ds_regiao || '.oraclecloud.com'
         || '/n/' || p_cfg.ds_namespace
         || '/b/' || p_cfg.nm_bucket_fotos
-        || '/o/empresa/' || p_emp || '/fotos/' || apex_util.url_encode(p_nome);
+        || '/o/' || p_cfg.ds_prefixo  -- dev/ ou uat/; vazio no PRD
+        || 'empresa/' || p_emp || '/fotos/' || apex_util.url_encode(p_nome);
   end url_objeto;
 
   function le_imagem return blob is

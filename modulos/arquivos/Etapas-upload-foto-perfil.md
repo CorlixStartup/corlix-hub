@@ -58,10 +58,11 @@ Confira se o **Static ID** ficou exatamente como na tabela. O APEX pode preench�
 
 Em *SQL Workshop › SQL Scripts › Upload*, envie e rode um arquivo por vez, **nesta ordem**:
 
-1. `modulos/arquivos/03_ddl_foto_escrita.sql`
-2. `modulos/arquivos/04_pkg_foto_perfil.pks`
-3. `modulos/arquivos/04_pkg_foto_perfil.pkb`
-4. `modulos/perfil/02_pkg_perfil_prototipo.pkb`
+1. `modulos/arquivos/05_ddl_prefixo_ambiente.sql` (se a coluna `DS_PREFIXO` ainda não existir; o `pkg_foto_perfil` a usa)
+2. `modulos/arquivos/03_ddl_foto_escrita.sql`
+3. `modulos/arquivos/04_pkg_foto_perfil.pks`
+4. `modulos/arquivos/04_pkg_foto_perfil.pkb`
+5. `modulos/perfil/02_pkg_perfil_prototipo.pkb`
 
 No SQL Commands, um comando por vez, sem `;` no final:
 
