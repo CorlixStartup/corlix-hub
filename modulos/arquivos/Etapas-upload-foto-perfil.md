@@ -106,6 +106,8 @@ O nome precisa ser exatamente `SALVAR_FOTO`.
 
 Em *Page › JavaScript › Execute when Page Loads*, cole o conteúdo de `modulos/arquivos/foto-perfil.js` **no fim**, sem apagar o que já existe. Salve a página.
 
+> **Atenção:** esse campo já tem o JavaScript do perfil (fotos, abas e o botão **Alterar foto**). Clique no fim do texto, dê Enter e só então cole. Se o campo ficar só com o `foto-perfil.js`, a página quebra para todo mundo (veja "Se não funcionar"). Para conferir, procure no campo `carregarFotosPerfil` e `abrir-foto-drawer`: os dois precisam continuar lá.
+
 ## 6. Testar
 
 Limpe o cache do navegador antes (`Cmd+Shift+R`).
@@ -136,6 +138,7 @@ oci os object list --bucket-name corlix-fotos --prefix "empresa/1/fotos/<id>_" -
 | "Não foi possível falar com o servidor." | Falta o processo `SALVAR_FOTO`, ou o nome está diferente | Confira o §5.1 |
 | **Salvar foto** não ativa | Faltou o JavaScript do §5.2, ou o `.pkb` do perfil não foi reinstalado | Confira os §3 e §5.2 |
 | Salvou, mas a foto não aparece | A foto não abre pela página 44 | Veja a tabela "Se não funcionar" de `Etapas-fotos-object-storage.md` |
+| Em Meu perfil, as fotos viram iniciais, as abas não trocam e **Alterar foto** não abre | O `foto-perfil.js` foi colado **no lugar** do JavaScript do perfil, e não no fim dele | Em *Execute when Page Loads*, cole de volta o bloco original (de `carregarFotosPerfil` até o handler `fechar-foto`, em `corlixhub/pages/p00002-meu-perfil.apx`, campo `executeWhenPageLoads`) e, depois dele, o `foto-perfil.js` |
 | Foto antiga continua no bucket | A foto anterior não foi gerada por este envio, ou a exclusão falhou | Fotos com nome antigo não são apagadas. O motivo da falha fica no debug |
 
 ## Voltar atrás
@@ -153,4 +156,6 @@ Apague o processo `SALVAR_FOTO` e o trecho colado no JavaScript. Os arquivos já
 |---|---|---|
 | 17/11/2026 | Conferência na app com colaborador comum, antes do teste do §6 (autorizado pelo time). Nada foi gravado | **Não aplicado; teste do §6 não executado.** O painel "Foto de perfil" abre, mas **Salvar foto** já vem ativo, sem `data-acao="salvar-foto"`, e a página não tem `#perfil-foto-status`: o `02_pkg_perfil_prototipo.pkb` do §3 não foi reinstalado. Também não há o JavaScript do §5.2 nem o processo `SALVAR_FOTO` do §5.1, na página publicada e no export de `p00002-meu-perfil.apx`. Hoje o botão não faz nada. Não deu para conferir pela app se o §1, o §2 e o resto do §3 (credencial de gravação, `PKG_FOTO_PERFIL`) foram feitos |
 
-**Próximo passo:** o time aplica os §1 a §5. Depois, o agente roda o §6 com o colaborador comum, restaurando a foto original no fim.
+| 17/11/2026 | Reteste na app com colaborador comum, depois de o time aplicar parte do guia. Nada foi gravado | **Regressão na página 2.** O `foto-perfil.js` está na página, mas **substituiu** o JavaScript do perfil em *Execute when Page Loads*. Resultado para todos: as fotos do perfil, do gestor e dos colegas viram iniciais (8 imagens sem carregar), a aba **Dados pessoais** não abre e **Alterar foto** não faz nada. No clique só restam os handlers de `salvar-foto` e de links. O teste do §6 não foi executado |
+
+**Próximo passo:** o time corrige o §5.2, colando de volta o bloco original e o `foto-perfil.js` depois dele (veja "Se não funcionar"). Também confere se o §3 e o §5.1 foram aplicados. Depois, o agente roda o §6 com o colaborador comum, restaurando a foto original no fim.
