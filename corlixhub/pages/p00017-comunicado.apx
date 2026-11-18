@@ -305,6 +305,8 @@ page 17 (
         }
         resizeTo {
             maxFileSize: 5120
+            maxWidth: 1280
+            maxHeight: 720
         }
         layout {
             sequence: 60

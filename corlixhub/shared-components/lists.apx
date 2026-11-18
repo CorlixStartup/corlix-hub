@@ -349,7 +349,7 @@ list navigation-menu (
             }
         }
         security {
-            authorizationScheme: @admin-rh
+            authorizationScheme: @administration-rights
         }
     )
 

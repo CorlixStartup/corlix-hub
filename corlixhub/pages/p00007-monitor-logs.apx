@@ -10,7 +10,7 @@ page 7 (
         cursorFocus: doNotFocusCursor
     }
     security {
-        authorizationScheme: @admin-rh
+        authorizationScheme: @administration-rights
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
