@@ -103,6 +103,8 @@ URLs locais: Builder `http://localhost:8081/ords`; app `http://localhost:8081/or
 ### 5.1.1 APEX no Autonomous (OCI)
 O desenvolvimento acontece no APEX do Autonomous Database da OCI (`https://<id>.adb.<região>.oraclecloudapps.com/ords/...`). Depois de longas sessões, o proxy da Oracle pode responder `400 Request Header Or Cookie Too Large`. Causa e solução estão em [`10-erro-400-cookies.md`](./10-erro-400-cookies.md).
 
+Hoje DEV e PROD são a mesma instância (confirmado pelo time em 17/11/2026). A proposta de separar em DEV, UAT e PRD com os dois bancos gratuitos está em [`12-ambientes-dev-uat-prd.md`](./12-ambientes-dev-uat-prd.md), ainda não aplicada.
+
 ### 5.2 Pastas que nunca vão para o Git
 `apex/` (distribuição Oracle ~1,1 GB), `META-INF/`, `oracle_oradata/` (datafiles), `ords_config/` (contém wallet e chave TLS), `.env*` (exceto `.env.example`), `*.log`, `.DS_Store`. O CI bloqueia `apex/`, `oracle_oradata/`, `ords_config/`, `META-INF/`.
 
