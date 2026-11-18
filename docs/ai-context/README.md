@@ -40,6 +40,7 @@
 - **Apareceu um erro (ORA-, PLS-, Access denied):** primeiro `python3 scripts/busca-casos/casos.py buscar "<mensagem ou sintoma>"` (busca de casos com Elasticsearch, cobre o 09, o 10 e as tabelas "Se não funcionar" dos módulos; ver 01 §8.2); depois 09.
 - **Dúvida sobre um recurso ou API do APEX:** [`../apex-26.1/`](../apex-26.1/README.md) e `casos.py buscar "…" --fonte apex` (documentação oficial indexada).
 - **Ambiente, deploy ou CI:** 01; separação em DEV, UAT e PRD (proposta): 12.
+- **Desempenho ou monitoramento (armazenamento, CPU, memória, tempo de página, Lighthouse):** `modulos/monitoramento/Etapas-monitoramento.md`.
 - **Erro 400 "Request Header Or Cookie Too Large" ou sessão do Builder caindo:** 10.
 
 ## Páginas (visão rápida)
