@@ -56,6 +56,26 @@ Em ordem de custo:
 5. **Extensão de cookies** (ex.: *Cookie-Editor*), se o diagnóstico mostrar um padrão de nome claro: ela apaga só aquele padrão em um clique, sem mexer na sessão atual.
 6. **Só se nada disso bastar:** ORDS gerenciado pelo cliente (*customer-managed ORDS*) ou URL própria (*vanity URL*) com um load balancer da OCI na frente. Nesse caso o limite de cabeçalho passa a ser configurável por nós (no ORDS standalone/Jetty, ver nota MOS 2894799.1). Para o tamanho do projeto, é infraestrutura demais. Não faça isso sem falar com o time.
 
+## 5.1 Usuários da app também recebem o 400 (17/11/2026, CD-78)
+
+O time relatou que alguns usuários que **só usam a app**, sem Builder nem Database Actions, também recebem o 400. A explicação das §2 a §5, de acúmulo pelo uso do Builder, não cobre esse caso.
+
+**Hipótese (sem confirmação): domínio compartilhado entre clientes da Oracle.**
+- A [Public Suffix List](https://publicsuffix.org/list/public_suffix_list.dat) tem a entrada `*.oraclecloudapps.com` (conferida em 17/11/2026). Por isso `sa-saopaulo-1.oraclecloudapps.com` é um sufixo público, e `adb.sa-saopaulo-1.oraclecloudapps.com` é um domínio registrável **comum a todos os Autonomous da região**, inclusive de outros clientes.
+- Um cookie gravado por outro site desse domínio com `Domain=adb.sa-saopaulo-1.oraclecloudapps.com` também vai no cabeçalho dos pedidos para a nossa app.
+- `ORA_FPC`, que a auditoria de LGPD achou (CD-73), é o cookie de visitante do [Oracle Infinity](https://docs.oracle.com/en/cloud/saas/marketing/infinity-develop/docs/parameters/cookie_detection.htm), tag de medição da Oracle. A origem do `WTPERSIST` não foi achada na documentação.
+
+**Como confirmar:** no diagnóstico da §3, anote também a coluna **Domain**. Cookie com Domain `.adb.sa-saopaulo-1.oraclecloudapps.com` (com o ponto no início, sem o nosso `<id>`) não é da nossa app.
+
+**O que muda na solução:**
+
+| Origem dos cookies | Correção |
+|---|---|
+| Builder e Database Actions do time | Separar DEV e PRD em bancos diferentes ([12](./12-ambientes-dev-uat-prd.md)). Quem usa a app deixa de dividir o host com o Builder |
+| Domínio compartilhado da região | Separar os bancos não basta, porque o PRD continuaria no mesmo domínio. Só um endereço próprio (domínio da Corlix) tira a app dele: URL própria (*vanity URL*) ou ORDS gerenciado pelo cliente. Conferir na documentação o que o Autonomous **Always Free** permite antes de propor (§5, item 6) |
+
+Enquanto isso, a orientação para o usuário que recebe o 400 é apagar os dados **só deste site** (ícone à esquerda do endereço › Cookies e dados do site), sem limpar o navegador inteiro.
+
 ## 6. Causa confirmada (preencher após o diagnóstico)
 
 | Data | Cookie(s) que crescem | Padrão (nome / path / tamanho) | Origem provável | Ação adotada |
