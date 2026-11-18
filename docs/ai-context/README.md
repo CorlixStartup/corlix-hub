@@ -91,6 +91,7 @@ Estado em 13/11/2026 (backup de DEV `84f8625`), com link para a **ficha de cada 
 | 42 | [Artigos](./paginas/p00042-artigos.md) | §11.2 concluído no export em 13/11/2026 (16/16, filtra por empresa); sem teste na app | `suporte-ti/` §11 |
 | 43 | [Artigo](./paginas/p00043-artigo.md) | Só o assistente; **empresa escolhível** e campos de controle obrigatórios | `suporte-ti/` §11.3 |
 | 44 | [Foto](./paginas/p00044-foto.md) | Em uso (entrega as fotos do bucket), validada em 09/11/2026 | `arquivos/Etapas-fotos-object-storage.md` |
+| 45 | [Otimizar imagens](./paginas/p00045-otimizar-imagens.md) | **Proposta, não criada.** Troca as imagens pesadas dos comunicados por JPEG de até 1280 × 720 | `imagens/Etapas-imagens.md` |
 | 9999 | [Login](./paginas/p09999-login.md) | Login padrão do APEX, em inglês; redesign proposto, não aplicado | `login/Etapas-login.md` |
 
 Pontos de atenção encontrados ao montar as fichas (isolamento por empresa, autorização, menu do Suporte TI): [`paginas/README.md`](./paginas/README.md#pontos-de-atenção-achados-na-criação-das-fichas).
