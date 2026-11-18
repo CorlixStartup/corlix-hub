@@ -54,7 +54,7 @@ Estado em 13/11/2026 (backup de DEV `84f8625`), com link para a **ficha de cada 
 | 1 | [Início](./paginas/p00001-início.md) | **§8 concluído** (55/55, testes 1 a 8). Pendentes: Parabenizar, "Disponível agora" e conta sem colaborador | `home/Etapas-home.md` |
 | 2 | [Meu Perfil](./paginas/p00002-meu-perfil.md) | Implementada e testada (privacidade e protótipo). "Salvar foto" sem ação | `perfil/` |
 | 3 | [Organograma](./paginas/p00003-organograma.md) | Implementada com `pkg_organograma` e drawer; sem registro de isolamento por empresa | `organograma/Etapas-organograma.md` |
-| 4 | [Chat](./paginas/p00004-chat.md) | Implementada com envio e polling de 1 s; sem guia no repositório; CSS inline | — |
+| 4 | [Chat](./paginas/p00004-chat.md) | Implementada com envio e polling de 1 s; presença proposta (§2, não aplicada: ping global pela página 0); CSS inline | `chat/Etapas-chat.md` |
 | 5 | [Notificações](./paginas/p00005-notificacoes.md) | Placeholder (destino do sino) | — |
 | 6 | [Configurações](./paginas/p00006-configuracoes.md) | Placeholder, sem autorização | — |
 | 7 | [Monitor de Logs](./paginas/p00007-monitor-logs.md) | Implementada com `@admin-rh`; a troca para `EQUIPE_CORLIX_HUB` não foi aplicada | `isolamento-empresas/` §5 |
@@ -91,6 +91,7 @@ Estado em 13/11/2026 (backup de DEV `84f8625`), com link para a **ficha de cada 
 | 42 | [Artigos](./paginas/p00042-artigos.md) | §11.2 concluído no export em 13/11/2026 (16/16, filtra por empresa); sem teste na app | `suporte-ti/` §11 |
 | 43 | [Artigo](./paginas/p00043-artigo.md) | Só o assistente; **empresa escolhível** e campos de controle obrigatórios | `suporte-ti/` §11.3 |
 | 44 | [Foto](./paginas/p00044-foto.md) | Em uso (entrega as fotos do bucket), validada em 09/11/2026 | `arquivos/Etapas-fotos-object-storage.md` |
+| 45 | [Otimizar imagens](./paginas/p00045-otimizar-imagens.md) | **Proposta, não criada.** Troca as imagens pesadas dos comunicados por JPEG de até 1280 × 720 | `imagens/Etapas-imagens.md` |
 | 9999 | [Login](./paginas/p09999-login.md) | Login padrão do APEX, em inglês; redesign proposto, não aplicado | `login/Etapas-login.md` |
 
 Pontos de atenção encontrados ao montar as fichas (isolamento por empresa, autorização, menu do Suporte TI): [`paginas/README.md`](./paginas/README.md#pontos-de-atenção-achados-na-criação-das-fichas).

@@ -99,7 +99,7 @@
 | 1 | Início | INÍCIO | p00001-início.apx | @corlix-standard-page | normal | nenhuma / nenhuma | Implementada (redesign do `modulos/home`, protótipo antigo); protótipo de 28/10/2026 pelo §6 do `Etapas-home.md` |
 | 2 | Meu Perfil | MEU-PERFIL | p00002-meu-perfil.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (só breadcrumb) |
 | 3 | Organograma | ORGANOGRAMA | p00003-organograma.apx | @/standard | normal | nenhuma / nenhuma | Placeholder (módulo em `modulos/organograma/`, não integrado) |
-| 4 | Chat | CHAT | p00004-chat.apx | @corlix-standard-page | normal | nenhuma / nenhuma | Implementada parcialmente (envio funciona; sem polling/presença) |
+| 4 | Chat | CHAT | p00004-chat.apx | @corlix-standard-page | normal | nenhuma / nenhuma | Implementada parcialmente (envio funciona; polling aplicado pelo `modulos/chat/Etapas-chat.md` §1; presença proposta no §2) |
 | 5 | Notificações | NOTIFICACOES | p00005-notificacoes.apx | @corlix-standard-page | normal | nenhuma | Placeholder (breadcrumb) |
 | 6 | Configurações | CONFIGURACOES | p00006-configuracoes.apx | @corlix-standard-page | normal | nenhuma | Placeholder (breadcrumb) |
 | 7 | Monitor de Logs | MONITOR_LOGS | p00007-monitor-logs.apx | @corlix-standard-page | normal | `ADMIN_RH` / `ADMIN_RH`; vai para `EQUIPE_CORLIX_HUB` | Implementada (3 IRs em abas) |
@@ -224,7 +224,9 @@ Placeholder idêntico à 2. O módulo real está sendo desenvolvido fora do app 
 - **Pegadinhas**:
   - A região `msgs` não declara "Page Items to Submit". O refresh funciona porque o PL/SQL da DA grava `P4_CANAL_ID` em sessão. Se o valor passar a ser definido só no cliente, declare o item na região.
   - `.ch-shell .container/.row` têm `display: contents` (inclusive os internos da `conversa`), então as colunas das sub-regiões são itens flex diretos da região `conversa`. A regra que repassa a altura (`.ch-chat .col`, `.col>div`, `.col>div>div:not(.ch-composer)`) faz todas as colunas crescerem. A coluna do composer é identificada por `.ch-chat .col:has(.ch-composer)` (`flex: 0 0 auto; margin-top: auto`), independentemente de a classe `ch-composer-col` estar em Row ou Column CSS Classes no Builder. Qualquer novo conteúdo dentro das sub-regiões de `conversa` que não deva virar coluna flex precisa entrar no `:not(...)`.
-  - Envio funciona, mas não há polling/refresh periódico, nem atualização de presença (ping): mensagens recebidas só aparecem ao reabrir o contato.
+  - Polling de 1 s (processo Ajax `CH_VERIFICAR_MSGS` + JS `chChat` que compara a assinatura "última:quantidade" com o `data-id` das bolhas): aplicado pelo `modulos/chat/Etapas-chat.md` §1 (backup de 17/11/2026, `7016ea7`).
+  - Presença: nada grava o ping hoje. O §2 do guia (17/11/2026, proposto e não aplicado) cria o `pkg_chat_ui`, o Application Process `CX_PRESENCA_PING` chamado pela DA "Presença" da página 0 (todas as páginas, máx. 1 ping/min, só com a aba visível e atividade nos últimos 3 min) e o Ajax Callback `CH_PRESENCAS` nesta página, que troca as classes `.ch-dot--*` a cada 30 s sem recarregar `contatos`. Sem job de offline: as leituras decidem pela idade do último ping.
+  - A região `msgs` está com o *Number of Rows* padrão (15, `p_query_num_rows=>15` no export) e a consulta ordena da mais antiga para a mais nova: conversas com mais de 15 mensagens não mostram as novas. Corrigido no §1.1 do guia (200 mais recentes, Number of Rows 200).
   - Multiempresa: a lista filtra pela empresa do colaborador logado e a DA revalida no servidor. Usuário sem colaborador vinculado vê a lista vazia.
   - `c.status = true` usa BOOLEAN SQL nativo (Oracle 23ai).
 

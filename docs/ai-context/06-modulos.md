@@ -365,6 +365,19 @@ Situações: `ABERTO` → `EM_ATENDIMENTO` ⇄ `AGUARDANDO_USUARIO` → `RESOLVI
 
 ---
 
+## 2F. Imagens (`modulos/imagens/`)
+
+Guia: `modulos/imagens/Etapas-imagens.md` (CD-44). Página 45 "Otimizar imagens", proposta e ainda não criada, só para `ADMIN_RH`. Lista as imagens de comunicado da empresa acima de 400 KB; o navegador baixa cada uma, redesenha em JPEG de até 1280 × 720 (qualidade 0,82) e devolve. O servidor só grava JPEG válido, até 1 MB e menor que a atual, e guarda a original em `IMAGEM_ORIGINAL`. Testado em Oracle 23ai local com as APIs do APEX simuladas.
+
+| Arquivo | Conteúdo |
+|---|---|
+| `01_ddl_imagens.sql` | Tabela `IMAGEM_ORIGINAL` (cópia antes da troca; `NM_TABELA` só aceita `COMUNICADO` por enquanto) |
+| `02_pkg_imagens.pks` / `.pkb` | `eh_jpeg`, `obter_comunicado`, `trocar_comunicado` (sem commit) |
+| `03_pkg_imagens_ui.pks` / `.pkb` | `render_cabecalho`, `render_lista`; `ajax_obter` e `ajax_salvar` (JSON `{ok, mensagem}`) |
+| `imagens.css` / `imagens.min.css`, `imagens-pagina.js` | Classes `cx-img-*`; compressão em canvas e envio em pedaços (`apex.server.chunk`) |
+
+---
+
 ## 2D. Ponto eletrônico (`modulos/ponto-eletronico/`)
 
 Guia: `modulos/ponto-eletronico/Etapas-ponto-eletronico.md`. Protótipo `pen_dev/Ponto eletrônico.png`. Páginas 30 a 33 na app e packages no banco. Ajustes da validação de 03/11/2026 aplicados (`Etapas-ajustes-validacao.md`). Ajustes de `Etapas-meus-pedidos.md` também aplicados (o cartão Meus pedidos sai de `render_pendencias`). Fluxos validados na app em 03/11/2026, no ambiente DEV.
