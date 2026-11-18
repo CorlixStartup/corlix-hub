@@ -44,7 +44,7 @@ Do congelamento até o DEV ficar pronto (§3.7), **ninguém edita a app**: nem n
    select object_type, object_name from user_objects where status = 'INVALID' order by 1, 2
    ```
 
-   Tem de voltar vazio. Em 17/11/2026 o `PKG_CHAT_UI` (body) estava inválido e quebrava o `CX_PRESENCA_PING` em todas as páginas (`SyntaxError: Unexpected token 's', "sqlerrm:OR"...`). O corpo exportado no backup de 18/11 compila sem erro num Oracle local, então o mais provável é que só precise ser recompilado:
+   Tem de voltar vazio. Em 17/11/2026 o `PKG_CHAT_UI` (body) estava inválido (resolvido pelo time em 18/11/2026) e quebrava o `CX_PRESENCA_PING` em todas as páginas (`SyntaxError: Unexpected token 's', "sqlerrm:OR"...`). O corpo exportado no backup de 18/11 compila sem erro num Oracle local, então o mais provável é que só precise ser recompilado:
 
    ```sql
    alter package pkg_chat_ui compile body
@@ -59,13 +59,32 @@ Do congelamento até o DEV ficar pronto (§3.7), **ninguém edita a app**: nem n
 ### 0.2 Congelar
 
 1. Avise no canal do time: "Builder do Corlix Hub congelado a partir de agora até o DEV novo ficar pronto. Ninguém edita no Builder nem no SQL Workshop."
-2. Bloqueie o Builder do banco 1 com o bloco do §4, item 4 (`RUN_ONLY`).
-3. Confira: no Builder do banco 1, a app 100 não abre para edição; a app no ar continua funcionando.
-4. Rode o backup do Jenkins (`AMBIENTE = PRD`) e espere o commit na branch `DEV`. O backup só lê a app e o banco, então funciona com o Builder bloqueado (confirmar no primeiro backup). **Esse backup é a base do DEV:** guarde o `.tar.gz` (§1, item 3) e use a `DEV` desse commit no §3.
+2. Confira como está hoje. No banco 1, em *SQL Workshop › SQL Commands*, cole o bloco inteiro e clique em **Run**:
+
+   ```sql
+   begin
+     dbms_output.put_line('Build Status da app 100: ' || apex_application_admin.get_build_status(p_application_id => 100));
+   end;
+   ```
+
+   Deve mostrar `RUN_AND_BUILD`.
+3. Bloqueie o Builder do banco 1. No mesmo SQL Commands:
+
+   ```sql
+   begin
+     apex_application_admin.set_build_status(p_application_id => 100, p_build_status => 'RUN_ONLY');
+     commit;
+     dbms_output.put_line('Build Status da app 100: ' || apex_application_admin.get_build_status(p_application_id => 100));
+   end;
+   ```
+
+   Deve mostrar `RUN_ONLY`. Pelo Builder, o caminho é *Shared Components › Application Definition › Availability › Build Status* = **Run Application Only** (confirmar no 26.1.5).
+4. Confira: no App Builder, a app 100 não abre mais para edição; em outra aba, a app no ar (Início) continua funcionando.
+5. Rode o backup do Jenkins (`AMBIENTE = PRD`) e espere o commit na branch `DEV`. O backup só lê a app e o banco, então funciona com o Builder bloqueado (confirmar no primeiro backup). **Esse backup é a base do DEV:** guarde o `.tar.gz` (§1, item 3) e use a `DEV` desse commit no §3.
 
 ### 0.3 Correção urgente durante o congelamento
 
-Se a app no ar quebrar antes de o DEV ficar pronto: volte o Build Status para `RUN_AND_BUILD` (bloco de "Voltar atrás"), corrija, bloqueie de novo e rode outro backup. Se o §3 já tiver começado, repita no DEV o §3.4 com o `f100.sql` novo e qualquer DDL alterado.
+Se a app no ar quebrar antes de o DEV ficar pronto: volte o Build Status para `RUN_AND_BUILD` (mesmo bloco do §0.2, item 3, trocando o valor; ou, sem SQL, *Administration › Manage Service › Application Build Status*, como administrador do workspace), corrija, bloqueie de novo e rode outro backup. Se o §3 já tiver começado, repita no DEV o §3.4 com o `f100.sql` novo e qualquer DDL alterado.
 
 ---
 
@@ -400,3 +419,4 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | 17/11/2026 | `identidades.sql` versionado | **Testado** num Oracle 23ai local descartável: `GENERATED ALWAYS`, `BY DEFAULT` e `BY DEFAULT ON NULL` aceitam o ID do CSV depois do `ANTES` e voltam ao tipo original no `DEPOIS`, recomeçando depois do maior ID (50→51, 70→71, 90→91), e a tabela de controle é apagada. O primeiro teste achou um erro (o `ON NULL` voltava como `BY DEFAULT`), já corrigido |
 | 18/11/2026 | Ordem trocada: **congelar primeiro** (§0), a pedido do time | Validado o backup de 18/11 num Oracle 23ai local: o `03-tabelas.sql` criava só 27 das 51 tabelas (bloco `DECLARE` sem `/` e `INSERT … @ KU$`). O filtro do 3.2 a cria as 51, sem erro, com `whenever sqlerror exit`. O `PKG_CHAT_UI` do backup compila sem erro com as tabelas completas; no banco 1 ele está inválido (visto na app em 17/11/2026, `ORA-04063`). **Nada foi executado no Oracle Cloud.** Próximo passo: §0.1 e §0.2 pelo time |
 | 18/11/2026 | Validação da DEV depois do backup das 09:15 (`ec1176e`) e dos PRs #192 a #194 | O backup diz "Sem mudanças na app nem no DDL" em relação ao das 02:52, então o filtro do 3.2 a continua valendo (51 tabelas, testado). O `PKG_CHAT_UI` versionado em `modulos/chat/` (PR #193) é igual ao do backup, só com comentários a mais, e compila. **Não conferido na app** (a sessão expirou e o login é do time): se o Build Status do banco 1 já está `RUN_ONLY` e se o `PKG_CHAT_UI` voltou a `VALID`. O export não mostra o Build Status. Próximo passo: o time confirma o §0.1 e o §0.2, item 3, e segue para o §1 |
+| 18/11/2026 | Time: `PKG_CHAT_UI` resolvido; congelamento ainda não feito | §0.2 reescrito para o SQL Commands: conferir o Build Status antes e depois com `apex_application_admin.get_build_status` e bloquear com `set_build_status` (API conferida na documentação do 26.1). Desbloqueio sem SQL por *Administration › Manage Service › Application Build Status* (Administration Guide 2.14.2) |
