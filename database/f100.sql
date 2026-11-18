@@ -107,6 +107,7 @@ wwv_imp_workspace.create_flow(
 ,p_no_proxy_domains=>nvl(wwv_flow_application_install.get_no_proxy_domains,'')
 ,p_flow_version=>'Release 1.0'
 ,p_flow_status=>'AVAILABLE_W_EDIT_LINK'
+,p_build_status=>'RUN_ONLY'
 ,p_exact_substitutions_only=>'Y'
 ,p_browser_cache=>'N'
 ,p_browser_frame=>'D'
@@ -118,7 +119,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461363021305
-,p_version_scn=>'51191582144102'
+,p_version_scn=>'51195572662085'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -250061,4 +250062,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:8UjUq02YukGAKE0Lcz1427eX36VRiE8+of05ngnW13A=
+-- Application Checksum SH256:926inoxtLjYN5LQQQdudPpD6E4JchHQxFpyNWPnCHvA=
