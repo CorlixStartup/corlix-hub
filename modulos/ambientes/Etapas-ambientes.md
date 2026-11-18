@@ -104,9 +104,17 @@ Se a app no ar quebrar antes de o DEV ficar pronto: volte o Build Status para `R
 | Display name / Database name | `corlixhubdev` |
 | Workload type | **APEX** ou **Transaction Processing** (os dois servem para o APEX; prefira o mesmo tipo do banco 1) |
 | **Always Free** | **Ligado.** Confira antes de criar: sem isso o banco é cobrado |
-| Database version | a mesma do banco 1 (23ai) |
-| ADMIN password | criada pelo time e guardada no cofre de senhas do time |
+| Database version | a oferecida pelo console (em 18/11/2026, só **26ai**, sucessor do 23ai). Se o banco 1 ainda estiver em 23ai, não use no DEV recurso que só exista no 26ai: a app vai para o PRD |
+| ADMIN password | gerada com o comando abaixo e guardada no cofre de senhas do time |
 | Network access | **Secure access from everywhere**, com mTLS obrigatório (o GitHub Actions entra pela internet, com o wallet) |
+
+Senha do ADMIN (e, depois, a do wallet): 24 letras e números, com maiúscula, minúscula e número, copiada para a área de transferência sem aparecer na tela. Sem símbolos, que costumam dar problema no SQLcl e nos secrets do GitHub.
+
+```bash
+while :; do s=$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c 24); [[ $s =~ [A-Z] && $s =~ [a-z] && $s =~ [0-9] ]] && break; done; printf %s "$s" | pbcopy; unset s; echo "Senha copiada"
+```
+
+O compartimento `corlix-dev-uat` pede descrição: `Ambientes DEV e UAT do Corlix Hub (banco 2, Always Free)`. No §1, o limite certo é **Always Free Autonomous Database Instance Count** (`adb-free-count`), no serviço **Database**; não confunda com *Developer Autonomous Database*, que é pago.
 
 Depois de criado: *Database connection › Download wallet*. O alias do serviço (`corlixhubdev_low`) está no `tnsnames.ora` dentro do zip.
 
@@ -423,3 +431,4 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | 18/11/2026 | Time: `PKG_CHAT_UI` resolvido; congelamento ainda não feito | §0.2 reescrito para o SQL Commands: conferir o Build Status antes e depois com `apex_application_admin.get_build_status` e bloquear com `set_build_status` (API conferida na documentação do 26.1). Desbloqueio sem SQL por *Administration › Manage Service › Application Build Status* (Administration Guide 2.14.2) |
 | 18/11/2026 | §0.1 no banco 1: sobrou `VW_CARREIRA_TIMELINE` inválida | A view do backup compila sem erro com as tabelas do backup (Oracle 23ai local). Orientado `alter view vw_carreira_timeline compile`; aguardando o resultado do time |
 | 18/11/2026 | **§0 feito pelo time** (itens 0.1 e 0.2, 1 a 5): `VW_CARREIRA_TIMELINE` recompilada, nenhum objeto inválido, Build Status `RUN_ONLY`, app no ar funcionando | Backup do congelamento: commit `6978491` (`corlixhub-prd-20261118-123528.tar.gz`, build 74 do Jenkins). O backup rodou com o Builder bloqueado. O export mostra `p_build_status=>'RUN_ONLY'` e `buildStatus: runOnly`; o DDL não mudou desde as 02:52 (filtro do 3.2 a vale). **Base do DEV: `DEV` em `6978491`.** Próximo passo: §1 e §2 |
+| 18/11/2026 | §1 conferido pelo time | `adb-free-count`: limite 2, uso 1, **1 disponível**. Console só oferece 26ai para o banco novo; senha do ADMIN por `openssl` (comando no §2, testado: 24 caracteres, regras do ADB) |
