@@ -2,8 +2,9 @@
 -- Corlix Hub · Monitoramento · consultas do schema da app (só leitura)
 -- Guia: modulos/monitoramento/Etapas-monitoramento.md (seções 2 e 4)
 --
--- Rode no SQL Workshop › SQL Commands do workspace WKSP_CORLIXHUB, uma consulta
--- por vez. Nenhuma consulta grava nada.
+-- Rode no SQL Workshop › SQL Commands do workspace WKSP_CORLIXHUB, UMA consulta
+-- por vez: cole do "select" até a última linha, SEM o ";" final e sem o
+-- comentário seguinte (senão: ORA-03405). Nenhuma consulta grava nada.
 -- =============================================================================
 
 -- 1. Espaço ocupado pelo schema, por tabela (os LOBs entram na tabela dona)

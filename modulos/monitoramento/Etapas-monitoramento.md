@@ -15,7 +15,7 @@ Limites do Always Free que importam aqui: **20 GB** de armazenamento por banco, 
 
 ## 2. Consultas do schema (`01_consultas_schema.sql`)
 
-Rode no **SQL Commands** do workspace `WKSP_CORLIXHUB`, uma consulta por vez. Todas são só leitura.
+Rode no **SQL Commands** do workspace `WKSP_CORLIXHUB`, **uma consulta por vez**: cole só do `select` até a última linha, **sem o `;` final** e sem o comentário da consulta seguinte (o SQL Commands recusa qualquer texto depois do fim da consulta: `ORA-03405`). Outra forma: cole o arquivo inteiro, selecione só uma consulta com o mouse (sem o `;`) e clique em *Run*. Todas são só leitura.
 
 | # | Mostra |
 |---|---|
@@ -32,7 +32,7 @@ As consultas 5 a 9 usam `APEX_WORKSPACE_ACTIVITY_LOG`, que só tem dados com o *
 
 ## 3. Consultas do banco inteiro (`02_consultas_admin.sql`)
 
-Rode como **ADMIN** em *Database Actions › SQL*. A senha de ADMIN é do time.
+Rode como **ADMIN** em *Database Actions › SQL*. A senha de ADMIN é do time. Lá dá para colar o arquivo inteiro e usar **Run Script** (F5), que roda todas em sequência; ou posicionar o cursor numa consulta e usar **Run Statement** (Ctrl+Enter).
 
 | # | Mostra |
 |---|---|
@@ -128,6 +128,7 @@ Meta proposta: LCP abaixo de 2,5 s no simulado desktop, peso da Home abaixo de 3
 
 | Sintoma | Causa provável | Correção |
 |---|---|---|
+| `ORA-03405: End of query reached; no additional text should follow` no SQL Commands | Colou mais de uma consulta, ou o `;` final e o comentário seguinte | Uma consulta por vez, do `select` ao fim, sem `;` (seção 2) |
 | Consultas 5 a 9 do schema voltam vazias | *Activity Logging* desligado ou app nunca acessada no período | Ligar em *Application Definition* (confirmar o caminho no 26.1.5) e esperar uso |
 | `ORA-00942` nas consultas `DBA_*`/`V$` | Rodou com o usuário do schema | Rodar como ADMIN |
 | Consultas `DBA_HIST_*` sem linhas | AWR sem snapshots no período | Usar os gráficos de Metrics e o Performance Hub do OCI |
@@ -139,3 +140,4 @@ Meta proposta: LCP abaixo de 2,5 s no simulado desktop, peso da Home abaixo de 3
 |---|---|---|
 | 17/11/2026 | Lighthouse da Home colado pelo time e analisado | Desempenho 68, LCP 9,9 s (simulado), 19,9 MB. Causa principal: imagens de comunicado de 4–5 MB, porque o `P17_IMAGEM` não limita a largura. Acessibilidade 94, com 3 achados |
 | 17/11/2026 | `01_consultas_schema.sql` e `02_consultas_admin.sql` versionados | Testados num Oracle 23ai local: as 12 do ADMIN rodaram; as do schema rodaram, menos as de `APEX_WORKSPACE_ACTIVITY_LOG`, que só existe no ADB. **Números de armazenamento, CPU e memória ainda não coletados** |
+| 18/11/2026 | Primeira execução pelo time no SQL Commands | `ORA-03405` na linha 13: a colagem levou o `;` e o comentário da consulta 2 junto. **Erro do guia**, que não avisava que o SQL Commands aceita um comando só; seção 2 e "Se não funcionar" corrigidas |
