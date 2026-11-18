@@ -11,6 +11,7 @@
 | Fotos | Mesmo bucket `corlix-fotos`, com prefixo **`dev/`** e **`uat/`** |
 | Instalação nos ambientes | **GitHub Actions**, com aprovação obrigatória no PRD. Antes da automação, a primeira vez é manual |
 | Data da troca (passo 4) | **18/11/2026** |
+| Ordem | **Congelar primeiro** (§0, decidido em 18/11/2026): o Builder do banco 1 para antes de montar o DEV, e o DEV nasce do backup do congelamento. Assim não há mudança feita no banco 1 depois da cópia, e os passos 2 e 3 do §4 não são necessários |
 
 ## Como fica
 
@@ -27,6 +28,44 @@
 > **Nomes:** `CORLIXHUB` é o nome do Autonomous AI Database atual (banco 1; serviço `corlixhub_low`). O workspace do APEX é `WKSP_CORLIXHUB`, confirmado pelo time em 17/11/2026. O banco 2 se chama `corlixhubdev` (serviço `corlixhubdev_low`).
 
 > **ID 200 no UAT:** o ID da app é único na instância do APEX, e DEV e UAT estão no mesmo banco. Por isso não use `f?p=100:` nem `100` escrito fixo no código: use `apex_page.get_url` e `:APP_ID`.
+
+---
+
+## 0. Congelamento
+
+Do congelamento até o DEV ficar pronto (§3.7), **ninguém edita a app**: nem no Builder nem no SQL Workshop (packages, tabelas, dados de configuração). A app no ar continua funcionando para quem usa.
+
+### 0.1 Antes de congelar
+
+1. Pergunte no canal do time se alguém tem uma mudança em andamento no Builder ou no SQL Workshop. Quem tiver termina e salva, ou desiste da mudança.
+2. Confira que não há objeto inválido no banco 1. No SQL Commands, sem `;`:
+
+   ```sql
+   select object_type, object_name from user_objects where status = 'INVALID' order by 1, 2
+   ```
+
+   Tem de voltar vazio. Em 17/11/2026 o `PKG_CHAT_UI` (body) estava inválido e quebrava o `CX_PRESENCA_PING` em todas as páginas (`SyntaxError: Unexpected token 's', "sqlerrm:OR"...`). O corpo exportado no backup de 18/11 compila sem erro num Oracle local, então o mais provável é que só precise ser recompilado:
+
+   ```sql
+   alter package pkg_chat_ui compile body
+   ```
+
+   Se continuar inválido, rode a consulta abaixo e resolva antes de congelar. Senão, o DEV herda o erro.
+
+   ```sql
+   select line, position, text from user_errors where name = 'PKG_CHAT_UI' and type = 'PACKAGE BODY' order by sequence
+   ```
+
+### 0.2 Congelar
+
+1. Avise no canal do time: "Builder do Corlix Hub congelado a partir de agora até o DEV novo ficar pronto. Ninguém edita no Builder nem no SQL Workshop."
+2. Bloqueie o Builder do banco 1 com o bloco do §4, item 4 (`RUN_ONLY`).
+3. Confira: no Builder do banco 1, a app 100 não abre para edição; a app no ar continua funcionando.
+4. Rode o backup do Jenkins (`AMBIENTE = PRD`) e espere o commit na branch `DEV`. O backup só lê a app e o banco, então funciona com o Builder bloqueado (confirmar no primeiro backup). **Esse backup é a base do DEV:** guarde o `.tar.gz` (§1, item 3) e use a `DEV` desse commit no §3.
+
+### 0.3 Correção urgente durante o congelamento
+
+Se a app no ar quebrar antes de o DEV ficar pronto: volte o Build Status para `RUN_AND_BUILD` (bloco de "Voltar atrás"), corrija, bloqueie de novo e rode outro backup. Se o §3 já tiver começado, repita no DEV o §3.4 com o `f100.sql` novo e qualquer DDL alterado.
 
 ---
 
@@ -87,12 +126,31 @@ No SQLcl, conectado como `WKSP_CORLIXHUB` no banco 2 (`set cloudconfig <wallet d
 
 **a) Tabelas**
 
+> **Não rode o `database/ddl/03-tabelas.sql` direto.** O DDL exportado traz, depois de cada tabela, um `INSERT … FROM "<tabela>"@ KU$` e, depois da `HTMLDB_PLAN_TABLE`, um bloco `DECLARE … END;` sem a `/` no fim. O SQLcl junta o resto do arquivo nesse bloco e não executa mais nada: num teste local de 18/11/2026, só 27 das 51 tabelas foram criadas, sem nenhuma mensagem de erro. Gere uma cópia limpa fora do repositório:
+
+```bash
+mkdir -p ~/corlix-carga
+awk '
+  /^  INSERT \/\*\+  APPEND/ { pula = 1 }
+  /^  DECLARE CURSOR/        { pula = 2 }
+  pula == 1 { if ($0 ~ /KU\$;$/) pula = 0; next }
+  pula == 2 { if ($0 ~ /^  END;$/) pula = 0; next }
+  { print }
+' database/ddl/03-tabelas.sql > ~/corlix-carga/03-tabelas-limpo.sql
+grep -c 'CREATE TABLE' ~/corlix-carga/03-tabelas-limpo.sql   # 51 no backup de 18/11/2026
+```
+
 ```sql
+whenever sqlerror exit failure
 @database/ddl/01-tipos.sql
 @database/ddl/02-sequencias.sql
-@database/ddl/03-tabelas.sql
+@~/corlix-carga/03-tabelas-limpo.sql
 @modulos/arquivos/05_ddl_prefixo_ambiente.sql
+whenever sqlerror continue
+select count(*) from user_tables;
 ```
+
+O `count` tem de dar o mesmo número do `grep`. A correção definitiva é no `scripts/backup/backup.sql`, que o time ajusta (veja "Pendências do time").
 
 **b) Dados do backup do PRD** (o `.tar.gz` do passo 1.3, extraído numa pasta **fora do repositório**, por exemplo `~/corlix-carga/`; ele nunca vai para o Git). Gere a lista de cargas no terminal, pulando os arquivos de controle (`_*.csv`) e os logs:
 
@@ -204,7 +262,9 @@ Entre com uma conta de teste no DEV (`…corlixhubdev….oraclecloudapps.com/ord
 
 ## 4. Dia da troca
 
-Combine a data com o time. No dia:
+> **Com o congelamento do §0**, os itens 1 e 4 já foram feitos e os itens 2 e 3 não são necessários: o DEV já nasceu do último estado do banco 1. Falta só avisar o time do endereço do Builder do DEV (item 1) e seguir para o §5.
+
+Sem o §0, combine a data com o time. No dia:
 
 1. Avise: "a partir de agora, o Builder é o do DEV, no endereço …". Ninguém edita mais no banco 1.
 2. Rode o backup do PRD (Jenkins) e espere o commit na branch `DEV`. Ele traz as últimas mudanças feitas no banco 1.
@@ -313,10 +373,19 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | Workflow: `ORA-12506` ou tempo esgotado ao conectar | Banco com lista de IPs liberados | *Network access* do banco: acesso de qualquer lugar com mTLS |
 | Workflow: "X não configurado no Environment" | Variável ou secret ausente | Tabela do 6.3 |
 | Página do UAT abre a app 100 | ID `100` escrito fixo em link ou package | Troque por `apex_page.get_url`/`:APP_ID` no DEV e promova de novo |
+| Só parte das tabelas existe no DEV depois do 3.2 a, sem erro na tela | `03-tabelas.sql` rodado direto: o bloco `DECLARE` sem `/` engoliu o resto do arquivo | Gere o `03-tabelas-limpo.sql` do 3.2 a e rode de novo |
+| `ORA-02019: connection description for remote database not found` | `INSERT … @ KU$` do DDL exportado | Mesma correção da linha acima |
+| `SyntaxError: Unexpected token 's', "sqlerrm:OR"...` em qualquer página | `PKG_CHAT_UI` inválido: o `CX_PRESENCA_PING` responde texto em vez de JSON | §0.1, item 2 |
 | Builder do PRD continua editável | Passo 4 não aplicado, ou instalação feita sem `RUN_ONLY` | Passo 4; no workflow, `BUILD_STATUS` = `RUN_ONLY` |
+
+## Pendências do time
+
+- **`scripts/backup/backup.sql`** (o agente não edita): o DDL das tabelas sai com `INSERT … @ KU$` e com o bloco `DECLARE` da `HTMLDB_PLAN_TABLE` sem `/`. Está assim pelo menos desde o backup de 10/11/2026. Até corrigir, use o filtro do 3.2 a.
+- **`PKG_CHAT_UI` e `CX_PRESENCA_PING`** não estão em nenhum módulo do repositório (só no backup). Quem fez o chat precisa versionar o código em `modulos/` com guia.
 
 ## Voltar atrás
 
+- **Durante o congelamento (§0), antes do §3:** volte o Build Status do banco 1 para `RUN_AND_BUILD` e avise o time. Nada mais mudou.
 - **Antes do passo 4:** nada mudou para quem usa a app. Apague o banco 2 se quiser desistir.
 - **Depois do passo 4:** volte o Build Status do banco 1 para `RUN_AND_BUILD` (mesmo bloco do passo 4), avise o time para editar de novo no banco 1 e volte `AMBIENTE_GIT` para `PRD` no Jenkins.
 - **Uma instalação ruim no PRD:** rode o workflow `prd` a partir de um commit anterior da `PROD` (revert do PR) ou importe o `f100.sql` do último backup do PRD com o `instalar-app.sql`.
@@ -329,3 +398,4 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | 17/11/2026 | Guia, `instalar-app.sql`, workflow `.github/workflows/instalar-app.yml` e prefixo das fotos (`05_ddl_prefixo_ambiente.sql`, `pkg_arquivos`, `pkg_foto_perfil`) versionados | **Testado:** `05_ddl_prefixo_ambiente.sql` num Oracle 23ai local descartável (sem APEX). Ele roda duas vezes sem erro, aceita `dev/`, recusa `dev` e `../`, e com a coluna vazia o caminho continua `/o/empresa/1/fotos/x.jpg`. O YAML e o shell do workflow passaram na checagem de sintaxe. **Não testados:** `instalar-app.sql`, o workflow e os packages de fotos, que dependem do APEX e de um banco 2 que ainda não existe. |
 | 17/11/2026 | Respostas do time às pendências | Troca marcada para **18/11/2026**. Todos os dados do PRD são de teste, então DEV e UAT recebem uma cópia pelo backup (3.2 b) em vez de um script de demonstração. O workspace se chama `WKSP_CORLIXHUB` (`CORLIXHUB` é o nome do Autonomous AI Database); guia, `instalar-app.sql` e `testar-na-app.md` corrigidos |
 | 17/11/2026 | `identidades.sql` versionado | **Testado** num Oracle 23ai local descartável: `GENERATED ALWAYS`, `BY DEFAULT` e `BY DEFAULT ON NULL` aceitam o ID do CSV depois do `ANTES` e voltam ao tipo original no `DEPOIS`, recomeçando depois do maior ID (50→51, 70→71, 90→91), e a tabela de controle é apagada. O primeiro teste achou um erro (o `ON NULL` voltava como `BY DEFAULT`), já corrigido |
+| 18/11/2026 | Ordem trocada: **congelar primeiro** (§0), a pedido do time | Validado o backup de 18/11 num Oracle 23ai local: o `03-tabelas.sql` criava só 27 das 51 tabelas (bloco `DECLARE` sem `/` e `INSERT … @ KU$`). O filtro do 3.2 a cria as 51, sem erro, com `whenever sqlerror exit`. O `PKG_CHAT_UI` do backup compila sem erro com as tabelas completas; no banco 1 ele está inválido (visto na app em 17/11/2026, `ORA-04063`). **Nada foi executado no Oracle Cloud.** Próximo passo: §0.1 e §0.2 pelo time |

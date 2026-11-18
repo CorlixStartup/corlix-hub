@@ -95,12 +95,13 @@ Cada passo é feito pelo time, no Oracle Cloud ou no Builder. Os agentes só esc
 
 | # | Passo | Como voltar atrás |
 |---|---|---|
+| 0 | **Congelar primeiro** (decidido em 18/11/2026): Builder do banco 1 em `Run Application Only` e backup, que vira a base do DEV (guia §0). Antes, nenhum objeto inválido no banco 1 | Voltar o Build Status para `Run and Build Application` |
 | 1 | Conferir em *Limits, Quotas and Usage* que a conta ainda tem 1 Autonomous Database gratuito disponível | — |
 | 2 | Criar o banco 2 (`corlixhubdev`, **Always Free**, na região principal, no compartimento `corlix-dev-uat`) | Apagar o banco 2 |
 | 3 | No banco 2, criar o workspace `WKSP_CORLIXHUB` e instalar o schema (DDL de `database/ddl/` e os `instalar.sql` dos módulos, na ordem do 06) | Apagar o workspace |
 | 4 | Importar a app 100 do último backup e carregar os dados de demonstração. Criar as contas de teste e os papéis | Reimportar |
 | 5 | Conferir o DEV novo pela seção de testes dos guias principais (Home, Comunicados, Holerite, Ponto) | — |
-| 6 | **Dia da troca:** congelar o Builder do banco 1, gerar um último backup, importar no DEV novo e marcar o banco 1 como `Run Application Only` (4.4). Avisar o time do novo endereço do Builder | Voltar o Build Status do banco 1 para `Run and Build Application` |
+| 6 | **Dia da troca** (com o passo 0, só falta avisar o endereço do Builder do DEV): congelar o Builder do banco 1, gerar um último backup, importar no DEV novo e marcar o banco 1 como `Run Application Only` (4.4). Avisar o time do novo endereço do Builder | Voltar o Build Status do banco 1 para `Run and Build Application` |
 | 7 | Ajustar o Jenkins (4.5) e conferir um backup do DEV chegando na branch `DEV` | Voltar `AMBIENTE_GIT` para `PRD` |
 | 8 | Criar o workspace `WKSP_CORLIXHUB_UAT` no banco 2, importar a app como 200 e criar as contas | Apagar o workspace |
 | 9 | Fazer uma primeira promoção completa DEV → UAT → PRD, ainda manual (fase 1) | — |
