@@ -185,13 +185,21 @@ O `count` tem de dar o mesmo número do `grep`. A correção definitiva é no `s
 
 **b) Dados do backup do PRD** (o `.tar.gz` do passo 1.3, extraído numa pasta **fora do repositório**, por exemplo `~/corlix-carga/`; ele nunca vai para o Git). Gere a lista de cargas no terminal, pulando os arquivos de controle (`_*.csv`) e os logs:
 
+As tabelas com BLOB (imagem do comunicado, foto, logotipo, anexos) vão numa lista à parte: o backup grava o BLOB em base64, e o `load table` direto recusa a linha com `ORA-01465: invalid hex number` (visto no ensaio de 18/11/2026: 7 dos 8 comunicados e o anexo do chat não entravam). Funciona no zsh e no bash:
+
 ```bash
 cd ~/corlix-carga/corlixhub-prd-<data>
+tail -n +2 dados/_colunas-especiais.csv | tr -d '"' | awk -F, '$3 == "BLOB" {print $1}' | sort -u > ~/corlix-carga/tabelas-blob.txt
 for f in dados/*.csv; do
   t=$(basename "$f" .csv)
   case "$t" in _*|APP_LOG|HTMLDB_PLAN_TABLE) continue ;; esac
+  grep -qx "$t" ~/corlix-carga/tabelas-blob.txt && continue
   echo "load table $t $PWD/$f"
 done > ~/corlix-carga/carregar.sql
+while read -r t; do
+  echo "load table AMB_STG_$t $PWD/dados/$t.csv"
+done < ~/corlix-carga/tabelas-blob.txt > ~/corlix-carga/carregar-blobs.sql
+wc -l ~/corlix-carga/carregar.sql ~/corlix-carga/carregar-blobs.sql   # 43 e 6 no backup de 18/11/2026
 ```
 
 De volta ao SQLcl, na mesma sessão:
@@ -203,16 +211,28 @@ alter session set nls_timestamp_tz_format = 'YYYY-MM-DD HH24:MI:SS.FF6 TZH:TZM';
 alter session set nls_numeric_characters = '.,';
 @modulos/ambientes/identidades.sql ANTES
 @~/corlix-carga/carregar.sql
+@modulos/ambientes/blobs.sql ANTES
+@~/corlix-carga/carregar-blobs.sql
+@modulos/ambientes/blobs.sql DEPOIS
 @modulos/ambientes/identidades.sql DEPOIS
 ```
 
-Confira as linhas de cada tabela contra `dados/_contagens.csv`. As colunas BLOB (imagem do comunicado, anexos, logotipo) vêm em base64 e estão listadas em `dados/_colunas-especiais.csv`: carregue-as como no `scripts/backup/README.md` §4 ou deixe-as vazias no DEV.
+O `blobs.sql ANTES` cria uma tabela `AMB_STG_<tabela>` com CLOB no lugar de cada BLOB; o `DEPOIS` converte o base64, grava nas tabelas de verdade (mostra quantas linhas em cada uma) e apaga o que criou.
+
+Confira as linhas de cada tabela contra `dados/_contagens.csv`. Só `APP_LOG` e `HTMLDB_PLAN_TABLE` ficam vazias, de propósito. Para conferir as imagens da Home:
+
+```sql
+select id_comunicado, round(dbms_lob.getlength(imagem) / 1024) kb from comunicado where imagem is not null order by 1;
+```
 
 O `identidades.sql` deixa as colunas `GENERATED ALWAYS` aceitarem os IDs do CSV durante a carga e, no fim, faz cada sequência recomeçar depois do maior ID carregado.
 
 **c) O resto do DDL**
 
+O `set define off` é obrigatório: o `09-plsql-corpos.sql` tem `&` no HTML dos packages (`&nbsp;`, `&amp;`), e sem ele o SQLcl para e fica pedindo um valor.
+
 ```sql
+set define off
 @database/ddl/04-chaves-estrangeiras.sql
 @database/ddl/05-indices.sql
 @database/ddl/06-views.sql
@@ -405,6 +425,9 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | Workflow: "X não configurado no Environment" | Variável ou secret ausente | Tabela do 6.3 |
 | Página do UAT abre a app 100 | ID `100` escrito fixo em link ou package | Troque por `apex_page.get_url`/`:APP_ID` no DEV e promova de novo |
 | Só parte das tabelas existe no DEV depois do 3.2 a, sem erro na tela | `03-tabelas.sql` rodado direto: o bloco `DECLARE` sem `/` engoliu o resto do arquivo | Gere o `03-tabelas-limpo.sql` do 3.2 a e rode de novo |
+| `ORA-01465: invalid hex number` na carga | CSV de tabela com BLOB carregado direto | Esvazie a tabela (`truncate table <tabela>`) e use o `blobs.sql` do 3.2 b |
+| SQLcl parado no 3.2 c, sem mensagem, ou pedindo `Enter value for …` | `define` ligado e `&` no HTML do `09-plsql-corpos.sql` | `Ctrl+C`, `set define off` e rode de novo a partir do `09` |
+| `identidades.sql`: `ORA-20000: Use ANTES ou DEPOIS.` com o parâmetro certo | Versão antiga do script, que não funcionava no SQLcl | Atualize a branch `DEV` |
 | `ORA-02019: connection description for remote database not found` | `INSERT … @ KU$` do DDL exportado | Mesma correção da linha acima |
 | `VW_CARREIRA_TIMELINE` (ou outra view) na lista de inválidos do §0.1 | Uma tabela usada pela view foi alterada; a view só se recompila no próximo uso | `alter view <nome> compile` e consulte de novo. Se falhar, `user_errors` da view |
 | `SyntaxError: Unexpected token 's', "sqlerrm:OR"...` em qualquer página | `PKG_CHAT_UI` inválido: o `CX_PRESENCA_PING` responde texto em vez de JSON | §0.1, item 2 |
@@ -439,3 +462,4 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | 18/11/2026 | **§2 feito pelo time:** banco 2 `corlixhubdev` criado | Print conferido: **Always Free**, Instance type **Free**, compartimento `corlix-dev-uat`, Transaction Processing, 26ai. APEX do banco 2: **26.1.6**, igual ao banco 1. Próximo passo: wallet e §3.1 |
 | 18/11/2026 | Nome do workspace corrigido | `apex_workspace_schemas` no banco 1: workspace **`CORLIXHUB`** (ID `10008945716225088`, o mesmo do `f100.sql`), schema `WKSP_CORLIXHUB`. Guia, `instalar-app.sql`, doc 12 e `testar-na-app.md` corrigidos: o 1º parâmetro do `instalar-app.sql` e a variável `APEX_WORKSPACE` passam a ser `CORLIXHUB`/`CORLIXHUB_UAT`. O §3.1 agora segue a tela simplificada do Autonomous Database, sem campo de schema |
 | 18/11/2026 | **§3.1: workspace criado no banco 2** | `apex_workspace_schemas` no `corlixhubdev`: `CORLIXHUB` (ID `9532154002622806`), schema `WKSP_CORLIXHUB`, como no banco 1. A segunda tentativa deu "Workspace name already exists" porque a primeira já tinha criado. Workspace com Auto Purge = Yes; orientado mudar para No. Falta: `alter user`/`grant` do §3.1 |
+| 18/11/2026 | **Ensaio completo do §3.2** com o backup do congelamento (`corlixhub-prd-20261118-123528`), SQLcl 26.2.2 e Oracle 23ai local | Achados e corrigidos: (1) `identidades.sql` não funcionava no SQLcl (testado antes só no SQL*Plus): o parâmetro não era substituído; (2) o `load table` recusava as linhas com BLOB (`ORA-01465`), criado `blobs.sql`; (3) o 3.2 c travava pedindo valor para o `&` do `09-plsql-corpos.sql`, incluído `set define off`; (4) o laço da lista de cargas falhava no zsh. Resultado do ensaio: 51 tabelas; 49 com as mesmas linhas do `_contagens.csv` (`APP_LOG` e `HTMLDB_PLAN_TABLE` de fora de propósito); imagens dos comunicados 61 a 65 com 4.144 a 4.722 KB e cabeçalho PNG; anexo do chat com 1.447 bytes; identity de volta ao tipo original; nenhum objeto `AMB_` sobrando. Inválidos que sobram no local dependem do APEX (`V`, `APEX_*`, `HTP`), que não existe no Oracle local: a conferência final é no banco 2 |

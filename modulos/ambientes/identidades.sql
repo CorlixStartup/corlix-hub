@@ -15,10 +15,10 @@
 whenever sqlerror exit failure rollback
 set serveroutput on size unlimited
 set verify off
-define fase = '&1'
+set define on
 
 declare
-  l_fase varchar2(10) := upper('&fase');
+  l_fase varchar2(10) := upper('&1');
   l_qt   pls_integer;
   l_tipo varchar2(30);
 begin
