@@ -1,0 +1,125 @@
+/* =============================================================================
+   Corlix Hub · Otimizar imagens (página 45)
+   Prefixo .cx-img-. Tokens --cx-* do corlix-tema.css.
+   ============================================================================= */
+
+.cx-img-icone {
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.cx-img-lista {
+    overflow-x: auto;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+    background: var(--cx-superficie);
+}
+
+.cx-img-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.cx-img-tabela th,
+.cx-img-tabela td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--cx-borda);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.cx-img-tabela thead th {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cx-texto-2);
+    background: var(--cx-superficie-2);
+}
+
+.cx-img-titulo {
+    font-weight: 600;
+    color: var(--cx-texto);
+}
+
+.cx-img-tipo {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--cx-tag);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--cx-texto-2);
+    text-transform: uppercase;
+}
+
+.cx-img-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.cx-img-tabela th.cx-img-num,
+.cx-img-tabela td.cx-img-num {
+    text-align: right;
+}
+
+.cx-img-status {
+    color: var(--cx-texto-2);
+}
+
+.cx-img-status.is-ok {
+    color: var(--cx-sucesso);
+    font-weight: 600;
+}
+
+.cx-img-status.is-erro {
+    color: var(--cx-alerta);
+}
+
+.cx-img-acao {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.cx-img-acao .t-Button,
+.cx-img-rodape .t-Button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.cx-img-rodape {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+}
+
+.cx-img-resumo {
+    margin: 0;
+    font-size: 14px;
+    color: var(--cx-texto-2);
+}
+
+.cx-img-vazio {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 24px;
+    border: 1px solid var(--cx-borda);
+    border-radius: var(--cx-raio-card);
+    background: var(--cx-superficie);
+    color: var(--cx-sucesso);
+}
+
+.cx-img-vazio p {
+    margin: 0;
+    color: var(--cx-texto);
+}
