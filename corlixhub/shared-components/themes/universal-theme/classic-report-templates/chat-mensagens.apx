@@ -12,6 +12,7 @@ classicReportTemplate chat-mensagens (
             #SEP_DIA#
             <div class="ch-msg ch-msg--#LADO#" data-id="#ID_MSG#">
               <div class="ch-bubble">
+                #ANEXO_HTML#
                 <span class="ch-txt">#CORPO#</span>
                 <span class="ch-time">#HORA#</span>
               </div>

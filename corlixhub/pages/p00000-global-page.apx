@@ -78,5 +78,102 @@ page 0 (
         }
     )
 
+    dynamicAction presença (
+        name: Presença
+        execution {
+            sequence: 10
+        }
+        when {
+            event: ready
+        }
+        serverSideCondition {
+            type: userIsAuthenticated
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode:
+                    ```javascript-browser
+                    if (window.cxPresenca || window.self !== window.top) {
+                        return;
+                    }
+                    
+                    const PROCESSO     = "CX_PRESENCA_PING";
+                    const INTERVALO_MS = 60000;
+                    const ATIVIDADE_MS = 180000;
+                    const CICLO_MS     = 15000;
+                    const CHAVE        = "cxPresencaUltimoPing";
+                    
+                    let ultimaAtividade = Date.now();
+                    let enviando        = false;
+                    
+                    function lerUltimoPing() {
+                        try {
+                            return Number(sessionStorage.getItem(CHAVE)) || 0;
+                        } catch (e) {
+                            return 0;
+                        }
+                    }
+                    
+                    function gravarUltimoPing(momento) {
+                        try {
+                            sessionStorage.setItem(CHAVE, String(momento));
+                        } catch (e) {
+                            // sem storage: só pinga a cada carregamento de página
+                        }
+                    }
+                    
+                    function ping() {
+                        const agora = Date.now();
+                        if (enviando ||
+                            document.hidden ||
+                            agora - ultimaAtividade > ATIVIDADE_MS ||
+                            agora - lerUltimoPing() < INTERVALO_MS) {
+                            return;
+                        }
+                    
+                        enviando = true;
+                        apex.server.process(PROCESSO, {}, { dataType: "json", loadingIndicator: null })
+                            .done(function () {
+                                gravarUltimoPing(Date.now());
+                            })
+                            .always(function () {
+                                enviando = false;
+                            });
+                    }
+                    
+                    function marcarAtividade() {
+                        const estavaParado = Date.now() - ultimaAtividade > ATIVIDADE_MS;
+                        ultimaAtividade = Date.now();
+                        if (estavaParado) {
+                            ping();
+                        }
+                    }
+                    
+                    ["pointerdown", "pointermove", "keydown", "wheel", "touchstart"].forEach(function (evento) {
+                        document.addEventListener(evento, marcarAtividade, { passive: true, capture: true });
+                    });
+                    
+                    document.addEventListener("visibilitychange", function () {
+                        if (!document.hidden) {
+                            marcarAtividade();
+                            ping();
+                        }
+                    });
+                    
+                    setInterval(ping, CICLO_MS);
+                    ping();
+                    
+                    window.cxPresenca = { ping: ping };
+                    ```
+            }
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
 )
 

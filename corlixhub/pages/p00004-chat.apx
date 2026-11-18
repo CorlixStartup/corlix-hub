@@ -166,9 +166,332 @@ page 4 (
                 };
             })();
             ```
-        executeWhenPageLoads: chChat.iniciar();
+        executeWhenPageLoads:
+            ```javascript-browser
+            chChat.iniciar();
+            
+            (function () {
+                const INTERVALO_MS = 30000;
+                let enviando = false;
+            
+                function aplicar(presencas) {
+                    document.querySelectorAll(".ch-contact[data-id]").forEach(function (contato) {
+                        const ponto = contato.querySelector(".ch-dot");
+                        if (!ponto) {
+                            return;
+                        }
+                        ponto.className = "ch-dot ch-dot--" + (presencas[contato.dataset.id] || "offline");
+            
+                        if (contato.classList.contains("is-active")) {
+                            const cabecalho = document.querySelector(".ch-head .ch-dot");
+                            if (cabecalho) {
+                                cabecalho.className = ponto.className;
+                            }
+                        }
+                    });
+                }
+            
+                function atualizar() {
+                    if (enviando || document.hidden) {
+                        return;
+                    }
+                    enviando = true;
+                    apex.server.process("CH_PRESENCAS", {}, { dataType: "json", loadingIndicator: null })
+                        .done(function (resp) {
+                            if (resp && resp.presencas) {
+                                aplicar(resp.presencas);
+                            }
+                        })
+                        .always(function () {
+                            enviando = false;
+                        });
+                }
+            
+                setInterval(atualizar, INTERVALO_MS);
+                document.addEventListener("visibilitychange", function () {
+                    if (!document.hidden) {
+                        atualizar();
+                    }
+                });
+            })();
+            
+            (function () {
+                const MAX_BYTES  = 10 * 1024 * 1024;
+                const EXTENSOES  = ["xlsx", "xls", "xlsm", "xlsb", "xltx", "csv",
+                                    "docx", "doc", "docm", "dotx", "rtf",
+                                    "pptx", "ppt", "pptm", "ppsx", "pps", "potx",
+                                    "jpg", "jpeg", "png", "gif", "webp", "bmp"];
+                const IMAGENS    = ["jpg", "jpeg", "png", "gif", "webp", "bmp"];
+            
+                const chat    = document.querySelector(".ch-chat");
+                const campo   = document.getElementById("ch-texto");
+                const entrada = document.getElementById("ch-arquivo");
+                const previa  = document.querySelector(".ch-anexo-previa");
+                if (!chat || !campo || !entrada || !previa) {
+                    console.warn("chAnexo: falta o HTML do passo 4.4 (clipe, ch-arquivo ou ch-anexo-previa)");
+                    return;
+                }
+            
+                let pendente = null;
+                let urlPrevia = null;
+                let enviando = false;
+            
+                function extensao(nome) {
+                    const m = /\.([^.\\/]+)$/.exec(nome || "");
+                    return m ? m[1].toLowerCase() : "";
+                }
+            
+                function tamanhoTexto(bytes) {
+                    return bytes < 1024 * 1024
+                        ? Math.max(1, Math.round(bytes / 1024)) + " KB"
+                        : (bytes / 1024 / 1024).toFixed(1).replace(".", ",") + " MB";
+                }
+            
+                function erro(mensagem) {
+                    apex.message.clearErrors();
+                    apex.message.showErrors([{ type: "error", location: "page", message: mensagem, unsafe: false }]);
+                }
+            
+                function conversaAberta() {
+                    return chat.classList.contains("is-aberto") && !!apex.item("P4_CANAL_ID").getValue();
+                }
+            
+                function limpar() {
+                    pendente = null;
+                    if (urlPrevia) {
+                        URL.revokeObjectURL(urlPrevia);
+                        urlPrevia = null;
+                    }
+                    previa.replaceChildren();
+                    previa.hidden = true;
+                    entrada.value = "";
+                }
+            
+                function selecionar(arquivo) {
+                    if (!arquivo) {
+                        return;
+                    }
+                    if (!conversaAberta()) {
+                        erro("Abra uma conversa antes de anexar um arquivo.");
+                        return;
+                    }
+                    const ext = extensao(arquivo.name);
+                    if (EXTENSOES.indexOf(ext) < 0) {
+                        erro("Tipo de arquivo não aceito. Envie Excel, Word, PowerPoint ou imagem (JPG, PNG, GIF, WEBP ou BMP).");
+                        return;
+                    }
+                    if (arquivo.size > MAX_BYTES) {
+                        erro("O arquivo pode ter até 10 MB.");
+                        return;
+                    }
+                    if (arquivo.size === 0) {
+                        erro("O arquivo está vazio.");
+                        return;
+                    }
+            
+                    limpar();
+                    apex.message.clearErrors();
+                    pendente = arquivo;
+            
+                    const cartao = document.createElement("div");
+                    cartao.className = "ch-anexo-previa-item";
+            
+                    if (IMAGENS.indexOf(ext) >= 0) {
+                        urlPrevia = URL.createObjectURL(arquivo);
+                        const img = document.createElement("img");
+                        img.src = urlPrevia;
+                        img.alt = "";
+                        cartao.appendChild(img);
+                    } else {
+                        const selo = document.createElement("span");
+                        selo.className = "ch-anexo-ext";
+                        selo.textContent = ext.toUpperCase();
+                        cartao.appendChild(selo);
+                    }
+            
+                    const info = document.createElement("span");
+                    info.className = "ch-anexo-info";
+                    const nome = document.createElement("b");
+                    nome.textContent = arquivo.name;
+                    const tam = document.createElement("small");
+                    tam.textContent = tamanhoTexto(arquivo.size);
+                    info.append(nome, tam);
+                    cartao.appendChild(info);
+            
+                    const remover = document.createElement("button");
+                    remover.type = "button";
+                    remover.className = "ch-anexo-remover";
+                    remover.setAttribute("aria-label", "Remover anexo");
+                    remover.title = "Remover anexo";
+                    remover.textContent = "×";
+                    remover.addEventListener("click", function () {
+                        limpar();
+                        campo.focus();
+                    });
+                    cartao.appendChild(remover);
+            
+                    previa.appendChild(cartao);
+                    previa.hidden = false;
+                    campo.focus();
+                }
+            
+                document.querySelector(".ch-clip").addEventListener("click", function () {
+                    if (!conversaAberta()) {
+                        erro("Abra uma conversa antes de anexar um arquivo.");
+                        return;
+                    }
+                    entrada.click();
+                });
+                entrada.addEventListener("change", function () {
+                    selecionar(entrada.files[0]);
+                });
+            
+                function temArquivo(evento) {
+                    const tipos = evento.dataTransfer && evento.dataTransfer.types;
+                    return !!tipos && Array.prototype.indexOf.call(tipos, "Files") >= 0;
+                }
+            
+                let profundidade = 0;
+                chat.addEventListener("dragenter", function (e) {
+                    if (!temArquivo(e) || !conversaAberta()) {
+                        return;
+                    }
+                    e.preventDefault();
+                    profundidade++;
+                    chat.classList.add("is-arrastando");
+                });
+                chat.addEventListener("dragover", function (e) {
+                    if (!temArquivo(e) || !conversaAberta()) {
+                        return;
+                    }
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "copy";
+                });
+                chat.addEventListener("dragleave", function () {
+                    profundidade = Math.max(0, profundidade - 1);
+                    if (profundidade === 0) {
+                        chat.classList.remove("is-arrastando");
+                    }
+                });
+                chat.addEventListener("drop", function (e) {
+                    if (!temArquivo(e)) {
+                        return;
+                    }
+                    e.preventDefault();
+                    profundidade = 0;
+                    chat.classList.remove("is-arrastando");
+                    if (e.dataTransfer.files.length > 1) {
+                        erro("Envie um arquivo por vez. O primeiro foi anexado.");
+                    }
+                    selecionar(e.dataTransfer.files[0]);
+                });
+            
+                ["dragover", "drop"].forEach(function (tipo) {
+                    document.addEventListener(tipo, function (e) {
+                        if (temArquivo(e) && !chat.contains(e.target)) {
+                            e.preventDefault();
+                        }
+                    });
+                });
+            
+                campo.addEventListener("paste", function (e) {
+                    const arquivos = e.clipboardData && e.clipboardData.files;
+                    if (arquivos && arquivos.length) {
+                        e.preventDefault();
+                        selecionar(arquivos[0]);
+                    }
+                });
+            
+                function regiaoMensagens() {
+                    const porId = document.getElementById("msgs");
+                    if (porId) {
+                        return porId;
+                    }
+                    const relatorio = document.querySelector(".ch-chat [id^='report_'][id$='_catch']");
+                    return relatorio ? relatorio.closest("[id^='R']") : null;
+                }
+            
+                function lerBase64(arquivo) {
+                    return new Promise(function (resolve, reject) {
+                        const leitor = new FileReader();
+                        leitor.onload = function () {
+                            resolve(String(leitor.result).split(",")[1] || "");
+                        };
+                        leitor.onerror = function () {
+                            reject(leitor.error);
+                        };
+                        leitor.readAsDataURL(arquivo);
+                    });
+                }
+            
+                function enviar() {
+                    if (enviando) {
+                        return;
+                    }
+                    if (!conversaAberta()) {
+                        erro("Abra uma conversa antes de enviar.");
+                        return;
+                    }
+            
+                    const botao = document.querySelector(".ch-enviar");
+                    const arquivo = pendente;
+                    enviando = true;
+                    botao.disabled = true;
+                    chat.classList.add("is-enviando-anexo");
+            
+                    lerBase64(arquivo)
+                        .then(function (base64) {
+                            return apex.server.process("CH_ENVIAR_ANEXO", {
+                                x01: apex.item("P4_CANAL_ID").getValue(),
+                                x02: arquivo.name,
+                                x03: campo.value.trim(),
+                                p_clob_01: base64
+                            }, { dataType: "json", loadingIndicator: ".ch-composer" });
+                        })
+                        .then(function (resp) {
+                            if (resp && resp.ok) {
+                                limpar();
+                                campo.value = "";
+                                if (window.chChat) {
+                                    chChat.irParaFim();
+                                }
+                                const regiao = regiaoMensagens();
+                                if (regiao) {
+                                    apex.region(regiao.id).refresh();
+                                }
+                            } else {
+                                erro((resp && resp.mensagem) || "Não foi possível enviar o arquivo. Tente de novo.");
+                            }
+                        })
+                        .catch(function () {
+                            erro("Não foi possível enviar o arquivo. Confira a conexão e tente de novo.");
+                        })
+                        .then(function () {
+                            enviando = false;
+                            botao.disabled = false;
+                            chat.classList.remove("is-enviando-anexo");
+                            campo.focus();
+                        });
+                }
+            
+                document.addEventListener("click", function (e) {
+                    if (pendente && e.target.closest && e.target.closest(".ch-enviar")) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        enviar();
+                    }
+                }, true);
+            
+                document.addEventListener("click", function (e) {
+                    if (e.target.closest && e.target.closest(".ch-contact")) {
+                        limpar();
+                    }
+                }, true);
+            })();
+            ```
     }
     css {
+        fileUrls: #APP_FILES#modulos/chat/chat#MIN#.css
         inline:
             ```css
             /* ============================================
@@ -176,7 +499,7 @@ page 4 (
                ============================================ */
             
             :root {
-                --ch-topbar-h: 40px;
+                --ch-topbar-h: var(--ut-header-height, 3.5rem);
                 --ch-list-w: 260px;
             
                 --ch-blue: var(--cx-primaria);
@@ -672,6 +995,13 @@ page 4 (
             htmlCode:
                 ```html
                 <div class="ch-composer">
+                  <div class="ch-anexo-previa" hidden></div>
+                  <button type="button" class="ch-clip" aria-label="Anexar arquivo"
+                          title="Anexar arquivo (ou arraste para a conversa)">
+                    <span class="fa fa-paperclip" aria-hidden="true"></span>
+                  </button>
+                  <input type="file" id="ch-arquivo" hidden
+                         accept=".xlsx,.xls,.xlsm,.xlsb,.xltx,.csv,.docx,.doc,.docm,.dotx,.rtf,.pptx,.ppt,.pptm,.ppsx,.pps,.potx,.jpg,.jpeg,.png,.gif,.webp,.bmp">
                   <textarea id="ch-texto" rows="1" maxlength="4000"
                             placeholder="Escreva uma mensagem… (Enter envia, Shift+Enter quebra linha)"
                             aria-label="Mensagem"></textarea>
@@ -952,7 +1282,9 @@ page 4 (
                   order  by m.data_envio desc, m.id_canal_mensagem desc
                   fetch  first 200 rows only
                 )
-                select u.corpo,
+                select -- mensagem só com arquivo: o corpo guarda o nome do arquivo, que não precisa aparecer
+                       case when a.id_anexo is not null and u.corpo = a.nome_arquivo then null
+                            else u.corpo end                              as corpo,
                        to_char(u.data_envio, 'hh24:mi') as hora,
                        case when upper(col.login_apex) = upper(:APP_USER) then 'out' else 'in' end as lado,
                        case when row_number() over (
@@ -966,9 +1298,14 @@ page 4 (
                                  '</span></div>'
                        end as sep_dia,
                        -- usado pelo polling (data-id no template Chat Mensagens)
-                       u.id_canal_mensagem as id_msg
+                       u.id_canal_mensagem as id_msg,
+                       -- miniatura ou cartão do anexo (HTML gerado e escapado pelo package)
+                       case when a.id_anexo is not null
+                            then pkg_chat_ui.html_anexo(a.id_anexo, a.nome_arquivo, a.tamanho)
+                       end                                                as anexo_html
                 from   ultimas u
                 join   colaborador col on col.id_colaborador = u.id_colaborador
+                left   join canal_mensagem_anexo a on a.id_canal_mensagem = u.id_canal_mensagem
                 order  by u.data_envio, u.id_canal_mensagem
                 ```
         }
@@ -994,6 +1331,23 @@ page 4 (
         messages {
             whenNoDataFound: Nenhuma mensagem nesta conversa ainda.
         }
+
+        column ANEXO_HTML (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Anexo Html
+            }
+            layout {
+                sequence: 60
+            }
+            sorting {
+                sortable: false
+            }
+            security {
+                escapeSpecialChars: false
+            }
+        )
 
         column CORPO (
             reportColumnQueryId: 1
@@ -1090,6 +1444,14 @@ page 4 (
         }
         layout {
             sequence: 20
+            slot: body
+        }
+    )
+
+    pageItem P4_ID_ANEXO (
+        type: hidden
+        layout {
+            sequence: 50
             slot: body
         }
     )
@@ -1386,6 +1748,55 @@ page 4 (
             }
         )
 
+    )
+
+    process baixar-anexo (
+        name: Baixar anexo
+        type: executeCode
+        source {
+            plsqlCode: pkg_chat_ui.baixar_anexo(:P4_ID_ANEXO, :REQUEST = 'VER_ANEXO');
+        }
+        execution {
+            sequence: 5
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 50855628205950202
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: BAIXAR_ANEXO,VER_ANEXO
+        }
+    )
+
+    process ch-enviar-anexo (
+        name: CH_ENVIAR_ANEXO
+        type: executeCode
+        source {
+            plsqlCode: pkg_chat_ui.ajax_enviar_anexo;
+        }
+        execution {
+            sequence: 30
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 50880864624989601
+        }
+    )
+
+    process ch-presencas (
+        name: CH_PRESENCAS
+        type: executeCode
+        source {
+            plsqlCode: pkg_chat_ui.ajax_presencas;
+        }
+        execution {
+            sequence: 20
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 50621445926446803
+        }
     )
 
     process ch-verificar-msgs (

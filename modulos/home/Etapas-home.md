@@ -1131,6 +1131,49 @@ Nada muda no Builder.
 
 Reinstale o `pkg_home_ui.pkb` da `DEV` anterior a esta correção.
 
+## 10. Desempenho e acessibilidade (CD-44)
+
+Lighthouse de 17/11/2026: desempenho 68, LCP 9,9 s (simulado), 19,9 MB por carregamento; acessibilidade 94. Diagnóstico completo em `modulos/monitoramento/Etapas-monitoramento.md` §4. Esta seção junta o que se resolve na Home; a causa principal (imagens dos comunicados) está no §4.7 do `comunicados/Etapas-comunicados.md`.
+
+| Mudança | Arquivo | Efeito |
+|---|---|---|
+| Avatares com `loading="lazy" decoding="async"` | `pkg_home_ui.pkb` (função `avatar`) | A Home deixa de pedir ~20 fotos à página 44 de uma vez; só pede as visíveis |
+| Links "ver espelho" e "ver holerite" sublinhados | `home.css` / `home.min.css` | Não dependem só da cor (contraste 1,21:1 com o texto ao lado) |
+| Pontos do carrossel com área de clique de 24×24 px; o ponto visível continua com 8 px | `home.css` / `home.min.css` | Alvo de toque no mínimo recomendado; o espaço visível entre os pontos passa de 8 para 16 px |
+| `home-hero.jpg` recomprimido (JPEG, mesma dimensão 1000×566) | `home-hero.jpg` | 260 KB → 148 KB |
+| Nome do botão do menu do usuário inclui o nome que aparece na tela | Global Page (`tema/Etapas-header-e-menu.md` §4) | Leitor de tela anuncia "Rafael Nunes, menu do usuário" |
+
+### 10.1 Banco
+
+*SQL Workshop › SQL Scripts › Upload*: envie e rode `modulos/home/pkg_home_ui.pkb`. Confira `VALID` como no §9.1.
+
+### 10.2 Arquivos estáticos
+
+Em *Shared Components › Static Application Files*, substitua (mesmo nome e mesma pasta):
+
+| Arquivo do repositório | Nome no Static Application Files |
+|---|---|
+| `modulos/home/home.css` | `modulos/home/home.css` |
+| `modulos/home/home.min.css` | `modulos/home/home.min.css` |
+| `modulos/home/home-hero.jpg` | `home-hero.jpg` (raiz; o Login usa o mesmo arquivo) |
+
+### 10.3 Global Page
+
+Página 0, região do header (*Static Content*): no `<button class="corlix-header__user" ...>`, troque `aria-label="Menu do usuário"` por `aria-label="&G_NOME_USUARIO!ATTR., menu do usuário"`. Salve. É a única mudança no HTML.
+
+### 10.4 Testar
+
+| # | Faça | Esperado |
+|---|---|---|
+| 1 | Abra a Início (Ctrl+Shift+R) | Links "ver espelho" e "ver holerite" sublinhados; pontos do carrossel do mesmo tamanho de antes, um pouco mais espaçados, e clicáveis |
+| 2 | DevTools › Network, filtre `foto` e recarregue | Só as fotos visíveis são pedidas; outras aparecem ao rolar ou abrir a lista |
+| 3 | Inspecione o botão do nome no header | `aria-label` com o nome da pessoa, seguido de ", menu do usuário" |
+| 4 | Lighthouse em janela anônima, conta comum, desktop e mobile (`monitoramento/Etapas-monitoramento.md` §5) | Acessibilidade sem os 3 achados; peso menor. O LCP só cai de verdade depois do §4.7 do guia de comunicados e da troca das imagens 61 a 65 |
+
+### 10.5 Voltar atrás
+
+Reinstale o `pkg_home_ui.pkb` e suba de novo os arquivos da `DEV` anterior; na Global Page, volte o `aria-label` para `Menu do usuário`.
+
 ## Situação na app
 
 | Data | O quê | Estado |
@@ -1151,6 +1194,7 @@ Reinstale o `pkg_home_ui.pkb` da `DEV` anterior a esta correção.
 | 13/11/2026 | **Fechamento do §8** (decisão do time) | **§8 concluído:** banco e página aplicados (export 55/55), testes 1 a 8 do 8.11 feitos na app, achados corrigidos e reconferidos, e dados de teste apagados. **Pendências aceitas pelo time:** (1) teste 9, "Parabenizar", no próximo aniversário (Guilherme Martins, 15/11/2026), apagando o feedback depois; (2) teste 6, "Disponível agora", com o gestor (Gabriel Machado) com o chat aberto; (3) teste 10, conta sem colaborador, feito por quem tem a conta. Fora do escopo: trocar o `ds_link` da pesquisa (`example.com`) pelo formulário real |
 | 13/11/2026 | Validação em DEV (backup `84f8625`, 13/11/2026 09:52) | `corlixhub/pages/p00001-início.apx` em DEV é idêntico ao 3º export validado: **55/55 regras**. `home.css` igual ao do módulo; `home.min.css` com o mesmo conteúdo (só muda a formatação do minificador). §8 concluído, com as três pendências de teste já registradas |
 | 17/11/2026 | §9: Início com `ORA-20012` para conta sem empresa (equipe do Corlix Hub), erro colado pelo time | Correção versionada no `pkg_home_ui.pkb` (branch `fix/home-conta-sem-empresa`), **não compilada nem aplicada**: não há banco Oracle local. Falta o §9.1 e os testes do §9.2 |
+| 18/11/2026 | §10 (CD-44): avatares lazy, links sublinhados, pontos do carrossel com 24 px, `home-hero.jpg` recomprimido e `aria-label` do menu do usuário | Versionado na branch `fix/desempenho-e-monitoramento` (PR #188). **Não aplicado nem testado**; o visual dos pontos não foi conferido no navegador |
 
 **Protótipo conferido em 10/11/2026:** o frame "Início" do `corlixhub.pen` (pen.dev) está igual ao `pen_dev/Início.png` de 28/10/2026; não há versão mais nova no repositório.
 

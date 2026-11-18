@@ -62,6 +62,21 @@ appProcess app-user-foto (
     }
 )
 
+appProcess cx-presenca-ping (
+    name: CX_PRESENCA_PING
+    type: executeCode
+    source {
+        plsqlCode: pkg_chat_ui.ajax_ping;
+    }
+    execution {
+        sequence: 10
+        point: ajaxCallback
+    }
+    security {
+        authorizationScheme: mustNotBePublicUser
+    }
+)
+
 appProcess g-nome-empresa (
     name: G_NOME_EMPRESA
     type: executeCode

@@ -536,6 +536,347 @@ end pkg_arquivos;
 end pkg_busca_ui;
 /
 
+  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_CHAT_UI" as
+
+  c_online_min  constant pls_integer := 5;
+  c_ausente_min constant pls_integer := 30;
+
+  c_max_anexo   constant pls_integer := 10 * 1024 * 1024;
+  c_err_anexo   constant pls_integer := -20120;
+
+  function colaborador_logado return number is
+    l_empresa constant number := to_number(v('G_ID_EMPRESA') default null on conversion error);
+    l_id      colaborador.id_colaborador%type;
+  begin
+    if l_empresa is null then
+      return null;
+    end if;
+
+    select c.id_colaborador
+      into l_id
+      from colaborador c
+     where upper(trim(c.login_apex)) = upper(trim(v('APP_USER')))
+       and c.id_empresa = l_empresa
+       and c.status     = true
+     fetch first 1 row only;
+
+    return l_id;
+  exception
+    when no_data_found then
+      return null;
+  end colaborador_logado;
+
+  function situacao_presenca (
+    p_status      in varchar2,
+    p_ultimo_ping in timestamp
+  ) return varchar2 is
+  begin
+    if p_ultimo_ping > systimestamp - numtodsinterval(c_online_min, 'MINUTE')
+       and upper(p_status) = 'ONLINE' then
+      return 'online';
+    elsif p_ultimo_ping > systimestamp - numtodsinterval(c_ausente_min, 'MINUTE') then
+      return 'ausente';
+    end if;
+    return 'offline';
+  end situacao_presenca;
+
+  procedure ajax_ping is
+    l_id constant number := colaborador_logado;
+  begin
+    if l_id is not null then
+      pkg_equipe_canal.atualizar_presenca(l_id, 'ONLINE');
+    end if;
+
+    apex_json.open_object;
+    apex_json.write('ok', l_id is not null);
+    apex_json.close_object;
+  exception
+    when others then
+      apex_debug.error('pkg_chat_ui.ajax_ping: %s', sqlerrm);
+      apex_json.open_object;
+      apex_json.write('ok', false);
+      apex_json.close_object;
+  end ajax_ping;
+
+  procedure ajax_presencas is
+    l_id constant number := colaborador_logado;
+  begin
+    apex_json.open_object;
+    apex_json.open_object('presencas');
+
+    if l_id is not null then
+      for r in (
+        select c.id_colaborador,
+               p.status_presenca,
+               p.data_ultimo_ping
+          from colaborador c
+          join colaborador eu
+            on eu.id_colaborador = l_id
+           and eu.id_empresa     = c.id_empresa
+          left join presenca_colaborador p
+            on p.id_colaborador = c.id_colaborador
+         where c.status         = true
+           and c.id_colaborador <> l_id
+      ) loop
+        apex_json.write(to_char(r.id_colaborador),
+                        situacao_presenca(r.status_presenca, r.data_ultimo_ping));
+      end loop;
+    end if;
+
+    apex_json.close_object;
+    apex_json.close_object;
+  end ajax_presencas;
+
+  function extensao (p_nome in varchar2) return varchar2 is
+  begin
+    return substr(lower(regexp_substr(p_nome, '\.([^.\\/]+)$', 1, 1, null, 1)), 1, 10);
+  end extensao;
+
+  function mime_anexo (p_extensao in varchar2) return varchar2 is
+  begin
+    return case p_extensao
+      when 'xlsx' then 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      when 'xlsm' then 'application/vnd.ms-excel.sheet.macroEnabled.12'
+      when 'xlsb' then 'application/vnd.ms-excel.sheet.binary.macroEnabled.12'
+      when 'xltx' then 'application/vnd.openxmlformats-officedocument.spreadsheetml.template'
+      when 'xls'  then 'application/vnd.ms-excel'
+      when 'csv'  then 'text/csv'
+      when 'docx' then 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      when 'docm' then 'application/vnd.ms-word.document.macroEnabled.12'
+      when 'dotx' then 'application/vnd.openxmlformats-officedocument.wordprocessingml.template'
+      when 'doc'  then 'application/msword'
+      when 'rtf'  then 'application/rtf'
+      when 'pptx' then 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+      when 'pptm' then 'application/vnd.ms-powerpoint.presentation.macroEnabled.12'
+      when 'ppsx' then 'application/vnd.openxmlformats-officedocument.presentationml.slideshow'
+      when 'potx' then 'application/vnd.openxmlformats-officedocument.presentationml.template'
+      when 'ppt'  then 'application/vnd.ms-powerpoint'
+      when 'pps'  then 'application/vnd.ms-powerpoint'
+      when 'jpg'  then 'image/jpeg'
+      when 'jpeg' then 'image/jpeg'
+      when 'png'  then 'image/png'
+      when 'gif'  then 'image/gif'
+      when 'webp' then 'image/webp'
+      when 'bmp'  then 'image/bmp'
+    end;
+  end mime_anexo;
+
+  function e_imagem (p_extensao in varchar2) return boolean is
+  begin
+    return p_extensao in ('jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp');
+  end e_imagem;
+
+  function pode_ter_macro (p_extensao in varchar2) return boolean is
+  begin
+    return p_extensao in ('xlsm', 'xlsb', 'docm', 'pptm', 'xls', 'doc', 'ppt', 'pps');
+  end pode_ter_macro;
+
+  function familia (p_extensao in varchar2) return varchar2 is
+  begin
+    return case
+      when p_extensao in ('xlsx', 'xlsm', 'xlsb', 'xltx', 'xls', 'csv')         then 'excel'
+      when p_extensao in ('docx', 'docm', 'dotx', 'doc', 'rtf')                 then 'word'
+      when p_extensao in ('pptx', 'pptm', 'ppsx', 'potx', 'ppt', 'pps')         then 'powerpoint'
+      else 'arquivo'
+    end;
+  end familia;
+
+  function conteudo_confere (p_blob in blob, p_extensao in varchar2) return boolean is
+    l_hex constant varchar2(32) := nvl(rawtohex(dbms_lob.substr(p_blob, 16, 1)), '-');
+    l_nul number;
+  begin
+    if p_extensao in ('xlsx', 'xlsm', 'xlsb', 'xltx', 'docx', 'docm', 'dotx',
+                      'pptx', 'pptm', 'ppsx', 'potx') then
+      return l_hex like '504B0304%';
+    elsif p_extensao in ('xls', 'doc', 'ppt', 'pps') then
+      return l_hex like 'D0CF11E0A1B11AE1%';
+    elsif p_extensao = 'png' then
+      return l_hex like '89504E470D0A1A0A%';
+    elsif p_extensao in ('jpg', 'jpeg') then
+      return l_hex like 'FFD8FF%';
+    elsif p_extensao = 'gif' then
+      return l_hex like '47494638%';
+    elsif p_extensao = 'webp' then
+      return l_hex like '52494646________57454250%';
+    elsif p_extensao = 'bmp' then
+      return l_hex like '424D%';
+    elsif p_extensao = 'rtf' then
+      return l_hex like '7B5C727466%';
+    elsif p_extensao = 'csv' then
+      l_nul := dbms_lob.instr(p_blob, hextoraw('00'), 1, 1);
+      return l_nul = 0 or l_nul > 8192;
+    end if;
+    return false;
+  end conteudo_confere;
+
+  function tamanho_texto (p_bytes in number) return varchar2 is
+  begin
+    if p_bytes < 1024 * 1024 then
+      return greatest(1, round(p_bytes / 1024)) || ' KB';
+    end if;
+    return to_char(p_bytes / 1024 / 1024, 'FM990D0', 'NLS_NUMERIC_CHARACTERS='',.''') || ' MB';
+  end tamanho_texto;
+
+  procedure responder_anexo (p_ok in boolean, p_mensagem in varchar2 default null) is
+  begin
+    apex_json.open_object;
+    apex_json.write('ok', p_ok);
+    if p_mensagem is not null then
+      apex_json.write('mensagem', p_mensagem);
+    end if;
+    apex_json.close_object;
+  end responder_anexo;
+
+  procedure ajax_enviar_anexo is
+    l_eu    constant number := colaborador_logado;
+    l_canal constant number := to_number(apex_application.g_x01 default null on conversion error);
+    l_nome  constant varchar2(400) :=
+      substr(regexp_replace(trim(apex_application.g_x02), '^.*[\\/]', ''), 1, 400);
+    l_texto constant varchar2(4000) := substrb(trim(apex_application.g_x03), 1, 4000);
+    l_ext   constant varchar2(30) := extensao(l_nome);
+    l_qtd   number;
+    l_blob  blob;
+    l_bytes number;
+    l_msg   canal_mensagem.id_canal_mensagem%type;
+    l_mime  canal_mensagem_anexo.mime_type%type;
+  begin
+    if l_eu is null then
+      raise_application_error(c_err_anexo, 'Seu usuário não está vinculado a um colaborador.');
+    end if;
+
+    select count(*)
+      into l_qtd
+      from canal_participante
+     where id_canal       = l_canal
+       and id_colaborador = l_eu;
+    if l_qtd = 0 then
+      raise_application_error(c_err_anexo, 'Você não participa desta conversa.');
+    end if;
+
+    if l_nome is null or mime_anexo(l_ext) is null then
+      raise_application_error(c_err_anexo,
+        'Tipo de arquivo não aceito. Envie Excel, Word, PowerPoint ou imagem (JPG, PNG, GIF, WEBP ou BMP).');
+    end if;
+
+    if apex_application.g_clob_01 is null or dbms_lob.getlength(apex_application.g_clob_01) = 0 then
+      raise_application_error(c_err_anexo, 'O arquivo chegou vazio. Tente de novo.');
+    end if;
+    if dbms_lob.getlength(apex_application.g_clob_01) > ceil(c_max_anexo / 3) * 4 + 4 then
+      raise_application_error(c_err_anexo, 'O arquivo pode ter até 10 MB.');
+    end if;
+
+    l_blob  := apex_web_service.clobbase642blob(apex_application.g_clob_01);
+    l_bytes := dbms_lob.getlength(l_blob);
+
+    if l_bytes = 0 then
+      raise_application_error(c_err_anexo, 'O arquivo chegou vazio. Tente de novo.');
+    end if;
+    if l_bytes > c_max_anexo then
+      raise_application_error(c_err_anexo, 'O arquivo pode ter até 10 MB.');
+    end if;
+    if not conteudo_confere(l_blob, l_ext) then
+      raise_application_error(c_err_anexo,
+        'O conteúdo do arquivo não corresponde à extensão .' || l_ext || '.');
+    end if;
+
+    l_mime := mime_anexo(l_ext);
+    insert into canal_mensagem (id_canal, id_colaborador, corpo)
+    values (l_canal, l_eu, nvl(l_texto, substrb(l_nome, 1, 4000)))
+    returning id_canal_mensagem into l_msg;
+
+    insert into canal_mensagem_anexo (id_canal_mensagem, nome_arquivo, mime_type, tamanho, conteudo)
+    values (l_msg, l_nome, l_mime, l_bytes, l_blob);
+
+    commit;
+    responder_anexo(true);
+  exception
+    when others then
+      rollback;
+      if sqlcode = c_err_anexo then
+        responder_anexo(false, regexp_replace(sqlerrm, '^ORA-\d+: ', ''));
+      else
+        apex_debug.error('pkg_chat_ui.ajax_enviar_anexo: %s', sqlerrm);
+        responder_anexo(false, 'Não foi possível enviar o arquivo. Tente de novo.');
+      end if;
+  end ajax_enviar_anexo;
+
+  procedure baixar_anexo (
+    p_id_anexo in varchar2,
+    p_inline   in boolean default false
+  ) is
+    l_eu   constant number := colaborador_logado;
+    l_blob blob;
+    l_mime canal_mensagem_anexo.mime_type%type;
+    l_nome canal_mensagem_anexo.nome_arquivo%type;
+  begin
+    select a.conteudo, a.mime_type, a.nome_arquivo
+      into l_blob, l_mime, l_nome
+      from canal_mensagem_anexo a
+      join canal_mensagem m
+        on m.id_canal_mensagem = a.id_canal_mensagem
+     where a.id_anexo = to_number(p_id_anexo default null on conversion error)
+       and nvl(m.excluida, false) = false
+       and exists (
+             select 1
+               from canal_participante cp
+              where cp.id_canal       = m.id_canal
+                and cp.id_colaborador = l_eu
+           );
+
+    apex_http.download(
+      p_blob         => l_blob,
+      p_content_type => l_mime,
+      p_filename     => l_nome,
+      p_is_inline    => p_inline and e_imagem(extensao(l_nome)));
+  exception
+    when no_data_found then
+      raise_application_error(c_err_anexo, 'Arquivo não encontrado.');
+  end baixar_anexo;
+
+  function html_anexo (
+    p_id_anexo in number,
+    p_nome     in varchar2,
+    p_tamanho  in number
+  ) return varchar2 is
+    l_ext  constant varchar2(30)  := extensao(p_nome);
+    l_nome constant varchar2(120) := substr(p_nome, 1, 120);
+    l_url  varchar2(4000);
+    l_html varchar2(4000);
+  begin
+    if e_imagem(l_ext) then
+      l_url := apex_page.get_url(
+                 p_page    => 4,
+                 p_request => 'VER_ANEXO',
+                 p_items   => 'P4_ID_ANEXO',
+                 p_values  => to_char(p_id_anexo));
+      return '<a class="ch-anexo ch-anexo--img" href="' || apex_escape.html_attribute(l_url)
+          || '" target="_blank" rel="noopener" title="' || apex_escape.html_attribute(l_nome) || '">'
+          || '<img src="' || apex_escape.html_attribute(l_url) || '" alt="'
+          || apex_escape.html_attribute(l_nome) || '" loading="lazy"></a>';
+    end if;
+
+    l_url := apex_page.get_url(
+               p_page    => 4,
+               p_request => 'BAIXAR_ANEXO',
+               p_items   => 'P4_ID_ANEXO',
+               p_values  => to_char(p_id_anexo));
+
+    l_html := '<a class="ch-anexo ch-anexo--arquivo ch-anexo--' || familia(l_ext) || '" href="'
+           || apex_escape.html_attribute(l_url) || '" title="Baixar ' || apex_escape.html_attribute(l_nome) || '">'
+           || '<span class="ch-anexo-ext">' || apex_escape.html(upper(l_ext)) || '</span>'
+           || '<span class="ch-anexo-info"><b>' || apex_escape.html(l_nome) || '</b>'
+           || '<small>' || tamanho_texto(p_tamanho) || ' · clique para baixar</small></span></a>';
+
+    if pode_ter_macro(l_ext) then
+      l_html := l_html || '<span class="ch-anexo-aviso">&#9888; Pode conter macros: só abra se confiar em quem enviou.</span>';
+    end if;
+
+    return l_html;
+  end html_anexo;
+
+end pkg_chat_ui;
+/
+
   CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_COLABORADORES_UI" as
   function render_cabecalho return clob is
     l_html clob;
@@ -884,6 +1225,168 @@ END PKG_COMUNICADO;
     END ATUALIZAR_OFFLINE;
 
 END PKG_EQUIPE_CANAL;
+/
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_FOTO_PERFIL" as
+
+  c_max_bytes  constant pls_integer := 1048576;  -- o navegador manda bem menos: 512 x 512 px
+  c_max_partes constant pls_integer := 180;      -- 8000 caracteres cada: cerca de 1 MB em base64
+
+  e_recusado exception;
+  g_mensagem varchar2(400);
+
+  procedure recusar (p_mensagem in varchar2) is
+  begin
+    g_mensagem := p_mensagem;
+    raise e_recusado;
+  end recusar;
+
+  function url_objeto (
+    p_cfg in arquivo_config%rowtype,
+    p_emp in number,
+    p_nome in varchar2
+  ) return varchar2 is
+  begin
+    return 'https://objectstorage.' || p_cfg.ds_regiao || '.oraclecloud.com'
+        || '/n/' || p_cfg.ds_namespace
+        || '/b/' || p_cfg.nm_bucket_fotos
+        || '/o/' || p_cfg.ds_prefixo  -- dev/ ou uat/; vazio no PRD
+        || 'empresa/' || p_emp || '/fotos/' || apex_util.url_encode(p_nome);
+  end url_objeto;
+
+  function le_imagem return blob is
+    l_clob clob;
+    l_blob blob;
+  begin
+    if apex_application.g_f01.count = 0 or apex_application.g_f01.count > c_max_partes then
+      recusar('Escolha uma imagem de até 5 MB.');
+    end if;
+
+    dbms_lob.createtemporary(l_clob, true, dbms_lob.call);
+    for i in 1 .. apex_application.g_f01.count loop
+      if apex_application.g_f01(i) is not null then
+        dbms_lob.writeappend(l_clob, length(apex_application.g_f01(i)), apex_application.g_f01(i));
+      end if;
+    end loop;
+
+    l_blob := apex_web_service.clobbase642blob(l_clob);
+
+    -- O tipo vem do conteúdo: início e fim de um JPEG
+    if l_blob is null
+       or dbms_lob.getlength(l_blob) < 4
+       or dbms_lob.getlength(l_blob) > c_max_bytes
+       or dbms_lob.substr(l_blob, 3, 1) <> hextoraw('FFD8FF')
+       or dbms_lob.substr(l_blob, 2, dbms_lob.getlength(l_blob) - 1) <> hextoraw('FFD9')
+    then
+      recusar('Não foi possível ler essa imagem. Tente outra, em JPG ou PNG.');
+    end if;
+
+    return l_blob;
+  end le_imagem;
+
+  -- A foto anterior só é apagada se foi gerada pelo sistema para esta pessoa.
+  -- Se a exclusão falhar, a foto nova continua valendo.
+  procedure apaga_anterior (
+    p_cfg      in arquivo_config%rowtype,
+    p_emp      in number,
+    p_id       in number,
+    p_anterior in varchar2
+  ) is
+    l_nome     constant varchar2(4000) := regexp_substr(trim(p_anterior), '[^/]+$');
+    l_resposta clob;
+  begin
+    if regexp_like(l_nome, '^' || p_id || '_[0-9]+\.jpg$') then
+      apex_web_service.clear_request_headers;
+      l_resposta := apex_web_service.make_rest_request(
+        p_url                  => url_objeto(p_cfg, p_emp, l_nome),
+        p_http_method          => 'DELETE',
+        p_credential_static_id => p_cfg.cd_credencial_escrita);
+    end if;
+  exception
+    when others then
+      apex_debug.error('Foto anterior não apagada: %s', sqlerrm);
+  end apaga_anterior;
+
+  procedure ajax_salvar is
+    l_emp      constant number := to_number(v('G_ID_EMPRESA') default null on conversion error);
+    l_usuario  constant varchar2(255) := v('APP_USER');
+    l_id       colaborador.id_colaborador%type;
+    l_anterior colaborador.foto_url%type;
+    l_cfg      arquivo_config%rowtype;
+    l_blob     blob;
+    l_nome     varchar2(100);
+    l_resposta clob;
+  begin
+    begin
+      select id_colaborador, foto_url
+        into l_id, l_anterior
+        from colaborador
+       where upper(trim(login_apex)) = upper(trim(l_usuario))
+         and id_empresa = l_emp;
+    exception
+      when no_data_found or too_many_rows then
+        recusar('Sua conta não está vinculada a um colaborador desta empresa.');
+    end;
+
+    l_blob := le_imagem;
+
+    begin
+      select * into l_cfg from arquivo_config where id_config = 1;
+    exception
+      when no_data_found then
+        recusar('O envio de fotos ainda não foi configurado. Fale com a TI.');
+    end;
+
+    if l_cfg.cd_credencial_escrita is null then
+      recusar('O envio de fotos ainda não foi configurado. Fale com a TI.');
+    end if;
+
+    -- Nome novo a cada envio: o navegador guarda a foto anterior por até 1 hora
+    l_nome := l_id || '_' || to_char(systimestamp, 'yyyymmddhh24missff3') || '.jpg';
+
+    apex_web_service.set_request_headers(
+      p_name_01  => 'Content-Type',
+      p_value_01 => 'image/jpeg',
+      p_reset    => true);
+
+    l_resposta := apex_web_service.make_rest_request(
+      p_url                  => url_objeto(l_cfg, l_emp, l_nome),
+      p_http_method          => 'PUT',
+      p_body_blob            => l_blob,
+      p_credential_static_id => l_cfg.cd_credencial_escrita);
+
+    if apex_web_service.g_status_code not in (200, 201) then
+      apex_debug.error('Envio da foto recusado pelo bucket: HTTP %s', apex_web_service.g_status_code);
+      recusar('Não foi possível salvar a foto agora. Tente de novo em alguns minutos.');
+    end if;
+
+    update colaborador
+       set foto_url = l_nome
+     where id_colaborador = l_id
+       and id_empresa = l_emp;
+    commit;
+
+    apaga_anterior(l_cfg, l_emp, l_id, l_anterior);
+
+    apex_json.open_object;
+    apex_json.write('ok', true);
+    apex_json.write('mensagem', 'Foto salva.');
+    apex_json.close_object;
+  exception
+    when e_recusado then
+      apex_json.open_object;
+      apex_json.write('ok', false);
+      apex_json.write('mensagem', g_mensagem);
+      apex_json.close_object;
+    when others then
+      apex_debug.error('Falha ao salvar a foto: %s', sqlerrm);
+      apex_json.open_object;
+      apex_json.write('ok', false);
+      apex_json.write('mensagem', 'Não foi possível salvar a foto agora. Tente de novo em alguns minutos.');
+      apex_json.close_object;
+  end ajax_salvar;
+
+end pkg_foto_perfil;
 /
 
   CREATE OR REPLACE EDITIONABLE PACKAGE BODY "PKG_HISTORICO_CARREIRA" as
@@ -3652,7 +4155,8 @@ end pkg_holerite_ui;
   end icone;
 
   -- Colaborador informado ou o da conta logada; nulo se a conta não tem vínculo
-  -- (equipe do Corlix Hub, RH sem cadastro de colaborador)
+  -- (-20060: RH sem cadastro de colaborador; -20012: sessão sem empresa, como a
+  -- equipe do Corlix Hub)
   function colaborador_ponto (p_id in number) return number is
   begin
     if p_id is not null then
@@ -3661,7 +4165,7 @@ end pkg_holerite_ui;
     return pkg_ponto.fn_colaborador_logado;
   exception
     when others then
-      if sqlcode = -20060 then
+      if sqlcode in (-20060, -20012) then
         return null;
       end if;
       raise;
@@ -4072,6 +4576,7 @@ end pkg_holerite_ui;
     l_qt_ponto pls_integer := 0;
     l_qt       pls_integer := 0;
     l_qt_aprov pls_integer := 0;
+    l_aprova   varchar2(1);
   begin
     inicia;
 
@@ -4091,8 +4596,19 @@ end pkg_holerite_ui;
       end;
     end if;
 
-    -- Pedidos de ajuste que a conta pode responder (gestor direto ou RH)
-    if pkg_ponto.fn_e_aprovador = 'S' then
+    -- Pedidos de ajuste que a conta pode responder (gestor direto ou RH).
+    -- Sessão sem empresa (-20012, equipe do Corlix Hub): nenhum pedido.
+    begin
+      l_aprova := pkg_ponto.fn_e_aprovador;
+    exception
+      when others then
+        if sqlcode = -20012 then
+          l_aprova := 'N';
+        else
+          raise;
+        end if;
+    end;
+    if l_aprova = 'S' then
       select count(*)
         into l_qt_aprov
         from ponto_ajuste a
@@ -5689,15 +6205,16 @@ end pkg_organograma;
     p('<div class="perfil-modal-avatar">');
     p(avatar_perfil(l_c.nome_completo, l_c.foto_url, 'xl'));
     p('</div>');
-    p('<p class="perfil-modal-instrucoes">JPG ou PNG, até 5 MB. A foto aparece no cabeçalho, em Colaboradores, no Organograma e em Aniversariantes.</p>');
+    p('<p class="perfil-modal-instrucoes">JPG ou PNG, até 5 MB. A foto fica quadrada, com o centro da imagem, e aparece no cabeçalho, em Colaboradores, no Organograma e em Aniversariantes.</p>');
     p('<label for="input-foto-upload" class="perfil-btn">' || c_ico_camera || '<span>Escolher foto</span></label>');
     p('<input type="file" id="input-foto-upload" accept="image/png, image/jpeg" class="perfil-modal-arquivo">');
+    p('<p id="perfil-foto-status" class="perfil-modal-status" role="status" aria-live="polite"></p>');
     p('<div class="perfil-alerta">' || c_ico_info || '<div><strong>Nome, cargo, departamento e e-mail são mantidos pela administração.</strong><br>Encontrou algo errado? Fale com o RH.</div></div>');
     p('</div>');
 
     p('<footer class="perfil-modal-rodape">');
     p('<button type="button" class="perfil-btn" data-acao="fechar-foto">Cancelar</button>');
-    p('<button type="button" class="perfil-btn perfil-btn--primario">Salvar foto</button>');
+    p('<button type="button" class="perfil-btn perfil-btn--primario" data-acao="salvar-foto" disabled>Salvar foto</button>');
     p('</footer>');
     p('</div>');
 
