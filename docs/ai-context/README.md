@@ -54,7 +54,7 @@ Estado em 13/11/2026 (backup de DEV `84f8625`), com link para a **ficha de cada 
 | 1 | [Início](./paginas/p00001-início.md) | **§8 concluído** (55/55, testes 1 a 8). Pendentes: Parabenizar, "Disponível agora" e conta sem colaborador | `home/Etapas-home.md` |
 | 2 | [Meu Perfil](./paginas/p00002-meu-perfil.md) | Implementada e testada (privacidade e protótipo). "Salvar foto" sem ação | `perfil/` |
 | 3 | [Organograma](./paginas/p00003-organograma.md) | Implementada com `pkg_organograma` e drawer; sem registro de isolamento por empresa | `organograma/Etapas-organograma.md` |
-| 4 | [Chat](./paginas/p00004-chat.md) | Implementada com envio e polling de 1 s; sem guia no repositório; CSS inline | — |
+| 4 | [Chat](./paginas/p00004-chat.md) | Implementada com envio e polling de 1 s; presença proposta (§2, não aplicada: ping global pela página 0); CSS inline | `chat/Etapas-chat.md` |
 | 5 | [Notificações](./paginas/p00005-notificacoes.md) | Placeholder (destino do sino) | — |
 | 6 | [Configurações](./paginas/p00006-configuracoes.md) | Placeholder, sem autorização | — |
 | 7 | [Monitor de Logs](./paginas/p00007-monitor-logs.md) | Implementada com `@admin-rh`; a troca para `EQUIPE_CORLIX_HUB` não foi aplicada | `isolamento-empresas/` §5 |
