@@ -146,3 +146,11 @@ Apague o processo `SALVAR_FOTO` e o trecho colado no JavaScript. Os arquivos já
 
 - **Recorte:** o protótipo promete ajustar o recorte. Aqui ele é sempre o centro da imagem, e a prévia mostra o resultado antes de salvar.
 - **Quem envia:** só a própria pessoa. Envio pelo RH ou em lote fica para outra tarefa, que um piloto pode exigir.
+
+## Situação na app
+
+| Data | O quê | Resultado |
+|---|---|---|
+| 17/11/2026 | Conferência na app com colaborador comum, antes do teste do §6 (autorizado pelo time). Nada foi gravado | **Não aplicado; teste do §6 não executado.** O painel "Foto de perfil" abre, mas **Salvar foto** já vem ativo, sem `data-acao="salvar-foto"`, e a página não tem `#perfil-foto-status`: o `02_pkg_perfil_prototipo.pkb` do §3 não foi reinstalado. Também não há o JavaScript do §5.2 nem o processo `SALVAR_FOTO` do §5.1, na página publicada e no export de `p00002-meu-perfil.apx`. Hoje o botão não faz nada. Não deu para conferir pela app se o §1, o §2 e o resto do §3 (credencial de gravação, `PKG_FOTO_PERFIL`) foram feitos |
+
+**Próximo passo:** o time aplica os §1 a §5. Depois, o agente roda o §6 com o colaborador comum, restaurando a foto original no fim.
