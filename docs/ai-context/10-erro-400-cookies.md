@@ -56,11 +56,33 @@ Em ordem de custo:
 5. **Extensão de cookies** (ex.: *Cookie-Editor*), se o diagnóstico mostrar um padrão de nome claro: ela apaga só aquele padrão em um clique, sem mexer na sessão atual.
 6. **Só se nada disso bastar:** ORDS gerenciado pelo cliente (*customer-managed ORDS*) ou URL própria (*vanity URL*) com um load balancer da OCI na frente. Nesse caso o limite de cabeçalho passa a ser configurável por nós (no ORDS standalone/Jetty, ver nota MOS 2894799.1). Para o tamanho do projeto, é infraestrutura demais. Não faça isso sem falar com o time.
 
+## 5.1 Usuários da app também recebem o 400 (17/11/2026, CD-78)
+
+O time relatou que alguns usuários que **só usam a app**, sem Builder nem Database Actions, também recebem o 400. A explicação das §2 a §5, de acúmulo pelo uso do Builder, não cobre esse caso.
+
+**Hipótese (sem confirmação): domínio compartilhado entre clientes da Oracle.**
+- A [Public Suffix List](https://publicsuffix.org/list/public_suffix_list.dat) tem a entrada `*.oraclecloudapps.com` (conferida em 17/11/2026). Por isso `sa-saopaulo-1.oraclecloudapps.com` é um sufixo público, e `adb.sa-saopaulo-1.oraclecloudapps.com` é um domínio registrável **comum a todos os Autonomous da região**, inclusive de outros clientes.
+- Um cookie gravado por outro site desse domínio com `Domain=adb.sa-saopaulo-1.oraclecloudapps.com` também vai no cabeçalho dos pedidos para a nossa app.
+- `ORA_FPC`, que a auditoria de LGPD achou (CD-73), é o cookie de visitante do [Oracle Infinity](https://docs.oracle.com/en/cloud/saas/marketing/infinity-develop/docs/parameters/cookie_detection.htm), tag de medição da Oracle. A origem do `WTPERSIST` não foi achada na documentação.
+
+**Como confirmar:** no diagnóstico da §3, anote também a coluna **Domain**. Cookie com Domain `.adb.sa-saopaulo-1.oraclecloudapps.com` (com o ponto no início, sem o nosso `<id>`) não é da nossa app.
+
+**O que muda na solução:**
+
+| Origem dos cookies | Correção |
+|---|---|
+| Builder e Database Actions do time | Separar DEV e PRD em bancos diferentes ([12](./12-ambientes-dev-uat-prd.md)). Quem usa a app deixa de dividir o host com o Builder |
+| Domínio compartilhado da região | Separar os bancos não basta, porque o PRD continuaria no mesmo domínio. Só um endereço próprio (domínio da Corlix) tira a app dele: URL própria (*vanity URL*) ou ORDS gerenciado pelo cliente. Conferir na documentação o que o Autonomous **Always Free** permite antes de propor (§5, item 6) |
+
+Enquanto isso, a orientação para o usuário que recebe o 400 é apagar os dados **só deste site** (ícone à esquerda do endereço › Cookies e dados do site), sem limpar o navegador inteiro.
+
+> **Medição de 17/11/2026 (§6), de alguém do time:** `ORA_FPC` e `WTPERSIST` somam 57 bytes, e 96% do cabeçalho é o `sso_cookie_ords_*`. Nesse navegador, o domínio compartilhado **não** é a causa. A hipótese continua aberta só para os usuários, até chegar o relatório de um deles.
+
 ## 6. Causa confirmada (preencher após o diagnóstico)
 
 | Data | Cookie(s) que crescem | Padrão (nome / path / tamanho) | Origem provável | Ação adotada |
 |---|---|---|---|---|
-| _pendente_ | | | | |
+| 17/11/2026 22:31 | `sso_cookie_ords_0` (3018 B), `sso_cookie_ords_1` (2566 B) e `sso_cookie_ords_meta` (90 B), todos `HttpOnly`, path `/ords` | **Um cookie grande, dividido em pedaços**: 5674 dos 5912 bytes do cabeçalho (96%), em 9 cookies. O resto é pequeno: sessão do Builder (`ORA_WWV_USER_*`, 63 B) e da app (`ORA_WWV_APP_100`, 48 B), `ORA_FPC` (47 B) e `WTPERSIST` (10 B). Nada repetido por nome ou path | Login único (SSO) do ORDS. O nome não aparece na documentação indexada nem numa busca na web. Pela presença de `ORA_WWV_USER_*`, o relatório é de alguém do time, e a hipótese é que o SSO venha do Database Actions ou da entrada pelo Console da OCI (**não confirmado**). O sufixo `_0`, `_1` indica que o valor passou do limite de 4 KB por cookie e foi dividido; se crescer, vem um `_2` | Time: abrir o Database Actions e o Console da OCI fora do perfil do APEX (§5, item 3). Na extensão, "Apagar sempre" `^sso_cookie_ords_`, que mantém as sessões do Builder e da app. Falta o relatório de um usuário que só usa a app |
 
 ## 7. Caso parecido no Jenkins local (não é o mesmo problema)
 
