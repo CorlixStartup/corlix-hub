@@ -1,0 +1,104 @@
+name: Instalar app (UAT/PRD)
+
+# Instala database/f100.sql no UAT (branch UAT) ou no PRD (branch PROD)
+# com modulos/ambientes/instalar-app.sql.
+# Guia: modulos/ambientes/Etapas-ambientes.md, seção 6.
+#
+# - Manual (Actions > Instalar app > Run workflow): escolha a branch e o destino.
+# - Automático no merge: só quando a variável do repositório
+#   INSTALACAO_AUTOMATICA for "true" (ligue depois da primeira instalação manual).
+# - O PRD passa pela aprovação do Environment "prd" (Required reviewers).
+#
+# Cada Environment (uat, prd) precisa de:
+#   variables: DB_SERVICE (ex.: corlixhubdev_low), DB_USER, APEX_WORKSPACE, APP_ID, BUILD_STATUS
+#   secrets:   DB_PASSWORD, DB_WALLET_BASE64 (o Wallet_*.zip em base64)
+
+on:
+  workflow_dispatch:
+    inputs:
+      destino:
+        description: "Destino da instalação"
+        type: choice
+        options: [uat, prd]
+        required: true
+  push:
+    branches: [UAT, PROD]
+    paths:
+      - database/f100.sql
+
+permissions:
+  contents: read
+
+jobs:
+  instalar:
+    name: Instalar no ${{ github.event_name == 'workflow_dispatch' && inputs.destino || (github.ref_name == 'PROD' && 'prd' || 'uat') }}
+    if: github.event_name == 'workflow_dispatch' || vars.INSTALACAO_AUTOMATICA == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.destino || (github.ref_name == 'PROD' && 'prd' || 'uat') }}
+    concurrency:
+      group: instalar-${{ github.event_name == 'workflow_dispatch' && inputs.destino || (github.ref_name == 'PROD' && 'prd' || 'uat') }}
+      cancel-in-progress: false
+    env:
+      DESTINO: ${{ github.event_name == 'workflow_dispatch' && inputs.destino || (github.ref_name == 'PROD' && 'prd' || 'uat') }}
+      SQLCL_VERSAO: 26.2.2.233.1901   # a mesma do scripts/backup/Dockerfile
+    steps:
+      - name: Conferir branch e destino
+        run: |
+          case "$DESTINO:$GITHUB_REF_NAME" in
+            uat:UAT|prd:PROD) echo "Destino $DESTINO a partir da branch $GITHUB_REF_NAME." ;;
+            *) echo "::error::UAT só se instala a partir da branch UAT, e PRD só a partir da PROD (destino $DESTINO, branch $GITHUB_REF_NAME)."
+               exit 1 ;;
+          esac
+
+      - uses: actions/checkout@v4
+
+      - name: Conferir o f100.sql
+        run: |
+          test -s database/f100.sql || { echo "::error::database/f100.sql não existe."; exit 1; }
+          if grep -q "create_acl_assignment" database/f100.sql; then
+            echo "::error::database/f100.sql tem atribuições de papel (ACL) do DEV. Gere o export sem -expaclassignments."
+            exit 1
+          fi
+          grep -m1 "p_release" database/f100.sql
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Instalar o SQLcl
+        run: |
+          curl -fsSL "https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-${SQLCL_VERSAO}.zip" -o "$RUNNER_TEMP/sqlcl.zip"
+          unzip -q "$RUNNER_TEMP/sqlcl.zip" -d "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/sqlcl/bin" >> "$GITHUB_PATH"
+
+      - name: Preparar o wallet
+        env:
+          DB_WALLET_BASE64: ${{ secrets.DB_WALLET_BASE64 }}
+        run: |
+          test -n "$DB_WALLET_BASE64" || { echo "::error::Secret DB_WALLET_BASE64 vazio no Environment $DESTINO."; exit 1; }
+          echo "$DB_WALLET_BASE64" | base64 -d > "$RUNNER_TEMP/wallet.zip"
+
+      - name: Instalar
+        env:
+          DB_USER: ${{ vars.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_SERVICE: ${{ vars.DB_SERVICE }}
+          APEX_WORKSPACE: ${{ vars.APEX_WORKSPACE }}
+          APP_ID: ${{ vars.APP_ID }}
+          BUILD_STATUS: ${{ vars.BUILD_STATUS }}
+        run: |
+          for v in DB_USER DB_PASSWORD DB_SERVICE APEX_WORKSPACE APP_ID BUILD_STATUS; do
+            test -n "${!v}" || { echo "::error::$v não configurado no Environment $DESTINO."; exit 1; }
+          done
+          sql -S /nolog <<EOF
+          whenever sqlerror exit failure
+          set cloudconfig $RUNNER_TEMP/wallet.zip
+          connect $DB_USER/"$DB_PASSWORD"@$DB_SERVICE
+          @modulos/ambientes/instalar-app.sql $APEX_WORKSPACE $DB_USER $APP_ID $BUILD_STATUS
+          exit
+          EOF
+
+      - name: Apagar o wallet
+        if: always()
+        run: rm -f "$RUNNER_TEMP/wallet.zip"

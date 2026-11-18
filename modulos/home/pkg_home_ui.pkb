@@ -191,7 +191,8 @@ create or replace package body pkg_home_ui as
   end icone;
 
   -- Colaborador informado ou o da conta logada; nulo se a conta não tem vínculo
-  -- (equipe do Corlix Hub, RH sem cadastro de colaborador)
+  -- (-20060: RH sem cadastro de colaborador; -20012: sessão sem empresa, como a
+  -- equipe do Corlix Hub)
   function colaborador_ponto (p_id in number) return number is
   begin
     if p_id is not null then
@@ -200,7 +201,7 @@ create or replace package body pkg_home_ui as
     return pkg_ponto.fn_colaborador_logado;
   exception
     when others then
-      if sqlcode = -20060 then
+      if sqlcode in (-20060, -20012) then
         return null;
       end if;
       raise;
@@ -611,6 +612,7 @@ create or replace package body pkg_home_ui as
     l_qt_ponto pls_integer := 0;
     l_qt       pls_integer := 0;
     l_qt_aprov pls_integer := 0;
+    l_aprova   varchar2(1);
   begin
     inicia;
 
@@ -630,8 +632,19 @@ create or replace package body pkg_home_ui as
       end;
     end if;
 
-    -- Pedidos de ajuste que a conta pode responder (gestor direto ou RH)
-    if pkg_ponto.fn_e_aprovador = 'S' then
+    -- Pedidos de ajuste que a conta pode responder (gestor direto ou RH).
+    -- Sessão sem empresa (-20012, equipe do Corlix Hub): nenhum pedido.
+    begin
+      l_aprova := pkg_ponto.fn_e_aprovador;
+    exception
+      when others then
+        if sqlcode = -20012 then
+          l_aprova := 'N';
+        else
+          raise;
+        end if;
+    end;
+    if l_aprova = 'S' then
       select count(*)
         into l_qt_aprov
         from ponto_ajuste a

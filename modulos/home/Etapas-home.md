@@ -1090,6 +1090,47 @@ Com a conta usada no passo 8.1.4 e a página recarregada com **Cmd+Shift+R**:
 
 ---
 
+## 9. Conta sem empresa: Início dá ORA-20012 (equipe do Corlix Hub)
+
+Conta da equipe do Corlix Hub não tem colaborador nem empresa. Ao entrar, a Início mostra "Sua sessão não está vinculada a uma empresa. Saia e entre novamente." (`APEX.COMPUTATION.UNHANDLED_ERROR`, visto em 17/11/2026). Sair e entrar não resolve.
+
+**Causa:** as computações `P1_NAO_LIDOS` e `P1_QT_PENDENCIAS` chegam ao `pkg_historico_carreira.fn_empresa_contexto`, que recusa a sessão sem empresa com `-20012`. A primeira passa por `colaborador_ponto` → `pkg_ponto.fn_colaborador_logado`. A segunda passa por `render_pendencias` → `pkg_ponto.fn_e_aprovador`. O `colaborador_ponto` só tratava o `-20060` (conta sem colaborador), e o `fn_e_aprovador` não tinha tratamento.
+
+**Correção (`pkg_home_ui.pkb`):** `colaborador_ponto` devolve nulo também no `-20012`, e `render_pendencias` trata o `-20012` do `fn_e_aprovador` como "não aprova". O resultado é o que o §7 já prevê para conta sem colaborador: hero sem o painel, sem indicadores e "Nenhuma pendência". Quem tem empresa não vê diferença.
+
+### 9.1 Banco
+
+Em *SQL Workshop › SQL Scripts › Upload*, envie e rode `modulos/home/pkg_home_ui.pkb`. Não precisa do `.pks`, que não mudou. Depois, no SQL Commands:
+
+```sql
+select object_name, object_type, status from user_objects where object_name = 'PKG_HOME_UI' order by 2
+```
+
+As duas linhas devem estar `VALID`. Se houver `INVALID`, rode `select line, position, text from user_errors where name = 'PKG_HOME_UI' order by sequence` e mande o resultado.
+
+Nada muda no Builder.
+
+### 9.2 Testar
+
+| # | Conta | Faça | Esperado |
+|---|---|---|---|
+| 1 | Equipe do Corlix Hub, sem colaborador | Entre na app | A Início abre sem erro: hero sem o painel do ponto, sem a faixa de indicadores e "Nenhuma pendência" |
+| 2 | Equipe do Corlix Hub | Abra Empresas e Monitor de Logs pelo menu | Abrem normalmente |
+| 3 | `teste.rh` | Abra a Início | Igual a antes: painel do ponto, indicadores, pendências com o contador e "· N não lidos" |
+| 4 | Colaborador comum | Abra a Início | Igual a antes |
+
+### 9.3 Se não funcionar
+
+| Sintoma | Causa provável | Correção |
+|---|---|---|
+| Continua o `ORA-20012` com `PKG_HOME_UI` na pilha | O `.pkb` novo não foi instalado | Rode o §9.1 de novo e confira o `VALID` |
+| Continua o `ORA-20012` com outro package na pilha | Outra região da Início chega à empresa da sessão | Mande a mensagem inteira (Technical Info) |
+| Erro só para a conta da equipe, em outra página | A página não trata conta sem empresa | Esperado em Perfil, Holerite, Ponto e Histórico (pedem `COLABORADOR`). Nas outras, mande a mensagem |
+
+### 9.4 Voltar atrás
+
+Reinstale o `pkg_home_ui.pkb` da `DEV` anterior a esta correção.
+
 ## Situação na app
 
 | Data | O quê | Estado |
@@ -1109,6 +1150,7 @@ Com a conta usada no passo 8.1.4 e a página recarregada com **Cmd+Shift+R**:
 | 13/11/2026 | 3º export da página 1 e reconferência na app (conta `teste.rh`, sem gravar nada) | Validador `fechar-task`: **55/55 regras ok** (*Warn on Unsaved Changes* desligado, BLOCO 2 novo, *Auto Height*, *Display Null Value* desligado). Na app: `pkg_home_ui` reinstalado (1:1 "Sexta, 13/11 às 10:00"; "[DEMO] Karen Dias" com "KD"); diálogo com "Para Gabriel Machado" no topo, só as duas opções e a caixa inteira; com texto digitado e o diálogo cancelado, "Ver todos" abriu a p11 sem o aviso "Sair do site?". **Falta para fechar o §8:** "Parabenizar" (teste 9; o próximo aniversário é 15/11), "Disponível agora" com o gestor on-line (teste 6) e a conta sem colaborador (teste 10, feito por quem tem a conta). Fora do escopo: trocar o `ds_link` da pesquisa (`example.com`) pelo formulário real |
 | 13/11/2026 | **Fechamento do §8** (decisão do time) | **§8 concluído:** banco e página aplicados (export 55/55), testes 1 a 8 do 8.11 feitos na app, achados corrigidos e reconferidos, e dados de teste apagados. **Pendências aceitas pelo time:** (1) teste 9, "Parabenizar", no próximo aniversário (Guilherme Martins, 15/11/2026), apagando o feedback depois; (2) teste 6, "Disponível agora", com o gestor (Gabriel Machado) com o chat aberto; (3) teste 10, conta sem colaborador, feito por quem tem a conta. Fora do escopo: trocar o `ds_link` da pesquisa (`example.com`) pelo formulário real |
 | 13/11/2026 | Validação em DEV (backup `84f8625`, 13/11/2026 09:52) | `corlixhub/pages/p00001-início.apx` em DEV é idêntico ao 3º export validado: **55/55 regras**. `home.css` igual ao do módulo; `home.min.css` com o mesmo conteúdo (só muda a formatação do minificador). §8 concluído, com as três pendências de teste já registradas |
+| 17/11/2026 | §9: Início com `ORA-20012` para conta sem empresa (equipe do Corlix Hub), erro colado pelo time | Correção versionada no `pkg_home_ui.pkb` (branch `fix/home-conta-sem-empresa`), **não compilada nem aplicada**: não há banco Oracle local. Falta o §9.1 e os testes do §9.2 |
 
 **Protótipo conferido em 10/11/2026:** o frame "Início" do `corlixhub.pen` (pen.dev) está igual ao `pen_dev/Início.png` de 28/10/2026; não há versão mais nova no repositório.
 
