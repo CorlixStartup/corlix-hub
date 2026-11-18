@@ -7,9 +7,9 @@
 --   @modulos/ambientes/instalar-app.sql <workspace> <schema> <app_id> <build_status>
 --
 --   <workspace> é o nome que aparece em Administration Services > Manage Workspaces.
---   DEV (só na criação): @modulos/ambientes/instalar-app.sql WKSP_CORLIXHUB     WKSP_CORLIXHUB     100 RUN_AND_BUILD
---   UAT:                 @modulos/ambientes/instalar-app.sql WKSP_CORLIXHUB_UAT WKSP_CORLIXHUB_UAT 200 RUN_ONLY
---   PRD:                 @modulos/ambientes/instalar-app.sql WKSP_CORLIXHUB     WKSP_CORLIXHUB     100 RUN_ONLY
+--   DEV (só na criação): @modulos/ambientes/instalar-app.sql CORLIXHUB     WKSP_CORLIXHUB     100 RUN_AND_BUILD
+--   UAT:                 @modulos/ambientes/instalar-app.sql CORLIXHUB_UAT WKSP_CORLIXHUB_UAT 200 RUN_ONLY
+--   PRD:                 @modulos/ambientes/instalar-app.sql CORLIXHUB     WKSP_CORLIXHUB     100 RUN_ONLY
 --
 -- O que faz:
 --   1. Guarda os papéis (ACL) que cada usuário tem hoje na app de destino.

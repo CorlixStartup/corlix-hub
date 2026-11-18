@@ -18,14 +18,14 @@
 | | DEV | UAT | PRD |
 |---|---|---|---|
 | Banco | 2 (`corlixhubdev`) | 2 (`corlixhubdev`) | 1 (o atual) |
-| Workspace | `WKSP_CORLIXHUB` | `WKSP_CORLIXHUB_UAT` | `WKSP_CORLIXHUB` |
+| Workspace | `CORLIXHUB` | `CORLIXHUB_UAT` | `CORLIXHUB` |
 | Schema | `WKSP_CORLIXHUB` | `WKSP_CORLIXHUB_UAT` | `WKSP_CORLIXHUB` |
 | App | 100 | 200 | 100 |
 | Builder | Edição liberada (`RUN_AND_BUILD`) | Só leitura (`RUN_ONLY`) | Só leitura (`RUN_ONLY`) |
 | Branch | `DEV` | `UAT` | `PROD` |
 | Prefixo das fotos | `dev/` | `uat/` | (nenhum) |
 
-> **Nomes:** `CORLIXHUB` é o nome do Autonomous AI Database atual (banco 1; serviço `corlixhub_low`). O workspace do APEX é `WKSP_CORLIXHUB`, confirmado pelo time em 17/11/2026. O banco 2 se chama `corlixhubdev` (serviço `corlixhubdev_low`).
+> **Nomes:** `CORLIXHUB` é o nome do Autonomous AI Database atual (banco 1; serviço `corlixhub_low`). O **workspace** do APEX é `CORLIXHUB` e o **schema** é `WKSP_CORLIXHUB` (conferido em 18/11/2026 em `apex_workspace_schemas` no banco 1, workspace ID `10008945716225088`; a informação de 17/11 de que o workspace era `WKSP_CORLIXHUB` estava trocada). O banco 2 se chama `corlixhubdev` (serviço `corlixhubdev_low`).
 
 > **ID 200 no UAT:** o ID da app é único na instância do APEX, e DEV e UAT estão no mesmo banco. Por isso não use `f?p=100:` nem `100` escrito fixo no código: use `apex_page.get_url` e `:APP_ID`.
 
@@ -124,16 +124,18 @@ Mova o banco 1 para um compartimento `corlix-prd` se quiser separar no console (
 
 ### 3.1 Workspace
 
-No banco 2: *Database Actions › APEX › Administration Services* (entre como `ADMIN`) *› Manage Workspaces › Create Workspace*:
+No banco 2: *Tool configuration › Oracle APEX* (entre como `ADMIN`) *› Create Workspace*. No Autonomous Database, a tela é simplificada e **não tem campo para o schema**: o APEX cria o schema `WKSP_<nome do workspace>`.
 
 | Campo | Valor |
 |---|---|
-| Database User | `WKSP_CORLIXHUB` (novo) |
-| Workspace Name | `WKSP_CORLIXHUB` (o mesmo nome do banco 1) |
+| Workspace Name | `CORLIXHUB` (o mesmo do banco 1; o schema sai `WKSP_CORLIXHUB`) |
+| Workspace Username / Password | o administrador do workspace (uma pessoa do time) |
+| Advanced › Database Password | senha do schema, gerada com o `openssl` do §2 e guardada no cofre como "corlixhubdev · WKSP_CORLIXHUB" |
+| Advanced › Workspace ID | em branco |
 
-Depois de criar, edite o workspace e ponha o **Path Prefix** `CORLIXHUB`, igual ao do banco 1, para os endereços ficarem `…/ords/r/corlixhub/corlixhub/…` (confirmar o nome do campo no 26.1.5; no banco 1, confira o valor atual em *Manage Workspaces*).
+Confira em *Database actions › SQL* do banco 2: `select * from apex_workspace_schemas;` tem de mostrar `CORLIXHUB` com o schema `WKSP_CORLIXHUB`, como no banco 1. O Path Prefix padrão é o nome do workspace, então os endereços ficam `…/ords/r/corlixhub/corlixhub/…` (confirmar em *Manage Workspaces*).
 
-Entre no workspace com o usuário administrador que o assistente criar e crie as contas do time em *Administration › Manage Users and Groups*.
+Entre no workspace com o administrador e crie as contas do time em *Administration › Manage Users and Groups*.
 
 Libere o dono do schema para o SQLcl (como `ADMIN`, em *Database Actions › SQL*):
 
@@ -249,7 +251,7 @@ grep -c create_acl_assignment database/f100.sql   # tem de dar 0
 No SQLcl, ainda como `WKSP_CORLIXHUB` no banco 2:
 
 ```sql
-@modulos/ambientes/instalar-app.sql WKSP_CORLIXHUB WKSP_CORLIXHUB 100 RUN_AND_BUILD
+@modulos/ambientes/instalar-app.sql CORLIXHUB WKSP_CORLIXHUB 100 RUN_AND_BUILD
 ```
 
 Confira no fim: `build_status` de edição liberada e nenhum objeto inválido. O `f100.sql` exportado depois do §0 traz `p_build_status=>'RUN_ONLY'`; o 4º parâmetro (`RUN_AND_BUILD`) troca isso na importação, por `apex_application_install.set_build_status`.
@@ -299,7 +301,7 @@ Sem o §0, combine a data com o time. No dia:
 4. Bloqueie o Builder do PRD. No SQLcl, como `WKSP_CORLIXHUB` no banco 1:
    ```sql
    begin
-     apex_util.set_workspace(p_workspace => 'WKSP_CORLIXHUB');
+     apex_util.set_workspace(p_workspace => 'CORLIXHUB');
      apex_application_admin.set_build_status(p_application_id => 100, p_build_status => 'RUN_ONLY');
      commit;
    end;
@@ -326,8 +328,8 @@ No **banco 2**, repita o 3.1 a 3.6 com estes valores (dados: use o mesmo backup;
 
 | Onde | Valor |
 |---|---|
-| Workspace Name / Database User | `WKSP_CORLIXHUB_UAT` / `WKSP_CORLIXHUB_UAT` |
-| Instalação da app | `@modulos/ambientes/instalar-app.sql WKSP_CORLIXHUB_UAT WKSP_CORLIXHUB_UAT 200 RUN_ONLY` |
+| Workspace Name (o schema sai `WKSP_CORLIXHUB_UAT`) | `CORLIXHUB_UAT` |
+| Instalação da app | `@modulos/ambientes/instalar-app.sql CORLIXHUB_UAT WKSP_CORLIXHUB_UAT 200 RUN_ONLY` |
 | `ARQUIVO_CONFIG.DS_PREFIXO` | `uat/` |
 | Path Prefix do workspace | `CORLIXHUB_UAT` |
 | Endereço | `…corlixhubdev….oraclecloudapps.com/ords/r/corlixhub_uat/corlixhub/início` |
@@ -352,7 +354,7 @@ Ordem que não pode inverter: **banco primeiro, app depois.** A app nova chamand
 | Required reviewers | — | pelo menos 1 pessoa do time |
 | Variable `DB_SERVICE` | `corlixhubdev_low` | `corlixhub_low` |
 | Variable `DB_USER` | `WKSP_CORLIXHUB_UAT` | `WKSP_CORLIXHUB` |
-| Variable `APEX_WORKSPACE` | `WKSP_CORLIXHUB_UAT` | `WKSP_CORLIXHUB` |
+| Variable `APEX_WORKSPACE` | `CORLIXHUB_UAT` | `CORLIXHUB` |
 | Variable `APP_ID` | `200` | `100` |
 | Variable `BUILD_STATUS` | `RUN_ONLY` | `RUN_ONLY` |
 | Secret `DB_PASSWORD` | senha do `WKSP_CORLIXHUB_UAT` | senha do `WKSP_CORLIXHUB` no banco 1 |
@@ -433,3 +435,4 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | 18/11/2026 | **§0 feito pelo time** (itens 0.1 e 0.2, 1 a 5): `VW_CARREIRA_TIMELINE` recompilada, nenhum objeto inválido, Build Status `RUN_ONLY`, app no ar funcionando | Backup do congelamento: commit `6978491` (`corlixhub-prd-20261118-123528.tar.gz`, build 74 do Jenkins). O backup rodou com o Builder bloqueado. O export mostra `p_build_status=>'RUN_ONLY'` e `buildStatus: runOnly`; o DDL não mudou desde as 02:52 (filtro do 3.2 a vale). **Base do DEV: `DEV` em `6978491`.** Próximo passo: §1 e §2 |
 | 18/11/2026 | §1 conferido pelo time | `adb-free-count`: limite 2, uso 1, **1 disponível**. Console só oferece 26ai para o banco novo; senha do ADMIN por `openssl` (comando no §2, testado: 24 caracteres, regras do ADB) |
 | 18/11/2026 | **§2 feito pelo time:** banco 2 `corlixhubdev` criado | Print conferido: **Always Free**, Instance type **Free**, compartimento `corlix-dev-uat`, Transaction Processing, 26ai. APEX do banco 2: **26.1.6**, igual ao banco 1. Próximo passo: wallet e §3.1 |
+| 18/11/2026 | Nome do workspace corrigido | `apex_workspace_schemas` no banco 1: workspace **`CORLIXHUB`** (ID `10008945716225088`, o mesmo do `f100.sql`), schema `WKSP_CORLIXHUB`. Guia, `instalar-app.sql`, doc 12 e `testar-na-app.md` corrigidos: o 1º parâmetro do `instalar-app.sql` e a variável `APEX_WORKSPACE` passam a ser `CORLIXHUB`/`CORLIXHUB_UAT`. O §3.1 agora segue a tela simplificada do Autonomous Database, sem campo de schema |
