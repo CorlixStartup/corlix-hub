@@ -135,6 +135,8 @@ No banco 2: *Tool configuration › Oracle APEX* (entre como `ADMIN`) *› Creat
 
 Confira em *Database actions › SQL* do banco 2: `select * from apex_workspace_schemas;` tem de mostrar `CORLIXHUB` com o schema `WKSP_CORLIXHUB`, como no banco 1. O Path Prefix padrão é o nome do workspace, então os endereços ficam `…/ords/r/corlixhub/corlixhub/…` (confirmar em *Manage Workspaces*).
 
+Se a tela disser **Workspace name already exists**, o workspace provavelmente já foi criado numa tentativa anterior: confira em *Manage Workspaces* ou na consulta acima antes de mudar o nome. Em *Manage Workspaces*, deixe **Auto Purge** = No no DEV, para o workspace não ser apagado por inatividade (confirmar o campo no 26.1.6).
+
 Entre no workspace com o administrador e crie as contas do time em *Administration › Manage Users and Groups*.
 
 Libere o dono do schema para o SQLcl (como `ADMIN`, em *Database Actions › SQL*):
@@ -436,3 +438,4 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | 18/11/2026 | §1 conferido pelo time | `adb-free-count`: limite 2, uso 1, **1 disponível**. Console só oferece 26ai para o banco novo; senha do ADMIN por `openssl` (comando no §2, testado: 24 caracteres, regras do ADB) |
 | 18/11/2026 | **§2 feito pelo time:** banco 2 `corlixhubdev` criado | Print conferido: **Always Free**, Instance type **Free**, compartimento `corlix-dev-uat`, Transaction Processing, 26ai. APEX do banco 2: **26.1.6**, igual ao banco 1. Próximo passo: wallet e §3.1 |
 | 18/11/2026 | Nome do workspace corrigido | `apex_workspace_schemas` no banco 1: workspace **`CORLIXHUB`** (ID `10008945716225088`, o mesmo do `f100.sql`), schema `WKSP_CORLIXHUB`. Guia, `instalar-app.sql`, doc 12 e `testar-na-app.md` corrigidos: o 1º parâmetro do `instalar-app.sql` e a variável `APEX_WORKSPACE` passam a ser `CORLIXHUB`/`CORLIXHUB_UAT`. O §3.1 agora segue a tela simplificada do Autonomous Database, sem campo de schema |
+| 18/11/2026 | **§3.1: workspace criado no banco 2** | `apex_workspace_schemas` no `corlixhubdev`: `CORLIXHUB` (ID `9532154002622806`), schema `WKSP_CORLIXHUB`, como no banco 1. A segunda tentativa deu "Workspace name already exists" porque a primeira já tinha criado. Workspace com Auto Purge = Yes; orientado mudar para No. Falta: `alter user`/`grant` do §3.1 |
