@@ -11,7 +11,7 @@
 | Page template | — |
 | Autorização | nenhuma (vale a de cada página) |
 | CSS/JS de arquivo | nenhum na página; usa o CSS global do tema (`corlix-tema.css`, `custom.css`) |
-| Módulo/guia | `modulos/busca/` (`Etapas-busca.md` §4) e `modulos/tema/Etapas-header-e-menu.md` §4 e §5 |
+| Módulo/guia | `modulos/busca/` (`Etapas-busca.md` §4) e `modulos/tema/Etapas-header-e-menu.md` §4 e §5; proposta: DA "Presença" de `modulos/chat/Etapas-chat.md` §2.3 |
 | Protótipo | sem tela própria; o header aparece em todas as telas de `pen_dev/` (descrição em `07-design-pen-dev.md` §2.1) |
 
 Header da app: campo "Buscar na intranet..." depois do logo, sino de notificações e menu do usuário (Meu perfil, Sair) depois da barra de navegação.

@@ -49,6 +49,7 @@ O `.apx` é a fonte da verdade. Se a ficha divergir dele, corrija a ficha.
 | 42 | [Artigos](./p00042-artigos.md) | §11.2 concluído no export em 13/11/2026 (16/16, filtra por empresa); sem teste na app | `suporte-ti/` §11 |
 | 43 | [Artigo](./p00043-artigo.md) | Só o assistente; **empresa escolhível** e campos de controle obrigatórios | `suporte-ti/` §11.3 |
 | 44 | [Foto](./p00044-foto.md) | Em uso (entrega as fotos do bucket), validada em 09/11/2026 | `arquivos/Etapas-fotos-object-storage.md` |
+| 45 | [Otimizar imagens](./p00045-otimizar-imagens.md) | Proposta, não criada | `imagens/Etapas-imagens.md` |
 | 9999 | [Login](./p09999-login.md) | Login padrão do APEX, em inglês; redesign proposto, não aplicado | `login/Etapas-login.md` |
 
 Os guias ficam em `modulos/<pasta>/`.
