@@ -190,6 +190,8 @@ begin pkg_historico_carreira.registrar_admissao_automatica(<ID>, false); end;
 ```
 Saia e entre com o usuário novo.
 
+**Equipe do Corlix Hub (conta sem empresa):** a Início dava `ORA-20012` ("Sua sessão não está vinculada a uma empresa", `APEX.COMPUTATION.UNHANDLED_ERROR`, pilha com `PKG_HOME_UI`, `PKG_PONTO` e `PKG_HISTORICO_CARREIRA`) porque `nao_lidos_texto` e `qt_pendencias` chegavam ao `fn_empresa_contexto` sem tratar o erro. A correção está em `modulos/home/Etapas-home.md` §9. Ao criar uma região que a equipe também abre, trate o `-20012` como "sem vínculo", não como erro.
+
 ### 4.3 A correção no Builder "não pegou": processo duplicado
 **Sintoma:** você alterou o código de um processo, mas o erro continua igual. No export aparecem dois processos com o mesmo nome (`colaborador-padrão` e `colaborador-padrão_1`).
 
