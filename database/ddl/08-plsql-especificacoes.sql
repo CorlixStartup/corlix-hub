@@ -118,6 +118,33 @@ end pkg_arquivos;
 end pkg_busca_ui;
 /
 
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_CHAT_UI" authid definer as
+
+  function situacao_presenca (
+    p_status      in varchar2,
+    p_ultimo_ping in timestamp
+  ) return varchar2;
+
+  procedure ajax_ping;
+
+  procedure ajax_presencas;
+
+  procedure ajax_enviar_anexo;
+
+  procedure baixar_anexo (
+    p_id_anexo in varchar2,
+    p_inline   in boolean default false
+  );
+
+  function html_anexo (
+    p_id_anexo in number,
+    p_nome     in varchar2,
+    p_tamanho  in number
+  ) return varchar2;
+
+end pkg_chat_ui;
+/
+
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_COLABORADORES_UI" authid definer as
   function render_cabecalho return clob;
   function render_cabecalho_cadastro (p_id_colaborador in number) return clob;
@@ -202,6 +229,15 @@ END PKG_COMUNICADO;
     );
 
 END PKG_EQUIPE_CANAL;
+/
+
+  CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_FOTO_PERFIL" as
+
+  -- Processo Ajax SALVAR_FOTO da página 2. Recebe o JPEG em base64, em pedaços, no f01.
+  -- Grava sempre a foto de quem está logado. Responde {ok, mensagem}.
+  procedure ajax_salvar;
+
+end pkg_foto_perfil;
 /
 
   CREATE OR REPLACE EDITIONABLE PACKAGE "PKG_HISTORICO_CARREIRA" authid definer as

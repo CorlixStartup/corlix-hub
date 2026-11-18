@@ -106,7 +106,9 @@ create or replace package body pkg_home_ui as
 
     return '<span class="cx-avatar" aria-hidden="true">' || e(iniciais(p_nome))
         || case when l_img is not null then
-             '<img ' || l_img || ' alt="" onerror="this.remove()">'
+             -- lazy: avatares fora da tela (listas, carrossel, popovers) só pedem a
+             -- foto à página 44 quando aparecem; evita ~20 pedidos ao mesmo tempo.
+             '<img ' || l_img || ' alt="" loading="lazy" decoding="async" onerror="this.remove()">'
            end
         || '</span>';
   end avatar;

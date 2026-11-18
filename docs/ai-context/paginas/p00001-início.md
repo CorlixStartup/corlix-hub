@@ -97,6 +97,8 @@ Page 1: Início
 
 ## Pegadinhas e pendências
 
+- **Desempenho (Lighthouse de 17/11/2026):** nota 68, LCP de 9,9 s (simulado) e 19,9 MB por carregamento. As imagens dos comunicados no carrossel têm 4–5 MB cada; a primeira chega com `loading="lazy"`. Acessibilidade: links dos indicadores só pela cor, pontos do carrossel de 8 px. Ações em `modulos/monitoramento/Etapas-monitoramento.md` §4 e §5.
+
 - **Pendências do §8 (Situação na app, 13/11/2026):** teste 9 "Parabenizar" (próximo aniversário em 15/11/2026, apagar o feedback depois); teste 6 "Disponível agora" com o gestor on-line; teste 10 com conta sem colaborador. Fora do escopo: o `ds_link` da pesquisa ainda é `example.com`.
 - "Ler comunicado" e "Ver todos" levam à página 11, que é **placeholder** (`Etapas-home.md` §8, "Ficam de fora").
 - `warnOnUnsavedChanges: false` na página é proposital: sem isso, "Ler comunicado" era barrado por "Sair do site?" depois de enviar um feedback (achado (c) do 8.11).

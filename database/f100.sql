@@ -37,17 +37,17 @@ prompt APPLICATION 100 - Corlix Hub
 --   Flashback:       0
 --   Export Type:     Application Export
 --     Pages:                     42
---       Items:                  173
+--       Items:                  174
 --       Computations:             7
 --       Validations:             19
---       Processes:               76
+--       Processes:               80
 --       Regions:                125
 --       Buttons:                 58
---       Dynamic Actions:         31
+--       Dynamic Actions:         32
 --     Shared Components:
 --       Logic:
 --         Items:                  7
---         Processes:              5
+--         Processes:              6
 --         Build Options:          1
 --       Navigation:
 --         Lists:                  2
@@ -117,8 +117,8 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_string_01=>'APP_NAME'
 ,p_substitution_value_01=>'CorlixHub'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
-,p_files_version=>2461357125353
-,p_version_scn=>'51153194455951'
+,p_files_version=>2461363021305
+,p_version_scn=>'51191582144102'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -303,7 +303,7 @@ wwv_flow_imp_shared.create_list(
  p_id=>wwv_flow_imp.id(10016114704229685)
 ,p_name=>'Navigation Menu'
 ,p_static_id=>'navigation-menu'
-,p_version_scn=>'SH256:O3Mf9mwhhudOLjb45tD3klZNcr_mxrQv4KhrOrQGITc'
+,p_version_scn=>'SH256:5_kZDzcTGZKOxzWnYKfzsEogdwst3GdvCAc1BbQsXug'
 );
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(41046390296256164)
@@ -486,7 +486,7 @@ wwv_flow_imp_shared.create_list_item(
 ,p_static_id=>'terminal'
 ,p_list_item_link_target=>'f?p=&APP_ID.:7:&SESSION.::&DEBUG.::::'
 ,p_parent_list_item_id=>wwv_flow_imp.id(41046390296256164)
-,p_security_scheme=>wwv_flow_imp.id(29681448805008196)
+,p_security_scheme=>wwv_flow_imp.id(10020823953229789)
 ,p_list_item_current_type=>'COLON_DELIMITED_PAGE_LIST'
 ,p_list_item_current_for_pages=>'7'
 );
@@ -231258,6 +231258,106 @@ wwv_flow_imp_shared.create_app_static_file(
 );
 end;
 /
+prompt --application/shared_components/files/modulos_chat_chat_css
+begin
+wwv_flow_imp.g_varchar2_table := wwv_flow_imp.empty_varchar2_table;
+wwv_flow_imp.g_varchar2_table(1) := '2F2A203D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D0A20202043686174202870C3A167696E6120342920C2B720616E65786F732020C2B720206D';
+wwv_flow_imp.g_varchar2_table(2) := '6F64756C6F732F636861742F4574617061732D636861742E6D6420C2A7340A2020205075626C696361646F20656D20537461746963204170706C69636174696F6E2046696C657320636F6D6F206D6F64756C6F732F636861742F636861742E6373730A20';
+wwv_flow_imp.g_varchar2_table(3) := '202028636F6D206F20636861742E6D696E2E63737320616F206C61646F292E2053C3B320746F6B656E73202D2D63782D2A20646F2074656D612E0A2020203D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D';
+wwv_flow_imp.g_varchar2_table(4) := '3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D3D202A2F0A0A2F2A202D2D2D2D20636F6D706F7365723A20636C6970652065207072C3A976696120646F206172717569766F2070656E64656E7465202D2D2D2D202A2F0A2E63682D636F6D706F7365';
+wwv_flow_imp.g_varchar2_table(5) := '72207B0A20202020666C65782D777261703A20777261703B202F2A2061207072C3A9766961206F6375706120756D61206C696E686120696E7465697261206163696D6120646F2063616D706F202A2F0A7D0A0A2E63682D636C6970207B0A20202020666C';
+wwv_flow_imp.g_varchar2_table(6) := '65783A20302030206175746F3B0A20202020646973706C61793A20696E6C696E652D666C65783B0A20202020616C69676E2D6974656D733A2063656E7465723B0A202020206A7573746966792D636F6E74656E743A2063656E7465723B0A202020207769';
+wwv_flow_imp.g_varchar2_table(7) := '6474683A20343070783B0A202020206865696768743A20343070783B0A20202020626F726465723A2031707820736F6C696420766172282D2D63782D626F726461293B0A20202020626F726465722D7261646975733A20766172282D2D63782D7261696F';
+wwv_flow_imp.g_varchar2_table(8) := '2D63617264293B0A202020206261636B67726F756E643A20766172282D2D63782D73757065726669636965293B0A20202020636F6C6F723A20766172282D2D63782D746578746F2D32293B0A20202020666F6E742D73697A653A20313670783B0A202020';
+wwv_flow_imp.g_varchar2_table(9) := '20637572736F723A20706F696E7465723B0A7D0A0A2E63682D636C69703A686F766572207B0A202020206261636B67726F756E643A20766172282D2D63782D746167293B0A20202020636F6C6F723A20766172282D2D63782D7072696D61726961293B0A';
+wwv_flow_imp.g_varchar2_table(10) := '7D0A0A2E63682D636C69703A666F6375732D76697369626C65207B0A202020206F75746C696E653A2032707820736F6C696420766172282D2D63782D7072696D61726961293B0A202020206F75746C696E652D6F66667365743A203270783B0A7D0A0A2E';
+wwv_flow_imp.g_varchar2_table(11) := '63682D616E65786F2D707265766961207B0A20202020666C65783A2031203020313030253B0A20202020646973706C61793A20666C65783B0A7D0A0A2E63682D616E65786F2D7072657669615B68696464656E5D207B0A20202020646973706C61793A20';
+wwv_flow_imp.g_varchar2_table(12) := '6E6F6E653B0A7D0A0A2E63682D616E65786F2D7072657669612D6974656D207B0A20202020646973706C61793A20696E6C696E652D666C65783B0A20202020616C69676E2D6974656D733A2063656E7465723B0A202020206761703A20313070783B0A20';
+wwv_flow_imp.g_varchar2_table(13) := '2020206D61782D77696474683A20313030253B0A2020202070616464696E673A203670782038707820367078203670783B0A20202020626F726465723A2031707820736F6C696420766172282D2D63782D626F726461293B0A20202020626F726465722D';
+wwv_flow_imp.g_varchar2_table(14) := '7261646975733A20766172282D2D63782D7261696F2D63617264293B0A202020206261636B67726F756E643A20766172282D2D63782D737570657266696369652D32293B0A7D0A0A2E63682D616E65786F2D7072657669612D6974656D20696D67207B0A';
+wwv_flow_imp.g_varchar2_table(15) := '2020202077696474683A20343470783B0A202020206865696768743A20343470783B0A202020206F626A6563742D6669743A20636F7665723B0A20202020626F726465722D7261646975733A20766172282D2D63782D7261696F293B0A7D0A0A2E63682D';
+wwv_flow_imp.g_varchar2_table(16) := '616E65786F2D72656D6F766572207B0A20202020666C65783A20302030206175746F3B0A2020202077696474683A20323870783B0A202020206865696768743A20323870783B0A20202020626F726465723A206E6F6E653B0A20202020626F726465722D';
+wwv_flow_imp.g_varchar2_table(17) := '7261646975733A203530253B0A202020206261636B67726F756E643A207472616E73706172656E743B0A20202020636F6C6F723A20766172282D2D63782D746578746F2D32293B0A20202020666F6E742D73697A653A20313870783B0A202020206C696E';
+wwv_flow_imp.g_varchar2_table(18) := '652D6865696768743A20313B0A20202020637572736F723A20706F696E7465723B0A7D0A0A2E63682D616E65786F2D72656D6F7665723A686F766572207B0A202020206261636B67726F756E643A20766172282D2D63782D746167293B0A20202020636F';
+wwv_flow_imp.g_varchar2_table(19) := '6C6F723A20766172282D2D63782D616C65727461293B0A7D0A0A2E63682D636861742E69732D656E7669616E646F2D616E65786F202E63682D656E76696172207B0A202020206F7061636974793A202E363B0A20202020637572736F723A2070726F6772';
+wwv_flow_imp.g_varchar2_table(20) := '6573733B0A7D0A0A2F2A202D2D2D2D206172726173746172206520736F6C7461723A206D6F6C6475726120736F627265206120636F6E7665727361202D2D2D2D202A2F0A2E63682D63686174207B0A20202020706F736974696F6E3A2072656C61746976';
+wwv_flow_imp.g_varchar2_table(21) := '653B0A7D0A0A2E63682D636861742E69732D617272617374616E646F3A3A6166746572207B0A20202020636F6E74656E743A2022536F6C7465206F206172717569766F207061726120616E65786172223B0A20202020706F736974696F6E3A206162736F';
+wwv_flow_imp.g_varchar2_table(22) := '6C7574653B0A20202020696E7365743A20313270783B0A202020207A2D696E6465783A2031303B0A20202020646973706C61793A20666C65783B0A20202020616C69676E2D6974656D733A2063656E7465723B0A202020206A7573746966792D636F6E74';
+wwv_flow_imp.g_varchar2_table(23) := '656E743A2063656E7465723B0A20202020626F726465723A203270782064617368656420766172282D2D63782D7072696D61726961293B0A20202020626F726465722D7261646975733A20766172282D2D63782D7261696F2D63617264293B0A20202020';
+wwv_flow_imp.g_varchar2_table(24) := '6261636B67726F756E643A20766172282D2D63782D7072696D617269612D7375617665293B0A20202020636F6C6F723A20766172282D2D63782D7072696D617269612D746578746F293B0A20202020666F6E742D73697A653A20313570783B0A20202020';
+wwv_flow_imp.g_varchar2_table(25) := '666F6E742D7765696768743A203630303B0A20202020706F696E7465722D6576656E74733A206E6F6E653B0A7D0A0A2F2A202D2D2D2D20616E65786F2064656E74726F20646120626F6C6861202D2D2D2D202A2F0A2E63682D7478743A656D707479207B';
+wwv_flow_imp.g_varchar2_table(26) := '0A20202020646973706C61793A206E6F6E653B0A7D0A0A2E63682D616E65786F207B0A20202020646973706C61793A20626C6F636B3B0A20202020746578742D6465636F726174696F6E3A206E6F6E653B0A7D0A0A2E63682D616E65786F202B202E6368';
+wwv_flow_imp.g_varchar2_table(27) := '2D747874207B0A202020206D617267696E2D746F703A203670783B0A7D0A0A2E63682D616E65786F2D2D696D6720696D67207B0A20202020646973706C61793A20626C6F636B3B0A202020206D61782D77696474683A2032363070783B0A202020206D61';
+wwv_flow_imp.g_varchar2_table(28) := '782D6865696768743A2032323070783B0A20202020626F726465722D7261646975733A20766172282D2D63782D7261696F293B0A202020206F626A6563742D6669743A20636F7665723B0A202020206261636B67726F756E643A20766172282D2D63782D';
+wwv_flow_imp.g_varchar2_table(29) := '746167293B0A7D0A0A2E63682D616E65786F2D2D6172717569766F207B0A20202020646973706C61793A20666C65783B0A20202020616C69676E2D6974656D733A2063656E7465723B0A202020206761703A20313070783B0A202020206D696E2D776964';
+wwv_flow_imp.g_varchar2_table(30) := '74683A2032323070783B0A202020206D61782D77696474683A2033323070783B0A2020202070616464696E673A2038707820313070783B0A20202020626F726465723A2031707820736F6C696420766172282D2D63782D626F726461293B0A2020202062';
+wwv_flow_imp.g_varchar2_table(31) := '6F726465722D7261646975733A20766172282D2D63782D7261696F2D63617264293B0A202020206261636B67726F756E643A20766172282D2D63782D73757065726669636965293B0A20202020636F6C6F723A20766172282D2D63782D746578746F293B';
+wwv_flow_imp.g_varchar2_table(32) := '0A7D0A0A2E63682D616E65786F2D2D6172717569766F3A686F766572207B0A202020206261636B67726F756E643A20766172282D2D63782D737570657266696369652D32293B0A7D0A0A2F2A2073656C6F20636F6D206120657874656E73C3A36F3B2061';
+wwv_flow_imp.g_varchar2_table(33) := '20636F7220646F20746578746F20696E6469636120612066616DC3AD6C6961202A2F0A2E63682D616E65786F2D657874207B0A20202020666C65783A20302030206175746F3B0A20202020646973706C61793A20696E6C696E652D666C65783B0A202020';
+wwv_flow_imp.g_varchar2_table(34) := '20616C69676E2D6974656D733A2063656E7465723B0A202020206A7573746966792D636F6E74656E743A2063656E7465723B0A202020206D696E2D77696474683A20343470783B0A202020206865696768743A20343470783B0A2020202070616464696E';
+wwv_flow_imp.g_varchar2_table(35) := '673A2030203470783B0A20202020626F726465722D7261646975733A20766172282D2D63782D7261696F293B0A202020206261636B67726F756E643A20766172282D2D63782D746167293B0A20202020636F6C6F723A20766172282D2D63782D74657874';
+wwv_flow_imp.g_varchar2_table(36) := '6F2D32293B0A20202020666F6E742D73697A653A20313170783B0A20202020666F6E742D7765696768743A203730303B0A202020206C65747465722D73706163696E673A202E3032656D3B0A7D0A0A2E63682D616E65786F2D2D657863656C202E63682D';
+wwv_flow_imp.g_varchar2_table(37) := '616E65786F2D6578742020202020207B20636F6C6F723A20766172282D2D63782D7375636573736F293B207D0A2E63682D616E65786F2D2D776F7264202E63682D616E65786F2D657874202020202020207B20636F6C6F723A20766172282D2D63782D70';
+wwv_flow_imp.g_varchar2_table(38) := '72696D61726961293B207D0A2E63682D616E65786F2D2D706F776572706F696E74202E63682D616E65786F2D657874207B20636F6C6F723A20766172282D2D63782D616C65727461293B207D0A0A2E63682D616E65786F2D696E666F207B0A2020202064';
+wwv_flow_imp.g_varchar2_table(39) := '6973706C61793A20666C65783B0A20202020666C65782D646972656374696F6E3A20636F6C756D6E3B0A202020206D696E2D77696474683A20303B0A7D0A0A2E63682D616E65786F2D696E666F20622C0A2E63682D616E65786F2D696E666F20736D616C';
+wwv_flow_imp.g_varchar2_table(40) := '6C207B0A202020206F766572666C6F773A2068696464656E3B0A2020202077686974652D73706163653A206E6F777261703B0A20202020746578742D6F766572666C6F773A20656C6C69707369733B0A7D0A0A2E63682D616E65786F2D696E666F206220';
+wwv_flow_imp.g_varchar2_table(41) := '7B0A20202020666F6E742D73697A653A20313370783B0A20202020666F6E742D7765696768743A203630303B0A7D0A0A2E63682D616E65786F2D696E666F20736D616C6C207B0A20202020666F6E742D73697A653A20313170783B0A20202020636F6C6F';
+wwv_flow_imp.g_varchar2_table(42) := '723A20766172282D2D63782D746578746F2D33293B0A7D0A0A2E63682D616E65786F2D617669736F207B0A20202020646973706C61793A20626C6F636B3B0A202020206D617267696E2D746F703A203670783B0A2020202070616464696E673A20347078';
+wwv_flow_imp.g_varchar2_table(43) := '203870783B0A20202020626F726465722D7261646975733A20766172282D2D63782D7261696F293B0A202020206261636B67726F756E643A20766172282D2D63782D73757065726669636965293B0A20202020636F6C6F723A20766172282D2D63782D61';
+wwv_flow_imp.g_varchar2_table(44) := '6C65727461293B0A20202020666F6E742D73697A653A20313170783B0A20202020666F6E742D7765696768743A203630303B0A7D0A';
+wwv_flow_imp_shared.create_app_static_file(
+ p_id=>wwv_flow_imp.id(50852094807893717)
+,p_file_name=>'modulos/chat/chat.css'
+,p_mime_type=>'text/css'
+,p_file_charset=>'utf-8'
+,p_file_content=>wwv_flow_imp.varchar2_to_blob(wwv_flow_imp.g_varchar2_table)
+);
+end;
+/
+prompt --application/shared_components/files/modulos_chat_chat_min_css
+begin
+wwv_flow_imp.g_varchar2_table := wwv_flow_imp.empty_varchar2_table;
+wwv_flow_imp.g_varchar2_table(1) := '2E63682D636F6D706F736572207B666C65782D777261703A20777261703B7D2E63682D636C6970207B666C65783A20302030206175746F3B646973706C61793A20696E6C696E652D666C65783B616C69676E2D6974656D733A2063656E7465723B6A7573';
+wwv_flow_imp.g_varchar2_table(2) := '746966792D636F6E74656E743A2063656E7465723B77696474683A20343070783B6865696768743A20343070783B626F726465723A2031707820736F6C696420766172282D2D63782D626F726461293B626F726465722D7261646975733A20766172282D';
+wwv_flow_imp.g_varchar2_table(3) := '2D63782D7261696F2D63617264293B6261636B67726F756E643A20766172282D2D63782D73757065726669636965293B636F6C6F723A20766172282D2D63782D746578746F2D32293B666F6E742D73697A653A20313670783B637572736F723A20706F69';
+wwv_flow_imp.g_varchar2_table(4) := '6E7465723B7D2E63682D636C69703A686F766572207B6261636B67726F756E643A20766172282D2D63782D746167293B636F6C6F723A20766172282D2D63782D7072696D61726961293B7D2E63682D636C69703A666F6375732D76697369626C65207B6F';
+wwv_flow_imp.g_varchar2_table(5) := '75746C696E653A2032707820736F6C696420766172282D2D63782D7072696D61726961293B6F75746C696E652D6F66667365743A203270783B7D2E63682D616E65786F2D707265766961207B666C65783A2031203020313030253B646973706C61793A20';
+wwv_flow_imp.g_varchar2_table(6) := '666C65783B7D2E63682D616E65786F2D7072657669615B68696464656E5D207B646973706C61793A206E6F6E653B7D2E63682D616E65786F2D7072657669612D6974656D207B646973706C61793A20696E6C696E652D666C65783B616C69676E2D697465';
+wwv_flow_imp.g_varchar2_table(7) := '6D733A2063656E7465723B6761703A20313070783B6D61782D77696474683A20313030253B70616464696E673A203670782038707820367078203670783B626F726465723A2031707820736F6C696420766172282D2D63782D626F726461293B626F7264';
+wwv_flow_imp.g_varchar2_table(8) := '65722D7261646975733A20766172282D2D63782D7261696F2D63617264293B6261636B67726F756E643A20766172282D2D63782D737570657266696369652D32293B7D2E63682D616E65786F2D7072657669612D6974656D20696D67207B77696474683A';
+wwv_flow_imp.g_varchar2_table(9) := '20343470783B6865696768743A20343470783B6F626A6563742D6669743A20636F7665723B626F726465722D7261646975733A20766172282D2D63782D7261696F293B7D2E63682D616E65786F2D72656D6F766572207B666C65783A2030203020617574';
+wwv_flow_imp.g_varchar2_table(10) := '6F3B77696474683A20323870783B6865696768743A20323870783B626F726465723A206E6F6E653B626F726465722D7261646975733A203530253B6261636B67726F756E643A207472616E73706172656E743B636F6C6F723A20766172282D2D63782D74';
+wwv_flow_imp.g_varchar2_table(11) := '6578746F2D32293B666F6E742D73697A653A20313870783B6C696E652D6865696768743A20313B637572736F723A20706F696E7465723B7D2E63682D616E65786F2D72656D6F7665723A686F766572207B6261636B67726F756E643A20766172282D2D63';
+wwv_flow_imp.g_varchar2_table(12) := '782D746167293B636F6C6F723A20766172282D2D63782D616C65727461293B7D2E63682D636861742E69732D656E7669616E646F2D616E65786F202E63682D656E76696172207B6F7061636974793A202E363B637572736F723A2070726F67726573733B';
+wwv_flow_imp.g_varchar2_table(13) := '7D2E63682D63686174207B706F736974696F6E3A2072656C61746976653B7D2E63682D636861742E69732D617272617374616E646F3A3A6166746572207B636F6E74656E743A2022536F6C7465206F206172717569766F207061726120616E6578617222';
+wwv_flow_imp.g_varchar2_table(14) := '3B706F736974696F6E3A206162736F6C7574653B696E7365743A20313270783B7A2D696E6465783A2031303B646973706C61793A20666C65783B616C69676E2D6974656D733A2063656E7465723B6A7573746966792D636F6E74656E743A2063656E7465';
+wwv_flow_imp.g_varchar2_table(15) := '723B626F726465723A203270782064617368656420766172282D2D63782D7072696D61726961293B626F726465722D7261646975733A20766172282D2D63782D7261696F2D63617264293B6261636B67726F756E643A20766172282D2D63782D7072696D';
+wwv_flow_imp.g_varchar2_table(16) := '617269612D7375617665293B636F6C6F723A20766172282D2D63782D7072696D617269612D746578746F293B666F6E742D73697A653A20313570783B666F6E742D7765696768743A203630303B706F696E7465722D6576656E74733A206E6F6E653B7D2E';
+wwv_flow_imp.g_varchar2_table(17) := '63682D7478743A656D707479207B646973706C61793A206E6F6E653B7D2E63682D616E65786F207B646973706C61793A20626C6F636B3B746578742D6465636F726174696F6E3A206E6F6E653B7D2E63682D616E65786F202B202E63682D747874207B6D';
+wwv_flow_imp.g_varchar2_table(18) := '617267696E2D746F703A203670783B7D2E63682D616E65786F2D2D696D6720696D67207B646973706C61793A20626C6F636B3B6D61782D77696474683A2032363070783B6D61782D6865696768743A2032323070783B626F726465722D7261646975733A';
+wwv_flow_imp.g_varchar2_table(19) := '20766172282D2D63782D7261696F293B6F626A6563742D6669743A20636F7665723B6261636B67726F756E643A20766172282D2D63782D746167293B7D2E63682D616E65786F2D2D6172717569766F207B646973706C61793A20666C65783B616C69676E';
+wwv_flow_imp.g_varchar2_table(20) := '2D6974656D733A2063656E7465723B6761703A20313070783B6D696E2D77696474683A2032323070783B6D61782D77696474683A2033323070783B70616464696E673A2038707820313070783B626F726465723A2031707820736F6C696420766172282D';
+wwv_flow_imp.g_varchar2_table(21) := '2D63782D626F726461293B626F726465722D7261646975733A20766172282D2D63782D7261696F2D63617264293B6261636B67726F756E643A20766172282D2D63782D73757065726669636965293B636F6C6F723A20766172282D2D63782D746578746F';
+wwv_flow_imp.g_varchar2_table(22) := '293B7D2E63682D616E65786F2D2D6172717569766F3A686F766572207B6261636B67726F756E643A20766172282D2D63782D737570657266696369652D32293B7D2E63682D616E65786F2D657874207B666C65783A20302030206175746F3B646973706C';
+wwv_flow_imp.g_varchar2_table(23) := '61793A20696E6C696E652D666C65783B616C69676E2D6974656D733A2063656E7465723B6A7573746966792D636F6E74656E743A2063656E7465723B6D696E2D77696474683A20343470783B6865696768743A20343470783B70616464696E673A203020';
+wwv_flow_imp.g_varchar2_table(24) := '3470783B626F726465722D7261646975733A20766172282D2D63782D7261696F293B6261636B67726F756E643A20766172282D2D63782D746167293B636F6C6F723A20766172282D2D63782D746578746F2D32293B666F6E742D73697A653A2031317078';
+wwv_flow_imp.g_varchar2_table(25) := '3B666F6E742D7765696768743A203730303B6C65747465722D73706163696E673A202E3032656D3B7D2E63682D616E65786F2D2D657863656C202E63682D616E65786F2D6578742020202020207B20636F6C6F723A20766172282D2D63782D7375636573';
+wwv_flow_imp.g_varchar2_table(26) := '736F293B207D2E63682D616E65786F2D2D776F7264202E63682D616E65786F2D657874202020202020207B20636F6C6F723A20766172282D2D63782D7072696D61726961293B207D2E63682D616E65786F2D2D706F776572706F696E74202E63682D616E';
+wwv_flow_imp.g_varchar2_table(27) := '65786F2D657874207B20636F6C6F723A20766172282D2D63782D616C65727461293B207D2E63682D616E65786F2D696E666F207B646973706C61793A20666C65783B666C65782D646972656374696F6E3A20636F6C756D6E3B6D696E2D77696474683A20';
+wwv_flow_imp.g_varchar2_table(28) := '303B7D2E63682D616E65786F2D696E666F20622C0A2E63682D616E65786F2D696E666F20736D616C6C207B6F766572666C6F773A2068696464656E3B77686974652D73706163653A206E6F777261703B746578742D6F766572666C6F773A20656C6C6970';
+wwv_flow_imp.g_varchar2_table(29) := '7369733B7D2E63682D616E65786F2D696E666F2062207B666F6E742D73697A653A20313370783B666F6E742D7765696768743A203630303B7D2E63682D616E65786F2D696E666F20736D616C6C207B666F6E742D73697A653A20313170783B636F6C6F72';
+wwv_flow_imp.g_varchar2_table(30) := '3A20766172282D2D63782D746578746F2D33293B7D2E63682D616E65786F2D617669736F207B646973706C61793A20626C6F636B3B6D617267696E2D746F703A203670783B70616464696E673A20347078203870783B626F726465722D7261646975733A';
+wwv_flow_imp.g_varchar2_table(31) := '20766172282D2D63782D7261696F293B6261636B67726F756E643A20766172282D2D63782D73757065726669636965293B636F6C6F723A20766172282D2D63782D616C65727461293B666F6E742D73697A653A20313170783B666F6E742D776569676874';
+wwv_flow_imp.g_varchar2_table(32) := '3A203630303B7D';
+wwv_flow_imp_shared.create_app_static_file(
+ p_id=>wwv_flow_imp.id(50853712267933173)
+,p_file_name=>'modulos/chat/chat.min.css'
+,p_mime_type=>'text/css'
+,p_file_charset=>'utf-8'
+,p_file_content=>wwv_flow_imp.varchar2_to_blob(wwv_flow_imp.g_varchar2_table)
+);
+end;
+/
 prompt --application/shared_components/files/modulos_colaboradores_colaboradores_css
 begin
 wwv_flow_imp.g_varchar2_table := wwv_flow_imp.empty_varchar2_table;
@@ -232964,8 +233064,7 @@ wwv_flow_imp_shared.create_acl_role(
 ,p_static_id=>'colaborador'
 ,p_name=>'Colaborador'
 ,p_description=>unistr('Acesso b\00E1sico. Dado a todo usu\00E1rio cadastrado.')
-,p_users=>wwv_flow_t_varchar2('ALAIRTONROCHA',
-  'EDUARDOMARINS',
+,p_users=>wwv_flow_t_varchar2('EDUARDOMARINS',
   'RAFAELNUNES',
   'TESTE.RH')
 ,p_version_scn=>'SH256:18lWnDdKSAGhW3ELOsjMNYtpJEvidR8A9q0FyVbYqNM'
@@ -232978,10 +233077,8 @@ wwv_flow_imp_shared.create_acl_role(
  p_id=>wwv_flow_imp.id(11408307086204190)
 ,p_static_id=>'diretoria'
 ,p_name=>'Diretoria'
-,p_users=>wwv_flow_t_varchar2('ALAIRTONROCHA',
-  'AMANDANUNES',
-  'EDUARDOMARINS',
-  'SARAHSILVA')
+,p_users=>wwv_flow_t_varchar2('AMANDANUNES',
+  'EDUARDOMARINS')
 ,p_version_scn=>'SH256:Mwav9Oj96ZA9oez7zwi5mSnTxhc81AY91sCAg6yy7yI'
 );
 end;
@@ -233007,10 +233104,8 @@ wwv_flow_imp_shared.create_acl_role(
 ,p_static_id=>'gestor'
 ,p_name=>'Gestor'
 ,p_description=>'Lidera equipe. Aparece na lista de gestores da P14.'
-,p_users=>wwv_flow_t_varchar2('ALAIRTONROCHA',
-  'ANASOUZA',
+,p_users=>wwv_flow_t_varchar2('ANASOUZA',
   'EDUARDOMARINS',
-  'SARAHSILVA',
   'TESTE.RH')
 ,p_version_scn=>'SH256:y8FySTvrdjrnJyluLwIQn15jm4204elym741IgUuvHo'
 );
@@ -233022,10 +233117,8 @@ wwv_flow_imp_shared.create_acl_role(
  p_id=>wwv_flow_imp.id(11408430878205091)
 ,p_static_id=>unistr('publicador-de-conte\00FAdo')
 ,p_name=>unistr('Publicador de Conte\00FAdo')
-,p_users=>wwv_flow_t_varchar2('ALAIRTONROCHA',
-  'ANASOUZA',
+,p_users=>wwv_flow_t_varchar2('ANASOUZA',
   'EDUARDOMARINS',
-  'SARAHSILVA',
   'TESTE.RH')
 ,p_version_scn=>'SH256:jClmosK-3NtjGCJkT0PhBF2rGvYesy5xloosM30UemQ'
 );
@@ -233038,7 +233131,7 @@ wwv_flow_imp_shared.create_acl_role(
 ,p_static_id=>'suporte-ti'
 ,p_name=>'Suporte TI'
 ,p_description=>unistr('Equipe de TI. Atende chamados e mant\00E9m o status dos sistemas e os artigos.')
-,p_users=>wwv_flow_t_varchar2('SARAHSILVA2')
+,p_users=>wwv_flow_t_varchar2()
 ,p_version_scn=>'SH256:EBGU6hQP-FXEiPDw-PiLvTBcJ3C-_Ch56fvxvl9mdrY'
 );
 end;
@@ -233111,6 +233204,21 @@ wwv_flow_imp_shared.create_flow_process(
 'END;'))
 ,p_process_clob_language=>'PLSQL'
 ,p_version_scn=>'SH256:I9_S51FPIJCkrZ3wTEmq8Lj01jmfY3AW6xZf7tZ0Gqs'
+);
+end;
+/
+prompt --application/shared_components/logic/application_processes/cx_presenca_ping
+begin
+wwv_flow_imp_shared.create_flow_process(
+ p_id=>wwv_flow_imp.id(50620826775437677)
+,p_process_sequence=>10
+,p_process_point=>'ON_DEMAND'
+,p_process_name=>'CX_PRESENCA_PING'
+,p_static_id=>'cx-presenca-ping'
+,p_process_sql_clob=>'pkg_chat_ui.ajax_ping;'
+,p_process_clob_language=>'PLSQL'
+,p_security_scheme=>'MUST_NOT_BE_PUBLIC_USER'
+,p_version_scn=>'SH256:SJPeYuIanoDXu_Ke2kBpamrjRGY1DHcedaVIhHjRTd4'
 );
 end;
 /
@@ -234254,6 +234362,7 @@ wwv_flow_imp_shared.create_row_template(
 '#SEP_DIA#',
 '<div class="ch-msg ch-msg--#LADO#" data-id="#ID_MSG#">',
 '  <div class="ch-bubble">',
+'    #ANEXO_HTML#',
 '    <span class="ch-txt">#CORPO#</span>',
 '    <span class="ch-time">#HORA#</span>',
 '  </div>',
@@ -234460,6 +234569,96 @@ unistr('      <span class="cx-menu-usuario__info"><span class="cx-menu-usuario__
 ,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
   'expand_shortcuts', 'N',
   'output_as', 'HTML')).to_clob
+);
+wwv_flow_imp_page.create_page_da_event(
+ p_id=>wwv_flow_imp.id(50621274238446801)
+,p_name=>unistr('Presen\00E7a')
+,p_static_id=>unistr('presen\00E7a')
+,p_event_sequence=>10
+,p_bind_type=>'bind'
+,p_bind_event_type=>'ready'
+,p_display_when_type=>'USER_IS_NOT_PUBLIC_USER'
+);
+wwv_flow_imp_page.create_page_da_action(
+ p_id=>wwv_flow_imp.id(50621317299446802)
+,p_event_id=>wwv_flow_imp.id(50621274238446801)
+,p_event_result=>'TRUE'
+,p_action_sequence=>10
+,p_static_id=>'native-javascript-code'
+,p_action=>'NATIVE_JAVASCRIPT_CODE'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'js_code', wwv_flow_string.join(wwv_flow_t_varchar2(
+    'if (window.cxPresenca || window.self !== window.top) {',
+    '    return;',
+    '}',
+    '',
+    'const PROCESSO     = "CX_PRESENCA_PING";',
+    'const INTERVALO_MS = 60000;',
+    'const ATIVIDADE_MS = 180000;',
+    'const CICLO_MS     = 15000;',
+    'const CHAVE        = "cxPresencaUltimoPing";',
+    '',
+    'let ultimaAtividade = Date.now();',
+    'let enviando        = false;',
+    '',
+    'function lerUltimoPing() {',
+    '    try {',
+    '        return Number(sessionStorage.getItem(CHAVE)) || 0;',
+    '    } catch (e) {',
+    '        return 0;',
+    '    }',
+    '}',
+    '',
+    'function gravarUltimoPing(momento) {',
+    '    try {',
+    '        sessionStorage.setItem(CHAVE, String(momento));',
+    '    } catch (e) {',
+    unistr('        // sem storage: s\00F3 pinga a cada carregamento de p\00E1gina'),
+    '    }',
+    '}',
+    '',
+    'function ping() {',
+    '    const agora = Date.now();',
+    '    if (enviando ||',
+    '        document.hidden ||',
+    '        agora - ultimaAtividade > ATIVIDADE_MS ||',
+    '        agora - lerUltimoPing() < INTERVALO_MS) {',
+    '        return;',
+    '    }',
+    '',
+    '    enviando = true;',
+    '    apex.server.process(PROCESSO, {}, { dataType: "json", loadingIndicator: null })',
+    '        .done(function () {',
+    '            gravarUltimoPing(Date.now());',
+    '        })',
+    '        .always(function () {',
+    '            enviando = false;',
+    '        });',
+    '}',
+    '',
+    'function marcarAtividade() {',
+    '    const estavaParado = Date.now() - ultimaAtividade > ATIVIDADE_MS;',
+    '    ultimaAtividade = Date.now();',
+    '    if (estavaParado) {',
+    '        ping();',
+    '    }',
+    '}',
+    '',
+    '["pointerdown", "pointermove", "keydown", "wheel", "touchstart"].forEach(function (evento) {',
+    '    document.addEventListener(evento, marcarAtividade, { passive: true, capture: true });',
+    '});',
+    '',
+    'document.addEventListener("visibilitychange", function () {',
+    '    if (!document.hidden) {',
+    '        marcarAtividade();',
+    '        ping();',
+    '    }',
+    '});',
+    '',
+    'setInterval(ping, CICLO_MS);',
+    'ping();',
+    '',
+    'window.cxPresenca = { ping: ping };')))).to_clob
 );
 end;
 /
@@ -235323,7 +235522,132 @@ unistr('// Altern\00E2ncia entre as abas Trajet\00F3ria e Dados Pessoais'),
 '',
 '$(document).on("click", "[data-acao=''fechar-foto'']", function () {',
 '  if (perfilFotoDrawer) perfilFotoDrawer.close();',
-'});'))
+'});',
+'',
+'// =============================================================================',
+unistr('// Corlix Hub \00B7 Envio da foto de perfil (p\00E1gina 2)'),
+unistr('// Cole no fim de Page \203A JavaScript \203A Execute when Page Loads.'),
+unistr('// O recorte e a convers\00E3o acontecem aqui: o JPEG novo sai quadrado e sem'),
+unistr('// metadados, como a localiza\00E7\00E3o gravada pelo celular. O servidor confere de novo.'),
+'// =============================================================================',
+'(function () {',
+'  const c_tamanho = 512;',
+'  const c_max_bytes = 5 * 1024 * 1024;',
+'  let imagemPronta = null;',
+'',
+'  function aviso(texto, ehErro) {',
+'    const caixa = document.getElementById("perfil-foto-status");',
+'    if (caixa) {',
+'      caixa.textContent = texto;',
+'      caixa.classList.toggle("is-erro", !!ehErro);',
+'    }',
+'  }',
+'',
+'  function botaoSalvar() {',
+'    return document.querySelector("[data-acao=''salvar-foto'']");',
+'  }',
+'',
+'  function converter(arquivo) {',
+'    return new Promise(function (resolve, reject) {',
+'      const endereco = URL.createObjectURL(arquivo);',
+'      const img = new Image();',
+'      img.onload = function () {',
+'        const lado = Math.min(img.naturalWidth, img.naturalHeight);',
+'        const canvas = document.createElement("canvas");',
+'        canvas.width = c_tamanho;',
+'        canvas.height = c_tamanho;',
+'        canvas.getContext("2d").drawImage(',
+'          img,',
+'          (img.naturalWidth - lado) / 2, (img.naturalHeight - lado) / 2, lado, lado,',
+'          0, 0, c_tamanho, c_tamanho',
+'        );',
+'        URL.revokeObjectURL(endereco);',
+'        canvas.toBlob(function (blob) {',
+'          if (blob) { resolve(blob); } else { reject(new Error("conversao")); }',
+'        }, "image/jpeg", 0.85);',
+'      };',
+'      img.onerror = function () {',
+'        URL.revokeObjectURL(endereco);',
+'        reject(new Error("leitura"));',
+'      };',
+'      img.src = endereco;',
+'    });',
+'  }',
+'',
+'  function paraBase64(blob) {',
+'    return new Promise(function (resolve, reject) {',
+'      const leitor = new FileReader();',
+'      leitor.onload = function () { resolve(String(leitor.result).split(",")[1]); };',
+'      leitor.onerror = reject;',
+'      leitor.readAsDataURL(blob);',
+'    });',
+'  }',
+'',
+'  function mostrarPrevia(blob) {',
+'    const caixa = document.querySelector(".perfil-modal-avatar .perfil-avatar");',
+'    if (!caixa) { return; }',
+'    let img = caixa.querySelector("img");',
+'    if (!img) {',
+'      img = document.createElement("img");',
+'      img.alt = "";',
+'      caixa.appendChild(img);',
+'    }',
+'    img.src = URL.createObjectURL(blob);',
+'  }',
+'',
+'  $(document).on("change", "#input-foto-upload", function () {',
+'    const arquivo = this.files && this.files[0];',
+'    const salvar = botaoSalvar();',
+'    imagemPronta = null;',
+'    if (salvar) { salvar.disabled = true; }',
+'    if (!arquivo) { return; }',
+'',
+'    if (["image/jpeg", "image/png"].indexOf(arquivo.type) < 0) {',
+'      aviso("Escolha uma imagem em JPG ou PNG.", true);',
+'      return;',
+'    }',
+'    if (arquivo.size > c_max_bytes) {',
+unistr('      aviso("A imagem precisa ter at\00E9 5 MB.", true);'),
+'      return;',
+'    }',
+'',
+'    aviso("Preparando a imagem...");',
+'    converter(arquivo).then(function (blob) {',
+'      imagemPronta = blob;',
+'      mostrarPrevia(blob);',
+'      if (botaoSalvar()) { botaoSalvar().disabled = false; }',
+unistr('      aviso("Confira a pr\00E9via e clique em Salvar foto.");'),
+'    }).catch(function () {',
+unistr('      aviso("N\00E3o foi poss\00EDvel ler essa imagem. Tente outra, em JPG ou PNG.", true);'),
+'    });',
+'  });',
+'',
+'  $(document).on("click", "[data-acao=''salvar-foto'']", function () {',
+'    const salvar = this;',
+'    if (!imagemPronta) { return; }',
+'    salvar.disabled = true;',
+'    aviso("Salvando...");',
+'',
+'    paraBase64(imagemPronta).then(function (base64) {',
+'      const partes = apex.server.chunk(base64);',
+'      return apex.server.process("SALVAR_FOTO",',
+'        { f01: Array.isArray(partes) ? partes : [partes] },',
+'        { dataType: "json" });',
+'    }).then(function (resposta) {',
+'      if (resposta.ok) {',
+'        aviso(resposta.mensagem);',
+'        location.reload();',
+'      } else {',
+'        aviso(resposta.mensagem, true);',
+'        salvar.disabled = false;',
+'      }',
+'    }, function () {',
+unistr('      aviso("N\00E3o foi poss\00EDvel falar com o servidor. Confira sua conex\00E3o e tente de novo.", true);'),
+'      salvar.disabled = false;',
+'    });',
+'  });',
+'})();',
+''))
 ,p_css_file_urls=>'#APP_FILES#Meu Perfil#MIN#.css'
 ,p_step_template=>4073832297226169690
 ,p_page_template_options=>'#DEFAULT#'
@@ -235386,6 +235710,17 @@ wwv_flow_imp_page.create_page_process(
 '  p_escape => false);'))
 ,p_process_clob_language=>'PLSQL'
 ,p_internal_uid=>39812565727690203
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(49540197464914802)
+,p_process_sequence=>20
+,p_process_point=>'ON_DEMAND'
+,p_process_type=>'NATIVE_PLSQL'
+,p_process_name=>'SALVAR_FOTO'
+,p_static_id=>'salvar-foto'
+,p_process_sql_clob=>'pkg_foto_perfil.ajax_salvar;'
+,p_process_clob_language=>'PLSQL'
+,p_internal_uid=>49540197464914802
 );
 end;
 /
@@ -235895,14 +236230,335 @@ unistr('        // chamado pela DA "Enviar Mensagem": quem envia quer ver a pr\0
 '        irParaFim: function () { forcarFim = true; }',
 '    };',
 '})();'))
-,p_javascript_code_onload=>'chChat.iniciar();'
+,p_javascript_code_onload=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'chChat.iniciar();',
+'',
+'(function () {',
+'    const INTERVALO_MS = 30000;',
+'    let enviando = false;',
+'',
+'    function aplicar(presencas) {',
+'        document.querySelectorAll(".ch-contact[data-id]").forEach(function (contato) {',
+'            const ponto = contato.querySelector(".ch-dot");',
+'            if (!ponto) {',
+'                return;',
+'            }',
+'            ponto.className = "ch-dot ch-dot--" + (presencas[contato.dataset.id] || "offline");',
+'',
+'            if (contato.classList.contains("is-active")) {',
+'                const cabecalho = document.querySelector(".ch-head .ch-dot");',
+'                if (cabecalho) {',
+'                    cabecalho.className = ponto.className;',
+'                }',
+'            }',
+'        });',
+'    }',
+'',
+'    function atualizar() {',
+'        if (enviando || document.hidden) {',
+'            return;',
+'        }',
+'        enviando = true;',
+'        apex.server.process("CH_PRESENCAS", {}, { dataType: "json", loadingIndicator: null })',
+'            .done(function (resp) {',
+'                if (resp && resp.presencas) {',
+'                    aplicar(resp.presencas);',
+'                }',
+'            })',
+'            .always(function () {',
+'                enviando = false;',
+'            });',
+'    }',
+'',
+'    setInterval(atualizar, INTERVALO_MS);',
+'    document.addEventListener("visibilitychange", function () {',
+'        if (!document.hidden) {',
+'            atualizar();',
+'        }',
+'    });',
+'})();',
+'',
+'(function () {',
+'    const MAX_BYTES  = 10 * 1024 * 1024;',
+'    const EXTENSOES  = ["xlsx", "xls", "xlsm", "xlsb", "xltx", "csv",',
+'                        "docx", "doc", "docm", "dotx", "rtf",',
+'                        "pptx", "ppt", "pptm", "ppsx", "pps", "potx",',
+'                        "jpg", "jpeg", "png", "gif", "webp", "bmp"];',
+'    const IMAGENS    = ["jpg", "jpeg", "png", "gif", "webp", "bmp"];',
+'',
+'    const chat    = document.querySelector(".ch-chat");',
+'    const campo   = document.getElementById("ch-texto");',
+'    const entrada = document.getElementById("ch-arquivo");',
+'    const previa  = document.querySelector(".ch-anexo-previa");',
+'    if (!chat || !campo || !entrada || !previa) {',
+'        console.warn("chAnexo: falta o HTML do passo 4.4 (clipe, ch-arquivo ou ch-anexo-previa)");',
+'        return;',
+'    }',
+'',
+'    let pendente = null;',
+'    let urlPrevia = null;',
+'    let enviando = false;',
+'',
+'    function extensao(nome) {',
+'        const m = /\.([^.\\/]+)$/.exec(nome || "");',
+'        return m ? m[1].toLowerCase() : "";',
+'    }',
+'',
+'    function tamanhoTexto(bytes) {',
+'        return bytes < 1024 * 1024',
+'            ? Math.max(1, Math.round(bytes / 1024)) + " KB"',
+'            : (bytes / 1024 / 1024).toFixed(1).replace(".", ",") + " MB";',
+'    }',
+'',
+'    function erro(mensagem) {',
+'        apex.message.clearErrors();',
+'        apex.message.showErrors([{ type: "error", location: "page", message: mensagem, unsafe: false }]);',
+'    }',
+'',
+'    function conversaAberta() {',
+'        return chat.classList.contains("is-aberto") && !!apex.item("P4_CANAL_ID").getValue();',
+'    }',
+'',
+'    function limpar() {',
+'        pendente = null;',
+'        if (urlPrevia) {',
+'            URL.revokeObjectURL(urlPrevia);',
+'            urlPrevia = null;',
+'        }',
+'        previa.replaceChildren();',
+'        previa.hidden = true;',
+'        entrada.value = "";',
+'    }',
+'',
+'    function selecionar(arquivo) {',
+'        if (!arquivo) {',
+'            return;',
+'        }',
+'        if (!conversaAberta()) {',
+'            erro("Abra uma conversa antes de anexar um arquivo.");',
+'            return;',
+'        }',
+'        const ext = extensao(arquivo.name);',
+'        if (EXTENSOES.indexOf(ext) < 0) {',
+unistr('            erro("Tipo de arquivo n\00E3o aceito. Envie Excel, Word, PowerPoint ou imagem (JPG, PNG, GIF, WEBP ou BMP).");'),
+'            return;',
+'        }',
+'        if (arquivo.size > MAX_BYTES) {',
+unistr('            erro("O arquivo pode ter at\00E9 10 MB.");'),
+'            return;',
+'        }',
+'        if (arquivo.size === 0) {',
+unistr('            erro("O arquivo est\00E1 vazio.");'),
+'            return;',
+'        }',
+'',
+'        limpar();',
+'        apex.message.clearErrors();',
+'        pendente = arquivo;',
+'',
+'        const cartao = document.createElement("div");',
+'        cartao.className = "ch-anexo-previa-item";',
+'',
+'        if (IMAGENS.indexOf(ext) >= 0) {',
+'            urlPrevia = URL.createObjectURL(arquivo);',
+'            const img = document.createElement("img");',
+'            img.src = urlPrevia;',
+'            img.alt = "";',
+'            cartao.appendChild(img);',
+'        } else {',
+'            const selo = document.createElement("span");',
+'            selo.className = "ch-anexo-ext";',
+'            selo.textContent = ext.toUpperCase();',
+'            cartao.appendChild(selo);',
+'        }',
+'',
+'        const info = document.createElement("span");',
+'        info.className = "ch-anexo-info";',
+'        const nome = document.createElement("b");',
+'        nome.textContent = arquivo.name;',
+'        const tam = document.createElement("small");',
+'        tam.textContent = tamanhoTexto(arquivo.size);',
+'        info.append(nome, tam);',
+'        cartao.appendChild(info);',
+'',
+'        const remover = document.createElement("button");',
+'        remover.type = "button";',
+'        remover.className = "ch-anexo-remover";',
+'        remover.setAttribute("aria-label", "Remover anexo");',
+'        remover.title = "Remover anexo";',
+unistr('        remover.textContent = "\00D7";'),
+'        remover.addEventListener("click", function () {',
+'            limpar();',
+'            campo.focus();',
+'        });',
+'        cartao.appendChild(remover);',
+'',
+'        previa.appendChild(cartao);',
+'        previa.hidden = false;',
+'        campo.focus();',
+'    }',
+'',
+'    document.querySelector(".ch-clip").addEventListener("click", function () {',
+'        if (!conversaAberta()) {',
+'            erro("Abra uma conversa antes de anexar um arquivo.");',
+'            return;',
+'        }',
+'        entrada.click();',
+'    });',
+'    entrada.addEventListener("change", function () {',
+'        selecionar(entrada.files[0]);',
+'    });',
+'',
+'    function temArquivo(evento) {',
+'        const tipos = evento.dataTransfer && evento.dataTransfer.types;',
+'        return !!tipos && Array.prototype.indexOf.call(tipos, "Files") >= 0;',
+'    }',
+'',
+'    let profundidade = 0;',
+'    chat.addEventListener("dragenter", function (e) {',
+'        if (!temArquivo(e) || !conversaAberta()) {',
+'            return;',
+'        }',
+'        e.preventDefault();',
+'        profundidade++;',
+'        chat.classList.add("is-arrastando");',
+'    });',
+'    chat.addEventListener("dragover", function (e) {',
+'        if (!temArquivo(e) || !conversaAberta()) {',
+'            return;',
+'        }',
+'        e.preventDefault();',
+'        e.dataTransfer.dropEffect = "copy";',
+'    });',
+'    chat.addEventListener("dragleave", function () {',
+'        profundidade = Math.max(0, profundidade - 1);',
+'        if (profundidade === 0) {',
+'            chat.classList.remove("is-arrastando");',
+'        }',
+'    });',
+'    chat.addEventListener("drop", function (e) {',
+'        if (!temArquivo(e)) {',
+'            return;',
+'        }',
+'        e.preventDefault();',
+'        profundidade = 0;',
+'        chat.classList.remove("is-arrastando");',
+'        if (e.dataTransfer.files.length > 1) {',
+'            erro("Envie um arquivo por vez. O primeiro foi anexado.");',
+'        }',
+'        selecionar(e.dataTransfer.files[0]);',
+'    });',
+'',
+'    ["dragover", "drop"].forEach(function (tipo) {',
+'        document.addEventListener(tipo, function (e) {',
+'            if (temArquivo(e) && !chat.contains(e.target)) {',
+'                e.preventDefault();',
+'            }',
+'        });',
+'    });',
+'',
+'    campo.addEventListener("paste", function (e) {',
+'        const arquivos = e.clipboardData && e.clipboardData.files;',
+'        if (arquivos && arquivos.length) {',
+'            e.preventDefault();',
+'            selecionar(arquivos[0]);',
+'        }',
+'    });',
+'',
+'    function regiaoMensagens() {',
+'        const porId = document.getElementById("msgs");',
+'        if (porId) {',
+'            return porId;',
+'        }',
+'        const relatorio = document.querySelector(".ch-chat [id^=''report_''][id$=''_catch'']");',
+'        return relatorio ? relatorio.closest("[id^=''R'']") : null;',
+'    }',
+'',
+'    function lerBase64(arquivo) {',
+'        return new Promise(function (resolve, reject) {',
+'            const leitor = new FileReader();',
+'            leitor.onload = function () {',
+'                resolve(String(leitor.result).split(",")[1] || "");',
+'            };',
+'            leitor.onerror = function () {',
+'                reject(leitor.error);',
+'            };',
+'            leitor.readAsDataURL(arquivo);',
+'        });',
+'    }',
+'',
+'    function enviar() {',
+'        if (enviando) {',
+'            return;',
+'        }',
+'        if (!conversaAberta()) {',
+'            erro("Abra uma conversa antes de enviar.");',
+'            return;',
+'        }',
+'',
+'        const botao = document.querySelector(".ch-enviar");',
+'        const arquivo = pendente;',
+'        enviando = true;',
+'        botao.disabled = true;',
+'        chat.classList.add("is-enviando-anexo");',
+'',
+'        lerBase64(arquivo)',
+'            .then(function (base64) {',
+'                return apex.server.process("CH_ENVIAR_ANEXO", {',
+'                    x01: apex.item("P4_CANAL_ID").getValue(),',
+'                    x02: arquivo.name,',
+'                    x03: campo.value.trim(),',
+'                    p_clob_01: base64',
+'                }, { dataType: "json", loadingIndicator: ".ch-composer" });',
+'            })',
+'            .then(function (resp) {',
+'                if (resp && resp.ok) {',
+'                    limpar();',
+'                    campo.value = "";',
+'                    if (window.chChat) {',
+'                        chChat.irParaFim();',
+'                    }',
+'                    const regiao = regiaoMensagens();',
+'                    if (regiao) {',
+'                        apex.region(regiao.id).refresh();',
+'                    }',
+'                } else {',
+unistr('                    erro((resp && resp.mensagem) || "N\00E3o foi poss\00EDvel enviar o arquivo. Tente de novo.");'),
+'                }',
+'            })',
+'            .catch(function () {',
+unistr('                erro("N\00E3o foi poss\00EDvel enviar o arquivo. Confira a conex\00E3o e tente de novo.");'),
+'            })',
+'            .then(function () {',
+'                enviando = false;',
+'                botao.disabled = false;',
+'                chat.classList.remove("is-enviando-anexo");',
+'                campo.focus();',
+'            });',
+'    }',
+'',
+'    document.addEventListener("click", function (e) {',
+'        if (pendente && e.target.closest && e.target.closest(".ch-enviar")) {',
+'            e.preventDefault();',
+'            e.stopPropagation();',
+'            enviar();',
+'        }',
+'    }, true);',
+'',
+'    document.addEventListener("click", function (e) {',
+'        if (e.target.closest && e.target.closest(".ch-contact")) {',
+'            limpar();',
+'        }',
+'    }, true);',
+'})();'))
+,p_css_file_urls=>'#APP_FILES#modulos/chat/chat#MIN#.css'
 ,p_inline_css=>wwv_flow_string.join(wwv_flow_t_varchar2(
 '/* ============================================',
 unistr('   CHAT \2014 P\00E1gina 4'),
 '   ============================================ */',
 '',
 ':root {',
-'    --ch-topbar-h: 40px;',
+'    --ch-topbar-h: var(--ut-header-height, 3.5rem);',
 '    --ch-list-w: 260px;',
 '',
 '    --ch-blue: var(--cx-primaria);',
@@ -236404,6 +237060,13 @@ wwv_flow_imp_page.create_page_plug(
 ,p_location=>null
 ,p_plug_source=>wwv_flow_string.join(wwv_flow_t_varchar2(
 '<div class="ch-composer">',
+'  <div class="ch-anexo-previa" hidden></div>',
+'  <button type="button" class="ch-clip" aria-label="Anexar arquivo"',
+'          title="Anexar arquivo (ou arraste para a conversa)">',
+'    <span class="fa fa-paperclip" aria-hidden="true"></span>',
+'  </button>',
+'  <input type="file" id="ch-arquivo" hidden',
+'         accept=".xlsx,.xls,.xlsm,.xlsb,.xltx,.csv,.docx,.doc,.docm,.dotx,.rtf,.pptx,.ppt,.pptm,.ppsx,.pps,.potx,.jpg,.jpeg,.png,.gif,.webp,.bmp">',
 '  <textarea id="ch-texto" rows="1" maxlength="4000"',
 unistr('            placeholder="Escreva uma mensagem\2026 (Enter envia, Shift+Enter quebra linha)"'),
 '            aria-label="Mensagem"></textarea>',
@@ -236635,7 +237298,9 @@ unistr('  -- s\00F3 exibe canais dos quais o usu\00E1rio logado participa'),
 '  order  by m.data_envio desc, m.id_canal_mensagem desc',
 '  fetch  first 200 rows only',
 ')',
-'select u.corpo,',
+unistr('select -- mensagem s\00F3 com arquivo: o corpo guarda o nome do arquivo, que n\00E3o precisa aparecer'),
+'       case when a.id_anexo is not null and u.corpo = a.nome_arquivo then null',
+'            else u.corpo end                              as corpo,',
 '       to_char(u.data_envio, ''hh24:mi'') as hora,',
 '       case when upper(col.login_apex) = upper(:APP_USER) then ''out'' else ''in'' end as lado,',
 '       case when row_number() over (',
@@ -236649,9 +237314,14 @@ unistr('  -- s\00F3 exibe canais dos quais o usu\00E1rio logado participa'),
 '                 ''</span></div>''',
 '       end as sep_dia,',
 '       -- usado pelo polling (data-id no template Chat Mensagens)',
-'       u.id_canal_mensagem as id_msg',
+'       u.id_canal_mensagem as id_msg,',
+unistr('       -- miniatura ou cart\00E3o do anexo (HTML gerado e escapado pelo package)'),
+'       case when a.id_anexo is not null',
+'            then pkg_chat_ui.html_anexo(a.id_anexo, a.nome_arquivo, a.tamanho)',
+'       end                                                as anexo_html',
 'from   ultimas u',
 'join   colaborador col on col.id_colaborador = u.id_colaborador',
+'left   join canal_mensagem_anexo a on a.id_canal_mensagem = u.id_canal_mensagem',
 'order  by u.data_envio, u.id_canal_mensagem'))
 ,p_ajax_enabled=>'Y'
 ,p_lazy_loading=>false
@@ -236663,6 +237333,17 @@ unistr('  -- s\00F3 exibe canais dos quais o usu\00E1rio logado participa'),
 ,p_prn_output=>'N'
 ,p_sort_null=>'L'
 ,p_plug_query_strip_html=>'N'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(50905682565030101)
+,p_query_column_id=>6
+,p_column_alias=>'ANEXO_HTML'
+,p_column_display_sequence=>60
+,p_column_heading=>'Anexo Html'
+,p_heading_alignment=>'LEFT'
+,p_display_as=>'WITHOUT_MODIFICATION'
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
 );
 wwv_flow_imp_page.create_report_columns(
  p_id=>wwv_flow_imp.id(9290803993503216)
@@ -236733,6 +237414,15 @@ wwv_flow_imp_page.create_page_item(
 ,p_display_as=>'NATIVE_HIDDEN'
 ,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
   'value_protected', 'N')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(50855530194950201)
+,p_name=>'P4_ID_ANEXO'
+,p_item_sequence=>50
+,p_source_type=>'ALWAYS_NULL'
+,p_display_as=>'NATIVE_HIDDEN'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'value_protected', 'Y')).to_clob
 );
 wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(9291440516503222)
@@ -237013,6 +237703,41 @@ wwv_flow_imp_page.create_page_da_action(
 ,p_wait_for_result=>'Y'
 );
 wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(50855628205950202)
+,p_process_sequence=>5
+,p_process_point=>'BEFORE_HEADER'
+,p_process_type=>'NATIVE_PLSQL'
+,p_process_name=>'Baixar anexo'
+,p_static_id=>'baixar-anexo'
+,p_process_sql_clob=>'pkg_chat_ui.baixar_anexo(:P4_ID_ANEXO, :REQUEST = ''VER_ANEXO'');'
+,p_process_clob_language=>'PLSQL'
+,p_process_when=>'BAIXAR_ANEXO,VER_ANEXO'
+,p_process_when_type=>'REQUEST_IN_CONDITION'
+,p_internal_uid=>50855628205950202
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(50880864624989601)
+,p_process_sequence=>30
+,p_process_point=>'ON_DEMAND'
+,p_process_type=>'NATIVE_PLSQL'
+,p_process_name=>'CH_ENVIAR_ANEXO'
+,p_static_id=>'ch-enviar-anexo'
+,p_process_sql_clob=>'pkg_chat_ui.ajax_enviar_anexo;'
+,p_process_clob_language=>'PLSQL'
+,p_internal_uid=>50880864624989601
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(50621445926446803)
+,p_process_sequence=>20
+,p_process_point=>'ON_DEMAND'
+,p_process_type=>'NATIVE_PLSQL'
+,p_process_name=>'CH_PRESENCAS'
+,p_static_id=>'ch-presencas'
+,p_process_sql_clob=>'pkg_chat_ui.ajax_presencas;'
+,p_process_clob_language=>'PLSQL'
+,p_internal_uid=>50621445926446803
+);
+wwv_flow_imp_page.create_page_process(
  p_id=>wwv_flow_imp.id(9292820097503236)
 ,p_process_sequence=>10
 ,p_process_point=>'ON_DEMAND'
@@ -237122,7 +237847,7 @@ wwv_flow_imp_page.create_page(
 ,p_autocomplete_on_off=>'OFF'
 ,p_step_template=>wwv_flow_imp.id(19815602566775266)
 ,p_page_template_options=>'#DEFAULT#'
-,p_required_role=>wwv_flow_imp.id(29681448805008196)
+,p_required_role=>wwv_flow_imp.id(10020823953229789)
 ,p_protection_level=>'C'
 ,p_page_component_map=>'18'
 );
@@ -241425,6 +242150,8 @@ wwv_flow_imp_page.create_page_item(
   'dropzone_title', 'Arraste uma imagem ou clique para selecionar',
   'filename_column', 'NOME_ARQUIVO',
   'max_file_size', '5120',
+  'max_height', '720',
+  'max_width', '1280',
   'mime_type_column', 'MIME_TYPE',
   'storage_type', 'DB_COLUMN')).to_clob
 );
@@ -249334,4 +250061,4 @@ end;
 /
 set verify on feedback on define on
 prompt  ...done
--- Application Checksum SH256:7HNSblYaGHJYbxfCW6EE3rig2RbUGR6MiJxjlyZTFGk=
+-- Application Checksum SH256:8UjUq02YukGAKE0Lcz1427eX36VRiE8+of05ngnW13A=

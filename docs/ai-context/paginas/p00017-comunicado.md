@@ -65,6 +65,8 @@ Page 17: Novo comunicado (modal)
 
 ## Pegadinhas e pendências
 
+- **Imagem pesada:** `P17_IMAGEM` só limita o tamanho a 5120 KB (*Resize To › Maximum File Size*) e não limita largura nem altura, então a imagem é gravada com ~2100 px e 4–5 MB e pesa na Home. Proposta: largura máxima 1280, altura 720, 300 KB (`modulos/monitoramento/Etapas-monitoramento.md` §5, ação 1).
+
 - **Sem `authorizationScheme` na página:** quem não é publicador abre a URL e publica. O guia diz que "quem não tem empresa não abre a página", mas o `.apx` não tem regra para isso (não confirmado). Proteger a página exige tarefa própria (08 §1, regra 8).
 - A hora é gravada como `00:00`: o formato de data da app (`DS`) se aplica ao item Hidden `P17_DATA_PUBLICACAO` (guia §4.10, passo 3; melhoria opcional).
 - *File Types* não existe no Image Upload do 26.1.5; a checagem é a validação pela extensão. Uma versão anterior consultava `APEX_APPLICATION_TEMP_FILES` e deixava passar GIF, porque o item grava direto na coluna BLOB (guia, "Se não funcionar").

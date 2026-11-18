@@ -95,7 +95,7 @@ Abra a **página 0** no Page Designer e selecione a região **Perfil** (slot *Af
   </a>
   <span class="corlix-header__divisor" aria-hidden="true"></span>
   <button type="button" class="corlix-header__user" popovertarget="cx-menu-usuario"
-          aria-haspopup="menu" aria-label="Menu do usuário">
+          aria-haspopup="menu" aria-label="&G_NOME_USUARIO!ATTR., menu do usuário">
     <img src="#APP_FILES#&APP_USER_FOTO." alt="" class="corlix-header__avatar"
          onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='';" />
     <span class="corlix-header__avatar cx-avatar-iniciais" aria-hidden="true" style="display:none">&APP_USER_INICIAIS.</span>
