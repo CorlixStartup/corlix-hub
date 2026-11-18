@@ -76,11 +76,13 @@ O time relatou que alguns usuários que **só usam a app**, sem Builder nem Data
 
 Enquanto isso, a orientação para o usuário que recebe o 400 é apagar os dados **só deste site** (ícone à esquerda do endereço › Cookies e dados do site), sem limpar o navegador inteiro.
 
+> **Medição de 17/11/2026 (§6), de alguém do time:** `ORA_FPC` e `WTPERSIST` somam 57 bytes, e 96% do cabeçalho é o `sso_cookie_ords_*`. Nesse navegador, o domínio compartilhado **não** é a causa. A hipótese continua aberta só para os usuários, até chegar o relatório de um deles.
+
 ## 6. Causa confirmada (preencher após o diagnóstico)
 
 | Data | Cookie(s) que crescem | Padrão (nome / path / tamanho) | Origem provável | Ação adotada |
 |---|---|---|---|---|
-| _pendente_ | | | | |
+| 17/11/2026 22:31 | `sso_cookie_ords_0` (3018 B), `sso_cookie_ords_1` (2566 B) e `sso_cookie_ords_meta` (90 B), todos `HttpOnly`, path `/ords` | **Um cookie grande, dividido em pedaços**: 5674 dos 5912 bytes do cabeçalho (96%), em 9 cookies. O resto é pequeno: sessão do Builder (`ORA_WWV_USER_*`, 63 B) e da app (`ORA_WWV_APP_100`, 48 B), `ORA_FPC` (47 B) e `WTPERSIST` (10 B). Nada repetido por nome ou path | Login único (SSO) do ORDS. O nome não aparece na documentação indexada nem numa busca na web. Pela presença de `ORA_WWV_USER_*`, o relatório é de alguém do time, e a hipótese é que o SSO venha do Database Actions ou da entrada pelo Console da OCI (**não confirmado**). O sufixo `_0`, `_1` indica que o valor passou do limite de 4 KB por cookie e foi dividido; se crescer, vem um `_2` | Time: abrir o Database Actions e o Console da OCI fora do perfil do APEX (§5, item 3). Na extensão, "Apagar sempre" `^sso_cookie_ords_`, que mantém as sessões do Builder e da app. Falta o relatório de um usuário que só usa a app |
 
 ## 7. Caso parecido no Jenkins local (não é o mesmo problema)
 
