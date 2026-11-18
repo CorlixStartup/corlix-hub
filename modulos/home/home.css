@@ -189,27 +189,31 @@
 
 .cx-carrossel__pontos {
     position: absolute;
-    bottom: 20px;
+    bottom: 12px;
     left: 50%;
     z-index: 2;
     display: flex;
-    gap: 8px;
+    gap: 0;
     transform: translateX(-50%);
 }
 
+/* Área de clique de 24×24 px (mínimo de acessibilidade); o ponto visível continua
+   com 8 px porque o fundo só pinta o conteúdo (padding de 8 px transparente). */
 .cx-carrossel__ponto {
-    width: 8px;
-    height: 8px;
-    padding: 0;
+    box-sizing: border-box;
+    width: 24px;
+    height: 24px;
+    padding: 8px;
     border: 0;
-    border-radius: 4px;
+    border-radius: 12px;
     background: rgba(255, 255, 255, .55);
+    background-clip: content-box;
     cursor: pointer;
 }
 
 .cx-carrossel__ponto[aria-current="true"] {
-    width: 24px;
-    background: #fff;
+    width: 40px;
+    background-color: #fff;
 }
 
 .cx-carrossel__seta:focus-visible,
@@ -557,6 +561,8 @@
 
 .cx-home-indicador__detalhe a {
     color: var(--cx-primaria);
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 /* "Mostrar valor" do pagamento (o valor chega oculto, como na página 9) */
