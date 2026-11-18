@@ -1,6 +1,6 @@
 # 12 · Ambientes DEV, UAT e PRD (proposta)
 
-> **Estado em 17/11/2026: proposta, nada aplicado.** Escrita a pedido do time. Antes de executar, o time precisa decidir os pontos da seção 8. Nada foi criado no Oracle Cloud nem no APEX.
+> **Estado em 17/11/2026: decisões tomadas, passo a passo pronto, nada aplicado.** As decisões da seção 8 estão no início de [`modulos/ambientes/Etapas-ambientes.md`](../../modulos/ambientes/Etapas-ambientes.md), que é o guia de execução. Ele usa o [`instalar-app.sql`](../../modulos/ambientes/instalar-app.sql) e o workflow [`.github/workflows/instalar-app.yml`](../../.github/workflows/instalar-app.yml). Nada foi criado no Oracle Cloud nem no APEX. Tarefa: CD-77.
 
 ## 1. Situação hoje
 
@@ -116,7 +116,9 @@ Atualizar a documentação no mesmo PR de cada etapa: 01 §5 e §8, `docs/agente
 - **Atualizações da Oracle:** os dois bancos recebem as atualizações do APEX e do banco em datas que a Oracle decide, então DEV e PRD podem ficar em versões diferentes por alguns dias.
 - **Plano gratuito:** se a conta deixar de ser gratuita (*upgrade*), confira se os bancos continuam marcados como **Always Free**, para não haver cobrança.
 
-## 8. Decisões do time antes de aplicar
+## 8. Decisões do time (tomadas em 17/11/2026, menos a 5)
+
+Respostas: 1, aceita; 2, só demonstração; 3, prefixo `dev/` e `uat/` no mesmo bucket (coluna `ARQUIVO_CONFIG.DS_PREFIXO`); 4, GitHub Actions; 5, a definir.
 
 1. Aceitar a distribuição da seção 3 (PRD no banco atual; DEV e UAT no banco novo).
 2. Dados de DEV e UAT: só demonstração ou uma cópia anonimizada do PRD (4.2).

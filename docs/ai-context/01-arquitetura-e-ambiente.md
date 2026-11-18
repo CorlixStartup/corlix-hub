@@ -103,7 +103,7 @@ URLs locais: Builder `http://localhost:8081/ords`; app `http://localhost:8081/or
 ### 5.1.1 APEX no Autonomous (OCI)
 O desenvolvimento acontece no APEX do Autonomous Database da OCI (`https://<id>.adb.<região>.oraclecloudapps.com/ords/...`). Depois de longas sessões, o proxy da Oracle pode responder `400 Request Header Or Cookie Too Large`. Causa e solução estão em [`10-erro-400-cookies.md`](./10-erro-400-cookies.md).
 
-Hoje DEV e PROD são a mesma instância (confirmado pelo time em 17/11/2026). A proposta de separar em DEV, UAT e PRD com os dois bancos gratuitos está em [`12-ambientes-dev-uat-prd.md`](./12-ambientes-dev-uat-prd.md), ainda não aplicada.
+Hoje DEV e PROD são a mesma instância (confirmado pelo time em 17/11/2026). A proposta de separar em DEV, UAT e PRD com os dois bancos gratuitos está em [`12-ambientes-dev-uat-prd.md`](./12-ambientes-dev-uat-prd.md), com o passo a passo em [`modulos/ambientes/Etapas-ambientes.md`](../../modulos/ambientes/Etapas-ambientes.md). Decidida em 17/11/2026, ainda não aplicada.
 
 ### 5.2 Pastas que nunca vão para o Git
 `apex/` (distribuição Oracle ~1,1 GB), `META-INF/`, `oracle_oradata/` (datafiles), `ords_config/` (contém wallet e chave TLS), `.env*` (exceto `.env.example`), `*.log`, `.DS_Store`. O CI bloqueia `apex/`, `oracle_oradata/`, `ords_config/`, `META-INF/`.
@@ -143,6 +143,8 @@ Roda em PR/push para `DEV`, `UAT`, `PROD`:
 2. `secret-scan` — gitleaks 8.28.0 (CLI OSS) sobre todo o histórico.
 3. `forbidden-paths` — falha se `apex/`, `oracle_oradata/`, `ords_config/` ou `META-INF/` existirem.
 Não há deploy automatizado nem testes automatizados no CI.
+
+**`instalar-app.yml` (versionado em 17/11/2026, ainda sem Environments configurados):** instala `database/f100.sql` no UAT (branch `UAT`) ou no PRD (branch `PROD`, com aprovação) pelo `modulos/ambientes/instalar-app.sql`. Roda manualmente; o disparo automático no merge só funciona com a variável do repositório `INSTALACAO_AUTOMATICA = true`. Configuração: `modulos/ambientes/Etapas-ambientes.md` §6.3.
 
 ## 8.1 Backup (`scripts/backup/`)
 Job Jenkins diário (02h, America/Sao_Paulo) que conecta no Autonomous Database (OCI) pelo SQLcl, com wallet, como o dono do schema, e gera um `.tar.gz` por ambiente com:

@@ -70,7 +70,8 @@ create or replace package body pkg_arquivos as
       p_url                  => 'https://objectstorage.' || l_cfg.ds_regiao || '.oraclecloud.com'
                                 || '/n/' || l_cfg.ds_namespace
                                 || '/b/' || l_cfg.nm_bucket_fotos
-                                || '/o/empresa/' || l_emp || '/fotos/' || apex_util.url_encode(p_nome),
+                                || '/o/' || l_cfg.ds_prefixo  -- dev/ ou uat/; vazio no PRD
+                                || 'empresa/' || l_emp || '/fotos/' || apex_util.url_encode(p_nome),
       p_http_method          => 'GET',
       p_credential_static_id => l_cfg.cd_credencial);
 
