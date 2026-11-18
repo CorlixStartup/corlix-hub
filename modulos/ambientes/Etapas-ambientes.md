@@ -244,7 +244,7 @@ No SQLcl, ainda como `WKSP_CORLIXHUB` no banco 2:
 @modulos/ambientes/instalar-app.sql WKSP_CORLIXHUB WKSP_CORLIXHUB 100 RUN_AND_BUILD
 ```
 
-Confira no fim: `build_status` de edição liberada e nenhum objeto inválido.
+Confira no fim: `build_status` de edição liberada e nenhum objeto inválido. O `f100.sql` exportado depois do §0 traz `p_build_status=>'RUN_ONLY'`; o 4º parâmetro (`RUN_AND_BUILD`) troca isso na importação, por `apex_application_install.set_build_status`.
 
 ### 3.5 Configurações e credenciais
 
@@ -422,3 +422,4 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | 18/11/2026 | Validação da DEV depois do backup das 09:15 (`ec1176e`) e dos PRs #192 a #194 | O backup diz "Sem mudanças na app nem no DDL" em relação ao das 02:52, então o filtro do 3.2 a continua valendo (51 tabelas, testado). O `PKG_CHAT_UI` versionado em `modulos/chat/` (PR #193) é igual ao do backup, só com comentários a mais, e compila. **Não conferido na app** (a sessão expirou e o login é do time): se o Build Status do banco 1 já está `RUN_ONLY` e se o `PKG_CHAT_UI` voltou a `VALID`. O export não mostra o Build Status. Próximo passo: o time confirma o §0.1 e o §0.2, item 3, e segue para o §1 |
 | 18/11/2026 | Time: `PKG_CHAT_UI` resolvido; congelamento ainda não feito | §0.2 reescrito para o SQL Commands: conferir o Build Status antes e depois com `apex_application_admin.get_build_status` e bloquear com `set_build_status` (API conferida na documentação do 26.1). Desbloqueio sem SQL por *Administration › Manage Service › Application Build Status* (Administration Guide 2.14.2) |
 | 18/11/2026 | §0.1 no banco 1: sobrou `VW_CARREIRA_TIMELINE` inválida | A view do backup compila sem erro com as tabelas do backup (Oracle 23ai local). Orientado `alter view vw_carreira_timeline compile`; aguardando o resultado do time |
+| 18/11/2026 | **§0 feito pelo time** (itens 0.1 e 0.2, 1 a 5): `VW_CARREIRA_TIMELINE` recompilada, nenhum objeto inválido, Build Status `RUN_ONLY`, app no ar funcionando | Backup do congelamento: commit `6978491` (`corlixhub-prd-20261118-123528.tar.gz`, build 74 do Jenkins). O backup rodou com o Builder bloqueado. O export mostra `p_build_status=>'RUN_ONLY'` e `buildStatus: runOnly`; o DDL não mudou desde as 02:52 (filtro do 3.2 a vale). **Base do DEV: `DEV` em `6978491`.** Próximo passo: §1 e §2 |
