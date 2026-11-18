@@ -1,6 +1,8 @@
 # Página 7 · Monitor de Logs
 
 > **Estado em 13/11/2026** (backup `84f8625`): implementada (3 Interactive Reports em abas). Ainda exige `@admin-rh`: o §5 de `modulos/isolamento-empresas/Etapas-isolamento-empresas.md` (passar página e menu para `EQUIPE_CORLIX_HUB`) **não está aplicado** neste export. O guia não tem seção "Situação".
+>
+> **Na app em 17/11/2026:** o colaborador comum recebe "Acesso restrito à equipe do Corlix Hub." (mensagem do `EQUIPE_CORLIX_HUB`), mas o backup do mesmo dia ainda traz `@admin-rh`. A troca parece feita no Builder depois do backup; confirmar no próximo. Registro em `05-banco-de-dados.md` §13.
 
 ## Resumo
 

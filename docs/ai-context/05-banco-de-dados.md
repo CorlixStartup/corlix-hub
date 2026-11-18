@@ -884,6 +884,15 @@ Não existe seed de `EMPRESA`/`COLABORADOR` etc. no repo (o `seed_corlixhub.sql`
 - **Autorização:** o package depende de um *Authorization Scheme* chamado exatamente `ADMIN_RH` (e o guia prevê `GESTOR` e `COLABORADOR`). **Hoje a app só tem** os esquemas `Equipe Corlix Hub`, `Publicador de Conteudo`, `Somente Diretoria` e os papéis `Diretoria`, `Equipe do Corlix Hub`, `Publicador de Conteúdo`.
 - **Imutabilidade/auditoria:** trigger impede alterar/apagar lançamento efetivado mesmo fora do APEX; `LOG_AUDITORIA_CARREIRA` registra cada operação; triggers impedem forjar `USR_/DT_CRIACAO`.
 - **Erros:** códigos -20001..-20099 são mensagens para o usuário (via `fn_tratar_erro`); o handler global é `log_pkg.apex_error_handler`.
+- **Reteste da auditoria de LGPD (CD-73) na app, 17/11/2026.** Só leitura, com `teste.rh` e com um colaborador comum da Diretoria de Operações, sem gestão nem RH. Nada foi gravado.
+  - **Acesso direto como colaborador:** Monitor de Logs, Cadastro de usuários, Dashboard RH, Ajustes de ponto, Colaboradores e Empresas recusam o acesso com a mensagem do esquema. Central de Equipes (p26) e Configurações (p6) abrem. A p26 está vazia ("Dados não encontrados").
+  - **Menu "Administração":** aparece para o colaborador, só com Central de equipes e Configurações, as duas páginas sem autorização. A correção é dar esquema às páginas 6 e 26 (CD-62). O menu some sozinho quando não sobra filho visível.
+  - **Monitor de Logs:** a app publicada recusa o colaborador com "Acesso restrito à equipe do Corlix Hub.", mensagem do `EQUIPE_CORLIX_HUB`. O backup de 17/11 ainda traz `@admin-rh` na p7, então a troca do §5 do guia de isolamento foi feita no Builder depois do backup (confirmar no próximo). `teste.rh` abre a página e vê usuário, ID de sessão e erro do Oracle; isso indica que a conta também tem o papel da equipe do Corlix Hub. Falta conferir com um RH sem esse papel.
+  - **Busca:** o termo continua na URL (`p29_termo=`). Para o colaborador, os resultados não trazem e-mail e só mostram a Empresa Piloto Corlix.
+  - **Comunicados por departamento:** o público não restringe a leitura. O colaborador de Operações vê, na Busca, comunicados "Para: Presidência", "Para: Diretoria de Recursos Humanos" e "Para: Diretoria Financeira e Administrativa", e na Início um "Para: Diretoria de Tecnologia e Informação". O `pkg_busca_ui` usa o departamento só para o rótulo. A decisão de produto da CD-73 (o rótulo restringe ou não) continua aberta.
+  - **Chat:** sem e-mail e sem data de nascimento no HTML; só a Empresa Piloto Corlix.
+  - **Cookies `ORA_FPC` e `WTPERSIST`:** inconclusivo. A Início não carrega script nem faz pedido fora do domínio da app; a ferramenta de teste não lê cookies nem cabeçalhos. Conferir em DevTools › Application › Cookies (coluna *Domain*).
+  - **Sem teste:** conta de outra empresa (o RH só enxerga a Empresa Piloto Corlix, e o SQL Commands não foi aberto pelo agente); envio de foto (CD-75), que grava no bucket e aguarda autorização.
 
 ---
 
