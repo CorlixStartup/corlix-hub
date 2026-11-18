@@ -24,7 +24,7 @@ Ter três bancos gratuitos não é possível. Abrir uma segunda conta gratuita p
 
 | Banco gratuito | Workspace | App | Endereço | Uso |
 |---|---|---|---|---|
-| **Banco 1** (o atual) | `WKSP_CORLIXHUB` | 100 | `…/ords/r/corlixhub/corlixhub/início` (não muda) | **PRD**: só a app no ar. Ninguém edita no Builder |
+| **Banco 1** (o atual, `CORLIXHUB`) | `WKSP_CORLIXHUB` | 100 | `…/ords/r/corlixhub/corlixhub/início` (não muda) | **PRD**: só a app no ar. Ninguém edita no Builder |
 | **Banco 2** (novo) | `WKSP_CORLIXHUB` | 100 | `…/ords/r/corlixhub/corlixhub/início` em outro domínio | **DEV**: o time inteiro edita no Builder, como hoje |
 | **Banco 2** | `WKSP_CORLIXHUB_UAT` | 200 (ver 4.1) | `…/ords/r/corlixhub_uat/corlixhub/início` (confirmar o prefixo) | **UAT**: recebe versões vindas do DEV para teste. Ninguém edita no Builder |
 
@@ -48,7 +48,7 @@ O ID da aplicação é único na instância do APEX inteira, não só no workspa
 ### 4.2 Schema, dados e LGPD
 
 - Cada workspace tem o próprio schema: `WKSP_CORLIXHUB` no DEV e `WKSP_CORLIXHUB_UAT` no UAT. As tabelas e os packages são instalados pelos `instalar.sql` dos módulos e pelo DDL de `database/ddl/`.
-- **Dados de DEV e UAT:** usar dados de demonstração (como as contas `[DEMO]`), sem copiar dados pessoais do PRD. O backup do PRD tem dados pessoais e não vai para o Git (01 §8.1). Se for preciso copiar algum dado real, é decisão do time (seção 8), com anonimização.
+- **Dados de DEV e UAT:** hoje os dados do PRD são todos de teste (confirmado pelo time em 17/11/2026), então DEV e UAT recebem uma cópia pelo backup (`Etapas-ambientes.md` 3.2). O backup continua fora do Git (01 §8.1). **Quando o PRD tiver dados reais, a cópia só pode ser feita com anonimização**, e o passo tem de ser revisto.
 - **Configurações por ambiente:** `ARQUIVO_CONFIG` (bucket e credencial das fotos) e `SUPORTE_CONFIG` precisam de valores próprios em cada schema. Proposta: um prefixo ou bucket separado para DEV e UAT, para que um teste nunca apague a foto real de alguém.
 
 ### 4.3 Usuários e papéis
@@ -118,7 +118,7 @@ Atualizar a documentação no mesmo PR de cada etapa: 01 §5 e §8, `docs/agente
 
 ## 8. Decisões do time (tomadas em 17/11/2026, menos a 5)
 
-Respostas: 1, aceita; 2, só demonstração; 3, prefixo `dev/` e `uat/` no mesmo bucket (coluna `ARQUIVO_CONFIG.DS_PREFIXO`); 4, GitHub Actions; 5, a definir.
+Respostas: 1, aceita; 2, só demonstração, e depois o time confirmou que **todos os dados do PRD são de teste**, então DEV e UAT recebem uma cópia deles (revisar quando houver dados reais); 3, prefixo `dev/` e `uat/` no mesmo bucket (coluna `ARQUIVO_CONFIG.DS_PREFIXO`); 4, GitHub Actions; 5, troca em 18/11/2026. O workspace se chama `WKSP_CORLIXHUB`; `CORLIXHUB` é o nome do Autonomous AI Database.
 
 1. Aceitar a distribuição da seção 3 (PRD no banco atual; DEV e UAT no banco novo).
 2. Dados de DEV e UAT: só demonstração ou uma cópia anonimizada do PRD (4.2).
