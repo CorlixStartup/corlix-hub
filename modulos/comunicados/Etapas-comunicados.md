@@ -194,7 +194,11 @@ No `P17_IMAGEM`:
 | Display | Dropzone Title | `Arraste uma imagem ou clique para selecionar` |
 | Display | Dropzone Description | `PNG ou JPG · você poderá recortar em 16:9 após selecionar` |
 | Settings | Allow Cropping | **On**, Aspect Ratio **16:9** |
-| Settings | Maximum File Size | `5120` (KB) |
+| Resize To | Maximum File Size | `300` (KB) |
+| Resize To | Maximum File Width | `1280` |
+| Resize To | Maximum Height | `720` |
+
+> **Por que 1280×720 e 300 KB (CD-44, 18/11/2026):** com só *Maximum File Size* `5120`, a imagem cortada em 16:9 era gravada com ~2100 px e 4–5 MB, e a Home baixava cada uma inteira (19,9 MB por carregamento; `modulos/monitoramento/Etapas-monitoramento.md` §4). O APEX reduz a imagem no navegador, antes de enviar. O carrossel mostra até ~690 px de largura; 1280 cobre telas de alta densidade.
 
 O Image Upload **não tem *File Types*** no 26.1.5 (o atributo é só do File Upload, `docs/apex-26.1/02-paginas-formularios-e-itens.md`; na página o APEX gera `accept="image/*"` fixo). Para aceitar só PNG e JPG, crie uma validação em *Processing › Validations*:
 
@@ -297,7 +301,9 @@ pageItem P17_CONTEUDO | valueRequired: true
 # 4.7 Imagem
 pageItem P17_IMAGEM | displayAs: inlineDropzone
 pageItem P17_IMAGEM | aspectRatio: widescreen
-pageItem P17_IMAGEM | maxFileSize: 5120
+pageItem P17_IMAGEM | maxFileSize: 300
+pageItem P17_IMAGEM | 1280
+pageItem P17_IMAGEM | 720
 validation imagem-png-ou-jpg | regexp_like(:P17_IMAGEM, '\.(png|jpe?g)$', 'i')
 validation imagem-png-ou-jpg | !apex_application_temp_files
 validation imagem-png-ou-jpg | errorMessage: Envie uma imagem PNG ou JPG.
@@ -380,3 +386,4 @@ No `modulos/home/Etapas-home.md` §8.4, a consulta da região **Comunicados** j�
 | 12/11/2026 (8º export, validador) | Validador `fechar-task`: **48/48 regras ok**. A única mudança desde o 7º export é a troca do §4.10, passo 2 (*Success Message* `Comunicado publicado.` no `processo-emissao-comunicado` e nenhuma no `Fechar`). Nada mais mudou; o `;` no fim da expressão da validação de imagem segue lá (sem efeito). **Fechamento:** falta só publicar um teste para ver se a Home mostra apenas "Comunicado publicado." (sem o "Row created."), e apagá-lo depois |
 | 12/11/2026 (fechamento) | Publicação de teste autorizada pelo time e feita pelo agente (conta `teste.rh`), com o export 48/48: a Home mostrou **só "Comunicado publicado."** (sem o "Row created."). No banco (id 82): departamento vazio, categoria 5, `S`, data 12/11/2026 `00:00` (o limite conhecido do §4.10, passo 3). O comunicado 82 foi apagado em seguida, a pedido do time; a conferência deu 0 linhas em `comunicado` e em `comunicado_leitura`. **Página 17 concluída:** §4 aplicado, export validado e todos os testes da §5 feitos. Ficam fora desta tarefa: a hora `00:00` (melhoria opcional, §4.10 passo 3), "Uma empresa" no Público (decisão do time) e a ordem dos fixados na Home (§8.4 do `Etapas-home.md`) |
 | 13/11/2026 (validação em DEV) | `corlixhub/pages/p00017-comunicado.apx` no backup `84f8625` (13/11/2026 09:52) é idêntico ao 8º export: **48/48 regras**. `comunicado.css` igual ao do módulo; `comunicado.min.css` com o mesmo conteúdo (só muda a formatação do minificador). Página 17 concluída em DEV; segue o `;` opcional no fim da expressão da validação de imagem |
+| 18/11/2026 (CD-44, proposto) | §4.7 passou a pedir *Resize To* com largura máxima `1280`, altura `720` e `300` KB, no lugar de só `5120` KB. Motivo: as imagens dos comunicados 61 a 65 têm de 4.144 a 4.722 KB e deixam a Home com 19,9 MB. `export-check` atualizado (a regra de 5120 virou 300 e duas novas conferem 1280 e 720; o nome exato das chaves de largura e altura no APEXlang será confirmado no próximo export). **Não aplicado.** Depois de aplicar, as imagens já publicadas continuam grandes: decisão do time sobre recriar os comunicados de demonstração ou criar uma edição |
