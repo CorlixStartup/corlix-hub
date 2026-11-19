@@ -266,10 +266,6 @@ Os jobs não vêm no DDL. Rode como `WKSP_CORLIXHUB` no banco 2:
 
 ### 3.4 App
 
-```bash
-grep -c create_acl_assignment database/f100.sql   # tem de dar 0
-```
-
 No SQLcl, ainda como `WKSP_CORLIXHUB` no banco 2:
 
 ```sql
@@ -288,7 +284,7 @@ As senhas e chaves não vêm no export. Refaça no banco 2:
 | Web Credential de gravação da foto de perfil | idem | `Etapas-upload-foto-perfil.md` §2, se o módulo estiver aplicado |
 | `ARQUIVO_CONFIG` | SQL | a linha veio na carga (3.2); só `update arquivo_config set ds_prefixo = 'dev/' where id_config = 1;` e `commit;` |
 | `SUPORTE_CONFIG` | SQL | veio na carga; troque por contatos de teste se quiser diferenciar |
-| Contas e papéis | *Administration › Manage Users and Groups* e *App 100 › Shared Components › Application Access Control* | contas e senhas não vêm no backup. Crie as que o time usa nos testes (`teste.rh`, `DEMO.CARREIRA.1.1` e outras) com o mesmo nome de usuário do `login_apex`, e atribua os papéis |
+| Contas e papéis | *Administration › Manage Users and Groups* e *App 100 › Shared Components › Application Access Control* | contas e senhas não vêm no backup. Crie as que o time usa nos testes (`teste.rh`, `DEMO.CARREIRA.1.1` e outras) com o mesmo nome de usuário do `login_apex`. No DEV, os papéis já vêm do PRD na importação (17 em 19/11/2026: `select user_name, role_static_id from apex_appl_acl_user_roles where application_id = 100`); só atribua papéis a contas novas |
 
 ### 3.6 Fotos de teste
 
@@ -339,7 +335,7 @@ O time altera `scripts/backup/` (o agente não edita essa pasta):
 1. Credenciais `corlixhub-db-dev` (`WKSP_CORLIXHUB` + senha do banco 2) e `corlixhub-wallet-dev` (wallet do banco 2), como no `scripts/backup/README.md` §3.
 2. No `Jenkinsfile`: descomente a linha `DEV` do mapa `AMBIENTES` com `servico: 'corlixhubdev_low'`.
 3. No `Jenkinsfile`: **`AMBIENTE_GIT = 'DEV'`**. O commit diário na branch `DEV` passa a vir do DEV, onde o time edita.
-4. Se `grep -c create_acl_assignment database/f100.sql` der mais que 0 depois do primeiro backup do DEV, tire `-expaclassignments` da linha do export SQL em `scripts/backup/backup.sql`. Com ele, o arquivo levaria as atribuições de papel do DEV para o UAT e o PRD, e o workflow recusa a instalação.
+4. O export do APEX 26.1 leva os usuários de cada papel dentro do `create_acl_role` (`p_users`), e não em `create_acl_assignment` (visto no §3.4 em 19/11/2026: a app veio com os 17 papéis do PRD). O `instalar-app.sql` desfaz isso no UAT e no PRD (passo 3, só com `RUN_ONLY`). Para o arquivo não levar os papéis, o time pode tirar `-expaclassignments` da linha do export SQL em `scripts/backup/backup.sql` e conferir com `grep -c "p_users=>" database/f100.sql`, que deve dar 0.
 5. O UAT não precisa de backup: ele é recriado a partir do Git.
 
 ## 6. UAT
@@ -355,7 +351,7 @@ No **banco 2**, repita o 3.1 a 3.6 com estes valores (dados: use o mesmo backup;
 | `ARQUIVO_CONFIG.DS_PREFIXO` | `uat/` |
 | Path Prefix do workspace | `CORLIXHUB_UAT` |
 | Endereço | `…corlixhubdev….oraclecloudapps.com/ords/r/corlixhub_uat/corlixhub/início` |
-| Contas | só contas de teste (`teste.rh`, `[DEMO] ...`) |
+| Contas | só contas de teste (`teste.rh`, `[DEMO] ...`). Na primeira instalação o UAT fica **sem papéis** (o `instalar-app.sql` tira os que vêm do DEV): atribua-os às contas de teste em *Application Access Control* |
 
 ### 6.2 Uma versão nova, do DEV ao PRD
 
@@ -436,6 +432,7 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 ## Pendências do time
 
 - **`scripts/backup/backup.sql`** (o agente não edita): o DDL das tabelas sai com `INSERT … @ KU$` e com o bloco `DECLARE` da `HTMLDB_PLAN_TABLE` sem `/`. Está assim pelo menos desde o backup de 10/11/2026. Até corrigir, use o filtro do 3.2 a.
+- **`scripts/backup/backup.sql`, papéis no export:** o `f100.sql` leva os usuários de cada papel (`p_users` do `create_acl_role`). O `instalar-app.sql` já os retira no UAT e no PRD; tirar `-expaclassignments` do export evita que o arquivo os leve (§5, item 4).
 - **`PKG_CHAT_UI` e `CX_PRESENCA_PING`** não estão em nenhum módulo do repositório (só no backup). Quem fez o chat precisa versionar o código em `modulos/` com guia.
 
 ## Voltar atrás
@@ -465,3 +462,4 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | 18/11/2026 | **Ensaio completo do §3.2** com o backup do congelamento (`corlixhub-prd-20261118-123528`), SQLcl 26.2.2 e Oracle 23ai local | Achados e corrigidos: (1) `identidades.sql` não funcionava no SQLcl (testado antes só no SQL*Plus): o parâmetro não era substituído; (2) o `load table` recusava as linhas com BLOB (`ORA-01465`), criado `blobs.sql`; (3) o 3.2 c travava pedindo valor para o `&` do `09-plsql-corpos.sql`, incluído `set define off`; (4) o laço da lista de cargas falhava no zsh. Resultado do ensaio: 51 tabelas; 49 com as mesmas linhas do `_contagens.csv` (`APP_LOG` e `HTMLDB_PLAN_TABLE` de fora de propósito); imagens dos comunicados 61 a 65 com 4.144 a 4.722 KB e cabeçalho PNG; anexo do chat com 1.447 bytes; identity de volta ao tipo original; nenhum objeto `AMB_` sobrando. Inválidos que sobram no local dependem do APEX (`V`, `APEX_*`, `HTP`), que não existe no Oracle local: a conferência final é no banco 2 |
 | 19/11/2026 | **§3.1 concluído e §3.2 feito pelo time no banco 2** | Senha do `WKSP_CORLIXHUB` refeita (a anterior não foi guardada) e conexão no SQLcl pelo wallet do `corlixhubdev` (`corlixhubdev_low`). 3.2 a: **51 tabelas**. 3.2 b: imagens dos comunicados iguais ao ensaio (22: 24 KB; 61 a 65: 4.144, 4.314, 4.390, 4.722 e 4.358 KB). 3.2 c: **nenhum objeto inválido** depois do `compile_schema`, e `PKG_ARQUIVOS` recompilado. Falta conferir as linhas de cada tabela contra o `_contagens.csv` (consulta gerada fora do repositório) e as 6 linhas "gravada(s)" do `blobs.sql DEPOIS`, que não vieram no relato. Próximo passo: §3.3 e §3.4 |
 | 19/11/2026 | **§3.2 conferido, §3.3 e §3.4 feitos pelo time no banco 2** | Contagem contra o `_contagens.csv`: só `APP_LOG` (1.610) e `HTMLDB_PLAN_TABLE` (17) diferentes, vazias de propósito; as outras 49 tabelas iguais ao PRD. Jobs `JOB_FOLHA_MENSAL` e `SUPORTE_ENCERRAR_VENCIDOS` criados. `instalar-app.sql CORLIXHUB WKSP_CORLIXHUB 100 RUN_AND_BUILD`: compatível (20260330), importação em 74 s, app 100 alias `CORLIXHUB` com Build Status **Run and Develop**, **nenhum objeto inválido**. Papéis: 0 antes, 0 devolvidos, **17 depois**, embora o `f100.sql` não tenha `create_acl_assignment`: origem a conferir (consulta pedida ao time). Próximo passo: §3.5 |
+| 19/11/2026 | **Origem dos 17 papéis achada e `instalar-app.sql` corrigido** | Os papéis do DEV são os do PRD e vieram no `f100.sql`: o APEX 26.1 exporta os usuários dentro do `create_acl_role` (`p_users`), e não em `create_acl_assignment`, que era o que o guia e o workflow conferiam. Sem correção, cada versão instalada no UAT e no PRD daria aos usuários de lá os papéis do DEV. Corrigido: o passo 3 do `instalar-app.sql`, com `RUN_ONLY`, tira os papéis que não existiam antes da importação (`apex_acl.remove_user_role`); o workflow avisa quando o arquivo traz `p_users=>`; §3.4 e §5 ajustados. No DEV os 17 papéis ficam (iguais ao PRD), e as contas só precisam ser criadas com os mesmos nomes. **Não testado** no UAT ainda: será conferido no §6.1 (`papeis_depois` igual a `papeis_antes`). Time apagou a chave `.pem` do usuário `corlix-hub-fotos` depois de usá-la no PRD: orientado a gerar uma chave nova, sem apagar a antiga |

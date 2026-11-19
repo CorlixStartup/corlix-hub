@@ -55,9 +55,10 @@ jobs:
       - name: Conferir o f100.sql
         run: |
           test -s database/f100.sql || { echo "::error::database/f100.sql não existe."; exit 1; }
-          if grep -q "create_acl_assignment" database/f100.sql; then
-            echo "::error::database/f100.sql tem atribuições de papel (ACL) do DEV. Gere o export sem -expaclassignments."
-            exit 1
+          # O APEX 26.1 leva os usuários de cada papel em create_acl_role (p_users).
+          # O instalar-app.sql tira esses papéis no destino (RUN_ONLY); aqui só avisa.
+          if grep -q "p_users=>" database/f100.sql; then
+            echo "::warning::database/f100.sql traz usuários nos papéis (ACL) da origem. O instalar-app.sql os retira no destino; para o export não levá-los, tire -expaclassignments do scripts/backup/backup.sql."
           fi
           grep -m1 "p_release" database/f100.sql
 

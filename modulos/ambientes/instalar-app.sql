@@ -16,8 +16,8 @@
 --   2. Importa database/f100.sql com o ID, o schema e o Build Status do destino.
 --      No UAT, o ID 200 recebe um offset novo (o ID é único na instância).
 --      No UAT e no PRD, RUN_ONLY mantém o Builder bloqueado depois de cada versão.
---   3. Devolve os papéis que a importação tiver tirado (os usuários do PRD não
---      perdem acesso por causa de uma versão nova).
+--   3. Deixa os papéis como estavam: devolve os que a importação tirou e, no UAT
+--      e no PRD (RUN_ONLY), tira os que vieram da origem no export.
 --   4. Recompila o schema e lista os objetos inválidos.
 --
 -- Não roda DDL nem packages: as mudanças de banco de cada versão são aplicadas
@@ -34,10 +34,10 @@ define build_status = '&4'
 
 prompt == Destino: workspace &workspace, schema &schema_dono, app &app_destino, &build_status
 
--- Antes de rodar, confira que o f100.sql não traz atribuições de papel (ACL):
--- elas viriam do DEV e dariam aos usuários do destino os papéis do DEV.
---   grep -c create_acl_assignment database/f100.sql    -> tem de dar 0
--- O workflow do GitHub Actions faz essa conferência sozinho.
+-- O export do APEX 26.1 leva os usuários de cada papel (p_users do
+-- create_acl_role). A importação os aplica no destino; o passo 3 desfaz isso no
+-- UAT e no PRD. Para ver quantos papéis o arquivo traz:
+--   grep -c "p_users=>" database/f100.sql
 
 begin
   if '&build_status' not in ('RUN_ONLY', 'RUN_AND_BUILD') then
@@ -95,11 +95,35 @@ whenever sqlerror exit failure rollback
 set serveroutput on size unlimited
 set verify off
 
--- 3. Devolve os papéis que sumiram
+-- 3. Deixa os papéis como estavam antes da importação.
+--    O export do APEX 26.1 leva os usuários de cada papel em create_acl_role
+--    (p_users), não em create_acl_assignment: a importação dá aos usuários do
+--    destino os papéis do ambiente de origem. No UAT e no PRD (RUN_ONLY), tira os
+--    que não existiam antes; na criação do DEV (RUN_AND_BUILD), mantém os do PRD.
 declare
   l_qt pls_integer := 0;
 begin
   apex_util.set_workspace(p_workspace => '&workspace');
+  if '&build_status' = 'RUN_ONLY' then
+    for r in (
+      select d.user_name, d.role_static_id
+        from apex_appl_acl_user_roles d
+       where d.application_id = &app_destino
+         and not exists (
+               select 1
+                 from ora$ptt_acl_antes a
+                where a.user_name = d.user_name
+                  and a.role_static_id = d.role_static_id)
+    ) loop
+      apex_acl.remove_user_role(
+        p_application_id => &app_destino,
+        p_user_name      => r.user_name,
+        p_role_static_id => r.role_static_id);
+      l_qt := l_qt + 1;
+    end loop;
+  end if;
+  dbms_output.put_line('Papéis da origem retirados depois da importação: ' || l_qt);
+  l_qt := 0;
   for r in (
     select a.user_name, a.role_static_id
       from ora$ptt_acl_antes a
