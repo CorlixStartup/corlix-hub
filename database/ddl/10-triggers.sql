@@ -17,6 +17,7 @@ begin
     :new.usr_alteracao := l_usuario;
   end if;
 end;
+
 /
 ALTER TRIGGER "TRG_CONFIG_CARREIRA_AUD" ENABLE;
 
@@ -38,6 +39,7 @@ begin
     :new.usr_alteracao := l_usuario;
   end if;
 end;
+
 /
 ALTER TRIGGER "TRG_FORMACAO_COLABORADOR_AUD" ENABLE;
 
@@ -59,6 +61,7 @@ begin
     coalesce(sys_context('APEX$SESSION', 'APP_USER'), sys_context('USERENV', 'SESSION_USER'))
   );
 end;
+
 /
 ALTER TRIGGER "TRG_FORMACAO_COLABORADOR_LOG" ENABLE;
 
@@ -147,6 +150,7 @@ begin
     end if;
   end if;
 end;
+
 /
 ALTER TRIGGER "TRG_HISTORICO_CARREIRA_AUD" ENABLE;
 
@@ -170,6 +174,7 @@ begin
     coalesce(sys_context('APEX$SESSION', 'APP_USER'), sys_context('USERENV', 'SESSION_USER'))
   );
 end;
+
 /
 ALTER TRIGGER "TRG_HISTORICO_CARREIRA_LOG" ENABLE;
 
@@ -181,6 +186,7 @@ begin
     raise_application_error(-20061, 'Marcações de ponto não podem ser alteradas nem apagadas. Solicite um ajuste.');
   end if;
 end;
+
 /
 ALTER TRIGGER "TRG_PONTO_MARCACAO_IMUTAVEL" ENABLE;
 
@@ -202,6 +208,7 @@ begin
     :new.usr_alteracao := l_usuario;
   end if;
 end;
+
 /
 ALTER TRIGGER "TRG_SOLICITACAO_CORRECAO_AUD" ENABLE;
 
@@ -225,6 +232,7 @@ begin
     coalesce(sys_context('APEX$SESSION', 'APP_USER'), sys_context('USERENV', 'SESSION_USER'))
   );
 end;
+
 /
 ALTER TRIGGER "TRG_SOLICITACAO_CORRECAO_LOG" ENABLE;
 
@@ -239,6 +247,7 @@ begin
     :new.id_empresa := to_number(v('G_ID_EMPRESA'));
   end if;
 end;
+
 /
 ALTER TRIGGER "TRG_SUPORTE_ARTIGO_AUD" ENABLE;
 
@@ -252,6 +261,7 @@ begin
     :new.id_empresa := to_number(v('G_ID_EMPRESA'));
   end if;
 end;
+
 /
 ALTER TRIGGER "TRG_SUPORTE_SISTEMA_AUD" ENABLE;
 
@@ -273,5 +283,6 @@ begin
     :new.usr_alteracao := l_usuario;
   end if;
 end;
+
 /
 ALTER TRIGGER "TRG_TIPO_MOVIMENTACAO_AUD" ENABLE;
