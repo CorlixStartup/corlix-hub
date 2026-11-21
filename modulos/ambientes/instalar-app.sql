@@ -102,14 +102,20 @@ set verify off
 --    (p_users), não em create_acl_assignment: a importação dá aos usuários do
 --    destino os papéis do ambiente de origem. No UAT e no PRD (RUN_ONLY), tira os
 --    que não existiam antes; na criação do DEV (RUN_AND_BUILD), mantém os do PRD.
+--    Usa o ID do papel, lido depois da importação: no UAT (21/11/2026) a forma
+--    com p_role_static_id deu ORA-01403 em WWV_FLOW_ACL_API para papéis que
+--    existiam, e a forma com p_role_id gravou.
 declare
   l_qt pls_integer := 0;
 begin
   apex_util.set_workspace(p_workspace => '&workspace');
   if '&build_status' = 'RUN_ONLY' then
     for r in (
-      select d.user_name, d.role_static_id
+      select d.user_name, p.role_id
         from apex_appl_acl_user_roles d
+        join apex_appl_acl_roles p
+          on p.application_id = d.application_id
+         and p.role_static_id = d.role_static_id
        where d.application_id = &app_destino
          and not exists (
                select 1
@@ -120,15 +126,18 @@ begin
       apex_acl.remove_user_role(
         p_application_id => &app_destino,
         p_user_name      => r.user_name,
-        p_role_static_id => r.role_static_id);
+        p_role_id        => r.role_id);
       l_qt := l_qt + 1;
     end loop;
   end if;
   dbms_output.put_line('Papéis da origem retirados depois da importação: ' || l_qt);
   l_qt := 0;
   for r in (
-    select a.user_name, a.role_static_id
+    select a.user_name, p.role_id
       from ora$ptt_acl_antes a
+      join apex_appl_acl_roles p
+        on p.application_id = &app_destino
+       and p.role_static_id = a.role_static_id
      where not exists (
              select 1
                from apex_appl_acl_user_roles d
@@ -139,7 +148,7 @@ begin
     apex_acl.add_user_role(
       p_application_id => &app_destino,
       p_user_name      => r.user_name,
-      p_role_static_id => r.role_static_id);
+      p_role_id        => r.role_id);
     l_qt := l_qt + 1;
   end loop;
   commit;
