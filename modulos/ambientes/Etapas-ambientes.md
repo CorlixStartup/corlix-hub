@@ -19,7 +19,7 @@
 |---|---|---|---|
 | Banco | 2 (`corlixhubdev`) | 2 (`corlixhubdev`) | 1 (o atual) |
 | Workspace | `CORLIXHUB` | `CORLIXHUB_UAT` | `CORLIXHUB` |
-| Schema | `WKSP_CORLIXHUB` | `WKSP_CORLIXHUB_UAT` | `WKSP_CORLIXHUB` |
+| Schema | `WKSP_CORLIXHUB` | `WKSP_WKSPCORLIXHUBUAT` | `WKSP_CORLIXHUB` |
 | App | 100 | 200 | 100 |
 | Builder | Edição liberada (`RUN_AND_BUILD`) | Só leitura (`RUN_ONLY`) | Só leitura (`RUN_ONLY`) |
 | Branch | `DEV` | `UAT` | `PROD` |
@@ -354,8 +354,8 @@ No **banco 2**, repita o 3.1 a 3.6 com estes valores (dados: use o mesmo backup;
 
 | Onde | Valor |
 |---|---|
-| Workspace Name (o schema sai `WKSP_CORLIXHUB_UAT`) | `CORLIXHUB_UAT` |
-| Instalação da app | `@modulos/ambientes/instalar-app.sql CORLIXHUB_UAT WKSP_CORLIXHUB_UAT 200 RUN_ONLY` |
+| Workspace Name | `CORLIXHUB_UAT`. O Autonomous Database criou o schema **`WKSP_WKSPCORLIXHUBUAT`** (sem os `_` e com `WKSP` repetido; visto em 21/11/2026). Use o nome que aparecer em `select * from apex_workspace_schemas` |
+| Instalação da app | `@modulos/ambientes/instalar-app.sql CORLIXHUB_UAT WKSP_WKSPCORLIXHUBUAT 200 RUN_ONLY` |
 | `ARQUIVO_CONFIG.DS_PREFIXO` | `uat/` |
 | Path Prefix do workspace | `CORLIXHUB_UAT` |
 | Endereço | `…corlixhubdev….oraclecloudapps.com/ords/r/corlixhub_uat/corlixhub/início` |
@@ -364,7 +364,7 @@ No **banco 2**, repita o 3.1 a 3.6 com estes valores (dados: use o mesmo backup;
 ### 6.2 Uma versão nova, do DEV ao PRD
 
 1. **DEV:** o time trabalha; o backup diário leva a app e o DDL para a branch `DEV`.
-2. **PR `DEV` → `UAT`.** No PR, liste os `instalar.sql` (ou arquivos `.sql`/`.pkb`) que mudaram desde a última versão. Antes do merge, rode esses scripts no UAT (SQLcl, `WKSP_CORLIXHUB_UAT`). Depois do merge, a app é instalada no UAT (6.4).
+2. **PR `DEV` → `UAT`.** No PR, liste os `instalar.sql` (ou arquivos `.sql`/`.pkb`) que mudaram desde a última versão. Antes do merge, rode esses scripts no UAT (SQLcl, `WKSP_WKSPCORLIXHUBUAT`). Depois do merge, a app é instalada no UAT (6.4).
 3. **Teste no UAT** pelas seções de teste dos guias. Registre na Situação de cada guia.
 4. **PR `UAT` → `PROD`.** Antes do merge, rode os mesmos scripts de banco no PRD. Depois do merge, o workflow espera a aprovação no Environment `prd` e instala.
 
@@ -379,11 +379,11 @@ Ordem que não pode inverter: **banco primeiro, app depois.** A app nova chamand
 | Deployment branches | só `UAT` | só `PROD` |
 | Required reviewers | — | pelo menos 1 pessoa do time |
 | Variable `DB_SERVICE` | `corlixhubdev_low` | `corlixhub_low` |
-| Variable `DB_USER` | `WKSP_CORLIXHUB_UAT` | `WKSP_CORLIXHUB` |
+| Variable `DB_USER` | `WKSP_WKSPCORLIXHUBUAT` | `WKSP_CORLIXHUB` |
 | Variable `APEX_WORKSPACE` | `CORLIXHUB_UAT` | `CORLIXHUB` |
 | Variable `APP_ID` | `200` | `100` |
 | Variable `BUILD_STATUS` | `RUN_ONLY` | `RUN_ONLY` |
-| Secret `DB_PASSWORD` | senha do `WKSP_CORLIXHUB_UAT` | senha do `WKSP_CORLIXHUB` no banco 1 |
+| Secret `DB_PASSWORD` | senha do `WKSP_WKSPCORLIXHUBUAT` | senha do `WKSP_CORLIXHUB` no banco 1 |
 | Secret `DB_WALLET_BASE64` | wallet do banco 2 em base64 | wallet do banco 1 em base64 |
 
 Para gerar o base64 do wallet no macOS: `base64 -i Wallet_corlixhubdev.zip | pbcopy` e cole no secret.
@@ -477,3 +477,4 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | 21/11/2026 | **§4 concluído:** time avisado de que o Builder passa a ser o do DEV (`…corlixhubdev…/ords/apex`, workspace `CORLIXHUB`) | Itens 2 a 5 dispensados pelo congelamento do §0. Próximo passo: §5 (Jenkins), feito pelo time em `scripts/backup/` |
 | 21/11/2026 | Causa do `INSERT … @ KU$` no DDL achada | Reproduzido num Oracle 26ai Free local: só acontece pelo SQLcl, que deixa opções próprias do `dbms_metadata` ligadas na sessão. Correção para o time no `backup.sql` (`'DEFAULT'` antes das demais opções) testada: DDL limpo e recriado sem erro. Ver "Pendências do time" |
 | 21/11/2026 | **§5 concluído:** PRs #200 (`fix/backup-dev` → `DEV`) e #201 (`DEV` → `PROD`) mesclados pelo time; build com `AMBIENTE = TODOS` | Commit `1ce429c` ("Backup - Corlix Hub - 21/11/2026 as 00:32") na `DEV`, **vindo do DEV**: `p_default_workspace_id=>9532154002622806` (workspace do banco 2) e sem `buildStatus: runOnly`. `03-tabelas.sql`: **0** `KU$`, **0** `DECLARE`, 51 `CREATE TABLE`. `f100.sql`: **0** `p_users=>`. Teste local do arquivo novo: com as cláusulas `COLLATE` retiradas (o Oracle Free local não as aceita), as 51 tabelas foram criadas pelo SQLcl sem o filtro `awk`. §3.2 a atualizado: filtro só para backups antigos. Diferenças esperadas no backup: `PKG_ARQUIVOS` com a versão do §3.2 c e `default.json` sem `runOnly`. Os builds agendados de 20 e 21/11 não geraram commit (Jenkins local desligado?): a conferir pelo time. Próximo passo: §6 (UAT) |
+| 21/11/2026 | §6.1 iniciado: workspace `CORLIXHUB_UAT` criado no banco 2 | O schema saiu **`WKSP_WKSPCORLIXHUBUAT`**, e não `WKSP_CORLIXHUB_UAT` como o guia previa (o `alter user` com o nome previsto deu `ORA-01918`). Guia, doc 12 e `instalar-app.sql` atualizados com o nome real. Próximo passo: `alter user`/`grant` e carga |

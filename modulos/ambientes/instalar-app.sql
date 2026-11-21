@@ -8,7 +8,7 @@
 --
 --   <workspace> é o nome que aparece em Administration Services > Manage Workspaces.
 --   DEV (só na criação): @modulos/ambientes/instalar-app.sql CORLIXHUB     WKSP_CORLIXHUB     100 RUN_AND_BUILD
---   UAT:                 @modulos/ambientes/instalar-app.sql CORLIXHUB_UAT WKSP_CORLIXHUB_UAT 200 RUN_ONLY
+--   UAT:                 @modulos/ambientes/instalar-app.sql CORLIXHUB_UAT WKSP_WKSPCORLIXHUBUAT 200 RUN_ONLY
 --   PRD:                 @modulos/ambientes/instalar-app.sql CORLIXHUB     WKSP_CORLIXHUB     100 RUN_ONLY
 --
 -- O que faz:

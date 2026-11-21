@@ -47,7 +47,7 @@ O ID da aplicação é único na instância do APEX inteira, não só no workspa
 
 ### 4.2 Schema, dados e LGPD
 
-- Cada workspace tem o próprio schema: `WKSP_CORLIXHUB` no DEV e `WKSP_CORLIXHUB_UAT` no UAT. As tabelas e os packages são instalados pelos `instalar.sql` dos módulos e pelo DDL de `database/ddl/`.
+- Cada workspace tem o próprio schema: `WKSP_CORLIXHUB` no DEV e `WKSP_WKSPCORLIXHUBUAT` no UAT. As tabelas e os packages são instalados pelos `instalar.sql` dos módulos e pelo DDL de `database/ddl/`.
 - **Dados de DEV e UAT:** hoje os dados do PRD são todos de teste (confirmado pelo time em 17/11/2026), então DEV e UAT recebem uma cópia pelo backup (`Etapas-ambientes.md` 3.2). O backup continua fora do Git (01 §8.1). **Quando o PRD tiver dados reais, a cópia só pode ser feita com anonimização**, e o passo tem de ser revisto.
 - **Configurações por ambiente:** `ARQUIVO_CONFIG` (bucket e credencial das fotos) e `SUPORTE_CONFIG` precisam de valores próprios em cada schema. Proposta: um prefixo ou bucket separado para DEV e UAT, para que um teste nunca apague a foto real de alguém.
 
@@ -103,7 +103,7 @@ Cada passo é feito pelo time, no Oracle Cloud ou no Builder. Os agentes só esc
 | 5 | Conferir o DEV novo pela seção de testes dos guias principais (Home, Comunicados, Holerite, Ponto) | — |
 | 6 | **Dia da troca** (com o passo 0, só falta avisar o endereço do Builder do DEV): congelar o Builder do banco 1, gerar um último backup, importar no DEV novo e marcar o banco 1 como `Run Application Only` (4.4). Avisar o time do novo endereço do Builder | Voltar o Build Status do banco 1 para `Run and Build Application` |
 | 7 | Ajustar o Jenkins (4.5) e conferir um backup do DEV chegando na branch `DEV` | Voltar `AMBIENTE_GIT` para `PRD` |
-| 8 | Criar o workspace `CORLIXHUB_UAT` (schema `WKSP_CORLIXHUB_UAT`) no banco 2, importar a app como 200 e criar as contas | Apagar o workspace |
+| 8 | Criar o workspace `CORLIXHUB_UAT` (schema `WKSP_WKSPCORLIXHUBUAT`) no banco 2, importar a app como 200 e criar as contas | Apagar o workspace |
 | 9 | Fazer uma primeira promoção completa DEV → UAT → PRD, ainda manual (fase 1) | — |
 | 10 | Automatizar com SQLcl Projects (fase 2) | Continuar manual |
 
