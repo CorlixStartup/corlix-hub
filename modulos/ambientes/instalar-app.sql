@@ -26,6 +26,8 @@
 whenever sqlerror exit failure rollback
 set serveroutput on size unlimited
 set verify off
+-- Liga a troca de &1..&4 mesmo se a sessão vier de um "set define off"
+set define on
 
 define workspace    = '&1'
 define schema_dono  = '&2'
