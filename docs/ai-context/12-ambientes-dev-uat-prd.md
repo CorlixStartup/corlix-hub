@@ -1,10 +1,10 @@
 # 12 · Ambientes DEV, UAT e PRD (proposta)
 
-> **Estado em 17/11/2026: decisões tomadas, passo a passo pronto, nada aplicado.** As decisões da seção 8 estão no início de [`modulos/ambientes/Etapas-ambientes.md`](../../modulos/ambientes/Etapas-ambientes.md), que é o guia de execução. Ele usa o [`instalar-app.sql`](../../modulos/ambientes/instalar-app.sql) e o workflow [`.github/workflows/instalar-app.yml`](../../.github/workflows/instalar-app.yml). Nada foi criado no Oracle Cloud nem no APEX. Tarefa: CD-77.
+> **Estado em 21/11/2026: PRD congelado (Builder em `Run Application Only`) e DEV montado e conferido no banco 2 (`corlixhubdev`), workspace `CORLIXHUB`, app 100 em `Run and Develop`.** Faltam o §4 (dia da troca: o time passa a editar no DEV), o §5 (Jenkins) e o §6 (UAT). O guia de execução é [`modulos/ambientes/Etapas-ambientes.md`](../../modulos/ambientes/Etapas-ambientes.md), que usa o [`instalar-app.sql`](../../modulos/ambientes/instalar-app.sql) e o workflow [`.github/workflows/instalar-app.yml`](../../.github/workflows/instalar-app.yml). Tarefa: CD-77.
 
 ## 1. Situação hoje
 
-- Existe **uma única instância**: um Autonomous Database da OCI com o workspace `WKSP_CORLIXHUB` e a app 100. O time desenvolve no Builder dessa instância, e é ela que está no ar (`…/ords/r/corlixhub/corlixhub/início`). Na prática, DEV e PROD são o mesmo banco.
+- Existe **uma única instância**: um Autonomous Database da OCI com o workspace `CORLIXHUB` (schema `WKSP_CORLIXHUB`) e a app 100. O time desenvolve no Builder dessa instância, e é ela que está no ar (`…/ords/r/corlixhub/corlixhub/início`). Na prática, DEV e PROD são o mesmo banco.
 - O Git já tem as branches `DEV`, `UAT` e `PROD`, mas elas não correspondem a bancos diferentes. O backup diário do Jenkins chama essa instância de `PRD` (`scripts/backup/Jenkinsfile`, mapa `AMBIENTES`) e já deixa comentada uma entrada `DEV` (`corlixhubdev_low`) para "quando o ambiente existir".
 - **Consequência:** toda mudança feita no Builder vale na hora para quem usa a app. Não existe um lugar para testar antes de publicar.
 
@@ -24,9 +24,9 @@ Ter três bancos gratuitos não é possível. Abrir uma segunda conta gratuita p
 
 | Banco gratuito | Workspace | App | Endereço | Uso |
 |---|---|---|---|---|
-| **Banco 1** (o atual, `CORLIXHUB`) | `WKSP_CORLIXHUB` | 100 | `…/ords/r/corlixhub/corlixhub/início` (não muda) | **PRD**: só a app no ar. Ninguém edita no Builder |
-| **Banco 2** (novo) | `WKSP_CORLIXHUB` | 100 | `…/ords/r/corlixhub/corlixhub/início` em outro domínio | **DEV**: o time inteiro edita no Builder, como hoje |
-| **Banco 2** | `WKSP_CORLIXHUB_UAT` | 200 (ver 4.1) | `…/ords/r/corlixhub_uat/corlixhub/início` (confirmar o prefixo) | **UAT**: recebe versões vindas do DEV para teste. Ninguém edita no Builder |
+| **Banco 1** (o atual, `CORLIXHUB`) | `CORLIXHUB` | 100 | `…/ords/r/corlixhub/corlixhub/início` (não muda) | **PRD**: só a app no ar. Ninguém edita no Builder |
+| **Banco 2** (novo) | `CORLIXHUB` | 100 | `…/ords/r/corlixhub/corlixhub/início` em outro domínio | **DEV**: o time inteiro edita no Builder, como hoje |
+| **Banco 2** | `CORLIXHUB_UAT` | 200 (ver 4.1) | `…/ords/r/corlixhub_uat/corlixhub/início` (confirmar o prefixo) | **UAT**: recebe versões vindas do DEV para teste. Ninguém edita no Builder |
 
 **Por que o DEV fica compartilhado na nuvem, e não no Docker de cada pessoa.** No APEX, a app fica guardada no banco de dados, e o Builder grava direto no banco. Com um DEV local para cada pessoa, uma não veria o que a outra mudou. Sincronizar essas cópias pelo Git exigiria exportar e importar o tempo todo, e o export de uma página editada por duas pessoas não se junta bem no Git. Com o DEV num banco só, o time continua trabalhando como hoje.
 
@@ -98,12 +98,12 @@ Cada passo é feito pelo time, no Oracle Cloud ou no Builder. Os agentes só esc
 | 0 | **Congelar primeiro** (decidido em 18/11/2026): Builder do banco 1 em `Run Application Only` e backup, que vira a base do DEV (guia §0). Antes, nenhum objeto inválido no banco 1 | Voltar o Build Status para `Run and Build Application` |
 | 1 | Conferir em *Limits, Quotas and Usage* que a conta ainda tem 1 Autonomous Database gratuito disponível | — |
 | 2 | Criar o banco 2 (`corlixhubdev`, **Always Free**, na região principal, no compartimento `corlix-dev-uat`) | Apagar o banco 2 |
-| 3 | No banco 2, criar o workspace `WKSP_CORLIXHUB` e instalar o schema (DDL de `database/ddl/` e os `instalar.sql` dos módulos, na ordem do 06) | Apagar o workspace |
+| 3 | No banco 2, criar o workspace `CORLIXHUB` (schema `WKSP_CORLIXHUB`) e instalar o schema (DDL de `database/ddl/` e os `instalar.sql` dos módulos, na ordem do 06) | Apagar o workspace |
 | 4 | Importar a app 100 do último backup e carregar os dados de demonstração. Criar as contas de teste e os papéis | Reimportar |
 | 5 | Conferir o DEV novo pela seção de testes dos guias principais (Home, Comunicados, Holerite, Ponto) | — |
 | 6 | **Dia da troca** (com o passo 0, só falta avisar o endereço do Builder do DEV): congelar o Builder do banco 1, gerar um último backup, importar no DEV novo e marcar o banco 1 como `Run Application Only` (4.4). Avisar o time do novo endereço do Builder | Voltar o Build Status do banco 1 para `Run and Build Application` |
 | 7 | Ajustar o Jenkins (4.5) e conferir um backup do DEV chegando na branch `DEV` | Voltar `AMBIENTE_GIT` para `PRD` |
-| 8 | Criar o workspace `WKSP_CORLIXHUB_UAT` no banco 2, importar a app como 200 e criar as contas | Apagar o workspace |
+| 8 | Criar o workspace `CORLIXHUB_UAT` (schema `WKSP_CORLIXHUB_UAT`) no banco 2, importar a app como 200 e criar as contas | Apagar o workspace |
 | 9 | Fazer uma primeira promoção completa DEV → UAT → PRD, ainda manual (fase 1) | — |
 | 10 | Automatizar com SQLcl Projects (fase 2) | Continuar manual |
 
@@ -119,7 +119,7 @@ Atualizar a documentação no mesmo PR de cada etapa: 01 §5 e §8, `docs/agente
 
 ## 8. Decisões do time (tomadas em 17/11/2026, menos a 5)
 
-Respostas: 1, aceita; 2, só demonstração, e depois o time confirmou que **todos os dados do PRD são de teste**, então DEV e UAT recebem uma cópia deles (revisar quando houver dados reais); 3, prefixo `dev/` e `uat/` no mesmo bucket (coluna `ARQUIVO_CONFIG.DS_PREFIXO`); 4, GitHub Actions; 5, troca em 18/11/2026. O workspace se chama `WKSP_CORLIXHUB`; `CORLIXHUB` é o nome do Autonomous AI Database.
+Respostas: 1, aceita; 2, só demonstração, e depois o time confirmou que **todos os dados do PRD são de teste**, então DEV e UAT recebem uma cópia deles (revisar quando houver dados reais); 3, prefixo `dev/` e `uat/` no mesmo bucket (coluna `ARQUIVO_CONFIG.DS_PREFIXO`); 4, GitHub Actions; 5, troca em 18/11/2026. Em 18/11/2026, conferido em `apex_workspace_schemas`: o workspace se chama `CORLIXHUB` e o schema `WKSP_CORLIXHUB` (o banco também se chama `CORLIXHUB`).
 
 1. Aceitar a distribuição da seção 3 (PRD no banco atual; DEV e UAT no banco novo).
 2. Dados de DEV e UAT: só demonstração ou uma cópia anonimizada do PRD (4.2).
