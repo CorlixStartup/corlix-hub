@@ -157,31 +157,39 @@ No SQLcl, conectado como `WKSP_CORLIXHUB` no banco 2 (`set cloudconfig <wallet d
 
 **a) Tabelas**
 
-> **Não rode o `database/ddl/03-tabelas.sql` direto.** O DDL exportado traz, depois de cada tabela, um `INSERT … FROM "<tabela>"@ KU$` e, depois da `HTMLDB_PLAN_TABLE`, um bloco `DECLARE … END;` sem a `/` no fim. O SQLcl junta o resto do arquivo nesse bloco e não executa mais nada: num teste local de 18/11/2026, só 27 das 51 tabelas foram criadas, sem nenhuma mensagem de erro. Gere uma cópia limpa fora do repositório:
+Desde o backup de **21/11/2026 às 00:32** (commit `1ce429c`, já com a correção do `backup.sql`), o `03-tabelas.sql` roda direto. Antes de começar, confira:
 
 ```bash
-mkdir -p ~/corlix-carga
-awk '
-  /^  INSERT \/\*\+  APPEND/ { pula = 1 }
-  /^  DECLARE CURSOR/        { pula = 2 }
-  pula == 1 { if ($0 ~ /KU\$;$/) pula = 0; next }
-  pula == 2 { if ($0 ~ /^  END;$/) pula = 0; next }
-  { print }
-' database/ddl/03-tabelas.sql > ~/corlix-carga/03-tabelas-limpo.sql
-grep -c 'CREATE TABLE' ~/corlix-carga/03-tabelas-limpo.sql   # 51 no backup de 18/11/2026
+grep -c 'KU\$' database/ddl/03-tabelas.sql       # tem de dar 0
+grep -c 'CREATE TABLE' database/ddl/03-tabelas.sql   # 51 no backup de 21/11/2026
 ```
 
 ```sql
 whenever sqlerror exit failure
 @database/ddl/01-tipos.sql
 @database/ddl/02-sequencias.sql
-@~/corlix-carga/03-tabelas-limpo.sql
+@database/ddl/03-tabelas.sql
 @modulos/arquivos/05_ddl_prefixo_ambiente.sql
 whenever sqlerror continue
 select count(*) from user_tables;
 ```
 
-O `count` tem de dar o mesmo número do `grep`. A correção definitiva é no `scripts/backup/backup.sql`, que o time ajusta (veja "Pendências do time").
+O `count` tem de dar o mesmo número do `grep`.
+
+> **Backup anterior a 21/11/2026?** Se o primeiro `grep` der mais que 0, o DDL ainda traz um `INSERT … @ KU$` depois de cada tabela e um bloco `DECLARE … END;` sem `/` depois da `HTMLDB_PLAN_TABLE`, e o SQLcl para no meio sem mensagem de erro (só 27 das 51 tabelas num teste de 18/11/2026). Gere uma cópia limpa e rode `@~/corlix-carga/03-tabelas-limpo.sql` no lugar do `03-tabelas.sql`:
+>
+> ```bash
+> mkdir -p ~/corlix-carga
+> awk '
+>   /^  INSERT \/\*\+  APPEND/ { pula = 1 }
+>   /^  DECLARE CURSOR/        { pula = 2 }
+>   pula == 1 { if ($0 ~ /KU\$;$/) pula = 0; next }
+>   pula == 2 { if ($0 ~ /^  END;$/) pula = 0; next }
+>   { print }
+> ' database/ddl/03-tabelas.sql > ~/corlix-carga/03-tabelas-limpo.sql
+> ```
+
+> **Ensaio num Oracle local (Docker):** o DDL novo traz `COLLATE "USING_NLS_COMP"` nas colunas de texto. O Autonomous Database aceita (`MAX_STRING_SIZE=EXTENDED`), mas o Oracle Free local recusa com `ORA-43929`. Para ensaiar localmente, tire as cláusulas numa cópia: `sed -E 's/ (DEFAULT COLLATION|COLLATE) "USING_NLS_COMP"//g' database/ddl/03-tabelas.sql > ~/corlix-carga/03-local.sql`.
 
 **b) Dados do backup do PRD** (o `.tar.gz` do passo 1.3, extraído numa pasta **fora do repositório**, por exemplo `~/corlix-carga/`; ele nunca vai para o Git). Gere a lista de cargas no terminal, pulando os arquivos de controle (`_*.csv`) e os logs:
 
@@ -431,8 +439,7 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 
 ## Pendências do time
 
-- **`scripts/backup/backup.sql`** (o agente não edita): o DDL das tabelas sai com `INSERT … @ KU$` e com o bloco `DECLARE` da `HTMLDB_PLAN_TABLE` sem `/`. Está assim pelo menos desde o backup de 10/11/2026. **Causa:** o SQLcl liga, ao conectar, opções próprias do `dbms_metadata` na sessão, que somam as de cópia de dados; o mesmo `get_ddl` no SQL*Plus sai limpo. **Correção** (testada em 21/11/2026 num Oracle 26ai Free local com o SQLcl 26.2.2): no bloco `begin` da seção 2, como primeira linha, `dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'DEFAULT', true);`. Com ela: nenhum `KU$`/`DECLARE`, e o DDL de tabela (com identity e LONG), view, package e trigger recriado inteiro num schema vazio, tudo `VALID`. Até chegar à `PROD`, use o filtro do 3.2 a.
-- **`scripts/backup/backup.sql`, papéis no export:** o `f100.sql` leva os usuários de cada papel (`p_users` do `create_acl_role`). O `instalar-app.sql` já os retira no UAT e no PRD; tirar `-expaclassignments` do export evita que o arquivo os leve (§5, item 4).
+- **`scripts/backup/backup.sql`, opcional:** acrescentar `dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'COLLATION_CLAUSE', 'NEVER');` logo depois da linha do `'DEFAULT'`, para o DDL voltar a sair sem `COLLATE` e rodar também num Oracle local. Não é necessário para o DEV, o UAT e o PRD (todos Autonomous Database). A opção foi aceita num teste local; o efeito no ADB só se confirma no próximo backup.
 - **`PKG_CHAT_UI` e `CX_PRESENCA_PING`** não estão em nenhum módulo do repositório (só no backup). Quem fez o chat precisa versionar o código em `modulos/` com guia.
 
 ## Voltar atrás
@@ -469,3 +476,4 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | 21/11/2026 | **§3.5 concluído e §3.7 conferido pelo agente** no navegador, com a sessão do time (conta `TESTE.RH`, criada pelo time no workspace `CORLIXHUB` do banco 2; papéis vindos do PRD) | Host `gfe80286062641f-corlixhubdev…`. Home: saudação, atalhos, comunicados com imagem (2400 px) e 22 fotos diferentes carregadas, nenhuma quebrada. Holerite: abre Outubro 2026 com os valores ocultos. Colaboradores: **309 colaboradores**, igual ao PRD, com as fotos (15 na tela, nenhuma quebrada). Barra de desenvolvedor do APEX presente (app em `Run and Develop`). Nada foi gravado. **DEV pronto.** Próximo passo: §4 |
 | 21/11/2026 | **§4 concluído:** time avisado de que o Builder passa a ser o do DEV (`…corlixhubdev…/ords/apex`, workspace `CORLIXHUB`) | Itens 2 a 5 dispensados pelo congelamento do §0. Próximo passo: §5 (Jenkins), feito pelo time em `scripts/backup/` |
 | 21/11/2026 | Causa do `INSERT … @ KU$` no DDL achada | Reproduzido num Oracle 26ai Free local: só acontece pelo SQLcl, que deixa opções próprias do `dbms_metadata` ligadas na sessão. Correção para o time no `backup.sql` (`'DEFAULT'` antes das demais opções) testada: DDL limpo e recriado sem erro. Ver "Pendências do time" |
+| 21/11/2026 | **§5 concluído:** PRs #200 (`fix/backup-dev` → `DEV`) e #201 (`DEV` → `PROD`) mesclados pelo time; build com `AMBIENTE = TODOS` | Commit `1ce429c` ("Backup - Corlix Hub - 21/11/2026 as 00:32") na `DEV`, **vindo do DEV**: `p_default_workspace_id=>9532154002622806` (workspace do banco 2) e sem `buildStatus: runOnly`. `03-tabelas.sql`: **0** `KU$`, **0** `DECLARE`, 51 `CREATE TABLE`. `f100.sql`: **0** `p_users=>`. Teste local do arquivo novo: com as cláusulas `COLLATE` retiradas (o Oracle Free local não as aceita), as 51 tabelas foram criadas pelo SQLcl sem o filtro `awk`. §3.2 a atualizado: filtro só para backups antigos. Diferenças esperadas no backup: `PKG_ARQUIVOS` com a versão do §3.2 c e `default.json` sem `runOnly`. Os builds agendados de 20 e 21/11 não geraram commit (Jenkins local desligado?): a conferir pelo time. Próximo passo: §6 (UAT) |
