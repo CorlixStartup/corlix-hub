@@ -29,7 +29,7 @@ prompt [1/4] Aplicacao &APP_ID em APEXlang
 apex export -applicationid &APP_ID -exptype APEXLANG -dir &OUT/apexlang -skipexportdate -overwrite-files
 
 prompt [2/4] Aplicacao &APP_ID em SQL
-apex export -applicationid &APP_ID -exptype SQL,CHECKSUM-SH256 -dir &OUT/sql -expaclassignments -exppubreports -expsavedreports -skipexportdate -overwrite-files
+apex export -applicationid &APP_ID -exptype SQL,CHECKSUM-SH256 -dir &OUT/sql -exppubreports -expsavedreports -skipexportdate -overwrite-files
 
 -- --- 2. DDL ------------------------------------------------------------------
 prompt [3/4] DDL do schema
@@ -38,6 +38,7 @@ set long 2000000000 longchunksize 32767 pagesize 0 linesize 32767 trimspool on h
 -- Sem schema, tablespace e storage: o DDL recria os objetos em qualquer schema.
 -- FKs saem separadas (04) para as tabelas poderem ser criadas em qualquer ordem.
 begin
+    dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'DEFAULT', true);
     dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'SQLTERMINATOR', true);
     dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'PRETTY', true);
     dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'SEGMENT_ATTRIBUTES', false);

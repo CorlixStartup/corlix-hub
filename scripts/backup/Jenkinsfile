@@ -15,13 +15,13 @@
 // Descomente o DEV quando o ambiente existir.
 AMBIENTES = [
     PRD: [servico: 'corlixhub_low', credBanco: 'corlixhub-db-prd', credWallet: 'corlixhub-wallet-prd'],
-    // DEV: [servico: 'corlixhubdev_low', credBanco: 'corlixhub-db-dev', credWallet: 'corlixhub-wallet-dev'],
+    DEV: [servico: 'corlixhubdev_low', credBanco: 'corlixhub-db-dev', credWallet: 'corlixhub-wallet-dev'],
 ]
 
 // Publicação no GitHub (stage "Publicar no Git"): o backup deste ambiente é
 // commitado na DEV e vira um PR para a PROD. A credencial é "Username with
 // password" com o usuário do GitHub e um token (Contents + Pull requests).
-AMBIENTE_GIT = 'PRD'
+AMBIENTE_GIT = 'DEV'
 CREDENCIAL_GIT = 'corlixhub-github'
 
 pipeline {
