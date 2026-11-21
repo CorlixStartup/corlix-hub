@@ -1,6 +1,6 @@
 # 12 · Ambientes DEV, UAT e PRD (proposta)
 
-> **Estado em 17/11/2026: decisões tomadas, passo a passo pronto, nada aplicado.** As decisões da seção 8 estão no início de [`modulos/ambientes/Etapas-ambientes.md`](../../modulos/ambientes/Etapas-ambientes.md), que é o guia de execução. Ele usa o [`instalar-app.sql`](../../modulos/ambientes/instalar-app.sql) e o workflow [`.github/workflows/instalar-app.yml`](../../.github/workflows/instalar-app.yml). Nada foi criado no Oracle Cloud nem no APEX. Tarefa: CD-77.
+> **Estado em 21/11/2026: PRD congelado (Builder em `Run Application Only`) e DEV montado e conferido no banco 2 (`corlixhubdev`), workspace `CORLIXHUB`, app 100 em `Run and Develop`.** Faltam o §4 (dia da troca: o time passa a editar no DEV), o §5 (Jenkins) e o §6 (UAT). O guia de execução é [`modulos/ambientes/Etapas-ambientes.md`](../../modulos/ambientes/Etapas-ambientes.md), que usa o [`instalar-app.sql`](../../modulos/ambientes/instalar-app.sql) e o workflow [`.github/workflows/instalar-app.yml`](../../.github/workflows/instalar-app.yml). Tarefa: CD-77.
 
 ## 1. Situação hoje
 
