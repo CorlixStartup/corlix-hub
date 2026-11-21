@@ -1,8 +1,5 @@
 page 0 (
     name: Global Page
-    appearance {
-        templateOptions: #DEFAULT#
-    }
 
     region novo (
         name: Barra de Busca

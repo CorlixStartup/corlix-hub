@@ -1,8 +1,5 @@
 {
   "app" : {
-    "id" : 100,
-    "availability" : {
-      "buildStatus" : "runOnly"
-    }
+    "id" : 100
   }
 }

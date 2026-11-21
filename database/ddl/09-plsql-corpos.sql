@@ -104,6 +104,7 @@ end;
     l_blob blob;
     l_mime varchar2(255);
   begin
+    -- A equipe do Corlix Hub vê todas as empresas: a pasta vem do dono da foto.
     if apex_authorization.is_authorized('EQUIPE_CORLIX_HUB') then
       select max(id_empresa)
         into l_emp
@@ -121,7 +122,15 @@ end;
       return;
     end if;
 
-    select * into l_cfg from arquivo_config where id_config = 1;
+    begin
+      select * into l_cfg from arquivo_config where id_config = 1;
+    exception
+      when no_data_found then
+        -- Sem configuração, não há o que entregar. Erros da chamada ao OCI, como
+        -- credencial não encontrada, seguem visíveis e não viram 404.
+        nao_encontrado;
+        return;
+    end;
 
     apex_web_service.set_request_headers(
       p_name_01  => 'Accept',          p_value_01 => '*/*',
@@ -132,7 +141,8 @@ end;
       p_url                  => 'https://objectstorage.' || l_cfg.ds_regiao || '.oraclecloud.com'
                                 || '/n/' || l_cfg.ds_namespace
                                 || '/b/' || l_cfg.nm_bucket_fotos
-                                || '/o/empresa/' || l_emp || '/fotos/' || apex_util.url_encode(p_nome),
+                                || '/o/' || l_cfg.ds_prefixo  -- dev/ ou uat/; vazio no PRD
+                                || 'empresa/' || l_emp || '/fotos/' || apex_util.url_encode(p_nome),
       p_http_method          => 'GET',
       p_credential_static_id => l_cfg.cd_credencial);
 
@@ -159,9 +169,6 @@ end;
   exception
     when apex_application.e_stop_apex_engine then
       raise;
-    when no_data_found then
-      -- ARQUIVO_CONFIG sem a linha de configuração
-      nao_encontrado;
   end entregar_foto;
 
 end pkg_arquivos;
