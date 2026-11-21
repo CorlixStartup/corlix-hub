@@ -19,7 +19,7 @@
 |---|---|---|---|
 | Banco | 2 (`corlixhubdev`) | 2 (`corlixhubdev`) | 1 (o atual) |
 | Workspace | `CORLIXHUB` | `CORLIXHUB_UAT` | `CORLIXHUB` |
-| Schema | `WKSP_CORLIXHUB` | `WKSP_CORLIXHUB_UAT` | `WKSP_CORLIXHUB` |
+| Schema | `WKSP_CORLIXHUB` | `WKSP_WKSPCORLIXHUBUAT` | `WKSP_CORLIXHUB` |
 | App | 100 | 200 | 100 |
 | Builder | Edição liberada (`RUN_AND_BUILD`) | Só leitura (`RUN_ONLY`) | Só leitura (`RUN_ONLY`) |
 | Branch | `DEV` | `UAT` | `PROD` |
@@ -157,31 +157,39 @@ No SQLcl, conectado como `WKSP_CORLIXHUB` no banco 2 (`set cloudconfig <wallet d
 
 **a) Tabelas**
 
-> **Não rode o `database/ddl/03-tabelas.sql` direto.** O DDL exportado traz, depois de cada tabela, um `INSERT … FROM "<tabela>"@ KU$` e, depois da `HTMLDB_PLAN_TABLE`, um bloco `DECLARE … END;` sem a `/` no fim. O SQLcl junta o resto do arquivo nesse bloco e não executa mais nada: num teste local de 18/11/2026, só 27 das 51 tabelas foram criadas, sem nenhuma mensagem de erro. Gere uma cópia limpa fora do repositório:
+Desde o backup de **21/11/2026 às 00:32** (commit `1ce429c`, já com a correção do `backup.sql`), o `03-tabelas.sql` roda direto. Antes de começar, confira:
 
 ```bash
-mkdir -p ~/corlix-carga
-awk '
-  /^  INSERT \/\*\+  APPEND/ { pula = 1 }
-  /^  DECLARE CURSOR/        { pula = 2 }
-  pula == 1 { if ($0 ~ /KU\$;$/) pula = 0; next }
-  pula == 2 { if ($0 ~ /^  END;$/) pula = 0; next }
-  { print }
-' database/ddl/03-tabelas.sql > ~/corlix-carga/03-tabelas-limpo.sql
-grep -c 'CREATE TABLE' ~/corlix-carga/03-tabelas-limpo.sql   # 51 no backup de 18/11/2026
+grep -c 'KU\$' database/ddl/03-tabelas.sql       # tem de dar 0
+grep -c 'CREATE TABLE' database/ddl/03-tabelas.sql   # 51 no backup de 21/11/2026
 ```
 
 ```sql
 whenever sqlerror exit failure
 @database/ddl/01-tipos.sql
 @database/ddl/02-sequencias.sql
-@~/corlix-carga/03-tabelas-limpo.sql
+@database/ddl/03-tabelas.sql
 @modulos/arquivos/05_ddl_prefixo_ambiente.sql
 whenever sqlerror continue
 select count(*) from user_tables;
 ```
 
-O `count` tem de dar o mesmo número do `grep`. A correção definitiva é no `scripts/backup/backup.sql`, que o time ajusta (veja "Pendências do time").
+O `count` tem de dar o mesmo número do `grep`.
+
+> **Backup anterior a 21/11/2026?** Se o primeiro `grep` der mais que 0, o DDL ainda traz um `INSERT … @ KU$` depois de cada tabela e um bloco `DECLARE … END;` sem `/` depois da `HTMLDB_PLAN_TABLE`, e o SQLcl para no meio sem mensagem de erro (só 27 das 51 tabelas num teste de 18/11/2026). Gere uma cópia limpa e rode `@~/corlix-carga/03-tabelas-limpo.sql` no lugar do `03-tabelas.sql`:
+>
+> ```bash
+> mkdir -p ~/corlix-carga
+> awk '
+>   /^  INSERT \/\*\+  APPEND/ { pula = 1 }
+>   /^  DECLARE CURSOR/        { pula = 2 }
+>   pula == 1 { if ($0 ~ /KU\$;$/) pula = 0; next }
+>   pula == 2 { if ($0 ~ /^  END;$/) pula = 0; next }
+>   { print }
+> ' database/ddl/03-tabelas.sql > ~/corlix-carga/03-tabelas-limpo.sql
+> ```
+
+> **Ensaio num Oracle local (Docker):** o DDL novo traz `COLLATE "USING_NLS_COMP"` nas colunas de texto. O Autonomous Database aceita (`MAX_STRING_SIZE=EXTENDED`), mas o Oracle Free local recusa com `ORA-43929`. Para ensaiar localmente, tire as cláusulas numa cópia: `sed -E 's/ (DEFAULT COLLATION|COLLATE) "USING_NLS_COMP"//g' database/ddl/03-tabelas.sql > ~/corlix-carga/03-local.sql`.
 
 **b) Dados do backup do PRD** (o `.tar.gz` do passo 1.3, extraído numa pasta **fora do repositório**, por exemplo `~/corlix-carga/`; ele nunca vai para o Git). Gere a lista de cargas no terminal, pulando os arquivos de controle (`_*.csv`) e os logs:
 
@@ -346,17 +354,40 @@ No **banco 2**, repita o 3.1 a 3.6 com estes valores (dados: use o mesmo backup;
 
 | Onde | Valor |
 |---|---|
-| Workspace Name (o schema sai `WKSP_CORLIXHUB_UAT`) | `CORLIXHUB_UAT` |
-| Instalação da app | `@modulos/ambientes/instalar-app.sql CORLIXHUB_UAT WKSP_CORLIXHUB_UAT 200 RUN_ONLY` |
+| Workspace Name | `CORLIXHUB_UAT`. O Autonomous Database criou o schema **`WKSP_WKSPCORLIXHUBUAT`** (sem os `_` e com `WKSP` repetido; visto em 21/11/2026). Use o nome que aparecer em `select * from apex_workspace_schemas` |
+| Instalação da app | `@modulos/ambientes/instalar-app.sql CORLIXHUB_UAT WKSP_WKSPCORLIXHUBUAT 200 RUN_ONLY` |
 | `ARQUIVO_CONFIG.DS_PREFIXO` | `uat/` |
 | Path Prefix do workspace | `CORLIXHUB_UAT` |
 | Endereço | `…corlixhubdev….oraclecloudapps.com/ords/r/corlixhub_uat/corlixhub/início` |
-| Contas | só contas de teste (`teste.rh`, `[DEMO] ...`). Na primeira instalação o UAT fica **sem papéis** (o `instalar-app.sql` tira os que vêm do DEV): atribua-os às contas de teste em *Application Access Control* |
+| Contas | só contas de teste (`teste.rh`, `[DEMO] ...`). Na primeira instalação o UAT fica **sem papéis** (o `instalar-app.sql` tira os que vêm do DEV): atribua-os às contas de teste. Com a app em Run Only, use o `apex_acl.add_user_role` com **`p_role_id`** (bloco abaixo da tabela); a forma com `p_role_static_id` deu `ORA-01403` no UAT |
+
+Papéis de uma conta de teste no UAT, no SQLcl, conectado como `WKSP_WKSPCORLIXHUBUAT` (troque a conta e a lista de papéis):
+
+```sql
+set serveroutput on
+set define off
+```
+
+```sql
+begin
+  apex_util.set_workspace(p_workspace => 'CORLIXHUB_UAT');
+  for r in (select role_id, role_static_id from apex_appl_acl_roles
+             where application_id = 200
+               and role_static_id in ('admin-rh', 'colaborador', 'gestor', 'publicador-de-conteúdo')) loop
+    apex_acl.add_user_role(p_application_id => 200, p_user_name => 'TESTE.RH', p_role_id => r.role_id);
+    dbms_output.put_line('OK ' || r.role_static_id);
+  end loop;
+  commit;
+end;
+/
+```
+
+A conta tem de existir antes no workspace `CORLIXHUB_UAT` (*Administration › Manage Users and Groups*, privilégio *User*). Confira com `select user_name, role_static_id from apex_appl_acl_user_roles where application_id = 200;`.
 
 ### 6.2 Uma versão nova, do DEV ao PRD
 
 1. **DEV:** o time trabalha; o backup diário leva a app e o DDL para a branch `DEV`.
-2. **PR `DEV` → `UAT`.** No PR, liste os `instalar.sql` (ou arquivos `.sql`/`.pkb`) que mudaram desde a última versão. Antes do merge, rode esses scripts no UAT (SQLcl, `WKSP_CORLIXHUB_UAT`). Depois do merge, a app é instalada no UAT (6.4).
+2. **PR `DEV` → `UAT`.** No PR, liste os `instalar.sql` (ou arquivos `.sql`/`.pkb`) que mudaram desde a última versão. Antes do merge, rode esses scripts no UAT (SQLcl, `WKSP_WKSPCORLIXHUBUAT`). Depois do merge, a app é instalada no UAT (6.4).
 3. **Teste no UAT** pelas seções de teste dos guias. Registre na Situação de cada guia.
 4. **PR `UAT` → `PROD`.** Antes do merge, rode os mesmos scripts de banco no PRD. Depois do merge, o workflow espera a aprovação no Environment `prd` e instala.
 
@@ -371,11 +402,11 @@ Ordem que não pode inverter: **banco primeiro, app depois.** A app nova chamand
 | Deployment branches | só `UAT` | só `PROD` |
 | Required reviewers | — | pelo menos 1 pessoa do time |
 | Variable `DB_SERVICE` | `corlixhubdev_low` | `corlixhub_low` |
-| Variable `DB_USER` | `WKSP_CORLIXHUB_UAT` | `WKSP_CORLIXHUB` |
+| Variable `DB_USER` | `WKSP_WKSPCORLIXHUBUAT` | `WKSP_CORLIXHUB` |
 | Variable `APEX_WORKSPACE` | `CORLIXHUB_UAT` | `CORLIXHUB` |
 | Variable `APP_ID` | `200` | `100` |
 | Variable `BUILD_STATUS` | `RUN_ONLY` | `RUN_ONLY` |
-| Secret `DB_PASSWORD` | senha do `WKSP_CORLIXHUB_UAT` | senha do `WKSP_CORLIXHUB` no banco 1 |
+| Secret `DB_PASSWORD` | senha do `WKSP_WKSPCORLIXHUBUAT` | senha do `WKSP_CORLIXHUB` no banco 1 |
 | Secret `DB_WALLET_BASE64` | wallet do banco 2 em base64 | wallet do banco 1 em base64 |
 
 Para gerar o base64 do wallet no macOS: `base64 -i Wallet_corlixhubdev.zip | pbcopy` e cole no secret.
@@ -427,13 +458,14 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | `ORA-02019: connection description for remote database not found` | `INSERT … @ KU$` do DDL exportado | Mesma correção da linha acima |
 | `VW_CARREIRA_TIMELINE` (ou outra view) na lista de inválidos do §0.1 | Uma tabela usada pela view foi alterada; a view só se recompila no próximo uso | `alter view <nome> compile` e consulte de novo. Se falhar, `user_errors` da view |
 | `SyntaxError: Unexpected token 's', "sqlerrm:OR"...` em qualquer página | `PKG_CHAT_UI` inválido: o `CX_PRESENCA_PING` responde texto em vez de JSON | §0.1, item 2 |
+| `ORA-01403` em `WWV_FLOW_ACL_API` ao dar papel no UAT | Conta inexistente no workspace `CORLIXHUB_UAT`, ou chamada com `p_role_static_id` (falha no UAT mesmo com o papel existindo e com `apex_session.create_session`) | Crie a conta no workspace e use `p_role_id` (bloco do 6.1) |
 | Builder do PRD continua editável | Passo 4 não aplicado, ou instalação feita sem `RUN_ONLY` | Passo 4; no workflow, `BUILD_STATUS` = `RUN_ONLY` |
 
 ## Pendências do time
 
-- **`scripts/backup/backup.sql`** (o agente não edita): o DDL das tabelas sai com `INSERT … @ KU$` e com o bloco `DECLARE` da `HTMLDB_PLAN_TABLE` sem `/`. Está assim pelo menos desde o backup de 10/11/2026. **Causa:** o SQLcl liga, ao conectar, opções próprias do `dbms_metadata` na sessão, que somam as de cópia de dados; o mesmo `get_ddl` no SQL*Plus sai limpo. **Correção** (testada em 21/11/2026 num Oracle 26ai Free local com o SQLcl 26.2.2): no bloco `begin` da seção 2, como primeira linha, `dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'DEFAULT', true);`. Com ela: nenhum `KU$`/`DECLARE`, e o DDL de tabela (com identity e LONG), view, package e trigger recriado inteiro num schema vazio, tudo `VALID`. Até chegar à `PROD`, use o filtro do 3.2 a.
-- **`scripts/backup/backup.sql`, papéis no export:** o `f100.sql` leva os usuários de cada papel (`p_users` do `create_acl_role`). O `instalar-app.sql` já os retira no UAT e no PRD; tirar `-expaclassignments` do export evita que o arquivo os leve (§5, item 4).
+- **`scripts/backup/backup.sql`, opcional:** acrescentar `dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'COLLATION_CLAUSE', 'NEVER');` logo depois da linha do `'DEFAULT'`, para o DDL voltar a sair sem `COLLATE` e rodar também num Oracle local. Não é necessário para o DEV, o UAT e o PRD (todos Autonomous Database). A opção foi aceita num teste local; o efeito no ADB só se confirma no próximo backup.
 - **`PKG_CHAT_UI` e `CX_PRESENCA_PING`** não estão em nenhum módulo do repositório (só no backup). Quem fez o chat precisa versionar o código em `modulos/` com guia.
+- **`PKG_PERFIS_ACESSO.atribuir_papeis` (página 14) usa `p_role_static_id`.** No UAT essa forma deu `ORA-01403` (21/11/2026). Testar o cadastro de usuário da página 14 no UAT; se falhar, trocar no módulo `perfis-acesso` para `p_role_id`, lendo o ID em `apex_appl_acl_roles`.
 
 ## Voltar atrás
 
@@ -469,3 +501,9 @@ Sem o GitHub Actions, dá para fazer a mesma coisa no SQLcl com o `instalar-app.
 | 21/11/2026 | **§3.5 concluído e §3.7 conferido pelo agente** no navegador, com a sessão do time (conta `TESTE.RH`, criada pelo time no workspace `CORLIXHUB` do banco 2; papéis vindos do PRD) | Host `gfe80286062641f-corlixhubdev…`. Home: saudação, atalhos, comunicados com imagem (2400 px) e 22 fotos diferentes carregadas, nenhuma quebrada. Holerite: abre Outubro 2026 com os valores ocultos. Colaboradores: **309 colaboradores**, igual ao PRD, com as fotos (15 na tela, nenhuma quebrada). Barra de desenvolvedor do APEX presente (app em `Run and Develop`). Nada foi gravado. **DEV pronto.** Próximo passo: §4 |
 | 21/11/2026 | **§4 concluído:** time avisado de que o Builder passa a ser o do DEV (`…corlixhubdev…/ords/apex`, workspace `CORLIXHUB`) | Itens 2 a 5 dispensados pelo congelamento do §0. Próximo passo: §5 (Jenkins), feito pelo time em `scripts/backup/` |
 | 21/11/2026 | Causa do `INSERT … @ KU$` no DDL achada | Reproduzido num Oracle 26ai Free local: só acontece pelo SQLcl, que deixa opções próprias do `dbms_metadata` ligadas na sessão. Correção para o time no `backup.sql` (`'DEFAULT'` antes das demais opções) testada: DDL limpo e recriado sem erro. Ver "Pendências do time" |
+| 21/11/2026 | **§5 concluído:** PRs #200 (`fix/backup-dev` → `DEV`) e #201 (`DEV` → `PROD`) mesclados pelo time; build com `AMBIENTE = TODOS` | Commit `1ce429c` ("Backup - Corlix Hub - 21/11/2026 as 00:32") na `DEV`, **vindo do DEV**: `p_default_workspace_id=>9532154002622806` (workspace do banco 2) e sem `buildStatus: runOnly`. `03-tabelas.sql`: **0** `KU$`, **0** `DECLARE`, 51 `CREATE TABLE`. `f100.sql`: **0** `p_users=>`. Teste local do arquivo novo: com as cláusulas `COLLATE` retiradas (o Oracle Free local não as aceita), as 51 tabelas foram criadas pelo SQLcl sem o filtro `awk`. §3.2 a atualizado: filtro só para backups antigos. Diferenças esperadas no backup: `PKG_ARQUIVOS` com a versão do §3.2 c e `default.json` sem `runOnly`. Os builds agendados de 20 e 21/11 não geraram commit (Jenkins local desligado?): a conferir pelo time. Próximo passo: §6 (UAT) |
+| 21/11/2026 | §6.1 iniciado: workspace `CORLIXHUB_UAT` criado no banco 2 | O schema saiu **`WKSP_WKSPCORLIXHUBUAT`**, e não `WKSP_CORLIXHUB_UAT` como o guia previa (o `alter user` com o nome previsto deu `ORA-01918`). Guia, doc 12 e `instalar-app.sql` atualizados com o nome real. Próximo passo: `alter user`/`grant` e carga |
+| 21/11/2026 | **§6.1: carga do schema do UAT feita pelo time** (`WKSP_WKSPCORLIXHUBUAT`, mesmo backup do congelamento e DDL do backup `1ce429c`) | 3.2 a com o `03-tabelas.sql` **direto, sem o filtro `awk`**: **51 tabelas** (primeiro teste do DDL corrigido num Autonomous Database, com as cláusulas `COLLATE`). 3.2 b: só `APP_LOG` e `HTMLDB_PLAN_TABLE` diferentes do `_contagens.csv`, vazias de propósito. 3.2 c: **nenhum objeto inválido**. Dados de UAT: cópia, conforme a decisão de 17/11/2026 (time perguntou se o UAT deveria ficar vazio; explicado que a app depende de dados e que a cópia vale enquanto o PRD só tiver dados de teste). Próximo passo: 3.3 e instalação da app 200 |
+| 21/11/2026 | `instalar-app.sql` recusou a primeira instalação do UAT (`ORA-20000: build_status deve ser RUN_ONLY ou RUN_AND_BUILD`) | A sessão vinha do `set define off` do 3.2 c, e o SQLcl não trocou `&1`..`&4`. Nada foi importado. Corrigido com `set define on` no início do script; testado no SQLcl com `set define off` antes: parâmetros trocados. Jobs do UAT criados |
+| 21/11/2026 | **§6.1: app 200 instalada no UAT** com `instalar-app.sql CORLIXHUB_UAT WKSP_WKSPCORLIXHUBUAT 200 RUN_ONLY` (já com o `set define on`) | `PAPEIS_DEPOIS` = **0** (o `f100.sql` sem `p_users` não trouxe papéis do DEV), nenhum objeto inválido, app **200**, alias `CORLIXHUB`, Build Status **Run Only**. Próximo passo: prefixo `uat/`, Web Credential do workspace `CORLIXHUB_UAT`, conta `TESTE.RH` com papéis e fotos |
+| 21/11/2026 | §6.1: conta `TESTE.RH` criada no workspace `CORLIXHUB_UAT` e papéis atribuídos na app 200 pelo time (corrigido depois da conferência) | A primeira tentativa dos papéis deu `ORA-01403` (`WWV_FLOW_ACL_API`): a conta ainda não existia no workspace do UAT, só o administrador `WKSP_CORLIXHUB`. Depois de criar a conta, o `add_user_role` com `p_role_static_id` continuou com `ORA-01403`, com e sem `apex_session.create_session`, embora conta e papéis existissem. Com **`p_role_id`** (ID lido de `apex_appl_acl_roles`) gravou: **4 papéis** (`admin-rh`, `colaborador`, `gestor`, `publicador-de-conteúdo`), conferidos em `apex_appl_acl_user_roles`. `instalar-app.sql` passou a usar `p_role_id` no passo 3 (não testado numa instalação com papéis a devolver). A conta ficou como *Workspace Administrator* (o guia pede *User*). Próximo passo: prefixo `uat/`, Web Credential e fotos |
